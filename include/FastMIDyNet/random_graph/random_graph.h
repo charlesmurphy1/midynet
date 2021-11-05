@@ -1,0 +1,6 @@
+#ifndef FAST_MIDYNET_RANDOM_GRAPH_H
+#define FAST_MIDYNET_RANDOM_GRAPH_H
+
+
+
+#endif

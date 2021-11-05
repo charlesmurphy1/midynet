@@ -1,0 +1,3 @@
+[submodule "base_graph"]
+	path = base_graph
+	url = https://github.com/antoineallard/base_graph.git
