@@ -3,6 +3,7 @@
 
 #include "FastMIDyNet/random_variable/random_variable.hpp"
 
+
 namespace FastMIDyNet{
 
 class UniformRandomVariable: public RandomVariable<double, double, double>{

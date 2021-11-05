@@ -1,7 +1,8 @@
-#ifndef FAST_MIDYNET_POISSON_RANDOM_VARIABLE_H
-#define FAST_MIDYNET_POISSON_RANDOM_VARIABLE_H
+#ifndef FAST_MIDYNET_CONSTANT_RANDOM_VARIABLE_HPP
+#define FAST_MIDYNET_CONSTANT_RANDOM_VARIABLE_HPP
 
 #include "FastMIDyNet/random_variable/random_variable.hpp"
+
 
 namespace FastMIDyNet{
 
