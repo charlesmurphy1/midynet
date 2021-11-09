@@ -50,11 +50,13 @@ Le Zoo se déroulera du dimanche 14 novembre au samedi 20 novembre. L'objectif s
     a. `QNaryDynamics`: classe virtuelle qui représente une dynamique à _q_ états.
     b. `BinaryDynamics`: classe virtuelle qui représente une dynamique à 2 états, qui hérite de `QNaryDynamics` (possiblement pas nécessaire).
     c. Autres dynamiques.
-7. Faire le _binding_ entre le code C++ et l'interface en Python.
-8. Utiliser l'interface de `netrd` dans le module Python pour nous permettre d'utiliser les différentes mesures de reconstruction.
-9. Développer la preuve pour la conjecture où, dans la limite quand T -> inf et N != inf, S(G|X) -> 1. Trouver un cas où ceci n'est pas vrai (vraisemblance non-unimodale?).
-10. Explorer les limites T -> inf et N -> inf.
-11. Explorer les régimes critiques (autour des transitions de phase).
+7. Implémenter les générateurs de variables aléatoires nécessaires (voir l'[organigramme](./code-organization.svg)).
+7. Écrire les _tests unitaires_ pour chaque classe avec `GTEST`.
+8. Faire le _binding_ entre le code C++ et l'interface en Python.
+9. Utiliser l'interface de `netrd` dans le module Python pour nous permettre d'utiliser les différentes mesures de reconstruction.
+10. Développer la preuve pour la conjecture où, dans la limite quand T -> inf et N != inf, S(G|X) -> 1. Trouver un cas où ceci n'est pas vrai (vraisemblance non-unimodale?).
+11. Explorer les limites T -> inf et N -> inf.
+12. Explorer les régimes critiques (autour des transitions de phase).
 
 
 ## Autres idées
