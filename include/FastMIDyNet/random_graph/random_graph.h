@@ -10,6 +10,7 @@ namespace FastMIDyNet{
 
 class RandomGraph{
 
+
     public:
         explicit RandomGraph(GraphPrior& prior, EdgeProposer& edge_proposer, PriorProposer& prior_proposer, RNGType& rng):
             m_prior(prior),
