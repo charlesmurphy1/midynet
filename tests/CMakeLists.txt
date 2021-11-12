@@ -35,4 +35,15 @@ if (NOT ${GTEST_FOUND})
     endif()
 endif ()
 
+file(GLOB_RECURSE DYNAMICS_TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/test_dynamics/*.cpp)
 
+add_executable(test_dynamics ${DYNAMICS_TEST_SRC})
+
+set(allGTests
+    test_dynamics)
+
+
+foreach(UnitTest ${allGTests})
+    target_link_libraries(${UnitTest} gtest gtest_main ${BASEGRAPH} midynet)
+    add_test(${UnitTest} ${UnitTest})
+endforeach()
