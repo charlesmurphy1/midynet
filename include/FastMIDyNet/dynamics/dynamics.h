@@ -12,16 +12,16 @@ namespace FastMIDyNet{
 class Dynamics{
 
     public:
-        explicit Dynamics(RandomGraph& random_graph, int num_states, RNGType& rng):
+        explicit Dynamics(RandomGraph& random_graph, int num_states, RNG& rng):
             m_random_graph(random_graph),
             m_rng(rng) { }
 
-        const StateType& getState() { return m_state; }
-        const StateType& getPastStates() { return m_past_states; }
-        const StateType& getFutureStates() { return m_future_states; }
-        void setState(StateType& state) {m_state = state; }
-        const GraphType& getGraph() { return m_random_graph.getState(); }
-        void setGraph(GraphType& graph) {
+        const State& getState() {return m_state; }
+        const State& getPastStates() { return m_past_states; }
+        const State& getFutureStates() { return m_future_states; }
+        void setState(State& state) {m_state = state; }
+        const MultiGraph& getGraph() { return m_random_graph.getState(); }
+        void setGraph(MultiGraph& graph) {
             m_random_graph.setState(graph);
             for (auto t = 0 ; t < m_past_states.size() ; t++){
                 m_neighbors_states[t] = getNeighborsStates(m_past_states[t]);
@@ -29,13 +29,13 @@ class Dynamics{
         }
         const int getNumStates() { return m_num_states; }
 
-        const StateType& sampleState(int num_steps, const StateType& initial_state);
-        const StateType& sampleState(int num_steps) { return sampleState(num_steps, getRandomState()); }
-        const StateType& getRandomState() const;
-        const NeighborsStateType& getNeighborsStates(const StateType& state);
-        const NeighborsStateType& getVertexNeighborsState(const size_t& idx);
-        void updateNeighborStateInPlace(size_t vertex_idx, int prev_vertex_state, int new_vertex_state, NeighborsStateType& neighbor_state);
-        void updateNeighborStateMapFromEdgeMove(Edge, int, map<size_t, NeighborsStateType>&, map<size_t, NeighborsStateType>&);
+        const State& sampleState(int num_steps, const State& initial_state);
+        const State& sampleState(int num_steps) { return sampleState(num_steps, getRandomState()); }
+        const State& getRandomState() const;
+        const NeighborsState& getNeighborsStates(const State& state);
+        const NeighborsState& getVertexNeighborsState(const size_t& idx);
+        void updateNeighborStateInPlace(size_t vertex_idx, int prev_vertex_state, int new_vertex_state, NeighborsState& neighbor_state);
+        void updateNeighborStateMapFromEdgeMove(Edge, int, map<size_t, NeighborsState>&, map<size_t, NeighborsState>&);
 
         void syncUpdateState();
         void asyncUpdateState(int num_updates=1);
@@ -52,12 +52,12 @@ class Dynamics{
 
     protected:
         int m_num_states;
-        StateType m_state;
-        std::vector<StateType> m_past_states;
-        std::vector<StateType> m_future_states;
-        std::vector<NeighborsStateType> m_neighbors_states;
+        State m_state;
+        std::vector<State> m_past_states;
+        std::vector<State> m_future_states;
+        std::vector<NeighborsState> m_neighbors_states;
         RandomGraph& m_random_graph;
-        RNGType m_rng;
+        RNG m_rng;
 
 };
 

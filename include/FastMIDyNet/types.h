@@ -9,17 +9,32 @@
 
 namespace FastMIDyNet{
 
-typedef std::mt19937_64 RNGType;
-typedef std::vector<int> StateType;
-typedef std:::vector<std::vector<int>> NeighborsStateType;
-typedef BaseGraph::UndirectedMultigraph GraphType;
-typedef std::vector<Edge> EdgeMoveType;
+// Fast FastMIDyNet types
+typedef std::mt19937_64 RNG;
+typedef std::vector<int> State;
+typedef std::vector<State> StateSequence;
+typedef std::vector<std::vector<int>> NeighborsState;
+typedef std::vector<NeighborsState> NeighborsStateSequence;
+typedef BaseGraph::UndirectedMultigraph MultiGraph;
+typedef size_t BlockIndex;
+typedef std::vector<std::tuple<BaseGraph::VertexIndex, BlockIndex, BlockIndex>> BlockMove;
+typedef std::vector<BaseGraph::Edge> EdgeMove;
 
-struct GraphMoveType{
-    EdgeMoveType edges_removed;
-    EdgeMoveType edges_added;
+
+struct Move{
     double acceptation = 0.;
-}
+};
+
+struct GraphMove: public Move{
+    EdgeMove edges_removed;
+    EdgeMove edges_added;
+};
+
+struct PriorMove: public Move{ };
+
+struct BlockPriorMove: public PriorMove{
+    BlockMove vertex_moved;
+};
 
 } // namespace FastMIDyNet
 

@@ -5,8 +5,8 @@
 #include <map>
 
 #include "FastMIDyNet/dynamics/dynamics.h"
-#include "FastMIDyNet/dynamics/generators.h"
-#include "FastMIDyNet/dynamics/types.h"
+#include "FastMIDyNet/generators.h"
+#include "FastMIDyNet/types.h"
 
 using namespace std;
 
