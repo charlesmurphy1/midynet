@@ -9,7 +9,8 @@
 
 namespace FastMIDyNet{
 
-    int generateCategorical(std::vector<double> probs);
+
+int generateCategorical(std::vector<double> probs);
 
 } // namespace FastMIDyNet
 

@@ -1,13 +1,18 @@
 #ifndef FAST_MIDYNET_DYNAMICS_H
 #define FAST_MIDYNET_DYNAMICS_H
 
+
 #include <random>
 #include <vector>
+#include <map>
 
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/types.h"
+#include "BaseGraph/types.h"
+
 
 namespace FastMIDyNet{
+
 
 class Dynamics{
 
@@ -16,9 +21,9 @@ class Dynamics{
             m_random_graph(random_graph),
             m_rng(rng) { }
 
-        const State& getState() {return m_state; }
-        const State& getPastStates() { return m_past_states; }
-        const State& getFutureStates() { return m_future_states; }
+        const State& getState() { return m_state; }
+        const StateSequence& getPastStates() { return m_past_states; }
+        const StateSequence& getFutureStates() { return m_future_states; }
         void setState(State& state) {m_state = state; }
         const MultiGraph& getGraph() { return m_random_graph.getState(); }
         void setGraph(MultiGraph& graph) {
@@ -35,7 +40,7 @@ class Dynamics{
         const NeighborsState& getNeighborsStates(const State& state);
         const NeighborsState& getVertexNeighborsState(const size_t& idx);
         void updateNeighborStateInPlace(size_t vertex_idx, int prev_vertex_state, int new_vertex_state, NeighborsState& neighbor_state);
-        void updateNeighborStateMapFromEdgeMove(Edge, int, map<size_t, NeighborsState>&, map<size_t, NeighborsState>&);
+        void updateNeighborStateMapFromEdgeMove(BaseGraph::Edge, int, std::map<size_t, NeighborsState>&, std::map<size_t, NeighborsState>&);
 
         void syncUpdateState();
         void asyncUpdateState(int num_updates=1);
@@ -43,7 +48,7 @@ class Dynamics{
         const double getLogLikelihood() const;
         const double getLogPrior() const { return m_random_graph.getLogJoint(); }
         const double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
-        virtual const double getTransitionProb(int prev_vertex_state, int next_vertex_state, std::vector<int> neighborhood_state) = 0  const;
+        virtual const double getTransitionProb(int prev_vertex_state, int next_vertex_state, std::vector<int> neighborhood_state) const = 0;
         const std::vector<double> getTransitionProbs(int prev_vertex_state, std::vector<int> neighborhood_state) const;
 
         const double getLogJointRatio(const GraphMove& move) const;
@@ -53,12 +58,11 @@ class Dynamics{
     protected:
         int m_num_states;
         State m_state;
-        std::vector<State> m_past_states;
-        std::vector<State> m_future_states;
-        std::vector<NeighborsState> m_neighbors_states;
+        StateSequence m_past_states;
+        StateSequence m_future_states;
         RandomGraph& m_random_graph;
+        NeighborsStateSequence m_neighbors_states;
         RNG m_rng;
-
 };
 
 } // namespace FastMIDyNet

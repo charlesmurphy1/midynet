@@ -1,5 +1,5 @@
 file(GLOB_RECURSE MIDYNET_SRC "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-add_library(midynet ${MYDYNET_SRC})
+add_library(midynet ${MIDYNET_SRC})
 
 set_target_properties(midynet PROPERTIES
     LINKER_LANGUAGE CXX

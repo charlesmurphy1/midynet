@@ -1,6 +1,7 @@
 #ifndef FAST_MIDYNET_TYPES
 #define FAST_MIDYNET_TYPES
 
+
 #include <random>
 #include <vector>
 #include "BaseGraph/undirected_multigraph.h"
@@ -9,7 +10,7 @@
 
 namespace FastMIDyNet{
 
-// Fast FastMIDyNet types
+
 typedef std::mt19937_64 RNG;
 typedef std::vector<int> State;
 typedef std::vector<State> StateSequence;

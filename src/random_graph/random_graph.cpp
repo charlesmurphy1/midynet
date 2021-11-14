@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <map>
 
-#include "FastMIDyNet/dynamics/random_graph.h"
-#include "FastMIDyNet/dynamics/types.h"
+#include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/types.h"
 
 using namespace std;
 
