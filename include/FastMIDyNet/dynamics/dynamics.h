@@ -42,10 +42,10 @@ class Dynamics{
         void syncUpdateState();
         void asyncUpdateState(int num_updates);
 
-        const double getLogLikelihood() const;
-        const double getLogPrior() const { return m_random_graph.getLogJoint(); }
-        const double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
-        virtual const double getTransitionProb(
+        double getLogLikelihood() const;
+        double getLogPrior() const { return m_random_graph.getLogJoint(); }
+        double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
+        virtual double getTransitionProb(
             VertexState prev_vertex_state,
             VertexState next_vertex_state,
             VertexNeighborhoodState neighborhood_state
@@ -55,7 +55,7 @@ class Dynamics{
             VertexNeighborhoodState neighborhood_state
         ) const;
 
-        const double getLogJointRatio(const GraphMove& move) const;
+        double getLogJointRatio(const GraphMove& move) const;
         void applyMove(const GraphMove& move);
         void doMetropolisHastingsStep(double beta = 1., double sample_graph_prior = 0.);
 

@@ -108,7 +108,7 @@ void Dynamics::asyncUpdateState(int num_updates){
     }
 };
 
-const double Dynamics::getLogLikelihood() const {
+double Dynamics::getLogLikelihood() const {
     double log_likelihood = 0;
     vector<int> neighbor_state(getNumStates(), 0);
     int neighbor_idx, edge_multiplicity;
@@ -156,7 +156,7 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(Edge edge, int direction, map<
     }
 };
 
-const double Dynamics::getLogJointRatio(const GraphMove& move) const{
+double Dynamics::getLogJointRatio(const GraphMove& move) const{
     int num_steps = m_past_state_sequence.size();
     double log_likelihood_ratio = 0;
     set<size_t> vertices_affected;

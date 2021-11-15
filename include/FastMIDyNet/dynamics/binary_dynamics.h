@@ -18,7 +18,7 @@ class BinaryDynamics: public Dynamics{
     public:
         explicit BinaryDynamics(RandomGraph& random_graph, RNG& rng):
             Dynamics(random_graph, 2, rng) { }
-        const double getTransitionProb(
+        double getTransitionProb(
             VertexState prev_vertex_state,
             VertexState next_vertex_state,
             VertexNeighborhoodState neighborhood_state
@@ -36,8 +36,8 @@ class BinaryDynamics: public Dynamics{
             }
         };
 
-        virtual const double getActivationProb(VertexNeighborhoodState neighbooh_state) const = 0;
-        virtual const double getDeactivationProb(VertexNeighborhoodState neighbooh_state) const = 0;
+        virtual double getActivationProb(const VertexNeighborhoodState& neighbooh_state) const = 0;
+        virtual double getDeactivationProb(const VertexNeighborhoodState& neighbooh_state) const = 0;
 };
 
 } // namespace FastMIDyNet

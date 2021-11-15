@@ -35,7 +35,7 @@ if (NOT ${GTEST_FOUND})
     endif()
 endif ()
 
-file(GLOB_RECURSE DYNAMICS_TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/test_dynamics/*.cpp)
+file(GLOB_RECURSE DYNAMICS_TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/test_dynamics/test_*.cpp)
 
 add_executable(test_dynamics ${DYNAMICS_TEST_SRC})
 

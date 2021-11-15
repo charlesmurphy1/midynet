@@ -24,25 +24,27 @@ class DummyRandomGraph: public RandomGraph{
         DummyRandomGraph(size_t size, RNG& rng):
         m_edge_proposer(), RandomGraph(size, m_edge_proposer, rng) {} ;
 
-    void sampleState() { };
-    double getLogLikelihood(const MultiGraph&) const { return 0; };
-    double getLogJointRatio(const GraphMove& move) const { return 0; };
+        void sampleState() { };
+        double getLogLikelihood(const MultiGraph&) const { return 0; };
+        double getLogJointRatio(const GraphMove& move) const { return 0; };
 
     private:
         DummyEdgeProposer m_edge_proposer;
 };
 
 class DummyDynamics: public Dynamics{
-    const double getTransitionProb(
-        VertexState prev_vertex_state,
-        VertexState next_vertex_state,
-        VertexNeighborhoodState neighborhood_state
-    ) const { return 0.; };
+    public:
+        DummyDynamics(RandomGraph& random_graph, int num_states, RNG& rng):
+            Dynamics(random_graph, num_states, rng) {}
+
+        double getTransitionProb(
+            VertexState prev_vertex_state,
+            VertexState next_vertex_state,
+            VertexNeighborhoodState neighborhood_state
+        ) const { return 0.; };
 };
 
-}
-
-FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
+static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
     //     /*
     //      * (0)      (1)
     //      * ||| \   / | \
@@ -68,23 +70,24 @@ FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
 
 }
 
+template <size_t StateNumber>
 class TestDynamics: public::testing::Test{
     public:
         FastMIDyNet::RNG rng;
-        size_t N = 7;
-        size_t num_states = 3;
-        FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(N, rng);
-        // FastMIDyNet::DummyDynamics dynamics(graph, num_states, rng);
-        // void SetUp() {
-        //     auto graph = getUndirectedHouseMultiGraph();
-        //     FastMIDyNet::State state = {0, 0, 0, 1, 1, 1, 2};
-        //     dynamics.setState(state);
-        //     dynamics.setGraph(graph);
-        // }
+        FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7, rng);
+        FastMIDyNet::DummyDynamics dynamics = FastMIDyNet::DummyDynamics(graph, StateNumber, rng);
+        void SetUp() {
+            auto graph = getUndirectedHouseMultiGraph();
+            FastMIDyNet::State state = {0, 0, 0, 1, 1, 1, 2};
+            dynamics.setState(state);
+            dynamics.setGraph(graph);
+        }
 };
 
+using TestBinaryDynamics=TestDynamics<2>;
 
 
+} // namespace FastMIDyNet
 
 
 #endif

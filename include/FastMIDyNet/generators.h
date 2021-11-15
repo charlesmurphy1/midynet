@@ -11,7 +11,7 @@
 namespace FastMIDyNet{
 
 
-int generateCategorical(std::vector<double> probs, RNG rng);
+int generateCategorical(const std::vector<double>& probs, RNG& rng);
 
 } // namespace FastMIDyNet
 
