@@ -23,16 +23,21 @@ class BinaryDynamics: public Dynamics{
             VertexState next_vertex_state,
             VertexNeighborhoodState neighborhood_state
         ) const {
+            double p;
             if ( prev_vertex_state == 0 ) {
-                return getActivationProb(next_vertex_state, neighborhood_state);
+                p = getActivationProb(neighborhood_state);
+                if (next_vertex_state == 0) return 1 - p;
+                else return p;
             }
             else {
-                return getDeactivationProb(next_vertex_state, neighborhood_state);
+                p = getDeactivationProb(neighborhood_state);
+                if (next_vertex_state == 1) return 1 - p;
+                else return p;
             }
         };
 
-        virtual const double getActivationProb(VertexState next_vertex_state, VertexNeighborhoodState neighbooh_state) const = 0;
-        virtual const double getDeactivationProb(VertexState next_vertex_state, VertexNeighborhoodState neighbooh_state) const = 0;
+        virtual const double getActivationProb(VertexNeighborhoodState neighbooh_state) const = 0;
+        virtual const double getDeactivationProb(VertexNeighborhoodState neighbooh_state) const = 0;
 };
 
 } // namespace FastMIDyNet
