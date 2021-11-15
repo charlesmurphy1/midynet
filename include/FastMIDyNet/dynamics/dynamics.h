@@ -35,7 +35,7 @@ class Dynamics{
         const int getNumStates() const { return m_num_states; }
 
         void sampleState(int num_steps, const State& initial_state, bool async);
-        const State getRandomState() const;
+        const State getRandomState();
         const NeighborsState getNeighborsStates(const State& state) const;
         const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const;
 
