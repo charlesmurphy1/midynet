@@ -2,6 +2,7 @@ __pycache__/
 *.egg-info/
 .ccls-cache/
 build/
+cache/
 
 compile_commands.json
 
