@@ -14,7 +14,7 @@ namespace FastMIDyNet{
 
 class RandomGraph{
     public:
-        explicit RandomGraph(size_t size, EdgeProposer& edge_proposer, RNG rng):
+        explicit RandomGraph(size_t size, EdgeProposer& edge_proposer, RNG& rng):
             m_size(size),
             m_state(size),
             m_edge_proposer(edge_proposer),
@@ -34,6 +34,8 @@ class RandomGraph{
         virtual const double getLogJointRatio(const GraphMove& move) = 0;
         void applyMove(const GraphMove& move);
         void enumerateAllGraphs() const;
+        void doMetropolisHastingsStep(double beta=1.0) { };
+
 
     protected:
         size_t m_size;
