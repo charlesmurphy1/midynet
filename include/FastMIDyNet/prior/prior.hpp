@@ -11,7 +11,7 @@ namespace FastMIDyNet{
 template <typename T>
 class Prior{
     public:
-        Prior(const Prior& prior, RNG rng) : m_prior(prior), m_rng(rng) {};
+        Prior(const Prior& prior, RNG& rng) : m_prior(prior), m_rng(rng) {};
         const T& getState() { return m_state; }
         void setState(const T& state) { m_state = state; }
 

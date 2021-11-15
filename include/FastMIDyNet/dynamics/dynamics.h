@@ -16,7 +16,7 @@ namespace FastMIDyNet{
 class Dynamics{
 
     public:
-        explicit Dynamics(RandomGraph& random_graph, int num_states, RNG rng):
+        explicit Dynamics(RandomGraph& random_graph, int num_states, RNG& rng):
             m_random_graph(random_graph),
             m_rng(rng) { }
 
