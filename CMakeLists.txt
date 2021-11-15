@@ -7,12 +7,13 @@ option(BUILD_TESTS "build gtest unit tests" OFF)
 
 include_directories(include)
 include_directories(base_graph/include)
-set(BASEGRAPH ${CURRENT_CMAKE_SRC_DIRECTORY}/base_graph/build/libBaseGraph.a)
+set(BASEGRAPH "${CMAKE_CURRENT_SOURCE_DIR}/base_graph/build/libBaseGraph.a")
+message("${CMAKE_CURRENT_SOURCE_DIR}")
 
 add_subdirectory(src)
 
 
-# if (BUILD_TESTS)
-#     enable_testing()
-#     add_subdirectory(tests)
-# endif()
+if (BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

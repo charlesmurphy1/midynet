@@ -25,13 +25,14 @@ class RandomGraph{
         const int getSize() { return m_size; }
         void copyState(const MultiGraph& state);
 
-        virtual const double sampleState() = 0;
-        virtual const double getLogLikelihood() = 0;
-        const double getLogPrior() { return 0.; }
-        const double getLogJoint() { return getLogLikelihood() + getLogPrior(); }
+        virtual void sampleState() = 0;
+        virtual double getLogLikelihood(const MultiGraph& graph) const = 0;
+        double getLogLikelihood() const { return getLogLikelihood(m_state); };
+        double getLogPrior() const { return 0.; }
+        double getLogJoint() const { return getLogLikelihood() + getLogPrior(); }
 
-        const GraphMove& proposeMove() { return m_edge_proposer(); }
-        virtual const double getLogJointRatio(const GraphMove& move) = 0;
+        GraphMove proposeMove() { return m_edge_proposer(); }
+        virtual double getLogJointRatio (const GraphMove& move) const = 0;
         void applyMove(const GraphMove& move);
         void enumerateAllGraphs() const;
         void doMetropolisHastingsStep(double beta=1.0) { };

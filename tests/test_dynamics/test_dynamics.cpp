@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "FastMIDyNet/dynamics/dynamics.h"
+#include "fixtures.hpp"
 
 
-TEST(DynamicsBaseClass, testing_test_environment) {
-    int x = 1;
+TEST_F(TestDynamics, getState_baseClassDynamics_returnState) {
+    
 }
