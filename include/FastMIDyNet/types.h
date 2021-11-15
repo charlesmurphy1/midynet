@@ -13,6 +13,9 @@ namespace FastMIDyNet{
 
 typedef std::mt19937_64 RNG;
 
+template<typename T>
+using Matrix=std::vector<std::vector<T>>;
+
 typedef int VertexState;
 typedef std::vector<VertexState> State;
 typedef std::vector<VertexState> VertexStateSequence;
