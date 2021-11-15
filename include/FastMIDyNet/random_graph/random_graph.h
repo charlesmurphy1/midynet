@@ -1,7 +1,7 @@
 #ifndef FAST_MIDYNET_RANDOM_GRAPH_H
 #define FAST_MIDYNET_RANDOM_GRAPH_H
 
-#include <random>
+// #include <random>
 #include <vector>
 
 #include "FastMIDyNet/types.h"
@@ -14,14 +14,14 @@ namespace FastMIDyNet{
 
 class RandomGraph{
     public:
-        explicit RandomGraph(size_t size, EdgeProposer& edge_proposer, RNG& rng):
+        explicit RandomGraph(size_t size, EdgeProposer& edge_proposer, RNG rng):
             m_size(size),
             m_state(size),
             m_edge_proposer(edge_proposer),
             m_rng(rng) { }
 
         const MultiGraph& getState() { return m_state; }
-        void setState(const MultiGraph& state) { m_state = state; }
+        // void setState(const MultiGraph& state) { m_state = state; }
         const int getSize() { return m_size; }
         void copyState(const MultiGraph& state);
 

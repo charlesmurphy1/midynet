@@ -2,7 +2,6 @@
 #define FAST_MIDYNET_DYNAMICS_H
 
 
-#include <random>
 #include <vector>
 #include <map>
 
@@ -17,7 +16,7 @@ namespace FastMIDyNet{
 class Dynamics{
 
     public:
-        explicit Dynamics(RandomGraph& random_graph, int num_states, RNG& rng):
+        explicit Dynamics(RandomGraph& random_graph, int num_states, RNG rng):
             m_random_graph(random_graph),
             m_rng(rng) { }
 
@@ -27,7 +26,7 @@ class Dynamics{
         void setState(State& state) {m_state = state; }
         const MultiGraph& getGraph() const { return m_random_graph.getState(); }
         void setGraph(MultiGraph& graph) {
-            m_random_graph.setState(graph);
+            // m_random_graph.setState(graph);
             for (auto t = 0 ; t < m_past_state_sequence.size() ; t++){
                 m_neighbors_state_sequence[t] = getNeighborsStates(m_past_state_sequence[t]);
             }
@@ -36,9 +35,9 @@ class Dynamics{
         const int getNumStates() const { return m_num_states; }
 
         void sampleState(int num_steps, const State& initial_state, bool async);
-        const State& getRandomState() const;
-        const NeighborsState& getNeighborsStates(const State& state) const;
-        const VertexNeighborhoodStateSequence& getVertexNeighborsState(const size_t& idx) const;
+        const State getRandomState() const;
+        const NeighborsState getNeighborsStates(const State& state) const;
+        const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const;
 
         void syncUpdateState();
         void asyncUpdateState(int num_updates);
