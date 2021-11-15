@@ -7,8 +7,8 @@
 
 using namespace std;
 namespace FastMIDyNet {
-    int generateCategorical(vector<double> probs, RNGType rng){
-        discrete_distribution dist(probs.begin(), probs.end());
-        return dist(rng);
-    }
+int generateCategorical(vector<double> probs, RNG rng){
+    discrete_distribution<double> dist(probs.begin(), probs.end());
+    return dist(rng);
+}
 }
