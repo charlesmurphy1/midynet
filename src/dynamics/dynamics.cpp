@@ -109,7 +109,6 @@ void Dynamics::asyncUpdateState(int num_updates){
 };
 
 const double Dynamics::getLogLikelihood() const {
-    // setGraph(graph);
     double log_likelihood = 0;
     vector<int> neighbor_state(getNumStates(), 0);
     int neighbor_idx, edge_multiplicity;

@@ -9,7 +9,7 @@
 namespace FastMIDyNet{
 
 
-class EdgeProposer: Proposer<GraphMove>{
+class EdgeProposer: public Proposer<GraphMove>{
     public:
         const GraphMove& operator()();
 };
