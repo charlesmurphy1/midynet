@@ -29,14 +29,14 @@ namespace FastMIDyNet {
         }
     };
 
-    const State Dynamics::getRandomState() const{
+    const State Dynamics::getRandomState() {
         size_t N = m_random_graph.getSize();
         State rnd_state(N);
-        // uniform_int_distribution<int> dist(0, m_num_states - 1);
+        uniform_int_distribution<int> dist(0, m_num_states - 1);
 
-        // for (size_t i = 0 ; i < N ; i ++){
-        //     rnd_state[i] = dist(m_rng);
-        // }
+        for (size_t i = 0 ; i < N ; i ++){
+            rnd_state[i] = dist(m_rng);
+        }
 
         return rnd_state;
     };
@@ -97,15 +97,15 @@ namespace FastMIDyNet {
         State current_state(m_state);
         NeighborsState neighbor_state = getNeighborsStates(m_state);
         vector<double> trans_probs(m_num_states);
-        // uniform_int_distribution<VertexIndex> idx_generator(0, N-1);
-        //
-        // for (auto i=0; i < num_updates; i++){
-        //     VertexIndex idx = idx_generator(m_rng);
-        //     trans_probs = getTransitionProbs(current_state[idx], neighbor_state[idx]);
-        //     new_vertex_state = generateCategorical(trans_probs, m_rng);
-        //     updateNeighborStateInPlace(idx, current_state[idx], new_vertex_state, neighbor_state);
-        //     current_state[idx] = new_vertex_state;
-        // }
+        uniform_int_distribution<VertexIndex> idx_generator(0, N-1);
+
+        for (auto i=0; i < num_updates; i++){
+            VertexIndex idx = idx_generator(m_rng);
+            trans_probs = getTransitionProbs(current_state[idx], neighbor_state[idx]);
+            new_vertex_state = generateCategorical(trans_probs, m_rng);
+            updateNeighborStateInPlace(idx, current_state[idx], new_vertex_state, neighbor_state);
+            current_state[idx] = new_vertex_state;
+        }
     };
 
     const double Dynamics::getLogLikelihood() const {
