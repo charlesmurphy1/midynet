@@ -18,6 +18,7 @@ class Dynamics{
     public:
         explicit Dynamics(RandomGraph& random_graph, int num_states, RNG& rng):
             m_random_graph(random_graph),
+            m_num_states(num_states),
             m_rng(rng) { }
 
         const State& getState() const { return m_state; }
@@ -28,15 +29,16 @@ class Dynamics{
         void setGraph(MultiGraph& graph) {
             m_random_graph.setState(graph);
             for (auto t = 0 ; t < m_past_state_sequence.size() ; t++){
-                m_neighbors_state_sequence[t] = getNeighborsStates(m_past_state_sequence[t]);
+                m_neighbors_state_sequence[t] = getNeighborsState(m_past_state_sequence[t]);
             }
         }
         const int getSize() const { return m_random_graph.getSize(); }
         const int getNumStates() const { return m_num_states; }
 
-        void sampleState(int num_steps, const State& initial_state, bool async);
+        void sampleState(int num_steps, const State& initial_state, bool async=true);
+        void sampleState(int num_steps, bool async=true){ return sampleState(num_steps, getRandomState(), async); }
         const State getRandomState();
-        const NeighborsState getNeighborsStates(const State& state) const;
+        const NeighborsState getNeighborsState(const State& state) const;
         const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const;
 
         void syncUpdateState();

@@ -25,7 +25,7 @@ void Dynamics::sampleState(int num_steps, const State& x0, bool async){
         if (async) { asyncUpdateState(getSize()); }
         else { syncUpdateState(); }
         m_future_state_sequence[t] = state;
-        m_neighbors_state_sequence[t] = getNeighborsStates(state);
+        m_neighbors_state_sequence[t] = getNeighborsState(state);
     }
 };
 
@@ -41,7 +41,7 @@ const State Dynamics::getRandomState() {
     return rnd_state;
 };
 
-const NeighborsState Dynamics::getNeighborsStates(const State& state) const {
+const NeighborsState Dynamics::getNeighborsState(const State& state) const {
     size_t N = m_random_graph.getSize();
     NeighborsState neighbor_states(N);
     int neighbor_idx, edge_multiplicity;
@@ -82,7 +82,7 @@ void Dynamics::updateNeighborStateInPlace(
 
 void Dynamics::syncUpdateState(){
     State future_state(m_state);
-    NeighborsState neighbor_state = getNeighborsStates(m_state);
+    NeighborsState neighbor_state = getNeighborsState(m_state);
     vector<double> trans_probs(m_num_states);
 
     for (auto idx: getGraph()){
@@ -95,7 +95,7 @@ void Dynamics::asyncUpdateState(int num_updates){
     size_t N = m_random_graph.getSize();
     VertexState new_vertex_state;
     State current_state(m_state);
-    NeighborsState neighbor_state = getNeighborsStates(m_state);
+    NeighborsState neighbor_state = getNeighborsState(m_state);
     vector<double> trans_probs(m_num_states);
     uniform_int_distribution<VertexIndex> idx_generator(0, N-1);
 
@@ -215,17 +215,17 @@ void Dynamics::applyMove(const GraphMove& move){
             m_neighbors_state_sequence[t][idx] = next_neighbor_map[idx][t];
         }
     }
+    m_random_graph.applyMove(move);
 };
 
 void Dynamics::doMetropolisHastingsStep(double beta, double sample_graph_prior){
     uniform_real_distribution<double> uniform_01(0., 1.);
     double dS = 0;
-    GraphMove move;
     if ( sample_graph_prior < uniform_01(m_rng) ){
         m_random_graph.doMetropolisHastingsStep();
     }
     else{
-        move = m_random_graph.proposeMove();
+        GraphMove move = m_random_graph.proposeMove();
         dS += beta * getLogJointRatio(move) + m_random_graph.getLogJointRatio(move);
         if ( exp(dS) > uniform_01(m_rng) ){
             applyMove(move);
