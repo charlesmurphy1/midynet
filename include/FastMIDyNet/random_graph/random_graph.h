@@ -14,10 +14,10 @@ namespace FastMIDyNet{
 
 class RandomGraph{
     public:
-        explicit RandomGraph(size_t size, EdgeProposer& edge_proposer, RNG& rng):
+        explicit RandomGraph(size_t size, EdgeProposer& edgeProposer, RNG& rng):
             m_size(size),
             m_state(size),
-            m_edge_proposer(edge_proposer),
+            m_edgeProposer(edgeProposer),
             m_rng(rng) { }
 
         const MultiGraph& getState() { return m_state; }
@@ -31,7 +31,7 @@ class RandomGraph{
         double getLogPrior() const { return 0.; }
         double getLogJoint() const { return getLogLikelihood() + getLogPrior(); }
 
-        GraphMove proposeMove() { return m_edge_proposer(); }
+        GraphMove proposeMove() { return m_edgeProposer(); }
         virtual double getLogJointRatio (const GraphMove& move) const = 0;
         void applyMove(const GraphMove& move);
         void enumerateAllGraphs() const;
@@ -41,7 +41,7 @@ class RandomGraph{
     protected:
         size_t m_size;
         MultiGraph m_state;
-        EdgeProposer& m_edge_proposer;
+        EdgeProposer& m_edgeProposer;
         RNG m_rng;
 
 };

@@ -36,17 +36,17 @@ struct Move{
 };
 
 struct GraphMove: public Move{
-    GraphMove(EdgeMoves p_edges_removed, EdgeMoves p_edges_added):
-    edges_removed(p_edges_removed), edges_added(p_edges_added){ }
+    GraphMove(EdgeMoves edgesRemoved, EdgeMoves edgesAdded):
+    edgesRemoved(edgesRemoved), edgesAdded(edgesAdded){ }
     GraphMove(){ }
-    EdgeMoves edges_removed;
-    EdgeMoves edges_added;
+    EdgeMoves edgesRemoved;
+    EdgeMoves edgesAdded;
 };
 
 struct PriorMove: public Move{ };
 
 struct BlockPriorMove: public PriorMove{
-    BlockMove vertex_moved;
+    BlockMove vertexMoved;
 };
 
 } // namespace FastMIDyNet

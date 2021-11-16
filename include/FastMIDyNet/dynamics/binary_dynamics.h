@@ -16,28 +16,28 @@ namespace FastMIDyNet{
 class BinaryDynamics: public Dynamics{
 
     public:
-        explicit BinaryDynamics(RandomGraph& random_graph, RNG& rng):
-            Dynamics(random_graph, 2, rng) { }
+        explicit BinaryDynamics(RandomGraph& randomGraph, RNG& rng):
+            Dynamics(randomGraph, 2, rng) { }
         double getTransitionProb(
-            VertexState prev_vertex_state,
-            VertexState next_vertex_state,
-            VertexNeighborhoodState neighborhood_state
+            VertexState prevVertexState,
+            VertexState nextVertexState,
+            VertexNeighborhoodState neighborhoodState
         ) const {
             double p;
-            if ( prev_vertex_state == 0 ) {
-                p = getActivationProb(neighborhood_state);
-                if (next_vertex_state == 0) return 1 - p;
+            if ( prevVertexState == 0 ) {
+                p = getActivationProb(neighborhoodState);
+                if (nextVertexState == 0) return 1 - p;
                 else return p;
             }
             else {
-                p = getDeactivationProb(neighborhood_state);
-                if (next_vertex_state == 1) return 1 - p;
+                p = getDeactivationProb(neighborhoodState);
+                if (nextVertexState == 1) return 1 - p;
                 else return p;
             }
         };
 
-        virtual double getActivationProb(const VertexNeighborhoodState& neighbooh_state) const = 0;
-        virtual double getDeactivationProb(const VertexNeighborhoodState& neighbooh_state) const = 0;
+        virtual double getActivationProb(const VertexNeighborhoodState& neighboohState) const = 0;
+        virtual double getDeactivationProb(const VertexNeighborhoodState& neighboohState) const = 0;
 };
 
 } // namespace FastMIDyNet

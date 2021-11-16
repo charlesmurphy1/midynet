@@ -24,25 +24,25 @@ class DummyEdgeProposer: public EdgeProposer{
 class DummyRandomGraph: public RandomGraph{
     public:
         DummyRandomGraph(size_t size, RNG& rng):
-        m_edge_proposer(), RandomGraph(size, m_edge_proposer, rng) {} ;
+        m_edgeProposer(), RandomGraph(size, m_edgeProposer, rng) {} ;
 
         void sampleState() { };
         double getLogLikelihood(const MultiGraph&) const { return 0; };
         double getLogJointRatio(const GraphMove& move) const { return 0; };
 
     private:
-        DummyEdgeProposer m_edge_proposer;
+        DummyEdgeProposer m_edgeProposer;
 };
 
 class DummyDynamics: public Dynamics{
     public:
-        DummyDynamics(RandomGraph& random_graph, int num_states, RNG& rng):
-            Dynamics(random_graph, num_states, rng) { }
+        DummyDynamics(RandomGraph& randomGraph, int numStates, RNG& rng):
+            Dynamics(randomGraph, numStates, rng) { }
 
         double getTransitionProb(
-            VertexState prev_vertex_state,
-            VertexState next_vertex_state,
-            VertexNeighborhoodState neighborhood_state
+            VertexState prevVertexState,
+            VertexState nextVertexState,
+            VertexNeighborhoodState vertexNeighborhoodState
         ) const { return 1. / getNumStates(); }
 };
 

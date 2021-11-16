@@ -2,7 +2,7 @@
 #include <list>
 #include <cmath>
 
-#include "FastMIDyNet/dynamics/SIS_dynamics.h"
+#include "FastMIDyNet/dynamics/sis.h"
 #include "fixtures.hpp"
 
 
@@ -14,7 +14,7 @@ class TestSISDynamics: public::testing::Test{
     public:
         FastMIDyNet::RNG rng;
         FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7, rng);
-        FastMIDyNet::SISDynamic dynamic = FastMIDyNet::SISDynamic(graph, rng, INFECTION_PROB, RECOVERY_PROB, AUTO_INFECTION_PROB);
+        FastMIDyNet::SISDynamics dynamics = FastMIDyNet::SISDynamics(graph, rng, INFECTION_PROB, RECOVERY_PROB, AUTO_INFECTION_PROB);
 };
 
 
@@ -22,11 +22,11 @@ TEST_F(TestSISDynamics, getActivationProb_forEachStateTransition_returnCorrectPr
 
     for (auto neighbor_state: neighbor_states)
         EXPECT_EQ( (1-AUTO_INFECTION_PROB) * ( 1 - std::pow(1-INFECTION_PROB, neighbor_state[1])) + AUTO_INFECTION_PROB,
-                  dynamic.getActivationProb(neighbor_state));
+                  dynamics.getActivationProb(neighbor_state));
 }
 
 TEST_F(TestSISDynamics, getDeactivationProb_forEachStateTransition_returnCorrectProbability) {
 
     for (auto neighbor_state: neighbor_states)
-        EXPECT_EQ(RECOVERY_PROB, dynamic.getDeactivationProb(neighbor_state));
+        EXPECT_EQ(RECOVERY_PROB, dynamics.getDeactivationProb(neighbor_state));
 }

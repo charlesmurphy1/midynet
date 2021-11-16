@@ -27,8 +27,8 @@ static MultiGraph GRAPH = getUndirectedHouseMultiGraph();
 class TestDynamicsBaseClass: public::testing::Test{
     public:
         RNG rng;
-        DummyRandomGraph random_graph = DummyRandomGraph(NUM_VERTICES, rng);
-        DummyDynamics dynamics = DummyDynamics(random_graph, NUM_STATES, rng);
+        DummyRandomGraph randomGraph = DummyRandomGraph(NUM_VERTICES, rng);
+        DummyDynamics dynamics = DummyDynamics(randomGraph, NUM_STATES, rng);
         MultiGraph graph = GRAPH;
         State state = STATE;
         void SetUp() {
@@ -69,13 +69,13 @@ TEST_F(TestDynamicsBaseClass, getRandomState_returnRandomState){
 }
 
 TEST_F(TestDynamicsBaseClass, getNeighborsState_forSomeState_returnThatNeighborState){
-    auto neighbor_state = dynamics.getNeighborsState(STATE);
-    EXPECT_EQ(neighbor_state.size(), NUM_VERTICES);
+    auto neighborState = dynamics.getNeighborsState(STATE);
+    EXPECT_EQ(neighborState.size(), NUM_VERTICES);
     int i = 0, j = 0;
-    for (auto vertex_neighbor_state: neighbor_state){
+    for (auto vertexNeighborState: neighborState){
         j = 0;
-        EXPECT_EQ(vertex_neighbor_state.size(), NUM_STATES);
-        for (auto l : vertex_neighbor_state){
+        EXPECT_EQ(vertexNeighborState.size(), NUM_STATES);
+        for (auto l : vertexNeighborState){
             EXPECT_EQ(l, NEIGHBORS_STATE[i][j]);
             j++;
         }
