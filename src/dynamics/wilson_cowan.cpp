@@ -8,11 +8,11 @@ static inline double sigmoid(double x) {
 
 namespace FastMIDyNet{
 
-double WilsonCowanDynamics::getActivationProb(const VertexNeighborhoodState& neighborhood_state) const{
-    return sigmoid(m_a*(m_nu*neighborhood_state[1] - m_mu));
+double WilsonCowanDynamics::getActivationProb(const VertexNeighborhoodState& neighborState) const{
+    return sigmoid(m_a*(m_nu*neighborState[1] - m_mu));
 }
 
-double WilsonCowanDynamics::getDeactivationProb(const VertexNeighborhoodState& neighbor_state) const{
+double WilsonCowanDynamics::getDeactivationProb(const VertexNeighborhoodState& neighborState) const{
     return m_eta;
 }
 
