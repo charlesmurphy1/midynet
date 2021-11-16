@@ -31,7 +31,7 @@ typedef BaseGraph::UndirectedMultigraph MultiGraph;
 typedef size_t BlockIndex;
 
 typedef std::vector<std::tuple<BaseGraph::VertexIndex, BlockIndex, BlockIndex>> BlockMove;
-typedef std::vector<BaseGraph::Edge> EdgeMove;
+typedef std::vector<BaseGraph::Edge> EdgeMoves;
 
 
 struct Move{
@@ -39,14 +39,17 @@ struct Move{
 };
 
 struct GraphMove: public Move{
-    EdgeMove edges_removed;
-    EdgeMove edges_added;
+    GraphMove(EdgeMoves edgesRemoved, EdgeMoves edgesAdded):
+    edgesRemoved(edgesRemoved), edgesAdded(edgesAdded){ }
+    GraphMove(){ }
+    EdgeMoves edgesRemoved;
+    EdgeMoves edgesAdded;
 };
 
 struct PriorMove: public Move{ };
 
 struct BlockPriorMove: public PriorMove{
-    BlockMove vertex_moved;
+    BlockMove vertexMoved;
 };
 
 } // namespace FastMIDyNet

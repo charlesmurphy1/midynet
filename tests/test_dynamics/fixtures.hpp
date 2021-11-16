@@ -1,12 +1,14 @@
 #ifndef FASTMIDYNET_DYNAMICS_FIXTURES_HPP
 #define FASTMIDYNET_DYNAMICS_FIXTURES_HPP
 
+#include <iostream>
 #include "gtest/gtest.h"
 
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/proposer/edge_proposer.h"
 #include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/types.h"
+#include "BaseGraph/undirected_multigraph.h"
 
 
 
@@ -22,26 +24,26 @@ class DummyEdgeProposer: public EdgeProposer{
 class DummyRandomGraph: public RandomGraph{
     public:
         DummyRandomGraph(size_t size, RNG& rng):
-        m_edge_proposer(), RandomGraph(size, m_edge_proposer, rng) {} ;
+        m_edgeProposer(), RandomGraph(size, m_edgeProposer, rng) {} ;
 
         void sampleState() { };
         double getLogLikelihood(const MultiGraph&) const { return 0; };
         double getLogJointRatio(const GraphMove& move) const { return 0; };
 
     private:
-        DummyEdgeProposer m_edge_proposer;
+        DummyEdgeProposer m_edgeProposer;
 };
 
 class DummyDynamics: public Dynamics{
     public:
-        DummyDynamics(RandomGraph& random_graph, int num_states, RNG& rng):
-            Dynamics(random_graph, num_states, rng) {}
+        DummyDynamics(RandomGraph& randomGraph, int numStates, RNG& rng):
+            Dynamics(randomGraph, numStates, rng) { }
 
         double getTransitionProb(
-            VertexState prev_vertex_state,
-            VertexState next_vertex_state,
-            VertexNeighborhoodState neighborhood_state
-        ) const { return 0.; };
+            VertexState prevVertexState,
+            VertexState nextVertexState,
+            VertexNeighborhoodState vertexNeighborhoodState
+        ) const { return 1. / getNumStates(); }
 };
 
 static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
@@ -56,7 +58,9 @@ static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
     //      *
     //      *      (6)
     //      */
-    FastMIDyNet::MultiGraph graph = FastMIDyNet::MultiGraph(7);
+    // STATE = {0,0,0,1,1,1,2}
+    // NEIGHBORS_STATE = {{3, 1, 0}, {1, 2, 0}, {4, 1, 0}, {3, 1, 1}, {1, 1, 0}, {0, 1, 0}, {0, 0, 0}}
+    FastMIDyNet::MultiGraph graph(7);
     graph.addMultiedgeIdx(0, 2, 3);
     graph.addEdgeIdx(0, 3);
     graph.addEdgeIdx(1, 2);

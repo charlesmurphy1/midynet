@@ -16,63 +16,65 @@ namespace FastMIDyNet{
 class Dynamics{
 
     public:
-        explicit Dynamics(RandomGraph& random_graph, int num_states, RNG& rng):
-            m_random_graph(random_graph),
+        explicit Dynamics(RandomGraph& randomGraph, int numStates, RNG& rng):
+            m_randomGraph(randomGraph),
+            m_numStates(numStates),
             m_rng(rng) { }
 
         const State& getState() const { return m_state; }
-        const StateSequence& getPastStates() const { return m_past_state_sequence; }
-        const StateSequence& getFutureStates() const { return m_future_state_sequence; }
+        const StateSequence& getPastStates() const { return m_pastStateSequence; }
+        const StateSequence& getFutureStates() const { return m_futureStateSequence; }
         void setState(State& state) {m_state = state; }
-        const MultiGraph& getGraph() const { return m_random_graph.getState(); }
+        const MultiGraph& getGraph() const { return m_randomGraph.getState(); }
         void setGraph(MultiGraph& graph) {
-            m_random_graph.setState(graph);
-            for (auto t = 0 ; t < m_past_state_sequence.size() ; t++){
-                m_neighbors_state_sequence[t] = getNeighborsStates(m_past_state_sequence[t]);
+            m_randomGraph.setState(graph);
+            for (auto t = 0 ; t < m_pastStateSequence.size() ; t++){
+                m_neighborsStateSequence[t] = getNeighborsState(m_pastStateSequence[t]);
             }
         }
-        const int getSize() const { return m_random_graph.getSize(); }
-        const int getNumStates() const { return m_num_states; }
+        const int getSize() const { return m_randomGraph.getSize(); }
+        const int getNumStates() const { return m_numStates; }
 
-        void sampleState(int num_steps, const State& initial_state, bool async);
+        void sampleState(int numSteps, const State& initialState, bool async=true);
+        void sampleState(int numSteps, bool async=true){ return sampleState(numSteps, getRandomState(), async); }
         const State getRandomState();
-        const NeighborsState getNeighborsStates(const State& state) const;
+        const NeighborsState getNeighborsState(const State& state) const;
         const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const;
 
         void syncUpdateState();
         void asyncUpdateState(int num_updates);
 
         double getLogLikelihood() const;
-        double getLogPrior() const { return m_random_graph.getLogJoint(); }
+        double getLogPrior() const { return m_randomGraph.getLogJoint(); }
         double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
         virtual double getTransitionProb(
-            VertexState prev_vertex_state,
-            VertexState next_vertex_state,
-            VertexNeighborhoodState neighborhood_state
+            VertexState prevVertexState,
+            VertexState nextVertexState,
+            VertexNeighborhoodState neighborhoodState
         ) const = 0;
         const std::vector<double> getTransitionProbs(
-            VertexState prev_vertex_state,
-            VertexNeighborhoodState neighborhood_state
+            VertexState prevVertexState,
+            VertexNeighborhoodState neighborhoodState
         ) const;
 
         double getLogJointRatio(const GraphMove& move) const;
         void applyMove(const GraphMove& move);
-        void doMetropolisHastingsStep(double beta = 1., double sample_graph_prior = 0.);
+        void doMetropolisHastingsStep(double beta = 1., double sampleGraphPrior = 0.);
 
     protected:
-        int m_num_states;
+        int m_numStates;
         State m_state;
-        StateSequence m_past_state_sequence;
-        StateSequence m_future_state_sequence;
-        RandomGraph& m_random_graph;
-        NeighborsStateSequence m_neighbors_state_sequence;
+        StateSequence m_pastStateSequence;
+        StateSequence m_futureStateSequence;
+        RandomGraph& m_randomGraph;
+        NeighborsStateSequence m_neighborsStateSequence;
         RNG m_rng;
 
         void updateNeighborStateInPlace(
-            BaseGraph::VertexIndex vertex_idx,
-            VertexState prev_vertex_state,
-            VertexState new_vertex_state,
-            NeighborsState& neighbor_state
+            BaseGraph::VertexIndex vertexIdx,
+            VertexState prevVertexState,
+            VertexState newVertexState,
+            NeighborsState& neighborState
         ) const ;
         void updateNeighborStateMapFromEdgeMove(
             BaseGraph::Edge,

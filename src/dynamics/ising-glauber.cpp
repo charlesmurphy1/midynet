@@ -8,12 +8,12 @@ static inline double sigmoid(double x) {
 
 namespace FastMIDyNet{
 
-double IsingGlauberDynamic::getActivationProb(const VertexNeighborhoodState& neighbor_state) const{
-    return sigmoid(2*m_coupling_constant*(neighbor_state[0]-neighbor_state[1]));
+double IsingGlauberDynamics::getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const{
+    return sigmoid(2*m_couplingConstant*(vertexNeighborState[0]-vertexNeighborState[1]));
 }
 
-double IsingGlauberDynamic::getDeactivationProb(const VertexNeighborhoodState& neighbor_state) const{
-    return sigmoid(-2*m_coupling_constant*(neighbor_state[0]-neighbor_state[1]));
+double IsingGlauberDynamics::getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const{
+    return sigmoid(-2*m_couplingConstant*(vertexNeighborState[0]-vertexNeighborState[1]));
 }
 
 } // FastMIDyNet
