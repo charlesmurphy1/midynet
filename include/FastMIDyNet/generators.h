@@ -13,9 +13,11 @@ namespace FastMIDyNet{
 
 
 int generateCategorical(const std::vector<double>& probs, RNG& rng);
-std::list<int> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k);
-BaseGraph::UndirectedMultigraph generateDCSBM(const std::vector<size_t> degrees,
-            const Matrix<size_t>& blockEdgeMatrix, const std::vector<size_t>& vertexBlocks);
+std::list<int> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k, RNG& rng);
+BaseGraph::UndirectedMultigraph generateDCSBM(const std::vector<size_t>& vertexBlocks,
+        const Matrix<size_t>& blockEdgeMatrix, const std::vector<size_t>& degrees, RNG& rng);
+BaseGraph::UndirectedMultigraph generateSBM(const std::vector<size_t>& vertexBlocks,
+        const Matrix<size_t>& blockEdgeMatrix, RNG& rng);
 FastMIDyNet::MultiGraph generateCM(const std::vector<size_t>& degrees);
 
 template<typename T>

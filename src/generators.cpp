@@ -1,4 +1,5 @@
 #include <random>
+#include <stdexcept>
 #include <vector>
 #include <numeric>
 #include <algorithm>
@@ -37,107 +38,88 @@ std::list<int> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k, RNG
     return drawnIndices;
 }
 
-BaseGraph::UndirectedMultigraph generateDCSBM(const std::vector<size_t> degrees,
-            const Matrix<size_t>& blockEdgeMatrix, const std::vector<size_t>& vertexBlocks, RNG& rng) {
+BaseGraph::UndirectedMultigraph generateDCSBM(const std::vector<size_t>& vertexBlocks,
+        const Matrix<size_t>& blockEdgeMatrix, const std::vector<size_t>& degrees, RNG& rng) {
     if (degrees.size() != vertexBlocks.size())
         throw std::logic_error("generateDCSBM: Degrees don't have the same length as vertexBlocks.");
-    if (*std::max(vertexBlocks.begin(), vertexBlocks.end()) >= blockEdgeMatrix.size()-1)
+    if (*std::max(vertexBlocks.begin(), vertexBlocks.end()) >= blockEdgeMatrix.size())
         throw std::logic_error("generateDCSBM: Vertex is out of range of blockEdgeMatrix.");
 
     size_t vertexNumber = degrees.size();
     size_t blockNumber = blockEdgeMatrix.size();
-    std::vector<size_t> blockDegrees(blockNumber, 0);
-    size_t inBlock, outBlock;
-
-    for (inBlock=0; inBlock!=blockNumber; inBlock++) {
-        for (outBlock=inBlock+1; outBlock!=blockNumber; outBlock++) {
-            blockDegrees[inBlock] += blockEdgeMatrix[inBlock][outBlock];
-            blockDegrees[outBlock] += blockEdgeMatrix[outBlock][inBlock];
-        }
-    }
-
-    std::vector<std::list<size_t>> verticesInBlock(blockNumber);
-    for (size_t vertex=0; vertex<vertexNumber; vertex++)
-        verticesInBlock[vertexBlocks[vertex]].push_back(vertex);
-
-    std::vector<size_t> blockStubs(blockNumber);
-    std::vector<std::vector<size_t>> vertexStubsOfBlock(blockNumber);
-
-    for (size_t block=0; block!=blockNumber; block++) {
-        const auto& blockDegree = blockDegrees[block];
-        if (blockDegree>0) {
-            blockStubs.insert(blockStubs.end(), blockDegree, block);
-
-            for (auto& vertex: verticesInBlock[block]) {
-                const auto& vertexDegree = degrees[vertex];
-                if (vertexDegree>0)
-                    vertexStubsOfBlock[block].insert(vertexStubsOfBlock[block].end(), vertexDegree, vertex);
-            }
-            std::random_shuffle(vertexStubsOfBlock[block].begin(), vertexStubsOfBlock[block].end());
-        }
-    }
-    std::random_shuffle(blockStubs.begin(), blockStubs.end());
-
-
-    FastMIDyNet::MultiGraph multigraph(vertexNumber);
-
-    auto blockStubIterator = blockStubs.begin();
-    size_t vertex1, vertex2;
-    while (blockStubIterator != blockStubs.end()) {
-        inBlock = *blockStubIterator++;
-        outBlock = *blockStubIterator++;
-
-        vertex1 = vertexStubsOfBlock[inBlock][vertexStubsOfBlock[inBlock].size()-1];
-        vertex2 = vertexStubsOfBlock[outBlock][vertexStubsOfBlock[outBlock].size()-1];
-
-        multigraph.addEdgeIdx(vertex1, vertex2);
-        vertexStubsOfBlock[inBlock].pop_back();
-        vertexStubsOfBlock[outBlock].pop_back();
-    }
-    return multigraph;
-}
-
-BaseGraph::UndirectedMultigraph generateSBM(const Matrix<size_t>& blockEdgeMatrix, const std::vector<size_t>& vertexBlocks, RNG& rng) {
-    if (*std::max(vertexBlocks.begin(), vertexBlocks.end()) >= blockEdgeMatrix.size()-1)
-        throw std::logic_error("generateSBM: Vertex is out of range of blockEdgeMatrix.");
-
-    size_t vertexNumber = vertexBlocks.size();
-    size_t blockNumber = blockEdgeMatrix.size();
-    std::vector<size_t> blockDegrees(blockNumber, 0);
-    size_t inBlock, outBlock;
-
-    for (inBlock=0; inBlock!=blockNumber; inBlock++) {
-        for (outBlock=inBlock+1; outBlock!=blockNumber; outBlock++) {
-            blockDegrees[inBlock] += blockEdgeMatrix[inBlock][outBlock];
-            blockDegrees[outBlock] += blockEdgeMatrix[outBlock][inBlock];
-        }
-    }
 
     std::vector<std::vector<size_t>> verticesInBlock(blockNumber);
     for (size_t vertex=0; vertex<vertexNumber; vertex++)
         verticesInBlock[vertexBlocks[vertex]].push_back(vertex);
 
-    std::vector<size_t> blockStubs(blockNumber);
+    std::vector<std::vector<size_t>> stubsOfBlock(blockNumber);
+    for (size_t block=0; block<blockNumber; block++) {
+        size_t sumEdgeMatrix(0);
 
-    for (size_t block=0; block!=blockNumber; block++) {
-        const auto& blockDegree = blockDegrees[block];
-        if (blockDegree>0)
-            blockStubs.insert(blockStubs.end(), blockDegree, block);
+        for (size_t otherBlock=0; otherBlock<blockNumber; otherBlock++)
+            sumEdgeMatrix += blockEdgeMatrix[block][otherBlock];
+
+        for (auto vertex: verticesInBlock[block])
+            stubsOfBlock[block].insert(stubsOfBlock[block].end(), degrees[vertex], vertex);
+
+        if (stubsOfBlock[block].size() != sumEdgeMatrix)
+            throw std::logic_error("generateDCSBM: Edge matrix doesn't match with degrees. "
+                    "Sum of row doesn't equal the sum of nodes in block "+std::to_string(block)+".");
+
+        std::random_shuffle(stubsOfBlock[block].begin(), stubsOfBlock[block].end());
     }
-    std::random_shuffle(blockStubs.begin(), blockStubs.end());
-
 
     FastMIDyNet::MultiGraph multigraph(vertexNumber);
 
-    auto blockStubIterator = blockStubs.begin();
+    size_t edgeNumberBetweenBlocks;
     size_t vertex1, vertex2;
-    while (blockStubIterator != blockStubs.end()) {
-        inBlock = *blockStubIterator++;
-        outBlock = *blockStubIterator++;
+    for (size_t inBlock=0; inBlock<blockNumber; inBlock++) {
+        for (size_t outBlock=inBlock; outBlock<blockNumber; outBlock++) {
+            edgeNumberBetweenBlocks = blockEdgeMatrix[inBlock][outBlock];
+            if (inBlock==outBlock)
+                edgeNumberBetweenBlocks /= 2;
 
-        vertex1 = pickElementUniformly<size_t>(verticesInBlock[inBlock], rng);
-        vertex2 = pickElementUniformly<size_t>(verticesInBlock[outBlock], rng);
-        multigraph.addEdgeIdx(vertex1, vertex2);
+            for (size_t edge=0; edge<edgeNumberBetweenBlocks; edge++) {
+                vertex1 = *--stubsOfBlock[inBlock].end();
+                stubsOfBlock[inBlock].pop_back();
+                vertex2 = *--stubsOfBlock[outBlock].end();
+                stubsOfBlock[outBlock].pop_back();
+
+                multigraph.addEdgeIdx(vertex1, vertex2);
+            }
+        }
+    }
+    return multigraph;
+}
+
+BaseGraph::UndirectedMultigraph generateSBM(const std::vector<size_t>& vertexBlocks,
+        const Matrix<size_t>& blockEdgeMatrix, RNG& rng) {
+    if (*std::max(vertexBlocks.begin(), vertexBlocks.end()) >= blockEdgeMatrix.size())
+        throw std::logic_error("generateSBM: Vertex is out of range of blockEdgeMatrix.");
+
+    size_t vertexNumber = vertexBlocks.size();
+    size_t blockNumber = blockEdgeMatrix.size();
+
+    std::vector<std::vector<size_t>> verticesInBlock(blockNumber);
+    for (size_t vertex=0; vertex<vertexNumber; vertex++)
+        verticesInBlock[vertexBlocks[vertex]].push_back(vertex);
+
+    FastMIDyNet::MultiGraph multigraph(vertexNumber);
+
+    size_t edgeNumberBetweenBlocks;
+    size_t vertex1, vertex2;
+    for (size_t inBlock=0; inBlock!=blockNumber; inBlock++) {
+        for (size_t outBlock=inBlock; outBlock!=blockNumber; outBlock++) {
+            edgeNumberBetweenBlocks = blockEdgeMatrix[inBlock][outBlock];
+            if (inBlock==outBlock)
+                edgeNumberBetweenBlocks /= 2;
+
+            for (size_t edge=0; edge<edgeNumberBetweenBlocks; edge++) {
+                vertex1 = pickElementUniformly<size_t>(verticesInBlock[outBlock], rng);
+                vertex2 = pickElementUniformly<size_t>(verticesInBlock[inBlock], rng);
+                multigraph.addEdgeIdx(vertex1, vertex2);
+            }
+        }
     }
     return multigraph;
 }
