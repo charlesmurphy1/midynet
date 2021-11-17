@@ -165,14 +165,14 @@ double Dynamics::getLogJointRatio(const GraphMove& move) const{
     map<VertexIndex,VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
 
     size_t v, u;
-    for (const auto& edge : move.edgesAdded){
+    for (const auto& edge : move.addedEdges){
         v = edge.first;
         u = edge.second;
         verticesAffected.insert(v);
         verticesAffected.insert(u);
         updateNeighborStateMapFromEdgeMove(edge, 1, prevNeighborMap, nextNeighborMap);
     }
-    for (const auto& edge : move.edgesRemoved){
+    for (const auto& edge : move.removedEdges){
         v = edge.first;
         u = edge.second;
         verticesAffected.insert(v);
@@ -197,14 +197,14 @@ void Dynamics::applyMove(const GraphMove& move){
 
     VertexNeighborhoodStateSequence neighborState(numSteps);
     size_t v, u;
-    for (const auto& edge : move.edgesAdded){
+    for (const auto& edge : move.addedEdges){
         v = edge.first;
         u = edge.second;
         verticesAffected.insert(v);
         verticesAffected.insert(u);
         updateNeighborStateMapFromEdgeMove(edge, 1, prevNeighborMap, nextNeighborMap);
     }
-    for (const auto& edge : move.edgesRemoved){
+    for (const auto& edge : move.removedEdges){
         v = edge.first;
         u = edge.second;
         verticesAffected.insert(v);

@@ -16,17 +16,20 @@ file(GLOB_RECURSE DYNAMICS_TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/test_dynamics/te
 file(GLOB_RECURSE GENERATORS_TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/test_generators/test_*.cpp)
 file(GLOB_RECURSE UTILITY_TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/test_utility/test_*.cpp)
 file(GLOB_RECURSE PROPOSERS_TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/test_proposers/test_*.cpp)
+file(GLOB_RECURSE PRIORS_TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/test_priors/test_*.cpp)
 
 add_executable(test_dynamics ${DYNAMICS_TEST_SRC})
 add_executable(test_generators ${GENERATORS_TEST_SRC})
 add_executable(test_utility ${UTILITY_TEST_SRC})
 add_executable(test_proposers ${PROPOSERS_TEST_SRC})
+add_executable(test_priors ${PRIORS_TEST_SRC})
 
 set(allGTests
     test_dynamics
     test_generators
     test_utility
     test_proposers
+    test_priors
     )
 
 

@@ -11,11 +11,13 @@ namespace FastMIDyNet {
 
 extern RNG rng;
 
-size_t getDegreeIdx(const FastMIDyNet::MultiGraph& graph, size_t vertex);
-DegreeSequence getDegrees(const FastMIDyNet::MultiGraph& graph);
+size_t getDegreeIdx(const FastMIDyNet::MultiGraph&, size_t vertex);
+DegreeSequence getDegrees(const FastMIDyNet::MultiGraph&);
 double logFactorial(int);
 double logDoubleFactorial(int);
 double logBinomial(int);
+
+double logPoissonPMF(size_t x, double mean);
 
 void assertValidProbability(double probability);
 
