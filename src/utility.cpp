@@ -64,4 +64,8 @@ void assertValidProbability(double probability) {
                 ". Probability must be contained between 0 and 1.");
 }
 
+double logPoissonPMF(size_t x, double mean) {
+    return x*log(mean) - logFactorial(x) - mean;
+}
+
 } // namespace FastMIDyNet

@@ -14,7 +14,7 @@ namespace FastMIDyNet {
 
     void RandomGraph::applyMove(const GraphMove& move){
         VertexIndex v, u;
-        for (auto edge: move.edgesAdded){
+        for (auto edge: move.addedEdges){
             v = edge.first;
             u = edge.second;
             m_state.addEdgeIdx(v, u);

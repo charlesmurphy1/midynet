@@ -15,18 +15,12 @@ class Prior{
         void setState(const T& state) { m_state = state; }
 
         virtual T sample() = 0;
-        virtual double getLogLikelihood() const = 0;
+        double getLogLikelihood() const { return getLogLikelihood(m_state); }
+        virtual double getLogLikelihood(size_t state) const = 0;
         virtual double getLogPrior() const = 0;
         double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
-        //double getLogLikelihoodRatio(const GraphMove& move) const {
-            //T newState = getStateAfterMove(move);
-            //return getLogLikelihood(newState) - getLogLikelihood();
-        //}
 
-        //void applyMove(const GraphMove& move) { setState(getStateAfterMove(move)); }
-        //virtual T getStateAfterMove(const GraphMove&) = 0;
-
-        virtual void checkConsistency() = 0;
+        virtual void checkSelfConsistency() = 0;
 
     protected:
         T m_state;
