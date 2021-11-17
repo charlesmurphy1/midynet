@@ -11,8 +11,8 @@ class BlockPrior: public Prior<BlockSequence>{
     size_t& m_size;
     BlockCountPrior& m_blockCountPrior;
 public:
-    BlockPrior(size_t size, BlockCountPrior& blockCountPrior, RNG& rng):
-        m_size(size), m_blockCountPrior(blockCountPrior), Prior<BlockSequence>(rng) { }
+    BlockPrior(size_t size, BlockCountPrior& blockCountPrior):
+        m_size(size), m_blockCountPrior(blockCountPrior) { }
 
     size_t getSize() { return m_size; }
 

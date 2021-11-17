@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/proposer/edge_proposer.h"
 #include "FastMIDyNet/prior/prior.hpp"
 
@@ -14,10 +15,17 @@ namespace FastMIDyNet{
 
 class RandomGraph{
     public:
+<<<<<<< HEAD
         explicit RandomGraph(size_t size, RNG& rng):
             m_size(size),
             m_state(size),
             m_rng(rng) { }
+=======
+        explicit RandomGraph(size_t size, EdgeProposer& edgeProposer):
+            m_size(size),
+            m_state(size),
+            m_edgeProposer(edgeProposer) { }
+>>>>>>> main
 
         const MultiGraph& getState() { return m_state; }
         void setState(const MultiGraph& state) { m_state = state; }
@@ -38,7 +46,11 @@ class RandomGraph{
     protected:
         size_t m_size;
         MultiGraph m_state;
+<<<<<<< HEAD
         RNG m_rng;
+=======
+        EdgeProposer& m_edgeProposer;
+>>>>>>> main
 
 };
 

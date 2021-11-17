@@ -16,8 +16,8 @@ namespace FastMIDyNet{
 class BinaryDynamics: public Dynamics{
 
     public:
-        explicit BinaryDynamics(RandomGraph& randomGraph, RNG& rng):
-            Dynamics(randomGraph, 2, rng) { }
+        explicit BinaryDynamics(RandomGraph& randomGraph):
+            Dynamics(randomGraph, 2) { }
         double getTransitionProb(VertexState prevVertexState,
                             VertexState nextVertexState,
                             VertexNeighborhoodState neighborhoodState

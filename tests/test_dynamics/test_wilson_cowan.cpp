@@ -14,9 +14,8 @@ static inline double sigmoid(double x) {
 
 class TestWilsonCowan: public::testing::Test{
     public:
-        FastMIDyNet::RNG rng;
-        FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7, rng);
-        FastMIDyNet::WilsonCowanDynamics dynamic = FastMIDyNet::WilsonCowanDynamics(graph, rng, A, NU, MU, ETA);
+        FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7);
+        FastMIDyNet::WilsonCowanDynamics dynamic = FastMIDyNet::WilsonCowanDynamics(graph, A, NU, MU, ETA);
 };
 
 

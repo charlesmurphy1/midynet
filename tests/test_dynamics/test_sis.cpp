@@ -12,9 +12,8 @@ static const std::list<std::vector<int>> neighbor_states = {{1, 3}, {2, 2}, {3, 
 
 class TestSISDynamics: public::testing::Test{
     public:
-        FastMIDyNet::RNG rng;
-        FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7, rng);
-        FastMIDyNet::SISDynamics dynamics = FastMIDyNet::SISDynamics(graph, rng, INFECTION_PROB, RECOVERY_PROB, AUTO_INFECTION_PROB);
+        FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7);
+        FastMIDyNet::SISDynamics dynamics = FastMIDyNet::SISDynamics(graph, INFECTION_PROB, RECOVERY_PROB, AUTO_INFECTION_PROB);
 };
 
 

@@ -4,10 +4,13 @@
 
 #include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/generators.h"
+#include "FastMIDyNet/utility.h"
 #include "FastMIDyNet/types.h"
+
 
 using namespace std;
 using namespace BaseGraph;
+
 
 namespace FastMIDyNet {
 void Dynamics::sampleState(int numSteps, const State& x0, bool async){
@@ -34,9 +37,8 @@ const State Dynamics::getRandomState() {
     State rnd_state(N);
     uniform_int_distribution<int> dist(0, m_numStates - 1);
 
-    for (size_t i = 0 ; i < N ; i ++){
-        rnd_state[i] = dist(m_rng);
-    }
+    for (size_t i = 0 ; i < N ; i ++)
+        rnd_state[i] = dist(rng);
 
     return rnd_state;
 };
@@ -87,7 +89,7 @@ void Dynamics::syncUpdateState(){
 
     for (auto idx: getGraph()){
         transProbs = getTransitionProbs(m_state[idx], neighborState[idx]);
-        future_state[idx] = generateCategorical(transProbs, m_rng);
+        future_state[idx] = generateCategorical(transProbs);
     }
 };
 
@@ -100,9 +102,9 @@ void Dynamics::asyncUpdateState(int numUpdates){
     uniform_int_distribution<VertexIndex> idxGenerator(0, N-1);
 
     for (auto i=0; i < numUpdates; i++){
-        VertexIndex idx = idxGenerator(m_rng);
+        VertexIndex idx = idxGenerator(rng);
         transProbs = getTransitionProbs(currentState[idx], neighborState[idx]);
-        newVertexState = generateCategorical(transProbs, m_rng);
+        newVertexState = generateCategorical(transProbs);
         updateNeighborStateInPlace(idx, currentState[idx], newVertexState, neighborState);
         currentState[idx] = newVertexState;
     }
@@ -221,13 +223,13 @@ void Dynamics::applyMove(const GraphMove& move){
 void Dynamics::doMetropolisHastingsStep(double beta, double sample_graph_prior){
     uniform_real_distribution<double> uniform_01(0., 1.);
     double dS = 0;
-    if ( sample_graph_prior < uniform_01(m_rng) ){
+    if ( sample_graph_prior < uniform_01(rng) ){
         m_randomGraph.doMetropolisHastingsStep();
     }
     else{
         GraphMove move = m_randomGraph.proposeMove();
         dS += beta * getLogJointRatio(move) + m_randomGraph.getLogJointRatio(move);
-        if ( exp(dS) > uniform_01(m_rng) ){
+        if ( exp(dS) > uniform_01(rng) ){
             applyMove(move);
             m_randomGraph.applyMove(move);
         }

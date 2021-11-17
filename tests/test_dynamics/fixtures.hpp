@@ -8,6 +8,7 @@
 #include "FastMIDyNet/proposer/edge_proposer.h"
 #include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/utility.h"
 #include "BaseGraph/undirected_multigraph.h"
 
 
@@ -23,8 +24,8 @@ class DummyEdgeProposer: public EdgeProposer{
 
 class DummyRandomGraph: public RandomGraph{
     public:
-        DummyRandomGraph(size_t size, RNG& rng):
-        m_edgeProposer(), RandomGraph(size, m_edgeProposer, rng) {} ;
+        DummyRandomGraph(size_t size):
+        m_edgeProposer(), RandomGraph(size, m_edgeProposer) {} ;
 
         void sampleState() { };
         double getLogLikelihood(const MultiGraph&) const { return 0; };
@@ -36,8 +37,8 @@ class DummyRandomGraph: public RandomGraph{
 
 class DummyDynamics: public Dynamics{
     public:
-        DummyDynamics(RandomGraph& randomGraph, int numStates, RNG& rng):
-            Dynamics(randomGraph, numStates, rng) { }
+        DummyDynamics(RandomGraph& randomGraph, int numStates):
+            Dynamics(randomGraph, numStates) { }
 
         double getTransitionProb(
             VertexState prevVertexState,
@@ -77,9 +78,8 @@ static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
 template <size_t StateNumber>
 class TestDynamics: public::testing::Test{
     public:
-        FastMIDyNet::RNG rng;
-        FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7, rng);
-        FastMIDyNet::DummyDynamics dynamics = FastMIDyNet::DummyDynamics(graph, StateNumber, rng);
+        FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7);
+        FastMIDyNet::DummyDynamics dynamics = FastMIDyNet::DummyDynamics(graph, StateNumber);
         void SetUp() {
             auto graph = getUndirectedHouseMultiGraph();
             FastMIDyNet::State state = {0, 0, 0, 1, 1, 1, 2};
