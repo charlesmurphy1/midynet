@@ -1,5 +1,8 @@
 #include "FastMIDyNet/utility.h"
 
+#include <stdexcept>
+
+using namespace std;
 
 size_t getDegreeIdx(const FastMIDyNet::MultiGraph& graph, size_t vertex) {
     size_t degree = 0;
@@ -17,4 +20,35 @@ std::vector<size_t> getDegrees(const FastMIDyNet::MultiGraph& graph) {
     for (size_t vertex=0; vertex<graph.getSize(); vertex++)
         degrees[vertex] = getDegreeIdx(graph, vertex);
     return degrees;
+}
+
+double logFactorial(size_t n){
+    return lgamma(n + 1);
+}
+
+double logDoubleFactorial(size_t n){
+    size_t k;
+    if ( n%2 == 0 ){
+        k = n / 2;
+        return k * log(2) + logFactorial(k);
+    }else{
+        k = (n + 1) / 2;
+        return logFactorial(2 * k) - k * log(2) - logFactorial(k);
+    }
+}
+
+double logBinomial(size_t n, size_t k){
+    if (n >= k) throw invalid_argument("`n` must be greater or equal to `k`.");
+    return logFactorial(n) - logFactorial(k) - logFactorial(n - k);
+}
+
+double logMultinom(vector<size_t> k){
+    double result = 0;
+    size_t sum = 0;
+    for (auto kk : k){
+        result -= logFactorial(kk);
+        sum += kk;
+    }
+    result += logFactorial(sum);
+    return result;
 }
