@@ -19,7 +19,7 @@ class RandomGraph{
             m_size(size),
             m_state(size) { }
 
-        const MultiGraph& getState() { return m_state; }
+        const MultiGraph& getState() const { return m_state; }
         void setState(const MultiGraph& state) { m_state = state; }
         const int getSize() { return m_size; }
         void copyState(const MultiGraph& state);

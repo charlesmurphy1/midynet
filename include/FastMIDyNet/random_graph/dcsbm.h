@@ -1,6 +1,8 @@
 #ifndef FAST_MIDYNET_DCSBM_H
 #define FAST_MIDYNET_DCSBM_H
 
+#include <vector>
+
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/prior/dcsbm/edge_matrix.h"
 #include "FastMIDyNet/prior/dcsbm/block.h"
@@ -21,11 +23,11 @@ public:
 
     void sampleState () ;
 
-    const BlockSequence& getBlockSequence() { return m_blockPrior.getState(); }
-    const BlockSequence& getBlockCount() { return m_blockPrior.getBlockCount(); }
-    const EdgeMatrix& getEdgeMatrix() { return m_edgeMatrixPrior.getState(); }
-    const EdgeMatrix& getEdgeCount() { return m_edgeMatrixPrior.getEdgeCount(); }
-    const DegreeSequence& getDegreeSequence() { return m_degreePrior.getState(); }
+    const BlockSequence& getBlockSequence() const { return m_blockPrior.getState(); }
+    const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
+    const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPrior.getState(); }
+    const size_t& getEdgeCount() const { return m_edgeMatrixPrior.getEdgeCount(); }
+    const DegreeSequence& getDegreeSequence() const { return m_degreePrior.getState(); }
 
     double getLogLikelihood() const;
     double getLogPrior() const ;
@@ -40,10 +42,14 @@ public:
     double getLogJointRatio (const GraphMove& move) const { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }
     double getLogJointRatio (const BlockMove& move) const { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }
 
-    static double getEr(const EdgeMatrix& edgeMatrix) ;
+    static std::vector<size_t> getEr(const EdgeMatrix& edgeMatrix) ;
+    static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
+    static DegreeSequence getDegreeSequenceFromGraph(const MultiGraph&) ;
+    static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
+    static void checkGraphConsistencyWithDegreeSequence(const MultiGraph& graph, const DegreeSequence& degreeSeq) ;
 
-    void checkGraphConsistency(const MultiGraph& graph, BlockSequence blockSeq, EdgeMatrix edgeMat, DegreeSequence degreeSeq) ;
-    void checkConsistency() ;
+
+    void checkSelfConsistency() ;
 
 };
 
