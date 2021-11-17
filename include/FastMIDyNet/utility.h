@@ -8,5 +8,6 @@
 size_t getDegreeIdx(const FastMIDyNet::MultiGraph& graph, size_t vertex);
 std::vector<size_t> getDegrees(const FastMIDyNet::MultiGraph& graph);
 
+void assertValidProbability(double probability);
 
 #endif
