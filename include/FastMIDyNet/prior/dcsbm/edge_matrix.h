@@ -3,7 +3,6 @@
 
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/random_graph/dcsbm.h"
 
 namespace FastMIDyNet{
 

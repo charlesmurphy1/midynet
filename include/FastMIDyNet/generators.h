@@ -7,7 +7,6 @@
 #include "BaseGraph/undirected_multigraph.h"
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/random_graph/dcsbm.h"
 
 
 namespace FastMIDyNet{

@@ -3,6 +3,7 @@
 
 
 #include "FastMIDyNet/proposer/proposer.hpp"
+#include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
 
 

@@ -3,6 +3,7 @@
 
 
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/proposer/movetypes.h"
 
 
 namespace FastMIDyNet{
@@ -23,8 +24,13 @@ class Prior{
             //return getLogLikelihood(newState) - getLogLikelihood();
         //}
 
+<<<<<<< HEAD
+        void applyMove(const GraphMove& move) { setState(getStateAfterMove(move)); }
+        virtual T getStateAfterMove(const GraphMove&) = 0;
+=======
         //void applyMove(const GraphMove& move) { setState(getStateAfterMove(move)); }
         //virtual T getStateAfterMove(const GraphMove&) = 0;
+>>>>>>> main
 
         virtual void checkConsistency() = 0;
 
