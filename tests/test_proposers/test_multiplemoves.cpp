@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "FastMIDyNet/proposer/multiplemoves.hpp"
+#include "FastMIDyNet/utility.h"
 
 
 typedef bool DummyMove;
@@ -29,9 +30,8 @@ class TestMultipleMoveProposer: public ::testing::Test {
         DummyProposer1 dummyProposer1;
         std::vector<FastMIDyNet::Proposer<DummyMove>*> proposers = {&dummyProposer0, &dummyProposer1};
         double p=.3;
-        FastMIDyNet::RNG rng;
         FastMIDyNet::MultipleMovesProposer<DummyMove> proposer =
-            FastMIDyNet::MultipleMovesProposer<DummyMove>(proposers, {1-p, p}, rng);
+            FastMIDyNet::MultipleMovesProposer<DummyMove>(proposers, {1-p, p});
 };
 
 
@@ -39,7 +39,7 @@ TEST_F(TestMultipleMoveProposer, constructor_noProposers_throwLogicError) {
     std::vector<FastMIDyNet::Proposer<DummyMove>*> _proposers = {};
     std::vector<double> moveWeights = {};
     EXPECT_THROW(
-            FastMIDyNet::MultipleMovesProposer<DummyMove>(_proposers, moveWeights, rng),
+            FastMIDyNet::MultipleMovesProposer<DummyMove>(_proposers, moveWeights),
             std::invalid_argument);
 }
 
@@ -47,7 +47,7 @@ TEST_F(TestMultipleMoveProposer, constructor_moreWeights_throwLogicError) {
     std::vector<FastMIDyNet::Proposer<DummyMove>*> _proposers = {};
     std::vector<double> moveWeights = {1.};
     EXPECT_THROW(
-            FastMIDyNet::MultipleMovesProposer<DummyMove>(_proposers, moveWeights, rng),
+            FastMIDyNet::MultipleMovesProposer<DummyMove>(_proposers, moveWeights),
             std::invalid_argument);
 }
 
@@ -55,13 +55,13 @@ TEST_F(TestMultipleMoveProposer, constructor_moreProposers_throwLogicError) {
     std::vector<FastMIDyNet::Proposer<DummyMove>*> _proposers = {&dummyProposer0};
     std::vector<double> moveWeights = {};
     EXPECT_THROW(
-            FastMIDyNet::MultipleMovesProposer<DummyMove>(_proposers, moveWeights, rng),
+            FastMIDyNet::MultipleMovesProposer<DummyMove>(_proposers, moveWeights),
             std::invalid_argument);
 }
 
 
 TEST_F(TestMultipleMoveProposer, proposeMove_biasedMoveChoice_averageMoveChoiceIsBiased) {
-    rng.seed(3012);
+    FastMIDyNet::rng.seed(3012);
     double averageMoveChoice=0;
 
     for (size_t i=0; i<randomGenerationsNumber; i++)
@@ -71,7 +71,7 @@ TEST_F(TestMultipleMoveProposer, proposeMove_biasedMoveChoice_averageMoveChoiceI
 }
 
 TEST_F(TestMultipleMoveProposer, getProposalProb_biasedMoveChoice_averageProbabilityIsBiased) {
-    rng.seed(3012);
+    FastMIDyNet::rng.seed(3012);
     double averageProbability=0;
 
     for (size_t i=0; i<randomGenerationsNumber; i++) {

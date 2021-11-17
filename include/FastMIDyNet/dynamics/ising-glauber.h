@@ -12,8 +12,8 @@ class IsingGlauberDynamics: public BinaryDynamics {
     double m_couplingConstant;
 
     public:
-        IsingGlauberDynamics(RandomGraph& randomGraph, RNG& rng, double couplingConstant):
-            BinaryDynamics(randomGraph, rng), m_couplingConstant(couplingConstant) {}
+        IsingGlauberDynamics(RandomGraph& randomGraph, double couplingConstant):
+            BinaryDynamics(randomGraph), m_couplingConstant(couplingConstant) {}
 
         double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const;
         double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const;

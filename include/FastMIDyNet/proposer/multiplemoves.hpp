@@ -3,7 +3,7 @@
 
 #include "proposer.hpp"
 #include "FastMIDyNet/types.h"
-#include <random>
+#include "FastMIDyNet/utility.h"
 
 
 namespace FastMIDyNet {
@@ -11,14 +11,13 @@ namespace FastMIDyNet {
 
 template<typename MoveType>
 class MultipleMovesProposer: public Proposer<MoveType> {
-    RNG& m_rng;
     std::vector<Proposer<MoveType>*>& m_proposers;
     std::vector<double> m_moveWeights;
     unsigned int m_proposedMoveType=0;
     std::discrete_distribution<unsigned int> m_moveTypeDistribution;
 
     public:
-        MultipleMovesProposer(std::vector<Proposer<MoveType>*>& proposers, std::vector<double> moveWeights, RNG& rng);
+        MultipleMovesProposer(std::vector<Proposer<MoveType>*>& proposers, std::vector<double> moveWeights);
         MoveType operator()();
         double getProposalProb(const MoveType&) const;
         void updateProbabilities(const MoveType&);
@@ -26,8 +25,8 @@ class MultipleMovesProposer: public Proposer<MoveType> {
 
 template<typename MoveType>
 MultipleMovesProposer<MoveType>::MultipleMovesProposer(std::vector<Proposer<MoveType>*>& proposers,
-    std::vector<double> moveWeights, RNG& rng):
-            m_proposers(proposers), m_rng(rng), m_moveWeights(moveWeights) {
+    std::vector<double> moveWeights):
+            m_proposers(proposers), m_moveWeights(moveWeights) {
 
     if (m_moveWeights.size() != m_proposers.size())
         throw std::invalid_argument("MultipleMovesProposer: Number of "
@@ -40,7 +39,7 @@ MultipleMovesProposer<MoveType>::MultipleMovesProposer(std::vector<Proposer<Move
 
 template<typename MoveType>
 MoveType MultipleMovesProposer<MoveType>::operator()() {
-    m_proposedMoveType = m_moveTypeDistribution(m_rng);
+    m_proposedMoveType = m_moveTypeDistribution(rng);
     return (*m_proposers[m_proposedMoveType])();
 }
 

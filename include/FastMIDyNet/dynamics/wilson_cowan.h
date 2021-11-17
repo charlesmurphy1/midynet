@@ -15,8 +15,8 @@ class WilsonCowanDynamics: public BinaryDynamics {
     double m_eta;
 
     public:
-        WilsonCowanDynamics(RandomGraph& randomGraph, RNG& rng, double a, double nu, double mu, double eta):
-            BinaryDynamics(randomGraph, rng), m_a(a), m_nu(nu), m_mu(mu), m_eta(eta) {}
+        WilsonCowanDynamics(RandomGraph& randomGraph, double a, double nu, double mu, double eta):
+            BinaryDynamics(randomGraph), m_a(a), m_nu(nu), m_mu(mu), m_eta(eta) {}
 
         double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const;
         double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const;

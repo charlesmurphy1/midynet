@@ -1,8 +1,13 @@
-#include "FastMIDyNet/utility.h"
-
 #include <stdexcept>
 
+#include "FastMIDyNet/types.h"
+#include "FastMIDyNet/utility.h"
+
+
 using namespace std;
+
+
+namespace FastMIDyNet {
 
 size_t getDegreeIdx(const FastMIDyNet::MultiGraph& graph, size_t vertex) {
     size_t degree = 0;
@@ -15,8 +20,8 @@ size_t getDegreeIdx(const FastMIDyNet::MultiGraph& graph, size_t vertex) {
     return degree;
 }
 
-std::vector<size_t> getDegrees(const FastMIDyNet::MultiGraph& graph) {
-    std::vector<size_t> degrees(graph.getSize());
+DegreeSequence getDegrees(const FastMIDyNet::MultiGraph& graph) {
+    DegreeSequence degrees(graph.getSize());
     for (size_t vertex=0; vertex<graph.getSize(); vertex++)
         degrees[vertex] = getDegreeIdx(graph, vertex);
     return degrees;
@@ -58,3 +63,5 @@ void assertValidProbability(double probability) {
         throw std::invalid_argument("Invalid probability "+std::to_string(probability)+
                 ". Probability must be contained between 0 and 1.");
 }
+
+} // namespace FastMIDyNet

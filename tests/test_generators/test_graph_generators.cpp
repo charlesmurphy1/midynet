@@ -9,12 +9,12 @@ static const FastMIDyNet::Matrix<size_t> EDGE_MATRIX = {
     {1, 0, 2},
     {3, 2, 6}
 };
-static const std::vector<size_t> VERTEX_BLOCKS = {
+static const FastMIDyNet::BlockSequence VERTEX_BLOCKS = {
     0, 0, 0, 0,
     1, 1, 1,
     2, 2, 2, 2, 2
 };
-static const std::vector<size_t> DEGREES = {
+static const FastMIDyNet::DegreeSequence DEGREES = {
     4, 2, 2, 0,
     2, 0, 1,
     0, 4, 4, 2, 1
@@ -49,7 +49,7 @@ TEST(TestDCSBMGenerator, generateDCSBM_givenEdgeMatrixAndDegrees_generatedGraphs
     for (size_t i=0; i<numberOfGeneratedGraphs; i++) {
         auto randomGraph = FastMIDyNet::generateDCSBM(VERTEX_BLOCKS, EDGE_MATRIX, DEGREES, rng);
         EXPECT_EQ(EDGE_MATRIX, getEdgeMatrix(randomGraph, VERTEX_BLOCKS));
-        EXPECT_EQ(DEGREES, getDegrees(randomGraph));
+        EXPECT_EQ(DEGREES, FastMIDyNet::getDegrees(randomGraph));
     }
 }
 

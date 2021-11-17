@@ -14,9 +14,8 @@ static inline double sigmoid(double x) {
 
 class TestIsingGlauber: public::testing::Test{
     public:
-        FastMIDyNet::RNG rng;
-        FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7, rng);
-        FastMIDyNet::IsingGlauberDynamics dynamics = FastMIDyNet::IsingGlauberDynamics(graph, rng, COUPLING_CONSTANT);
+        FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7);
+        FastMIDyNet::IsingGlauberDynamics dynamics = FastMIDyNet::IsingGlauberDynamics(graph, COUPLING_CONSTANT);
 };
 
 

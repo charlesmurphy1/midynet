@@ -19,16 +19,15 @@ static const State STATE = {0, 0, 0, 1, 1, 2, 0};
 static const NeighborsState NEIGHBORS_STATE = {
     {3, 1, 0}, {1, 2, 0}, {4, 1, 0}, {3, 1, 1}, {1, 1, 0}, {0, 1, 0}, {0, 0, 0}
 };
-static const EdgeMoves EDGES_ADDED = {{0, 5}};
-static const EdgeMoves EDGES_REMOVED = {{0, 2}};
+static const EdgeMove EDGES_ADDED = {{0, 5}};
+static const EdgeMove EDGES_REMOVED = {{0, 2}};
 static const GraphMove GRAPH_MOVE = {EDGES_REMOVED, EDGES_ADDED};
 static MultiGraph GRAPH = getUndirectedHouseMultiGraph();
 
 class TestDynamicsBaseClass: public::testing::Test{
     public:
-        RNG rng;
-        DummyRandomGraph randomGraph = DummyRandomGraph(NUM_VERTICES, rng);
-        DummyDynamics dynamics = DummyDynamics(randomGraph, NUM_STATES, rng);
+        DummyRandomGraph randomGraph = DummyRandomGraph(NUM_VERTICES);
+        DummyDynamics dynamics = DummyDynamics(randomGraph, NUM_STATES);
         MultiGraph graph = GRAPH;
         State state = STATE;
         void SetUp() {
@@ -124,6 +123,6 @@ TEST_F(TestDynamicsBaseClass, getLogJointRatio_forSomeGraphMove_returnLogJointRa
 TEST_F(TestDynamicsBaseClass, applyMove_forSomeGraphMove_expectChangesInTheGraph){
     dynamics.applyMove(GRAPH_MOVE);
     auto graph = dynamics.getGraph();
-    // EXPECT_EQ(graph.getEdgeMultiplicityIdx(0, 2), 2);
-    // EXPECT_EQ(graph.getEdgeMultiplicityIdx(0, 5), 1);
+    EXPECT_EQ(graph.getEdgeMultiplicityIdx(0, 2), 2);
+    EXPECT_EQ(graph.getEdgeMultiplicityIdx(0, 5), 1);
 }

@@ -16,10 +16,10 @@ namespace FastMIDyNet{
 class Dynamics{
 
     public:
-        explicit Dynamics(RandomGraph& randomGraph, int numStates, RNG& rng):
+        explicit Dynamics(RandomGraph& randomGraph, int numStates):
             m_randomGraph(randomGraph),
-            m_numStates(numStates),
-            m_rng(rng) { }
+            m_numStates(numStates)
+            { }
 
         const State& getState() const { return m_state; }
         const StateSequence& getPastStates() const { return m_pastStateSequence; }
@@ -68,7 +68,6 @@ class Dynamics{
         StateSequence m_futureStateSequence;
         RandomGraph& m_randomGraph;
         NeighborsStateSequence m_neighborsStateSequence;
-        RNG m_rng;
 
         void updateNeighborStateInPlace(
             BaseGraph::VertexIndex vertexIdx,

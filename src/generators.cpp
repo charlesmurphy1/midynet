@@ -8,7 +8,6 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/random_graph/dcsbm.h"
 
 
 namespace FastMIDyNet {
