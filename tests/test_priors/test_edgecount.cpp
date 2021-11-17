@@ -75,3 +75,15 @@ TEST_F(TestEdgeCountPoissonPrior, applyMove_removeEdges_edgeNumberIncremented) {
     prior.applyMove({edgeMove, {}});
     EXPECT_EQ(prior.getState(), 0);
 }
+
+TEST_F(TestEdgeCountPoissonPrior, checkSelfConsistency_noError_noThrow) {
+    prior.setState(0);
+    EXPECT_NO_THROW(prior.checkSelfConsistency());
+    prior.setState(2);
+    EXPECT_NO_THROW(prior.checkSelfConsistency());
+}
+
+TEST_F(TestEdgeCountPoissonPrior, checkSelfConsistency_negativeMean_throwConsistencyError) {
+    prior={-2};
+    EXPECT_THROW(prior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+}

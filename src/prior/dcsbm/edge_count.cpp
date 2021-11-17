@@ -15,13 +15,13 @@ double EdgeCountPoissonPrior::getLogLikelihood(size_t state) const {
 
 void EdgeCountPoissonPrior::checkSelfConsistency() {
     if (m_mean<=0)
-        throw "EdgeCountPoissonPrior: Negative mean.";
+        throw ConsistencyError("EdgeCountPoissonPrior: Negative mean.");
 }
 
 size_t EdgeCountPoissonPrior::getStateAfterMove(const GraphMove& move) const {
     long edgeNumberDifference = (long) move.addedEdges.size() - (long) move.removedEdges.size();
     if ((long) m_state + edgeNumberDifference < 0)
-        throw "EdgeCountPoissonPrior: Removing more edges than present in graph.";
+        throw ConsistencyError("EdgeCountPoissonPrior: Removing more edges than present in graph.");
     return m_state + edgeNumberDifference;
 }
 

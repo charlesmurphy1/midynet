@@ -3,6 +3,8 @@
 
 
 #include <random>
+#include <string>
+#include <stdexcept>
 #include "FastMIDyNet/types.h"
 
 
@@ -21,7 +23,12 @@ double logPoissonPMF(size_t x, double mean);
 
 void assertValidProbability(double probability);
 
-}
 
+class ConsistencyError: public std::logic_error {
+    public:
+        ConsistencyError(const std::string& message): std::logic_error(message) {}
+};
+
+} // namespace FastMIDyNet
 
 #endif
