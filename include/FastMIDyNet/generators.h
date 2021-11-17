@@ -7,6 +7,7 @@
 #include "BaseGraph/undirected_multigraph.h"
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/random_graph/dcsbm.h"
 
 
 namespace FastMIDyNet{
@@ -14,11 +15,11 @@ namespace FastMIDyNet{
 
 int generateCategorical(const std::vector<double>& probs, RNG& rng);
 std::list<int> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k, RNG& rng);
-BaseGraph::UndirectedMultigraph generateDCSBM(const std::vector<size_t>& vertexBlocks,
-        const Matrix<size_t>& blockEdgeMatrix, const std::vector<size_t>& degrees, RNG& rng);
-BaseGraph::UndirectedMultigraph generateSBM(const std::vector<size_t>& vertexBlocks,
-        const Matrix<size_t>& blockEdgeMatrix, RNG& rng);
-FastMIDyNet::MultiGraph generateCM(const std::vector<size_t>& degrees);
+BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks,
+        const EdgeMatrix& blockEdgeMatrix, const DegreeSequence& degrees, RNG& rng);
+BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& vertexBlocks,
+        const EdgeMatrix& blockEdgeMatrix, RNG& rng);
+FastMIDyNet::MultiGraph generateCM(const DegreeSequence& degrees);
 
 template<typename T>
 T pickElementUniformly(const std::vector<T>& sequence, RNG& rng) {

@@ -7,6 +7,7 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/random_graph/dcsbm.h"
 
 
 namespace FastMIDyNet {
@@ -38,8 +39,8 @@ std::list<int> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k, RNG
     return drawnIndices;
 }
 
-BaseGraph::UndirectedMultigraph generateDCSBM(const std::vector<size_t>& vertexBlocks,
-        const Matrix<size_t>& blockEdgeMatrix, const std::vector<size_t>& degrees, RNG& rng) {
+BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks,
+        const EdgeMatrix& blockEdgeMatrix, const DegreeSequence& degrees, RNG& rng) {
     if (degrees.size() != vertexBlocks.size())
         throw std::logic_error("generateDCSBM: Degrees don't have the same length as vertexBlocks.");
     if (*std::max(vertexBlocks.begin(), vertexBlocks.end()) >= blockEdgeMatrix.size())
@@ -92,8 +93,8 @@ BaseGraph::UndirectedMultigraph generateDCSBM(const std::vector<size_t>& vertexB
     return multigraph;
 }
 
-BaseGraph::UndirectedMultigraph generateSBM(const std::vector<size_t>& vertexBlocks,
-        const Matrix<size_t>& blockEdgeMatrix, RNG& rng) {
+BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& vertexBlocks,
+        const EdgeMatrix& blockEdgeMatrix, RNG& rng) {
     if (*std::max(vertexBlocks.begin(), vertexBlocks.end()) >= blockEdgeMatrix.size())
         throw std::logic_error("generateSBM: Vertex is out of range of blockEdgeMatrix.");
 
@@ -124,7 +125,7 @@ BaseGraph::UndirectedMultigraph generateSBM(const std::vector<size_t>& vertexBlo
     return multigraph;
 }
 
-FastMIDyNet::MultiGraph generateCM(const std::vector<size_t>& degrees) {
+FastMIDyNet::MultiGraph generateCM(const DegreeSequence& degrees) {
     size_t n = degrees.size();
     FastMIDyNet::MultiGraph randomGraph(n);
 

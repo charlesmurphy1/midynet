@@ -16,22 +16,10 @@ typedef std::mt19937_64 RNG;
 template<typename T>
 using Matrix=std::vector<std::vector<T>>;
 
-typedef int VertexState;
-typedef std::vector<VertexState> State;
-typedef std::vector<VertexState> VertexStateSequence;
-typedef std::vector<State> StateSequence;
-
-typedef std::vector<VertexState> VertexNeighborhoodState;
-typedef std::vector<VertexNeighborhoodState> VertexNeighborhoodStateSequence;
-typedef std::vector<VertexNeighborhoodState> NeighborsState;
-typedef std::vector<NeighborsState> NeighborsStateSequence;
-
 typedef BaseGraph::UndirectedMultigraph MultiGraph;
 
-typedef size_t BlockIndex;
-
 typedef std::vector<std::tuple<BaseGraph::VertexIndex, BlockIndex, BlockIndex>> BlockMove;
-typedef std::vector<BaseGraph::Edge> EdgeMoves;
+typedef std::vector<BaseGraph::Edge> EdgeMove;
 
 
 struct Move{
@@ -39,11 +27,11 @@ struct Move{
 };
 
 struct GraphMove: public Move{
-    GraphMove(EdgeMoves edgesRemoved, EdgeMoves edgesAdded):
+    GraphMove(EdgeMove edgesRemoved, EdgeMove edgesAdded):
     edgesRemoved(edgesRemoved), edgesAdded(edgesAdded){ }
     GraphMove(){ }
-    EdgeMoves edgesRemoved;
-    EdgeMoves edgesAdded;
+    EdgeMove edgesRemoved;
+    EdgeMove edgesAdded;
 };
 
 struct PriorMove: public Move{ };
