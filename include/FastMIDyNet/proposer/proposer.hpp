@@ -6,13 +6,13 @@
 namespace FastMIDyNet{
 
 
-template <typename T>
+template<typename MoveType>
 class Proposer{
     public:
         Proposer() { }
-        virtual T operator()() const = 0;
-        virtual double getProposalProb(const T&) = 0;
-        virtual void applyMove(const T&) = 0;
+        virtual MoveType operator()() = 0;
+        virtual double getProposalProb(const MoveType&) const = 0;
+        virtual void updateProbabilities(const MoveType&) = 0;
 };
 
 }
