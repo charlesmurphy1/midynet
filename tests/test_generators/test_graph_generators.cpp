@@ -41,13 +41,12 @@ static FastMIDyNet::Matrix<size_t> getEdgeMatrix(const FastMIDyNet::MultiGraph& 
     }
     return edgeMatrix;
 }
-static FastMIDyNet::RNG rng;
 static const size_t numberOfGeneratedGraphs = 10;
 
 
 TEST(TestDCSBMGenerator, generateDCSBM_givenEdgeMatrixAndDegrees_generatedGraphsRespectEdgeMatrixAndDegrees) {
     for (size_t i=0; i<numberOfGeneratedGraphs; i++) {
-        auto randomGraph = FastMIDyNet::generateDCSBM(VERTEX_BLOCKS, EDGE_MATRIX, DEGREES, rng);
+        auto randomGraph = FastMIDyNet::generateDCSBM(VERTEX_BLOCKS, EDGE_MATRIX, DEGREES);
         EXPECT_EQ(EDGE_MATRIX, getEdgeMatrix(randomGraph, VERTEX_BLOCKS));
         EXPECT_EQ(DEGREES, FastMIDyNet::getDegrees(randomGraph));
     }
@@ -55,7 +54,7 @@ TEST(TestDCSBMGenerator, generateDCSBM_givenEdgeMatrixAndDegrees_generatedGraphs
 
 TEST(TestSBMGenerator, generate_SBM_givenEdgeMatrix_generatedGraphsRespectEdgeMatrix) {
     for (size_t i=0; i<numberOfGeneratedGraphs; i++) {
-        auto randomGraph = FastMIDyNet::generateSBM(VERTEX_BLOCKS, EDGE_MATRIX, rng);
+        auto randomGraph = FastMIDyNet::generateSBM(VERTEX_BLOCKS, EDGE_MATRIX);
         EXPECT_EQ(EDGE_MATRIX, getEdgeMatrix(randomGraph, VERTEX_BLOCKS));
     }
 }

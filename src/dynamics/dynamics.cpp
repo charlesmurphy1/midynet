@@ -37,9 +37,8 @@ const State Dynamics::getRandomState() {
     State rnd_state(N);
     uniform_int_distribution<int> dist(0, m_numStates - 1);
 
-    for (size_t i = 0 ; i < N ; i ++){
+    for (size_t i = 0 ; i < N ; i ++)
         rnd_state[i] = dist(rng);
-    }
 
     return rnd_state;
 };
@@ -90,7 +89,7 @@ void Dynamics::syncUpdateState(){
 
     for (auto idx: getGraph()){
         transProbs = getTransitionProbs(m_state[idx], neighborState[idx]);
-        future_state[idx] = generateCategorical(transProbs, rng);
+        future_state[idx] = generateCategorical(transProbs);
     }
 };
 
@@ -105,7 +104,7 @@ void Dynamics::asyncUpdateState(int numUpdates){
     for (auto i=0; i < numUpdates; i++){
         VertexIndex idx = idxGenerator(rng);
         transProbs = getTransitionProbs(currentState[idx], neighborState[idx]);
-        newVertexState = generateCategorical(transProbs, rng);
+        newVertexState = generateCategorical(transProbs);
         updateNeighborStateInPlace(idx, currentState[idx], newVertexState, neighborState);
         currentState[idx] = newVertexState;
     }

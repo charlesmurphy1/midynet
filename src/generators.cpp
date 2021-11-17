@@ -13,7 +13,7 @@
 namespace FastMIDyNet {
 
 
-int generateCategorical(const std::vector<double>& probs, RNG& rng){
+int generateCategorical(const std::vector<double>& probs){
     std::discrete_distribution<int> dist(probs.begin(), probs.end());
     return dist(rng);
 }
@@ -30,7 +30,7 @@ double logMultinomialCoefficient(std::list<size_t> sequence) {
 }
 
 
-std::vector<size_t> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k, RNG& rng) {
+std::vector<size_t> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k) {
     std::unordered_map<size_t, size_t> indexReplacements;
     size_t newDrawnIndex;
     std::vector<size_t> drawnIndices;
@@ -52,11 +52,11 @@ std::vector<size_t> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k
 }
 
 
-std::list<size_t> sampleRandomComposition(size_t n, size_t k, RNG& rng) {
+std::list<size_t> sampleRandomComposition(size_t n, size_t k) {
     std::list<size_t> composition;
     std::vector<size_t> uniformRandomSequence(k-1);
 
-    uniformRandomSequence = sampleUniformlySequenceWithoutReplacement(n-1, k-1, rng);
+    uniformRandomSequence = sampleUniformlySequenceWithoutReplacement(n-1, k-1);
     std::sort(uniformRandomSequence.begin(), uniformRandomSequence.end());
 
     composition.push_back(uniformRandomSequence[0] + 1);
@@ -67,11 +67,11 @@ std::list<size_t> sampleRandomComposition(size_t n, size_t k, RNG& rng) {
 }
 
 
-std::list<size_t> sampleRandomWeakComposition(size_t n, size_t k, RNG& rng) {
+std::list<size_t> sampleRandomWeakComposition(size_t n, size_t k) {
     std::list<size_t> weakComposition;
     std::vector<size_t> uniformRandomSequence(k-1);
 
-    uniformRandomSequence = sampleUniformlySequenceWithoutReplacement(n+k-1, k-1, rng);
+    uniformRandomSequence = sampleUniformlySequenceWithoutReplacement(n+k-1, k-1);
     std::sort(uniformRandomSequence.begin(), uniformRandomSequence.end());
 
     weakComposition.push_back(uniformRandomSequence[0]);
@@ -82,18 +82,18 @@ std::list<size_t> sampleRandomWeakComposition(size_t n, size_t k, RNG& rng) {
 }
 
 
-std::list<size_t> sampleRandomRestrictedPartition(size_t n, size_t k, RNG& rng, size_t numberOfSteps) {
+std::list<size_t> sampleRandomRestrictedPartition(size_t n, size_t k, size_t numberOfSteps) {
     if (numberOfSteps==0)
         numberOfSteps = n;
 
-    auto partition = sampleRandomWeakComposition(n, k, rng);
+    auto partition = sampleRandomWeakComposition(n, k);
     partition.sort();
     auto skimmedPartition = partition;
     skimmedPartition.unique();
     double P = logMultinomialCoefficient(skimmedPartition);
 
     for (size_t i=0; i<numberOfSteps; i++) {
-        auto newPartition = sampleRandomWeakComposition(n, k, rng);
+        auto newPartition = sampleRandomWeakComposition(n, k);
         newPartition.sort();
         auto skimmedNewPartition = newPartition;
         skimmedNewPartition.unique();
@@ -107,7 +107,7 @@ std::list<size_t> sampleRandomRestrictedPartition(size_t n, size_t k, RNG& rng, 
 }
 
 BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks,
-        const EdgeMatrix& blockEdgeMatrix, const DegreeSequence& degrees, RNG& rng) {
+        const EdgeMatrix& blockEdgeMatrix, const DegreeSequence& degrees) {
     if (degrees.size() != vertexBlocks.size())
         throw std::logic_error("generateDCSBM: Degrees don't have the same length as vertexBlocks.");
     if (*std::max(vertexBlocks.begin(), vertexBlocks.end()) >= blockEdgeMatrix.size())
@@ -161,7 +161,7 @@ BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks,
 }
 
 BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& vertexBlocks,
-        const EdgeMatrix& blockEdgeMatrix, RNG& rng) {
+        const EdgeMatrix& blockEdgeMatrix) {
     if (*std::max(vertexBlocks.begin(), vertexBlocks.end()) >= blockEdgeMatrix.size())
         throw std::logic_error("generateSBM: Vertex is out of range of blockEdgeMatrix.");
 
@@ -183,8 +183,8 @@ BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& vertexBlocks,
                 edgeNumberBetweenBlocks /= 2;
 
             for (size_t edge=0; edge<edgeNumberBetweenBlocks; edge++) {
-                vertex1 = pickElementUniformly<size_t>(verticesInBlock[outBlock], rng);
-                vertex2 = pickElementUniformly<size_t>(verticesInBlock[inBlock], rng);
+                vertex1 = pickElementUniformly<size_t>(verticesInBlock[outBlock]);
+                vertex2 = pickElementUniformly<size_t>(verticesInBlock[inBlock]);
                 multigraph.addEdgeIdx(vertex1, vertex2);
             }
         }
