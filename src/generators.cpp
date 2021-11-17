@@ -3,6 +3,7 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
+#include <math.h>
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/generators.h"
@@ -17,13 +18,25 @@ int generateCategorical(const std::vector<double>& probs, RNG& rng){
     return dist(rng);
 }
 
-std::list<int> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k, RNG& rng) {
+
+double logMultinomialCoefficient(std::list<size_t> sequence) {
+    size_t sumSequence=0;
+    size_t sumLGammaSequencePlusOne=0;
+    for (size_t element: sequence) {
+        sumSequence += element;
+        sumLGammaSequencePlusOne += lgamma(element + 1);
+    }
+    return lgamma(sumSequence + 1) - sumLGammaSequencePlusOne;
+}
+
+
+std::vector<size_t> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k, RNG& rng) {
     std::unordered_map<size_t, size_t> indexReplacements;
     size_t newDrawnIndex;
-    std::list<int> drawnIndices;
+    std::vector<size_t> drawnIndices;
 
     for (size_t i=0; i<k; i++) {
-        newDrawnIndex = std::uniform_int_distribution<size_t>(i, n)(rng);
+        newDrawnIndex = std::uniform_int_distribution<size_t>(i, n-1)(rng);
 
         if (indexReplacements.find(newDrawnIndex) == indexReplacements.end())
             drawnIndices.push_back(newDrawnIndex);
@@ -37,6 +50,62 @@ std::list<int> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k, RNG
     }
     return drawnIndices;
 }
+
+
+std::list<size_t> sampleRandomComposition(size_t n, size_t k, RNG& rng) {
+    std::list<size_t> composition;
+    std::vector<size_t> uniformRandomSequence(k-1);
+
+    uniformRandomSequence = sampleUniformlySequenceWithoutReplacement(n-1, k-1, rng);
+    std::sort(uniformRandomSequence.begin(), uniformRandomSequence.end());
+
+    composition.push_back(uniformRandomSequence[0] + 1);
+    for (size_t i=1; i<uniformRandomSequence.size(); i++)
+        composition.push_back(uniformRandomSequence[i] - uniformRandomSequence[i-1]);
+    composition.push_back(n - uniformRandomSequence[k-2] - 1);
+    return composition;
+}
+
+
+std::list<size_t> sampleRandomWeakComposition(size_t n, size_t k, RNG& rng) {
+    std::list<size_t> weakComposition;
+    std::vector<size_t> uniformRandomSequence(k-1);
+
+    uniformRandomSequence = sampleUniformlySequenceWithoutReplacement(n+k-1, k-1, rng);
+    std::sort(uniformRandomSequence.begin(), uniformRandomSequence.end());
+
+    weakComposition.push_back(uniformRandomSequence[0]);
+    for (size_t i=1; i<uniformRandomSequence.size(); i++)
+        weakComposition.push_back(uniformRandomSequence[i] - uniformRandomSequence[i-1] - 1);
+    weakComposition.push_back(n + k - 2 - uniformRandomSequence[k-2]);
+    return weakComposition;
+}
+
+
+std::list<size_t> sampleRandomRestrictedPartition(size_t n, size_t k, RNG& rng, size_t numberOfSteps) {
+    if (numberOfSteps==0)
+        numberOfSteps = n;
+
+    auto partition = sampleRandomWeakComposition(n, k, rng);
+    partition.sort();
+    auto skimmedPartition = partition;
+    skimmedPartition.unique();
+    double P = logMultinomialCoefficient(skimmedPartition);
+
+    for (size_t i=0; i<numberOfSteps; i++) {
+        auto newPartition = sampleRandomWeakComposition(n, k, rng);
+        newPartition.sort();
+        auto skimmedNewPartition = newPartition;
+        skimmedNewPartition.unique();
+        double Q = logMultinomialCoefficient(skimmedNewPartition);
+        if (std::uniform_int_distribution<size_t>(0, 1)(rng) < exp(P - Q)) {
+            partition = newPartition;
+            P = Q;
+        }
+    }
+    return partition;
+}
+
 
 BaseGraph::UndirectedMultigraph generateDCSBM(const std::vector<size_t>& vertexBlocks,
         const Matrix<size_t>& blockEdgeMatrix, const std::vector<size_t>& degrees, RNG& rng) {
@@ -92,6 +161,7 @@ BaseGraph::UndirectedMultigraph generateDCSBM(const std::vector<size_t>& vertexB
     return multigraph;
 }
 
+
 BaseGraph::UndirectedMultigraph generateSBM(const std::vector<size_t>& vertexBlocks,
         const Matrix<size_t>& blockEdgeMatrix, RNG& rng) {
     if (*std::max(vertexBlocks.begin(), vertexBlocks.end()) >= blockEdgeMatrix.size())
@@ -123,6 +193,7 @@ BaseGraph::UndirectedMultigraph generateSBM(const std::vector<size_t>& vertexBlo
     }
     return multigraph;
 }
+
 
 FastMIDyNet::MultiGraph generateCM(const std::vector<size_t>& degrees) {
     size_t n = degrees.size();
