@@ -11,5 +11,6 @@ double logFactorial(int);
 double logDoubleFactorial(int);
 double logBinomial(int);
 
+void assertValidProbability(double probability);
 
 #endif

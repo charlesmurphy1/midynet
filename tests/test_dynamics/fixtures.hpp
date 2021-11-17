@@ -16,9 +16,9 @@ namespace FastMIDyNet{
 
 class DummyEdgeProposer: public EdgeProposer{
     public:
-        GraphMove operator()() const { return GraphMove(); };
-        double getProposalProb(const GraphMove&) { return 0.; };
-        void applyMove(const GraphMove&) { };
+        GraphMove operator()() { return GraphMove(); };
+        double getProposalProb(const GraphMove&) const { return 0.; };
+        void updateProbabilities(const GraphMove&) { };
 };
 
 class DummyRandomGraph: public RandomGraph{
