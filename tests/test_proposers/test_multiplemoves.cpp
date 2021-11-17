@@ -35,6 +35,31 @@ class TestMultipleMoveProposer: public ::testing::Test {
 };
 
 
+TEST_F(TestMultipleMoveProposer, constructor_noProposers_throwLogicError) {
+    std::vector<FastMIDyNet::Proposer<DummyMove>*> _proposers = {};
+    std::vector<double> moveWeights = {};
+    EXPECT_THROW(
+            FastMIDyNet::MultipleMovesProposer<DummyMove>(_proposers, moveWeights, rng),
+            std::invalid_argument);
+}
+
+TEST_F(TestMultipleMoveProposer, constructor_moreWeights_throwLogicError) {
+    std::vector<FastMIDyNet::Proposer<DummyMove>*> _proposers = {};
+    std::vector<double> moveWeights = {1.};
+    EXPECT_THROW(
+            FastMIDyNet::MultipleMovesProposer<DummyMove>(_proposers, moveWeights, rng),
+            std::invalid_argument);
+}
+
+TEST_F(TestMultipleMoveProposer, constructor_moreProposers_throwLogicError) {
+    std::vector<FastMIDyNet::Proposer<DummyMove>*> _proposers = {&dummyProposer0};
+    std::vector<double> moveWeights = {};
+    EXPECT_THROW(
+            FastMIDyNet::MultipleMovesProposer<DummyMove>(_proposers, moveWeights, rng),
+            std::invalid_argument);
+}
+
+
 TEST_F(TestMultipleMoveProposer, proposeMove_biasedMoveChoice_averageMoveChoiceIsBiased) {
     rng.seed(3012);
     double averageMoveChoice=0;
