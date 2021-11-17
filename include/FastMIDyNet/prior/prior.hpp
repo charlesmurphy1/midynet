@@ -3,6 +3,7 @@
 
 
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/proposer/movetypes.h"
 
 
 namespace FastMIDyNet{
@@ -15,20 +16,23 @@ class Prior{
         void setState(const T& state) { m_state = state; }
 
         virtual T sample() = 0;
-        virtual double getLogLikelihood(const T& prior) const = 0;
-        virtual double getLogLikelihood() const { return getLogLikelihood(m_state); }
-        double getLogPrior() const { return 0; }
+        virtual double getLogLikelihood() const = 0;
+        virtual double getLogPrior() const = 0;
         double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
-        double getLogLikelihoodRatio(const GraphMove& move) const {
-            T newState = getStateAfterMove(move);
-            return getLogLikelihood(newState) - getLogLikelihood();
-        }
+        //double getLogLikelihoodRatio(const GraphMove& move) const {
+            //T newState = getStateAfterMove(move);
+            //return getLogLikelihood(newState) - getLogLikelihood();
+        //}
 
-        void applyMove(const GraphMove&) { setState(getStateAfterMove(move)); }
+<<<<<<< HEAD
+        void applyMove(const GraphMove& move) { setState(getStateAfterMove(move)); }
         virtual T getStateAfterMove(const GraphMove&) = 0;
+=======
+        //void applyMove(const GraphMove& move) { setState(getStateAfterMove(move)); }
+        //virtual T getStateAfterMove(const GraphMove&) = 0;
+>>>>>>> main
 
         virtual void checkConsistency() = 0;
-
 
     protected:
         T m_state;
