@@ -16,8 +16,8 @@ class DegreeCorrectedStochasticBlockModelFamily: public RandomGraph{
     BlockPrior& m_blockPrior;
     DegreePrior& m_degreePrior;
 public:
-    DegreeCorrectedStochasticBlockModelFamily(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior, DegreePrior& degreePrior, RNG& rng):
-    m_edgeMatrixPrior(edgeMatrixPrior),m_blockPrior(blockPrior), m_degreePrior(degreePrior), RandomGraph(blockPrior.getSize(), rng){ }
+    DegreeCorrectedStochasticBlockModelFamily(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior, DegreePrior& degreePrior):
+    m_edgeMatrixPrior(edgeMatrixPrior),m_blockPrior(blockPrior), m_degreePrior(degreePrior), RandomGraph(blockPrior.getSize()) { }
 
     void sampleState () ;
 

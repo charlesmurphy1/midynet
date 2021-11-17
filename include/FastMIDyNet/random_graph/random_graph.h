@@ -15,17 +15,9 @@ namespace FastMIDyNet{
 
 class RandomGraph{
     public:
-<<<<<<< HEAD
-        explicit RandomGraph(size_t size, RNG& rng):
+        explicit RandomGraph(size_t size):
             m_size(size),
-            m_state(size),
-            m_rng(rng) { }
-=======
-        explicit RandomGraph(size_t size, EdgeProposer& edgeProposer):
-            m_size(size),
-            m_state(size),
-            m_edgeProposer(edgeProposer) { }
->>>>>>> main
+            m_state(size) { }
 
         const MultiGraph& getState() { return m_state; }
         void setState(const MultiGraph& state) { m_state = state; }
@@ -46,11 +38,6 @@ class RandomGraph{
     protected:
         size_t m_size;
         MultiGraph m_state;
-<<<<<<< HEAD
-        RNG m_rng;
-=======
-        EdgeProposer& m_edgeProposer;
->>>>>>> main
 
 };
 
