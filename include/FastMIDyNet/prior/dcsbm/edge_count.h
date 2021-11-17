@@ -7,7 +7,18 @@
 
 namespace FastMIDyNet{
 
-class EdgeCountPoissonPrior: public Prior<size_t>{
+class EdgeCountPrior: public Prior<size_t> {
+    public:
+        double getLogLikelihoodRatio(const GraphMove& move) const {
+            return getLogLikelihood(getStateAfterMove(move)) - Prior::getLogLikelihood();
+        }
+
+        void applyMove(const GraphMove& move) { setState(getStateAfterMove(move)); }
+        size_t getStateAfterMove(const GraphMove&) const;
+};
+
+
+class EdgeCountPoissonPrior: public EdgeCountPrior{
     double m_mean;
     std::poisson_distribution<size_t> m_poissonDistribution;
 
@@ -17,17 +28,8 @@ class EdgeCountPoissonPrior: public Prior<size_t>{
         size_t sample();
         double getLogLikelihood(size_t state) const;
         double getLogPrior() const { return 0; }
-        double getLogLikelihoodRatio(const GraphMove& move) const {
-            size_t newState = getStateAfterMove(move);
-            return getLogLikelihood(newState) - Prior::getLogLikelihood();
-        }
 
-        void applyMove(const GraphMove& move) { setState(getStateAfterMove(move)); }
-
-        void checkSelfConsistency();
-
-    private:
-        size_t getStateAfterMove(const GraphMove&) const;
+        void checkSelfConsistency() const;
 };
 
 }
