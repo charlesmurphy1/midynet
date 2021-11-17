@@ -11,3 +11,6 @@ compile_commands.json
 *.json
 *.pdf
 _*
+
+fast-midynet.sublime-project
+fast-midynet.sublime-workspace

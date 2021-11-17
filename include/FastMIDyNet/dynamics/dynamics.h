@@ -7,11 +7,11 @@
 
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/dynamics/types.h"
 #include "BaseGraph/types.h"
 
 
 namespace FastMIDyNet{
-
 
 class Dynamics{
 
