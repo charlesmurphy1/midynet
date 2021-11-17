@@ -17,11 +17,11 @@ struct Move{
 };
 
 struct GraphMove: public Move{
-    GraphMove(EdgeMove edgesRemoved, EdgeMove edgesAdded):
-        edgesRemoved(edgesRemoved), edgesAdded(edgesAdded){ }
+    GraphMove(EdgeMove removedEdges, EdgeMove addedEdges):
+        removedEdges(removedEdges), addedEdges(addedEdges){ }
     GraphMove(){ }
-    EdgeMove edgesRemoved;
-    EdgeMove edgesAdded;
+    EdgeMove removedEdges;
+    EdgeMove addedEdges;
 };
 
 struct PriorMove: public Move{ };

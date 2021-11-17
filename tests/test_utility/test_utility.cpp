@@ -3,7 +3,7 @@
 #include "FastMIDyNet/utility.h"
 
 
-TEST(Utility, getDegree_graphWithSelfloop_returnExpectedDegrees) {
+TEST(GetDegree, graphWithSelfloop_returnExpectedDegrees) {
     FastMIDyNet::MultiGraph graph(4);
     graph.addEdgeIdx(0, 1);
     graph.addEdgeIdx(0, 0);
@@ -16,4 +16,11 @@ TEST(Utility, getDegree_graphWithSelfloop_returnExpectedDegrees) {
     EXPECT_EQ(1, FastMIDyNet::getDegreeIdx(graph, 1));
     EXPECT_EQ(5, FastMIDyNet::getDegreeIdx(graph, 2));
     EXPECT_EQ(0, FastMIDyNet::getDegreeIdx(graph, 3));
+}
+
+TEST(GetPoissonPMF, anyIntegerAndMeanCombination_returnCorrectLogPoissonPMF) {
+    for (auto x: {0, 2, 10, 100})
+        for (auto mu: {.0001, 1., 10., 1000.})
+            EXPECT_DOUBLE_EQ(FastMIDyNet::logPoissonPMF(x, mu),
+                                x*log(mu) - lgamma(x+1) - mu);
 }
