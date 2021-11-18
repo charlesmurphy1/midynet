@@ -1,4 +1,5 @@
-#include "FastMIDyNet/utility.h"
+#include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/proposer/edge_proposer/double_edge_swap.h"
 
 

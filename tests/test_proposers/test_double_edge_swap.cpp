@@ -50,3 +50,24 @@ TEST_F(TestDoubleEdgeSwap, updateProbabilities_addInexistentEdge_edgeWeightIncre
     EXPECT_EQ(swapProposer.getSamplableSet().get_weight(edge), graph.getEdgeMultiplicityIdx(edge)+1);
     EXPECT_EQ(swapProposer.getSamplableSet().count(reversedEdge), 0);
 }
+
+TEST_F(TestDoubleEdgeSwap, updateProbabilities_removeEdge_edgeWeightDecreased) {
+    BaseGraph::Edge edge = {0, 2};
+    FastMIDyNet::GraphMove move = {{edge}, {}};
+    swapProposer.updateProbabilities(move);
+    EXPECT_EQ(swapProposer.getSamplableSet().get_weight(edge), graph.getEdgeMultiplicityIdx(edge)-1);
+}
+
+TEST_F(TestDoubleEdgeSwap, updateProbabilities_removeMultiEdge_edgeWeightDecreased) {
+    BaseGraph::Edge edge = {0, 2};
+    FastMIDyNet::GraphMove move = {{edge, edge}, {}};
+    swapProposer.updateProbabilities(move);
+    EXPECT_EQ(swapProposer.getSamplableSet().get_weight(edge), graph.getEdgeMultiplicityIdx(edge)-2);
+}
+
+TEST_F(TestDoubleEdgeSwap, updateProbabilities_removeAllEdges_edgeRemovedFromSamplableSet) {
+    BaseGraph::Edge edge = {0, 2};
+    FastMIDyNet::GraphMove move = {{edge, edge, edge}, {}};
+    swapProposer.updateProbabilities(move);
+    EXPECT_EQ(swapProposer.getSamplableSet().count(edge), 0);
+}
