@@ -5,7 +5,6 @@
 #include "gtest/gtest.h"
 
 #include "FastMIDyNet/random_graph/random_graph.h"
-#include "FastMIDyNet/proposer/edge_proposer.h"
 #include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility.h"

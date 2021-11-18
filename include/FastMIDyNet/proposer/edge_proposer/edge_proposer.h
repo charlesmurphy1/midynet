@@ -10,14 +10,7 @@
 namespace FastMIDyNet{
 
 
-class EdgeProposer: public Proposer<GraphMove>{
-    public:
-        virtual GraphMove operator()() = 0;
-        void setGraph(MultiGraph& graph) { m_graph = graph; };
-
-    protected:
-        MultiGraph m_graph;
-};
+class EdgeProposer: public Proposer<GraphMove>{ };
 
 }
 

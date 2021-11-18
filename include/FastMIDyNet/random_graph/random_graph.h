@@ -6,7 +6,6 @@
 
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/proposer/edge_proposer.h"
 #include "FastMIDyNet/prior/prior.hpp"
 
 

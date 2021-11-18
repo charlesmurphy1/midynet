@@ -10,8 +10,12 @@ template<typename MoveType>
 class Proposer{
     public:
         Proposer() { }
-        virtual MoveType operator()() = 0;
-        virtual double getProposalProb(const MoveType&) const = 0;
+        std::pair<MoveType, double> operator()() {
+            MoveType move = proposeMove();
+            return { move, getProposalProb(move) };
+        }
+        virtual MoveType proposeMove() = 0;
+        virtual double getLogProposalProbRatio(const MoveType&) const = 0;
         virtual void updateProbabilities(const MoveType&) = 0;
 };
 
