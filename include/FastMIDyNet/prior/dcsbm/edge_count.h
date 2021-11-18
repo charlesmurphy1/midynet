@@ -12,9 +12,13 @@ class EdgeCountPrior: public Prior<size_t> {
         double getLogLikelihoodRatio(const GraphMove& move) const {
             return getLogLikelihood(getStateAfterMove(move)) - Prior::getLogLikelihood();
         }
+        double getLogLikelihoodRatio(const std::vector<BlockMove>& move) const { return 0; }
 
         void applyMove(const GraphMove& move) { setState(getStateAfterMove(move)); }
+        void applyMove(const std::vector<BlockMove>& move) { }
         size_t getStateAfterMove(const GraphMove&) const;
+        size_t getStateAfterMove(const std::vector<BlockMove>&) const { return getState(); }
+
 };
 
 
@@ -26,7 +30,7 @@ class EdgeCountPoissonPrior: public EdgeCountPrior{
         EdgeCountPoissonPrior(double mean): m_mean(mean), m_poissonDistribution(mean) { }
 
         size_t sample();
-        double getLogLikelihood(size_t state) const;
+        double getLogLikelihood(const size_t& state) const;
         double getLogPrior() const { return 0; }
 
         void checkSelfConsistency() const;

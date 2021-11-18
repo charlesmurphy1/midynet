@@ -19,9 +19,7 @@ static const State STATE = {0, 0, 0, 1, 1, 2, 0};
 static const NeighborsState NEIGHBORS_STATE = {
     {3, 1, 0}, {1, 2, 0}, {4, 1, 0}, {3, 1, 1}, {1, 1, 0}, {0, 1, 0}, {0, 0, 0}
 };
-static const EdgeMove EDGES_ADDED = {{0, 5}};
-static const EdgeMove EDGES_REMOVED = {{0, 2}};
-static const GraphMove GRAPH_MOVE = {EDGES_REMOVED, EDGES_ADDED};
+static const GraphMove GRAPH_MOVE = {{{0, 2}}, {{0, 5}}};
 static MultiGraph GRAPH = getUndirectedHouseMultiGraph();
 
 class TestDynamicsBaseClass: public::testing::Test{
