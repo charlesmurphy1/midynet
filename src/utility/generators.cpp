@@ -6,7 +6,7 @@
 #include <math.h>
 
 #include "BaseGraph/types.h"
-#include "FastMIDyNet/generators.h"
+#include "FastMIDyNet/utility/generators.h"
 #include "FastMIDyNet/types.h"
 
 
@@ -16,17 +16,6 @@ namespace FastMIDyNet {
 int generateCategorical(const std::vector<double>& probs){
     std::discrete_distribution<int> dist(probs.begin(), probs.end());
     return dist(rng);
-}
-
-
-double logMultinomialCoefficient(std::list<size_t> sequence) {
-    size_t sumSequence=0;
-    size_t sumLGammaSequencePlusOne=0;
-    for (size_t element: sequence) {
-        sumSequence += element;
-        sumLGammaSequencePlusOne += lgamma(element + 1);
-    }
-    return lgamma(sumSequence + 1) - sumLGammaSequencePlusOne;
 }
 
 

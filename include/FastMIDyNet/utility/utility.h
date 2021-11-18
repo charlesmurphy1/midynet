@@ -18,16 +18,8 @@ DegreeSequence getDegrees(const FastMIDyNet::MultiGraph&);
 double logFactorial(int);
 double logDoubleFactorial(int);
 double logBinomial(int);
-
 double logPoissonPMF(size_t x, double mean);
 
-void assertValidProbability(double probability);
-
-
-class ConsistencyError: public std::logic_error {
-    public:
-        ConsistencyError(const std::string& message): std::logic_error(message) {}
-};
 
 } // namespace FastMIDyNet
 
