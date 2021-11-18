@@ -1,13 +1,16 @@
-#ifndef FAST_MIDYNET_GENERATORS
-#define FAST_MIDYNET_GENERATORS
+#ifndef FAST_MIDYNET_GENERATORS_H
+#define FAST_MIDYNET_GENERATORS_H
 
 #include <random>
 #include <vector>
 #include <list>
+
 #include "BaseGraph/undirected_multigraph.h"
 #include "BaseGraph/types.h"
+
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/utility.h"
+#include "FastMIDyNet/generators.h"
+#include "FastMIDyNet/rng.h"
 
 
 namespace FastMIDyNet{

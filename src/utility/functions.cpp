@@ -3,7 +3,7 @@
 #include <list>
 
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/utility/util_func.h"
+#include "FastMIDyNet/utility/functions.h"
 
 
 using namespace std;

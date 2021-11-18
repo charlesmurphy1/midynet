@@ -1,9 +1,10 @@
 #include "FastMIDyNet/prior/dcsbm/edge_count.h"
-#include "FastMIDyNet/utility.h"
+#include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/rng.h"
+#include "FastMIDyNet/exceptions.h"
 
 
 namespace FastMIDyNet{
-
 
 size_t EdgeCountPrior::getStateAfterMove(const GraphMove& move) const {
     long edgeNumberDifference = (long) move.addedEdges.size() - (long) move.removedEdges.size();
@@ -12,9 +13,6 @@ size_t EdgeCountPrior::getStateAfterMove(const GraphMove& move) const {
     return m_state + edgeNumberDifference;
 }
 
-
-
-
 size_t EdgeCountPoissonPrior::sample() {
     return m_poissonDistribution(rng);
 }
@@ -22,7 +20,6 @@ size_t EdgeCountPoissonPrior::sample() {
 double EdgeCountPoissonPrior::getLogLikelihood(const size_t& state) const {
     return logPoissonPMF(state, m_mean);
 }
-
 
 void EdgeCountPoissonPrior::checkSelfConsistency() const {
     if (m_mean<=0)

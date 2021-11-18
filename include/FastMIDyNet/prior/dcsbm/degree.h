@@ -1,0 +1,6 @@
+#ifndef FAST_MIDYNET_DEGREE_H
+#define FAST_MIDYNET_DEGREE_H
+
+
+
+#endif

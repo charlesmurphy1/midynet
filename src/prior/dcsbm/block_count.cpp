@@ -1,7 +1,9 @@
 #include <algorithm>
 
 #include "FastMIDyNet/prior/dcsbm/block_count.h"
-#include "FastMIDyNet/utility.h"
+#include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/rng.h"
+#include "FastMIDyNet/exceptions.h"
 
 
 namespace FastMIDyNet{
@@ -14,9 +16,6 @@ size_t BlockCountPrior::getStateAfterMove(const BlockMove& move) const {
     return newState;
 };
 
-
-
-
 size_t BlockCountPoissonPrior::sample() {
     return m_poissonDistribution(rng);
 };
@@ -24,7 +23,6 @@ size_t BlockCountPoissonPrior::sample() {
 double BlockCountPoissonPrior::getLogLikelihood(const size_t& state) const {
     return logPoissonPMF(state, m_mean);
 };
-
 
 void BlockCountPoissonPrior::checkSelfConsistency() const {
     if (m_mean<=0)

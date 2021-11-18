@@ -12,17 +12,17 @@ class DegreeCountPrior: public Prior<DegreeSequence>{
     size_t m_graphSize;
 
     public:
-        DegreeCountPrior(EdgeCountPrior& edgeCountPrior, size_t graphSize):
-            m_edgeCountPrior(edgeCountPrior), m_graphSize(graphSize) { }
+        DegreeCountPrior(size_t graphSize, EdgeCountPrior& edgeCountPrior):
+            m_graphSize(graphSize), m_edgeCountPrior(edgeCountPrior) { }
 
 
         double getLogPrior() { return m_edgeCountPrior.getLogJoint(); }
         virtual double getLogLikelihoodRatio(const GraphMove& move) const = 0;
         double getLogJointRatio(const GraphMove& move) {
             double logJointRatio = 0;
-            if (!isProcessed)
+            if (!m_isProcessed)
                 logJointRatio = getLogLikelihoodRatio(move) + m_edgeCountPrior.getLogJointRatio(move);
-            isProcessed = true;
+            m_isProcessed = true;
             return logJointRatio;
         }
         double getLogJointRatio(const BlockMove& move) { return 0; }

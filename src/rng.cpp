@@ -1,4 +1,4 @@
-#include "FastMIDyNet/utility/rng.h"
+#include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/types.h"
 
 

@@ -1,7 +1,7 @@
 #include <stdexcept>
 
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/utility/util_graph.h"
+#include "FastMIDyNet/utility/graph_util.h"
 
 
 using namespace std;

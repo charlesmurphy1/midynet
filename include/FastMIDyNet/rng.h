@@ -1,10 +1,8 @@
-#ifndef FAST_MIDYNET_UTILITY_H
-#define FAST_MIDYNET_UTILITY_H
+#ifndef FAST_MIDYNET_RNG_H
+#define FAST_MIDYNET_RNG_H
 
 
 #include <random>
-#include <string>
-#include <stdexcept>
 #include "FastMIDyNet/types.h"
 
 

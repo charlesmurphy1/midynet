@@ -1,5 +1,5 @@
 #include <stdexcept>
-#include "FastMIDyNet/utility/exceptions.h"
+#include "FastMIDyNet/exceptions.h"
 
 void assertValidProbability(double probability) {
     if (probability > 1 || probability < 0)

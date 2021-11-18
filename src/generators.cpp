@@ -6,7 +6,9 @@
 #include <math.h>
 
 #include "BaseGraph/types.h"
-#include "FastMIDyNet/utility/generators.h"
+#include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/generators.h"
+#include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/types.h"
 
 
