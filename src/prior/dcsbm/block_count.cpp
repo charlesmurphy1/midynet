@@ -7,12 +7,10 @@
 namespace FastMIDyNet{
 
 
-size_t BlockCountPrior::getStateAfterMove(const std::vector<BlockMove>& move) const {
-    size_t newState = m_state;
-    for (auto vertexBlockMove : move){
-        if (newState <= vertexBlockMove.nextBlockIdx)
-            newState = vertexBlockMove.nextBlockIdx + 1;
-    }
+size_t BlockCountPrior::getStateAfterMove(const BlockMove& move) const {
+    size_t newState = getState();
+    if (newState <= move.nextBlockIdx)
+        newState = move.nextBlockIdx + 1;
     return newState;
 };
 
