@@ -10,7 +10,7 @@
 namespace FastMIDyNet {
 
 class DoubleEdgeSwap: public EdgeProposer {
-    sset::SamplableSet<Edge> m_edgeSamplableSet;
+    sset::SamplableSet<BaseGraph::Edge> m_edgeSamplableSet = sset::SamplableSet<BaseGraph::Edge>(1, 100);
     std::bernoulli_distribution m_swapOrientationDistribution = std::bernoulli_distribution(.5);
 
     public:
@@ -19,7 +19,7 @@ class DoubleEdgeSwap: public EdgeProposer {
         double getLogProposalProbRatio(const GraphMove&) const { return 0; }
         void updateProbabilities(const GraphMove&);
 
-        const sset::SamplableSet<Edge>& getSamplableSet() { return m_edgeSamplableSet; }
+        const sset::SamplableSet<BaseGraph::Edge>& getSamplableSet() { return m_edgeSamplableSet; }
 };
 
 

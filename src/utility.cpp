@@ -27,6 +27,12 @@ DegreeSequence getDegrees(const FastMIDyNet::MultiGraph& graph) {
     return degrees;
 }
 
+BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge& edge) {
+    if (edge.first < edge.second)
+        return edge;
+    return {edge.second, edge.fist};
+}
+
 double logFactorial(size_t n){
     return lgamma(n + 1);
 }
@@ -67,5 +73,6 @@ void assertValidProbability(double probability) {
 double logPoissonPMF(size_t x, double mean) {
     return x*log(mean) - logFactorial(x) - mean;
 }
+
 
 } // namespace FastMIDyNet

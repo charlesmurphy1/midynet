@@ -6,6 +6,7 @@
 #include <string>
 #include <stdexcept>
 #include "FastMIDyNet/types.h"
+#include "BaseGraph/types.h"
 
 
 namespace FastMIDyNet {
@@ -22,12 +23,13 @@ double logBinomial(int);
 double logPoissonPMF(size_t x, double mean);
 
 void assertValidProbability(double probability);
-
+BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge&);
 
 class ConsistencyError: public std::logic_error {
     public:
         ConsistencyError(const std::string& message): std::logic_error(message) {}
 };
+
 
 } // namespace FastMIDyNet
 
