@@ -12,7 +12,7 @@ const std::vector<size_t> TESTED_INTEGERS;
 class DummyEdgeCountPrior: public FastMIDyNet::EdgeCountPrior {
     public:
         size_t sample() { return 0; }
-        double getLogLikelihood(size_t state) const { return state; }
+        double getLogLikelihood(cosnt size_t& state) const { return state; }
         double getLogPrior() const { return 0; }
 
         void checkSelfConsistency() const {}
