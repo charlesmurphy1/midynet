@@ -9,26 +9,21 @@
 namespace FastMIDyNet {
 
 
-typedef std::vector<std::tuple<BaseGraph::VertexIndex, BlockIndex, BlockIndex>> BlockMove;
-typedef std::vector<BaseGraph::Edge> EdgeMove;
-
-struct Move{
-    double acceptation = 0.;
-};
-
-struct GraphMove: public Move{
-    GraphMove(EdgeMove removedEdges, EdgeMove addedEdges):
+struct GraphMove{
+    GraphMove(std::vector<BaseGraph::Edge> removedEdges, std::vector<BaseGraph::Edge> addedEdges):
         removedEdges(removedEdges), addedEdges(addedEdges){ }
     GraphMove(){ }
-    EdgeMove removedEdges;
-    EdgeMove addedEdges;
+    std::vector<BaseGraph::Edge> removedEdges;
+    std::vector<BaseGraph::Edge> addedEdges;
 };
 
-struct PriorMove: public Move{ };
-
-struct BlockPriorMove: public PriorMove{
-    BlockMove vertexMoved;
+struct VertexBlockMove{
+    BaseGraph::VertexIndex vertexIdx;
+    BlockIndex prevBlockIdx;
+    BlockIndex nextBlockIdx;
 };
+
+typedef std::vector<VertexBlockMove> BlockMove;
 
 }
 

@@ -12,9 +12,13 @@ class EdgeCountPrior: public Prior<size_t> {
         double getLogLikelihoodRatio(const GraphMove& move) const {
             return getLogLikelihood(getStateAfterMove(move)) - Prior::getLogLikelihood();
         }
+        double getLogLikelihoodRatio(const BlockMove& move) const { return 0; }
 
         void applyMove(const GraphMove& move) { setState(getStateAfterMove(move)); }
+        void applyMove(const BlockMove& move) { }
         size_t getStateAfterMove(const GraphMove&) const;
+        size_t getStateAfterMove(const BlockMove&) const { return getState(); }
+
 };
 
 
