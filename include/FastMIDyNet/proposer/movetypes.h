@@ -17,13 +17,11 @@ struct GraphMove{
     std::vector<BaseGraph::Edge> addedEdges;
 };
 
-struct VertexBlockMove{
+struct BlockMove{
     BaseGraph::VertexIndex vertexIdx;
     BlockIndex prevBlockIdx;
     BlockIndex nextBlockIdx;
 };
-
-typedef std::vector<VertexBlockMove> BlockMove;
 
 }
 

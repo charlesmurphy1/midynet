@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include <vector>
 
 #include "FastMIDyNet/prior/dcsbm/edge_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
@@ -12,7 +13,7 @@ const std::vector<size_t> TESTED_INTEGERS;
 class DummyEdgeCountPrior: public FastMIDyNet::EdgeCountPrior {
     public:
         size_t sample() { return 0; }
-        double getLogLikelihood(cosnt size_t& state) const { return state; }
+        double getLogLikelihood(const size_t& state) const { return state; }
         double getLogPrior() const { return 0; }
 
         void checkSelfConsistency() const {}
@@ -34,7 +35,7 @@ TEST_F(TestEdgeCountPrior, getStateAfterMove_addEdges_returnCorrectEdgeNumber) {
     for (auto currentEdgeNumber: {0, 1, 2, 10}) {
         prior.setState(currentEdgeNumber);
         for (auto addedNumber: {0, 1, 2, 10}) {
-            FastMIDyNet::EdgeMove edgeMove(addedNumber, {0, 0});
+            std::vector<BaseGraph::Edge> edgeMove(addedNumber, {0, 0});
             EXPECT_EQ(prior.getStateAfterMove({{}, edgeMove}), currentEdgeNumber+addedNumber);
         }
     }
@@ -45,28 +46,28 @@ TEST_F(TestEdgeCountPrior, getStateAftermove_removeEdges_returnCorrectEdgeNumber
     prior.setState(currentEdgeNumber);
 
     for (auto removedNumber: {0, 1, 2, 10}) {
-        FastMIDyNet::EdgeMove edgeMove(removedNumber, {0, 0});
+        std::vector<BaseGraph::Edge> edgeMove(removedNumber, {0, 0});
         EXPECT_EQ(prior.getStateAfterMove({edgeMove, {}}), currentEdgeNumber-removedNumber);
     }
 }
 
 TEST_F(TestEdgeCountPrior, getLogLikelihoodRatio_addEdges_returnCorrectRatio) {
     prior.setState(5);
-    FastMIDyNet::EdgeMove edgeMove(2, {0, 0});
+    std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
 
     EXPECT_EQ(prior.getLogLikelihoodRatio({{}, edgeMove}), 2);
 }
 
 TEST_F(TestEdgeCountPrior, getLogLikelihoodRatio_removeEdges_returnCorrectRatio) {
     prior.setState(5);
-    FastMIDyNet::EdgeMove edgeMove(2, {0, 0});
+    std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
 
     EXPECT_EQ(prior.getLogLikelihoodRatio({edgeMove, {}}), -2);
 }
 
 TEST_F(TestEdgeCountPrior, applyMove_addEdges_edgeNumberIncrements) {
     prior.setState(5);
-    FastMIDyNet::EdgeMove edgeMove(2, {0, 0});
+    std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
 
     prior.applyMove({{}, edgeMove});
     EXPECT_EQ(prior.getState(), 7);
@@ -74,7 +75,7 @@ TEST_F(TestEdgeCountPrior, applyMove_addEdges_edgeNumberIncrements) {
 
 TEST_F(TestEdgeCountPrior, applyMove_removeEdges_edgeNumberDecrements) {
     prior.setState(5);
-    FastMIDyNet::EdgeMove edgeMove(2, {0, 0});
+    std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
 
     prior.applyMove({edgeMove, {}});
     EXPECT_EQ(prior.getState(), 3);
@@ -95,12 +96,12 @@ TEST_F(TestEdgeCountPoissonPrior, getLogPrior_returns0) {
 
 TEST_F(TestEdgeCountPoissonPrior, applyMove_noMove_edgeNumberUnchanged) {
     prior.setState(1);
-    prior.applyMove({});
+    prior.applyMove(FastMIDyNet::GraphMove({}, {}));
     EXPECT_EQ(prior.getState(), 1);
 }
 
 TEST_F(TestEdgeCountPoissonPrior, applyMove_addEdges_edgeNumberIncremented) {
-    FastMIDyNet::EdgeMove edgeMove(1, {0, 0});
+    std::vector<BaseGraph::Edge> edgeMove(1, {0, 0});
     prior.applyMove({{}, edgeMove});
     EXPECT_EQ(prior.getState(), 2);
 
@@ -111,7 +112,7 @@ TEST_F(TestEdgeCountPoissonPrior, applyMove_addEdges_edgeNumberIncremented) {
 
 TEST_F(TestEdgeCountPoissonPrior, applyMove_removeEdges_edgeNumberIncremented) {
     prior.setState(4);
-    FastMIDyNet::EdgeMove edgeMove(1, {0, 0});
+    std::vector<BaseGraph::Edge> edgeMove(1, {0, 0});
     prior.applyMove({edgeMove, {}});
     EXPECT_EQ(prior.getState(), 3);
 

@@ -19,7 +19,7 @@ size_t EdgeCountPoissonPrior::sample() {
     return m_poissonDistribution(rng);
 }
 
-double EdgeCountPoissonPrior::getLogLikelihood(size_t state) const {
+double EdgeCountPoissonPrior::getLogLikelihood(const size_t& state) const {
     return logPoissonPMF(state, m_mean);
 }
 
