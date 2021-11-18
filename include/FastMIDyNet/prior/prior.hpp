@@ -20,7 +20,7 @@ class Prior{
         virtual double getLogPrior() const = 0;
         double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
 
-        virtual void checkSelfConsistency() = 0;
+        virtual void checkSelfConsistency() const = 0;
 
     protected:
         T m_state;
