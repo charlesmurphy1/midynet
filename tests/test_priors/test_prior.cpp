@@ -3,7 +3,7 @@
 
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/utility.h"
+// #include "FastMIDyNet/utility.h"
 
 
 const double POISSON_MEAN=5;

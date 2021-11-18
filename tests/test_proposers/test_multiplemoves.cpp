@@ -1,7 +1,6 @@
 #include "gtest/gtest.h"
 
 #include "FastMIDyNet/proposer/multiplemoves.hpp"
-#include "FastMIDyNet/utility.h"
 
 
 typedef bool DummyMove;

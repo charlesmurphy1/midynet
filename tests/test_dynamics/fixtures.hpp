@@ -8,7 +8,6 @@
 #include "FastMIDyNet/proposer/edge_proposer.h"
 #include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/utility.h"
 #include "BaseGraph/undirected_multigraph.h"
 
 

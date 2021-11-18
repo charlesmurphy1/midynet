@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "FastMIDyNet/generators.h"
-#include "FastMIDyNet/utility.h"
+#include "FastMIDyNet/utility/graph_util.h"
 
 
 static const FastMIDyNet::Matrix<size_t> EDGE_MATRIX = {
