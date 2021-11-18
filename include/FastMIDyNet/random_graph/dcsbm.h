@@ -33,10 +33,10 @@ public:
     double getLogPrior() const ;
     double getLogJoint() const;
 
-    double getLogLikelihoodRatio (const EdgeMove&, bool addition) const;
+    double getLogLikelihoodRatio (const std::vector<BaseGraph::Edge>&, bool addition) const;
     double getLogLikelihoodRatio (const GraphMove& move) const{ return getLogLikelihoodRatio(move.addedEdges, true) + getLogLikelihoodRatio(move.removedEdges, false); }
-    double getLogLikelihoodRatio (const BaseGraph::VertexIndex&, const BlockIndex&, const BlockIndex&) const;
     double getLogLikelihoodRatio (const BlockMove&) const;
+    double getLogLikelihoodRatio (const std::vector<BlockMove>&) const;
     double getLogPriorRatio (const GraphMove&) const;
     double getLogPriorRatio (const BlockMove&) const;
     double getLogJointRatio (const GraphMove& move) const { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }

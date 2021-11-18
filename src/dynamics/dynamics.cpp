@@ -220,21 +220,21 @@ void Dynamics::applyMove(const GraphMove& move){
     m_randomGraph.applyMove(move);
 };
 
-void Dynamics::doMetropolisHastingsStep(double beta, double sample_graph_prior){
-    uniform_real_distribution<double> uniform_01(0., 1.);
-    double dS = 0;
-    if ( sample_graph_prior < uniform_01(rng) ){
-        m_randomGraph.doMetropolisHastingsStep();
-    }
-    else{
-        GraphMove move = m_randomGraph.proposeMove();
-        dS += beta * getLogJointRatio(move) + m_randomGraph.getLogJointRatio(move);
-        if ( exp(dS) > uniform_01(rng) ){
-            applyMove(move);
-            m_randomGraph.applyMove(move);
-        }
-    }
-};
+// void Dynamics::doMetropolisHastingsStep(double beta, double sample_graph_prior){
+//     uniform_real_distribution<double> uniform_01(0., 1.);
+//     double dS = 0;
+//     if ( sample_graph_prior < uniform_01(rng) ){
+//         m_randomGraph.doMetropolisHastingsStep();
+//     }
+//     else{
+//         GraphMove move = m_randomGraph.proposeMove();
+//         dS += beta * getLogJointRatio(move) + m_randomGraph.getLogJointRatio(move);
+//         if ( exp(dS) > uniform_01(rng) ){
+//             applyMove(move);
+//             m_randomGraph.applyMove(move);
+//         }
+//     }
+// };
 
 
 }

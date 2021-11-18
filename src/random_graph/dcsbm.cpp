@@ -65,7 +65,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogJoint() const{
     return getLogLikelihood() + getLogPrior();
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio (const EdgeMove& move, bool addition) const {
+double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio (const std::vector<BaseGraph::Edge>& move, bool addition) const {
     double dS = 0;
     BlockSequence blockSeq = m_blockPrior.getState();
     EdgeMatrix edgeMat = m_edgeMatrixPrior.getState();
@@ -95,31 +95,28 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio (const E
         return -dS;
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move) const{
+double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio(const vector<BlockMove>& move) const{
     double dS = 0;
     const BlockSequence& blockSeq = getBlockSequence();
     const EdgeMatrix& prevEdgeMat = getEdgeMatrix();
     EdgeMatrix nextEdgeMat = getEdgeMatrix();
     size_t numBlocks = prevEdgeMat.size(), edgeMult;
-    BaseGraph::VertexIndex vertexIdx, neighborIdx;
-    BlockIndex prevBlockIdx, nextBlockIdx, neighborBlockIdx;
+    BaseGraph::VertexIndex neighborIdx;
+    BlockIndex neighborBlockIdx;
     vector<size_t> prevEr = getEr(prevEdgeMat), nextEr = getEr(prevEdgeMat);
 
 
     for (auto blockMove : move){
-        vertexIdx = get<0>(blockMove);
-        prevBlockIdx = get<1>(blockMove);
-        nextBlockIdx = get<2>(blockMove);
-        for ( auto neighbor : m_state.getNeighboursOfIdx(vertexIdx) ){
+        for ( auto neighbor : m_state.getNeighboursOfIdx(blockMove.vertexIdx) ){
             neighborBlockIdx = blockSeq[neighborIdx];
             edgeMult = neighbor.second;
-            nextEdgeMat[prevBlockIdx][neighborBlockIdx] -= edgeMult;
-            nextEdgeMat[neighborBlockIdx][prevBlockIdx] -= edgeMult;
-            nextEdgeMat[nextBlockIdx][neighborBlockIdx] += edgeMult;
-            nextEdgeMat[neighborBlockIdx][nextBlockIdx] += edgeMult;
+            nextEdgeMat[blockMove.prevBlockIdx][neighborBlockIdx] -= edgeMult;
+            nextEdgeMat[neighborBlockIdx][blockMove.prevBlockIdx] -= edgeMult;
+            nextEdgeMat[blockMove.nextBlockIdx][neighborBlockIdx] += edgeMult;
+            nextEdgeMat[neighborBlockIdx][blockMove.nextBlockIdx] += edgeMult;
         }
-        nextEr[prevBlockIdx] -= edgeMult;
-        nextEr[nextBlockIdx] += edgeMult;
+        nextEr[blockMove.prevBlockIdx] -= edgeMult;
+        nextEr[blockMove.nextBlockIdx] += edgeMult;
     }
 
     for (auto r = 0; r < numBlocks; r ++){
