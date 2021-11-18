@@ -6,7 +6,6 @@
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 
-
 namespace FastMIDyNet {
 
 class HingeFlip: public EdgeProposer {

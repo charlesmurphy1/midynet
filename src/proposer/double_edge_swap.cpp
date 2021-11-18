@@ -35,8 +35,8 @@ void DoubleEdgeSwap::setup(const MultiGraph& graph) {
 void DoubleEdgeSwap::updateProbabilities(const GraphMove& move) {
     size_t edgeWeight;
     BaseGraph::Edge edge;
-    for (auto _removedEdge: move.removedEdges) {
-        edge = getOrderedEdge(_removedEdge);
+    for (auto removedEdge: move.removedEdges) {
+        edge = getOrderedEdge(removedEdge);
         edgeWeight = round(m_edgeSamplableSet.get_weight(edge));
         if (edgeWeight == 1)
             m_edgeSamplableSet.erase(edge);

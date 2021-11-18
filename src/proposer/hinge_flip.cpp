@@ -1,4 +1,5 @@
-#include "FastMIDyNet/utility.h"
+#include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
 
 
@@ -9,33 +10,34 @@ GraphMove HingeFlip::proposeMove() {
     auto edge = m_edgeSamplableSet.sample().first;
     auto node = m_nodeSamplableSet.sample().first;
 
-    if (edge.first == node) or (edge.second == node)
+    if (edge.first == node or edge.second == node)
         return GraphMove();
 
     BaseGraph::Edge newEdge;
-    BaseGraph::VertexIndex newNode;
     if (m_flipOrientationDistribution(rng)) {
         newEdge = {edge.first, node};
-        newNode = edge.second;
     }
     else {
         newEdge = {edge.second, node};
-        newNode = edge.first;
     }
-    return {{edge, node}, {newEdge, newNode}};
+    return {{edge}, {newEdge}};
 }
 
-void DoubleEdgeSwap::setup(const MultiGraph& graph) {
-    for (auto vertex: graph)
-        m_nodeSamplableSet.insert{vertex, 1}
-        for (auto neighbor: graph.getNeighboursOfIdx(vertex))
+void HingeFlip::setup(const MultiGraph& graph) {
+    for (auto vertex: graph) {
+        m_nodeSamplableSet.insert(vertex, 1);
+        for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {
             if (vertex <= neighbor.first)
                 m_edgeSamplableSet.insert({vertex, neighbor.first}, neighbor.second);
+        }
+    }
 }
 
-void DoubleEdgeSwap::updateProbabilities(const GraphMove& move) {
+void HingeFlip::updateProbabilities(const GraphMove& move) {
     size_t edgeWeight;
+    BaseGraph::Edge edge;
     for (auto removedEdge: move.removedEdges) {
+        edge = getOrderedEdge(removedEdge);
         edgeWeight = round(m_edgeSamplableSet.get_weight(removedEdge));
         if (edgeWeight == 1)
             m_edgeSamplableSet.erase(removedEdge);
@@ -44,6 +46,7 @@ void DoubleEdgeSwap::updateProbabilities(const GraphMove& move) {
     }
 
     for (auto addedEdge: move.addedEdges) {
+        edge = getOrderedEdge(addedEdge);
         if (m_edgeSamplableSet.count(addedEdge) == 0)
             m_edgeSamplableSet.insert(addedEdge, 1);
         else {
