@@ -18,12 +18,20 @@ class Prior{
         double getLogLikelihood() const { return getLogLikelihood(m_state); }
         virtual double getLogLikelihood(const T& state) const = 0;
         virtual double getLogPrior() const = 0;
-        double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
+        double getLogJoint() {
+            double logLikelihood = 0;
+            if (!isProcessed)
+                logLikelihood = getLogPrior() + getLogLikelihood();
+            isProcessed=true;
+            return logLikelihood;
+        }
 
         virtual void checkSelfConsistency() const = 0;
+        virtual void computationFinished() { isProcessed=false; }
 
     protected:
         T m_state;
+        bool isProcessed = false;
 };
 
 }

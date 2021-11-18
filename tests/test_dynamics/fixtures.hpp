@@ -15,24 +15,12 @@
 
 namespace FastMIDyNet{
 
-class DummyEdgeProposer: public EdgeProposer{
-    public:
-        GraphMove operator()() { return GraphMove(); };
-        double getProposalProb(const GraphMove&) const { return 0.; };
-        void updateProbabilities(const GraphMove&) { };
-};
-
 class DummyRandomGraph: public RandomGraph{
     public:
-        DummyRandomGraph(size_t size):
-        m_edgeProposer(), RandomGraph(size, m_edgeProposer) {} ;
-
+        DummyRandomGraph(size_t size): RandomGraph(size) { };
         void sampleState() { };
         double getLogLikelihood(const MultiGraph&) const { return 0; };
         double getLogJointRatio(const GraphMove& move) const { return 0; };
-
-    private:
-        DummyEdgeProposer m_edgeProposer;
 };
 
 class DummyDynamics: public Dynamics{
