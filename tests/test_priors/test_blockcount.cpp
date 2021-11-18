@@ -14,15 +14,16 @@ class DummyBlockCountPrior: public FastMIDyNet::BlockCountPrior {
     public:
         size_t sample() { return 0; }
         double getLogLikelihood(const size_t& state) const { return state; }
-        double getLogPrior() const { return 0; }
+        double getLogPrior() { return 0; }
 
         void checkSelfConsistency() const {}
+        bool getIsProcessed() { return m_isProcessed; }
 };
 
 class TestBlockCountPrior: public ::testing::Test {
     public:
         DummyBlockCountPrior prior;
-        void SetUp() { prior.setState(0); }
+        void SetUp() { prior.setState(0); prior.computationFinished(); }
 };
 
 class TestBlockCountPoissonPrior: public::testing::Test{
@@ -57,14 +58,14 @@ TEST_F(TestBlockCountPrior, getLogLikelihoodRatio_newblockMove_returnCorrectRati
     EXPECT_EQ(prior.getLogLikelihoodRatio(blockMove), 3);
 }
 
-TEST_F(TestBlockCountPrior, applyMove_noNewblockMove_blockNumberUnchanged) {
+TEST_F(TestBlockCountPrior, applyMove_noNewblockMove_blockNumberUnchangedIsProcessedIsTrue) {
     prior.setState(5);
     std::vector<FastMIDyNet::BlockMove> blockMove(1, FastMIDyNet::BlockMove(0, 0, 2));
     prior.applyMove(blockMove);
     EXPECT_EQ(prior.getState(), 5);
 }
 
-TEST_F(TestBlockCountPrior, applyMove_newblockMove_blockNumberIncrements) {
+TEST_F(TestBlockCountPrior, applyMove_newblockMove_blockNumberIncrementsIsProcessedIsTrue) {
     prior.setState(5);
     std::vector<FastMIDyNet::BlockMove> blockMove(1, FastMIDyNet::BlockMove(0, 0, 7));
     prior.applyMove(blockMove);

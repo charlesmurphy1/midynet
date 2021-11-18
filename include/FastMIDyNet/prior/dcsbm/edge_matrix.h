@@ -9,8 +9,9 @@ namespace FastMIDyNet{
 
 class EdgeMatrixPrior: public Prior< Matrix<size_t> >{
     EdgeCountPrior& m_edgeCountPrior;
+    EdgeCountPrior& m_blockCountPrior;
 public:
-    EdgeMatrixPrior(EdgeCountPrior& edgeCountPrior): m_edgeCountPrior(edgeCountPrior) { };
+    // EdgeMatrixPrior(EdgeCountPrior& edgeCountPrior): m_edgeCountPrior(edgeCountPrior) { };
 
     const size_t& getEdgeCount() { return m_edgeCountPrior.getState(); }
 
