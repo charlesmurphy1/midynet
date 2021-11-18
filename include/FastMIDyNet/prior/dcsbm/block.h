@@ -14,7 +14,8 @@ public:
     BlockPrior(size_t size, BlockCountPrior& blockCountPrior):
         m_size(size), m_blockCountPrior(blockCountPrior) { }
 
-    size_t getSize() { return m_size; }
+    const size_t& getBlockCount() { return m_blockCountPrior.getState(); }
+    const size_t& getSize() { return m_size; }
 
 
 };

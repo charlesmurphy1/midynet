@@ -81,9 +81,6 @@ TEST_F(TestEdgeCountPrior, applyMove_removeEdges_edgeNumberDecrements) {
     EXPECT_EQ(prior.getState(), 3);
 }
 
-
-
-
 TEST_F(TestEdgeCountPoissonPrior, getLogLikelihood_differentIntegers_returnPoissonPMF) {
     for (auto x: TESTED_INTEGERS)
         EXPECT_DOUBLE_EQ(prior.getLogLikelihood(x),
@@ -94,35 +91,8 @@ TEST_F(TestEdgeCountPoissonPrior, getLogPrior_returns0) {
     EXPECT_DOUBLE_EQ(prior.getLogPrior(), 0);
 }
 
-TEST_F(TestEdgeCountPoissonPrior, applyMove_noMove_edgeNumberUnchanged) {
-    prior.setState(1);
-    prior.applyMove(FastMIDyNet::GraphMove({}, {}));
-    EXPECT_EQ(prior.getState(), 1);
-}
-
-TEST_F(TestEdgeCountPoissonPrior, applyMove_addEdges_edgeNumberIncremented) {
-    std::vector<BaseGraph::Edge> edgeMove(1, {0, 0});
-    prior.applyMove({{}, edgeMove});
-    EXPECT_EQ(prior.getState(), 2);
-
-    edgeMove = {3, {0, 0}};
-    prior.applyMove({{}, edgeMove});
-    EXPECT_EQ(prior.getState(), 5);
-}
-
-TEST_F(TestEdgeCountPoissonPrior, applyMove_removeEdges_edgeNumberIncremented) {
-    prior.setState(4);
-    std::vector<BaseGraph::Edge> edgeMove(1, {0, 0});
-    prior.applyMove({edgeMove, {}});
-    EXPECT_EQ(prior.getState(), 3);
-
-    edgeMove = {3, {0, 0}};
-    prior.applyMove({edgeMove, {}});
-    EXPECT_EQ(prior.getState(), 0);
-}
-
 TEST_F(TestEdgeCountPoissonPrior, checkSelfConsistency_noError_noThrow) {
-    prior.setState(0);
+    prior.setState(1);
     EXPECT_NO_THROW(prior.checkSelfConsistency());
     prior.setState(2);
     EXPECT_NO_THROW(prior.checkSelfConsistency());

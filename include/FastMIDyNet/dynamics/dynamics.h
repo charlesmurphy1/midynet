@@ -59,7 +59,7 @@ class Dynamics{
 
         double getLogJointRatio(const GraphMove& move) const;
         void applyMove(const GraphMove& move);
-        void doMetropolisHastingsStep(double beta = 1., double sampleGraphPrior = 0.);
+        // void doMetropolisHastingsStep(double beta = 1., double sampleGraphPrior = 0.);
 
     protected:
         int m_numStates;
