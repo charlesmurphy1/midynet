@@ -34,7 +34,7 @@ public:
     double getLogJoint() const;
 
     double getLogLikelihoodRatio (const EdgeMove&, bool addition) const;
-    double getLogLikelihoodRatio (const GraphMove& move) const{ return getLogLikelihoodRatio(move.edgesAdded, true) + getLogLikelihoodRatio(move.edgesRemoved, false); }
+    double getLogLikelihoodRatio (const GraphMove& move) const{ return getLogLikelihoodRatio(move.addedEdges, true) + getLogLikelihoodRatio(move.removedEdges, false); }
     double getLogLikelihoodRatio (const BaseGraph::VertexIndex&, const BlockIndex&, const BlockIndex&) const;
     double getLogLikelihoodRatio (const BlockMove&) const;
     double getLogPriorRatio (const GraphMove&) const;
