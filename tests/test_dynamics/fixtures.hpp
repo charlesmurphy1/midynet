@@ -7,7 +7,6 @@
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/utility.h"
 #include "BaseGraph/undirected_multigraph.h"
 
 
