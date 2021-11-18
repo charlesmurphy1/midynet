@@ -9,16 +9,27 @@ namespace FastMIDyNet{
 
 class EdgeCountPrior: public Prior<size_t> {
     public:
+        double getLogPrior() const { return 0; }
         double getLogLikelihoodRatio(const GraphMove& move) const {
-            return getLogLikelihood(getStateAfterMove(move)) - Prior::getLogLikelihood();
+             return getLogLikelihood(getStateAfterMove(move)) - getLogLikelihood();
         }
-        double getLogLikelihoodRatio(const std::vector<BlockMove>& move) const { return 0; }
+        double getLogJointRatio(const GraphMove& move) {
+            double logJointRatio = 0;
+            if (!isProcessed)
+                logJointRatio = getLogLikelihoodRatio(move);
+            isProcessed = true;
+            return logJointRatio;
+        }
+        double getLogJointRatio(const BlockMove& move) { return 0; }
 
-        void applyMove(const GraphMove& move) { setState(getStateAfterMove(move)); }
+        void applyMove(const GraphMove& move) {
+            if (!isProcessed)
+                setState(getStateAfterMove(move));
+            isProcessed=true;
+        }
         void applyMove(const std::vector<BlockMove>& move) { }
         size_t getStateAfterMove(const GraphMove&) const;
         size_t getStateAfterMove(const std::vector<BlockMove>&) const { return getState(); }
-
 };
 
 
@@ -31,7 +42,6 @@ class EdgeCountPoissonPrior: public EdgeCountPrior{
 
         size_t sample();
         double getLogLikelihood(const size_t& state) const;
-        double getLogPrior() const { return 0; }
 
         void checkSelfConsistency() const;
 };
