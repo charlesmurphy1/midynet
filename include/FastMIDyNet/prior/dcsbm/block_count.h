@@ -10,14 +10,37 @@ namespace FastMIDyNet{
 class BlockCountPrior: public Prior<size_t> {
     public:
         double getLogLikelihoodRatio(const GraphMove& move) const { return 0; }
-        double getLogLikelihoodRatio(const std::vector<BlockMove>& move) const {
+        double getLogLikelihoodRatio(const MultiBlockMove& move) const {
             return getLogLikelihood(getStateAfterMove(move)) - Prior::getLogLikelihood();
         }
 
-        void applyMove(const GraphMove& move) { getState(); }
-        void applyMove(const std::vector<BlockMove>& move) { setState(getStateAfterMove(move)); }
+        double getLogJointRatio(const GraphMove& move) { return 0; }
+        double getLogJointRatio(const MultiBlockMove& move) {
+            double logJointRatio = 0;
+            if (!m_isProcessed)
+                logJointRatio = getLogLikelihoodRatio(move);
+            m_isProcessed = true;
+            return logJointRatio;
+        }
+
+        double getLogPrior() { return 0; }
+
+        void applyMove(const GraphMove& move) { }
+        void applyMove(const MultiBlockMove& move) {
+            if (!m_isProcessed)
+                setState(getStateAfterMove(move));
+            m_isProcessed = true;
+        }
+
         size_t getStateAfterMove(const GraphMove&) const { return m_state; };
-        size_t getStateAfterMove(const std::vector<BlockMove>&) const;
+        size_t getStateAfterMove(const BlockMove&) const;
+        size_t getStateAfterMove(const MultiBlockMove& move) const {
+            size_t newState = getState() ;
+            for (auto blockMove: move){
+                newState = getStateAfterMove(blockMove) ;
+            }
+            return newState;
+        };
 };
 
 
@@ -30,7 +53,6 @@ class BlockCountPoissonPrior: public BlockCountPrior{
 
         size_t sample();
         double getLogLikelihood(const size_t& state) const;
-        double getLogPrior() const { return 0; }
 
         void checkSelfConsistency() const;
 };
