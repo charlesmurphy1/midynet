@@ -3,7 +3,7 @@
 
 #include "proposer.hpp"
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/utility.h"
+#include "FastMIDyNet/rng.h"
 
 
 namespace FastMIDyNet {
