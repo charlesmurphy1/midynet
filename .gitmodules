@@ -2,3 +2,6 @@
     path = base_graph
     url = https://github.com/antoineallard/base_graph.git
     branch = main
+[submodule "SamplableSet"]
+	path = SamplableSet
+	url = https://github.com/gstonge/SamplableSet.git
