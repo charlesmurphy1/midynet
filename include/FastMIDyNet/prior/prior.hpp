@@ -2,36 +2,52 @@
 #define FAST_MIDYNET_PRIOR_HPP
 
 
+#include <functional>
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 
 
 namespace FastMIDyNet{
 
-template <typename T>
+template <typename STATE>
 class Prior{
     public:
-        const T& getState() const { return m_state; }
-        void setState(const T& state) { m_state = state; }
+        const STATE& getState() const { return m_state; }
+        void setState(const STATE& state) { m_state = state; }
 
-        virtual T sample() = 0;
+        virtual STATE sample() = 0;
         void sampleState() { setState(sample()); }
         double getLogLikelihood() const { return getLogLikelihood(m_state); }
-        virtual double getLogLikelihood(const T& state) const = 0;
+        virtual double getLogLikelihood(const STATE& state) const = 0;
         virtual double getLogPrior() = 0;
+
         double getLogJoint() {
-            double logLikelihood = 0;
-            if (!m_isProcessed)
-                logLikelihood = getLogPrior() + getLogLikelihood();
-            m_isProcessed=true;
-            return logLikelihood;
+            return processRecursiveFunction<double>(
+                        [&]() { return getLogPrior()+getLogLikelihood(); },
+                        0
+                    );
         }
 
         virtual void checkSelfConsistency() const = 0;
         virtual void computationFinished() { m_isProcessed=false; }
 
+
+        template<typename RETURN_TYPE>
+        RETURN_TYPE processRecursiveFunction(const std::function<RETURN_TYPE()>& func, RETURN_TYPE init) {
+            RETURN_TYPE ret = init;
+            if (!m_isProcessed)
+                ret = func();
+            m_isProcessed=true;
+            return ret;
+        }
+        void processRecursiveFunction(const std::function<void()>& func) {
+            if (!m_isProcessed)
+                func();
+            m_isProcessed=true;
+        }
+
     protected:
-        T m_state;
+        STATE m_state;
         bool m_isProcessed = false;
 };
 

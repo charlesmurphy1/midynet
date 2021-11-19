@@ -23,6 +23,9 @@ class EdgeCountPrior: public Prior<size_t> {
         double getLogJointRatio(const BlockMove& move) { return 0; }
         double getLogJointRatio(const MultiBlockMove& move) { return 0; }
 
+        void sampleState() {
+            setState(sample());
+        }
         void applyMove(const GraphMove& move) {
             if (!m_isProcessed)
                 setState(getStateAfterMove(move));
