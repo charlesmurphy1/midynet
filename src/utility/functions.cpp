@@ -46,4 +46,10 @@ double logPoissonPMF(size_t x, double mean) {
     return x*log(mean) - logFactorial(x) - mean;
 }
 
+BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge& edge) {
+    if (edge.first < edge.second)
+        return edge;
+    return {edge.second, edge.first};
+}
+
 } // namespace FastMIDyNet

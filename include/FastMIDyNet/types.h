@@ -24,19 +24,6 @@ typedef std::vector<int> DegreeSequence;
 typedef std::vector<BlockIndex> BlockSequence;
 typedef Matrix<size_t> EdgeMatrix;
 
-struct Edge: public std::pair<size_t, size_t>  {
-    Edge() { this->first=0; this->second=0; }
-    Edge(const std::pair<size_t, size_t>& source) {
-        if (source.first < source.second) {
-            this->first = source.first;
-            this->second = source.second;
-        }
-        else {
-            this->first = source.second;
-            this->second = source.first;
-        }
-    }
-};
 
 } // namespace FastMIDyNet
 

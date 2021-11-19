@@ -8,16 +8,16 @@ class DummyProposer0: public FastMIDyNet::Proposer<DummyMove>{
     public:
         bool updated = false;
 
-        DummyMove operator()() { return false; }
-        double getProposalProb(const DummyMove&) const { return 0.; }
+        DummyMove proposeMove() { return false; }
+        double getLogProposalProbRatio(const DummyMove&) const { return 0.; }
         void updateProbabilities(const DummyMove&) { updated=true; }
 };
 class DummyProposer1: public FastMIDyNet::Proposer<DummyMove>{
     public:
         bool updated = false;
 
-        DummyMove operator()() { return true; }
-        double getProposalProb(const DummyMove&) const { return 1.; }
+        DummyMove proposeMove() { return true; }
+        double getLogProposalProbRatio(const DummyMove&) const { return 1.; }
         void updateProbabilities(const DummyMove&) { updated=true; }
 };
 static const size_t randomGenerationsNumber = 10000;
@@ -64,7 +64,7 @@ TEST_F(TestMultipleMoveProposer, proposeMove_biasedMoveChoice_averageMoveChoiceI
     double averageMoveChoice=0;
 
     for (size_t i=0; i<randomGenerationsNumber; i++)
-        averageMoveChoice += proposer();
+        averageMoveChoice += proposer.proposeMove();
 
     EXPECT_NEAR(averageMoveChoice/randomGenerationsNumber, p, 1e-2);
 }
@@ -75,7 +75,7 @@ TEST_F(TestMultipleMoveProposer, getProposalProb_biasedMoveChoice_averageProbabi
 
     for (size_t i=0; i<randomGenerationsNumber; i++) {
         proposer();
-        averageProbability += proposer.getProposalProb(true);
+        averageProbability += proposer.getLogProposalProbRatio(true);
     }
 
     EXPECT_NEAR(averageProbability/randomGenerationsNumber, p, 1e-2);
