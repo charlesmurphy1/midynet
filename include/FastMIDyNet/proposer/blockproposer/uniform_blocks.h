@@ -12,7 +12,7 @@ namespace FastMIDyNet {
 
 class UniformBlockProposer: public BlockProposer {
     const BlockSequence* m_blockSequencePtr = NULL;
-    const BlockIndex* m_blockCountPtr = NULL;
+    size_t m_blockCount = 0;
     const double m_blockCreationProbability;
     std::bernoulli_distribution m_createNewBlockDistribution;
     std::uniform_int_distribution<BaseGraph::VertexIndex> m_vertexDistribution;
@@ -26,9 +26,10 @@ class UniformBlockProposer: public BlockProposer {
         void updateProbabilities(const BlockMove&);
 
         const std::vector<size_t> getVertexCountInBlocks() { return m_vertexCountInBlocks; }
+        const size_t getInternalBlockCount() { return m_blockCount; }
         void checkConsistency();
     private:
-        bool creatingNewBlock(const BlockIndex& newBlock) const { return newBlock == *m_blockCountPtr; }
+        bool creatingNewBlock(const BlockIndex& newBlock) const { return newBlock == m_blockCount; }
         bool destroyingBlock(const BlockIndex& currentBlock, const BlockIndex& newBlock) const {
             return currentBlock != newBlock && m_vertexCountInBlocks[currentBlock]<=1;
         }

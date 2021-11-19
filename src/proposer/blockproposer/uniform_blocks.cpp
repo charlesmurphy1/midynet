@@ -13,9 +13,8 @@ UniformBlockProposer::UniformBlockProposer(size_t graphSize, double createNewBlo
 }
 
 BlockMove UniformBlockProposer::proposeMove() {
-    const size_t& blockCount = *m_blockCountPtr;
-    if (blockCount == 1 && m_blockCreationProbability == 0)
-        return {0, 0, 0};
+    if (m_blockCount == 1 && m_blockCreationProbability == 0)
+        return {0, (*m_blockSequencePtr)[0], (*m_blockSequencePtr)[0]};
 
 
     auto movedVertex = m_vertexDistribution(rng);
@@ -23,46 +22,48 @@ BlockMove UniformBlockProposer::proposeMove() {
 
     BlockIndex newBlock;
     if (m_createNewBlockDistribution(rng))
-        newBlock = blockCount;
+        newBlock = m_blockCount;
     else {
-        BlockIndex newBlock = std::uniform_int_distribution<BlockIndex>(0, blockCount-2)(rng);
+        BlockIndex newBlock = std::uniform_int_distribution<BlockIndex>(0, m_blockCount-2)(rng);
         if (newBlock >= currentBlock)
             newBlock++;
     }
     if (destroyingBlock(currentBlock, newBlock) && creatingNewBlock(newBlock))
-        return {0, 0, 0};
+        return {0, (*m_blockSequencePtr)[0], (*m_blockSequencePtr)[0]};
     return {movedVertex, currentBlock, newBlock};
 }
 
 void UniformBlockProposer::setup(const BlockSequence& blockSequence, const size_t& blockCount) {
-    m_blockCountPtr = &blockCount;
+    m_blockCount = blockCount;
     m_blockSequencePtr = &blockSequence;
 
     m_vertexCountInBlocks.clear();
-    m_vertexCountInBlocks.resize(blockCount, 0);
+    m_vertexCountInBlocks.resize(m_blockCount, 0);
     for (auto block: blockSequence)
         m_vertexCountInBlocks[block]++;
 }
 
 double UniformBlockProposer::getLogProposalProbRatio(const BlockMove& move) const {
-    const size_t& blockCount = *m_blockCountPtr;
-
     if (creatingNewBlock(move.nextBlockIdx))
-        return -log(m_blockCreationProbability) + log(1-m_blockCreationProbability) - log(blockCount);
+        return -log(m_blockCreationProbability) + log(1-m_blockCreationProbability) - log(m_blockCount);
     else if (destroyingBlock(move.prevBlockIdx, move.nextBlockIdx))
-        return log(blockCount-1) - log(1-m_blockCreationProbability) + log(m_blockCreationProbability);
+        return log(m_blockCount-1) - log(1-m_blockCreationProbability) + log(m_blockCreationProbability);
     return 0;
 }
 
 void UniformBlockProposer::updateProbabilities(const BlockMove& move) {
-    if (creatingNewBlock(move.nextBlockIdx))
+    if (creatingNewBlock(move.nextBlockIdx)) {
         m_vertexCountInBlocks.push_back(0);
+        m_blockCount++;
+    }
 
     m_vertexCountInBlocks[move.prevBlockIdx]--;
     m_vertexCountInBlocks[move.nextBlockIdx]++;
 
-    if (destroyingBlock(move.prevBlockIdx, move.nextBlockIdx))
-        m_vertexCountInBlocks.pop_back();
+    if (m_vertexCountInBlocks[move.prevBlockIdx] == 0) {
+        m_vertexCountInBlocks.erase(m_vertexCountInBlocks.begin() + move.prevBlockIdx);
+        m_blockCount--;
+    }
 }
 
 void UniformBlockProposer::checkConsistency() {
@@ -85,7 +86,7 @@ void UniformBlockProposer::checkConsistency() {
         if (actualVertexCountInBlocks[i] > 0)
             actualBlockCount++;
     }
-    if (actualBlockCount != *m_blockCountPtr)
+    if (actualBlockCount != m_blockCount)
         throw ConsistencyError("UniformBlockProposer: Block count doesn't match with the number of "
                 "non zero entries in vertexCountInBlocks.");
 }
