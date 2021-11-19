@@ -4,6 +4,7 @@
 
 #include "FastMIDyNet/prior/dcsbm/block.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/exceptions.h"
 
@@ -22,20 +23,20 @@ vector<size_t> BlockPrior::computeVertexCountInBlock(const BlockSequence& state)
     }
 
     return vertexCount;
+}
 
-    void BlockUniformPrior::sampleState() {
-        BlockSequence blockSeq(getSize());
-        uniform_int_distribution<size_t> dist(0, getBlockCount() - 1);
-        for (size_t vertexIdx = 0; vertexIdx < getSize(); vertexIdx++) {
-            blockSeq[vertexIdx] = dist(rng);
-        }
-        setState(blockSeq);
-    };
+void BlockUniformPrior::sampleState() {
+    BlockSequence blockSeq(getSize());
+    uniform_int_distribution<size_t> dist(0, getBlockCount() - 1);
+    for (size_t vertexIdx = 0; vertexIdx < getSize(); vertexIdx++) {
+        blockSeq[vertexIdx] = dist(rng);
+    }
+    setState(blockSeq);
+};
 
 
-    double BlockUniformPrior::getLogLikelihood(const BlockSequence& state) const {
-        return -logMultisetCoefficient(getSize(), getBlockCount());
-    };
+double BlockUniformPrior::getLogLikelihood(const BlockSequence& state) const {
+    return -logMultisetCoefficient(getSize(), getBlockCount());
 };
 
 

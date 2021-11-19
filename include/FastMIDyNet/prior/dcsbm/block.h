@@ -25,13 +25,13 @@ public:
         m_state = blockSeq;
     }
     void samplePriors() { m_blockCountPrior.sample(); }
-
     const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
     std::vector<size_t> computeVertexCountInBlock(const BlockSequence&) const;
     const std::vector<size_t>& getVertexCountInBlock() const { return m_verticesInBlock; };
     const size_t& getSize() const { return m_size; }
 
     double getLogLikelihoodRatio(const GraphMove& move) const { return 0; };
+    // getLogLikelihoodRatio(FastMIDyNet::BlockMove const&) const
     virtual double getLogLikelihoodRatio(const BlockMove& move) const = 0;
 
     double getLogPriorRatio(const GraphMove& move) { return 0; };
@@ -45,12 +45,13 @@ public:
 
 };
 
-
 class BlockUniformPrior: public BlockPrior{
 public:
     BlockUniformPrior(size_t size, BlockCountPrior& blockCountPrior):
         BlockPrior(size, blockCountPrior) { }
+
     void sampleState();
+
     double getLogLikelihood(const BlockSequence& blockSeq) const ;
 
     double getLogPrior() { return m_blockCountPrior.getLogJoint(); };

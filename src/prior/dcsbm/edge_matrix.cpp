@@ -5,11 +5,11 @@ namespace FastMIDyNet {
 
 
 double EdgeMatrixUniformPrior::getLogLikelihoodRatio(const GraphMove& move) const {
-
-
-}
+    return 0.;
+};
 
 double EdgeMatrixUniformPrior::getLogLikelihoodRatio(const BlockMove& move) const {
+    return 0.;
 }
 
 
