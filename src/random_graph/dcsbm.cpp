@@ -4,8 +4,9 @@
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/random_graph/dcsbm.h"
+#include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/generators.h"
-#include "FastMIDyNet/utility.h"
+#include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/types.h"
 
 using namespace std;

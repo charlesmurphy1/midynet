@@ -1,5 +1,5 @@
-#ifndef FAST_MIDYNET_TYPES
-#define FAST_MIDYNET_TYPES
+#ifndef FAST_MIDYNET_TYPES_H
+#define FAST_MIDYNET_TYPES_H
 
 
 #include <random>

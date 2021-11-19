@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "FastMIDyNet/utility.h"
+#include "FastMIDyNet/utility/graph_util.h"
+#include "FastMIDyNet/utility/functions.h"
 
 
 TEST(GetDegree, graphWithSelfloop_returnExpectedDegrees) {

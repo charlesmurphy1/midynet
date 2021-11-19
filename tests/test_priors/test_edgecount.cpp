@@ -3,7 +3,8 @@
 
 #include "FastMIDyNet/prior/dcsbm/edge_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/utility.h"
+#include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/exceptions.h"
 
 
 const double POISSON_MEAN=5;
@@ -14,13 +15,14 @@ class DummyEdgeCountPrior: public FastMIDyNet::EdgeCountPrior {
     public:
         size_t sample() { return 0; }
         double getLogLikelihood(const size_t& state) const { return state; }
-        void checkSelfConsistency() const {}
+        double getLogPrior() { return 0; }
+        void checkSelfConsistency() const { }
 };
 
 class TestEdgeCountPrior: public ::testing::Test {
     public:
         DummyEdgeCountPrior prior;
-        void SetUp() { prior.setState(0); }
+        void SetUp() { prior.setState(0); prior.computationFinished(); }
 };
 
 class TestEdgeCountPoissonPrior: public::testing::Test{
@@ -83,7 +85,7 @@ TEST_F(TestEdgeCountPrior, getLogJointRatio_calledTwice_return0) {
 TEST_F(TestEdgeCountPrior, getLogJointRatio_blockMove_return0) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
-    FastMIDyNet::BlockMove move = {0, 0, 0};
+    FastMIDyNet::MultiBlockMove move = {{0, 0, 0}};
 
     EXPECT_EQ(prior.getLogJointRatio(move), 0);
 }
