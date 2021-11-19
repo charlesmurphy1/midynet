@@ -37,7 +37,7 @@ namespace FastMIDyNet{
     };
 
 
-    double BlockUniformPrior::getLogLikelihoodRatio(const MultiBlockMove& move) const {
+    double BlockUniformPrior::getLogLikelihoodRatio(const BlockMove& move) const {
         size_t prevNumBlocks = m_blockCountPrior.getState();
         size_t newNumBlocks = m_blockCountPrior.getStateAfterMove(move);
         double logLikelihoodRatio = 0;

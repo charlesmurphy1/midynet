@@ -32,6 +32,6 @@ TEST_F(TestDegreeCountPrior, getLogLikelihoodRatio_blockMove_return0) {
     EXPECT_EQ(degreeCountPrior.getLogLikelihoodRatio(blockMove), 0);
 }
 
-TEST_F(TestDegreeCountPrior, getLogPrior_anyState_returnHyperPriorLogLikelihood) {
-    EXPECT_EQ(edgeCountPrior.getLogLikelihood(poissonMean), degreeCountPrior.getLogPrior());
-}
+// TEST_F(TestDegreeCountPrior, getLogPrior_anyState_returnHyperPriorLogLikelihood) {
+//     EXPECT_EQ(edgeCountPrior.getLogLikelihood(poissonMean), degreeCountPrior.getLogPrior());
+// }

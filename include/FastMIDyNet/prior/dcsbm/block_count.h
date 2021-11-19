@@ -10,12 +10,12 @@ namespace FastMIDyNet{
 class BlockCountPrior: public Prior<size_t> {
     public:
         double getLogLikelihoodRatio(const GraphMove& move) const { return 0; }
-        double getLogLikelihoodRatio(const MultiBlockMove& move) const {
+        double getLogLikelihoodRatio(const BlockMove& move) const {
             return getLogLikelihood(getStateAfterMove(move)) - Prior::getLogLikelihood();
         }
 
         double getLogJointRatio(const GraphMove& move) { return 0; }
-        double getLogJointRatio(const MultiBlockMove& move) {
+        double getLogJointRatio(const BlockMove& move) {
             double logJointRatio = 0;
             if (!m_isProcessed)
                 logJointRatio = getLogLikelihoodRatio(move);
@@ -26,7 +26,7 @@ class BlockCountPrior: public Prior<size_t> {
         double getLogPrior() { return 0; }
 
         void applyMove(const GraphMove& move) { }
-        void applyMove(const MultiBlockMove& move) {
+        void applyMove(const BlockMove& move) {
             if (!m_isProcessed)
                 setState(getStateAfterMove(move));
             m_isProcessed = true;
@@ -34,13 +34,6 @@ class BlockCountPrior: public Prior<size_t> {
 
         size_t getStateAfterMove(const GraphMove&) const { return m_state; };
         size_t getStateAfterMove(const BlockMove&) const;
-        size_t getStateAfterMove(const MultiBlockMove& move) const {
-            size_t newState = getState() ;
-            for (auto blockMove: move){
-                newState = getStateAfterMove(blockMove) ;
-            }
-            return newState;
-        };
 };
 
 

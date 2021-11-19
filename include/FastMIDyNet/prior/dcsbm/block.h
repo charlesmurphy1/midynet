@@ -28,20 +28,16 @@ public:
     const size_t& getSize() const { return m_size; }
 
     double getLogLikelihoodRatio(const GraphMove& move) const { return 0; };
-    virtual double getLogLikelihoodRatio(const MultiBlockMove&) const = 0;
-    double getLogLikelihoodRatio(const BlockMove& move) const { return getLogLikelihoodRatio(MultiBlockMove(1, move)); };
+    virtual double getLogLikelihoodRatio(const BlockMove& move) const = 0;
 
     double getLogPriorRatio(const GraphMove& move) { return 0; };
-    virtual double getLogPriorRatio(const MultiBlockMove&) = 0;
-    double getLogPriorRatio(const BlockMove& move) { return getLogPriorRatio(MultiBlockMove(1, move)); };
+    virtual double getLogPriorRatio(const BlockMove& move) = 0;
 
     double getLogJointRatio(const GraphMove& move) { return 0; };
-    virtual double getLogJointRatio(const MultiBlockMove&) = 0;
-    double getLogJointRatio(const BlockMove& move) { return getLogPriorRatio(MultiBlockMove(1, move)); };
+    virtual double getLogJointRatio(const BlockMove& move) = 0;
 
     void applyMove(const GraphMove&) { };
     virtual void applyMove(const BlockMove&) = 0;
-    void applyMove(const MultiBlockMove& move) { for (auto blockMove: move) applyMove(blockMove); };
 
 };
 
@@ -55,9 +51,9 @@ public:
 
     double getLogPrior() { return m_blockCountPrior.getLogJoint(); };
 
-    double getLogLikelihoodRatio(const MultiBlockMove&) const;
+    double getLogLikelihoodRatio(const BlockMove&) const;
 
-    double getLogPriorRatio(const MultiBlockMove& move) {
+    double getLogPriorRatio(const BlockMove& move) {
         double logPriorRatio = 0;
         if (!m_isProcessed)
             logPriorRatio = m_blockCountPrior.getLogJointRatio(move);
@@ -65,7 +61,7 @@ public:
         return logPriorRatio;
     };
 
-    double getLogJointRatio(const MultiBlockMove& move) { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); };
+    double getLogJointRatio(const BlockMove& move) { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); };
 
     void applyMove(const BlockMove&) ;
     static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;
