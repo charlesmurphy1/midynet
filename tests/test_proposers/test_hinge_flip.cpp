@@ -80,6 +80,6 @@ TEST_F(TestHingeFlip, updateProbabilities_removeMultiEdge_edgeWeightDecreased) {
 TEST_F(TestHingeFlip, updateProbabilities_removeAllEdges_edgeRemovedFromSamplableSet) {
     BaseGraph::Edge edge = {0, 2};
     FastMIDyNet::GraphMove move = {{edge, edge, edge}, {}};
-    swapProposer.updateProbabilities(move);
-    EXPECT_EQ(swapProposer.getSamplableSet().count(edge), 0);
+    flipProposer.updateProbabilities(move);
+    EXPECT_EQ(flipProposer.getEdgeSamplableSet().count(edge), 0);
 }
