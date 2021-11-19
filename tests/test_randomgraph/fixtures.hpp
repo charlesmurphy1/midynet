@@ -5,6 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/types.h"
 #include "BaseGraph/undirected_multigraph.h"
@@ -12,15 +13,6 @@
 
 
 namespace FastMIDyNet{
-
-class DummyRandomGraph: public RandomGraph{
-    public:
-        DummyRandomGraph(size_t size): RandomGraph(size) { };
-        void sampleState() { };
-        virtual void samplePriors() { };
-        double getLogLikelihood(const MultiGraph&) const { return 0; };
-        double getLogJointRatio(const GraphMove& move) const { return 0; };
-};
 
 static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
     //     /*
@@ -50,6 +42,15 @@ static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
 
 }
 
+class DummyRandomGraph: public RandomGraph{
+public:
+    using RandomGraph::RandomGraph;
+    void sampleState() { };
+    virtual void samplePriors() { };
+    double getLogLikelihood() const { return 0; }
+    double getLogPrior() const { return 0; }
+    double getLogJointRatio(const GraphMove& move) const { return 0; }
+};
 
 } // namespace FastMIDyNet
 

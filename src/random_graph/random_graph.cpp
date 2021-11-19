@@ -13,11 +13,13 @@ using namespace BaseGraph;
 namespace FastMIDyNet {
 
     void RandomGraph::applyMove(const GraphMove& move){
-        VertexIndex v, u;
         for (auto edge: move.addedEdges){
-            v = edge.first;
-            u = edge.second;
+            auto v = edge.first, u = edge.second;
             m_state.addEdgeIdx(v, u);
+        }
+        for (auto edge: move.removedEdges){
+            auto v = edge.first, u = edge.second;
+            m_state.removeEdgeIdx(v, u);
         }
 
     };
