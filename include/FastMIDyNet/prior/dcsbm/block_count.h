@@ -9,6 +9,8 @@ namespace FastMIDyNet{
 
 class BlockCountPrior: public Prior<size_t> {
     public:
+        void samplePriors() { }
+
         double getLogLikelihoodRatio(const GraphMove& move) const { return 0; }
         double getLogLikelihoodRatio(const BlockMove& move) const {
             return getLogLikelihood(getStateAfterMove(move)) - Prior::getLogLikelihood();
@@ -43,7 +45,7 @@ class BlockCountPoissonPrior: public BlockCountPrior{
     public:
         BlockCountPoissonPrior(double mean): m_mean(mean), m_poissonDistribution(mean) { }
 
-        size_t sample();
+        void sampleState();
         double getLogLikelihood(const size_t& state) const;
 
         void checkSelfConsistency() const;

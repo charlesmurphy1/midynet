@@ -16,8 +16,8 @@ size_t BlockCountPrior::getStateAfterMove(const BlockMove& move) const {
     return newState;
 };
 
-size_t BlockCountPoissonPrior::sample() {
-    return m_poissonDistribution(rng);
+void BlockCountPoissonPrior::sampleState() {
+    setState(m_poissonDistribution(rng));
 };
 
 double BlockCountPoissonPrior::getLogLikelihood(const size_t& state) const {

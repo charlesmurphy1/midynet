@@ -22,6 +22,7 @@ public:
         m_state = blockSeq;
         m_blockCountPrior.setState(*max_element(blockSeq.begin(), blockSeq.end()) + 1);
     }
+    void samplePriors() { m_blockCountPrior.sample(); }
 
     const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
     std::vector<size_t> getVertexCount(const BlockSequence& blockSeq) const;
@@ -46,7 +47,7 @@ class BlockUniformPrior: public BlockPrior{
 public:
     BlockUniformPrior(size_t size, BlockCountPrior& blockCountPrior):
         BlockPrior(size, blockCountPrior) { }
-    BlockSequence sample() ;
+    void sampleState();
     double getLogLikelihood(const BlockSequence& blockSeq) const ;
 
     double getLogPrior() { return m_blockCountPrior.getLogJoint(); };

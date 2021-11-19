@@ -15,8 +15,14 @@ class Prior{
         const STATE& getState() const { return m_state; }
         void setState(const STATE& state) { m_state = state; }
 
-        virtual STATE sample() = 0;
-        void sampleState() { setState(sample()); }
+        virtual void sampleState() = 0;
+        virtual void samplePriors() = 0;
+        virtual void sample() {
+            processRecursiveFunction([&]() {
+                    samplePriors();
+                    sampleState();
+                });
+        }
         double getLogLikelihood() const { return getLogLikelihood(m_state); }
         virtual double getLogLikelihood(const STATE& state) const = 0;
         virtual double getLogPrior() = 0;

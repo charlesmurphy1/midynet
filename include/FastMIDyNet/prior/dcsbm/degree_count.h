@@ -17,6 +17,7 @@ public:
         m_graphSize(graphSize), m_edgeCountPrior(edgeCountPrior) { }
 
 
+    void samplePriors() { m_edgeCountPrior.sample(); }
     double getLogPrior() { return m_edgeCountPrior.getLogJoint(); }
     virtual double getLogLikelihoodRatio(const GraphMove& move) const = 0;
     double getLogJointRatio(const GraphMove& move) {
