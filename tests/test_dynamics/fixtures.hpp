@@ -17,6 +17,7 @@ class DummyRandomGraph: public RandomGraph{
     public:
         DummyRandomGraph(size_t size): RandomGraph(size) { };
         void sampleState() { };
+        void samplePriors() { };
         double getLogLikelihood(const MultiGraph&) const { return 0; };
         double getLogJointRatio(const GraphMove& move) const { return 0; };
 };

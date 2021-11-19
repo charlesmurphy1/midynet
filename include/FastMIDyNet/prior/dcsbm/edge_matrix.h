@@ -50,8 +50,8 @@ class EdgeMatrixPrior: public Prior< Matrix<size_t> >{
 
 class EdgeMatrixUniformPrior: public EdgeMatrixPrior {
     public:
-        Matrix<size_t> sample();
-        void sampleState();
+        void sampleState() ;
+        void samplePriors() { };
         double getLogLikelihoodRatio(const GraphMove&) const;
         double getLogLikelihoodRatio(const BlockMove&) const;
         void applyMove(const GraphMove&);
