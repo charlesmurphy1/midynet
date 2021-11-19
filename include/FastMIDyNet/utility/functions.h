@@ -11,6 +11,8 @@ double logDoubleFactorial(size_t);
 double logBinomialCoefficient(size_t, size_t);
 double logPoissonPMF(size_t x, double mean);
 double logMultinomialCoefficient(std::list<size_t> sequence);
+double logMultisetCoefficient(size_t n, size_t k);
+
 double logRestrictedPartitionNumber(size_t n, size_t k);
 double logRestrictedPartitionNumber(size_t n, size_t k);
 double logApproxRestrictedPartitionNumber(size_t n, size_t k);
