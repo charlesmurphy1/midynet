@@ -3,7 +3,8 @@
 
 #include "FastMIDyNet/prior/dcsbm/block_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/utility.h"
+#include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/exceptions.h"
 
 
 const double POISSON_MEAN=5;

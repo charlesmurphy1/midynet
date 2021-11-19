@@ -26,6 +26,7 @@ GraphMove DoubleEdgeSwap::proposeMove() {
 }
 
 void DoubleEdgeSwap::setup(const MultiGraph& graph) {
+    m_edgeSamplableSet.clear();
     for (auto vertex: graph)
         for (auto neighbor: graph.getNeighboursOfIdx(vertex))
             if (vertex <= neighbor.first)
