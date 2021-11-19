@@ -36,7 +36,7 @@ TEST_F(TestDoubleEdgeSwap, updateProbabilities_addExistentEdge_edgeWeightIncreas
 }
 
 TEST_F(TestDoubleEdgeSwap, updateProbabilities_addMultiEdge_edgeWeightIncreased) {
-    BaseGraph::Edge edge = {0, 2};
+    BaseGraph::Edge edge = {0, 1};
     FastMIDyNet::GraphMove move = {{}, {edge, edge}};
     swapProposer.updateProbabilities(move);
     EXPECT_EQ(swapProposer.getSamplableSet().get_weight(edge), graph.getEdgeMultiplicityIdx(edge)+2);
