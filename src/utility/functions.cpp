@@ -1,4 +1,4 @@
-
+#include <iostream>
 #include <math.h>
 #include <list>
 
@@ -9,8 +9,9 @@
 
 using namespace std;
 
-
 namespace FastMIDyNet {
+
+
 
 double logFactorial(size_t n){
     return lgamma(n + 1);
@@ -28,7 +29,7 @@ double logDoubleFactorial(size_t n){
 }
 
 double logBinomialCoefficient(size_t n, size_t k){
-    if (n >= k) throw invalid_argument("`n` must be greater or equal to `k`.");
+    if (n < k) throw invalid_argument("`n` must be greater or equal to `k`.");
     return logFactorial(n) - logFactorial(k) - logFactorial(n - k);
 }
 
@@ -42,7 +43,6 @@ double logMultinomialCoefficient(std::list<size_t> sequence) {
     }
     return lgamma(sumSequence + 1) - sumLGammaSequencePlusOne;
 }
-
 double logMultisetCoefficient(size_t n, size_t k){
     return logBinomialCoefficient(n + k - 1, k);
 }
