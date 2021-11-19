@@ -11,9 +11,8 @@ static const std::list<std::vector<int>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 
 
 class TestDegreeDynamics: public::testing::Test{
 public:
-    FastMIDyNet::RNG rng;
-    FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7, rng);
-    FastMIDyNet::DegreeDynamics dynamic = FastMIDyNet::DegreeDynamics(graph, rng, C);
+    FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7);
+    FastMIDyNet::DegreeDynamics dynamic = FastMIDyNet::DegreeDynamics(graph, C);
 };
 
 
