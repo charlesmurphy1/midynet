@@ -2,6 +2,7 @@
 #define FAST_MIDYNET_UTIL_FUNCTIONS_H
 
 #include <list>
+#include <utility>
 #include "FastMIDyNet/types.h"
 
 namespace FastMIDyNet {
@@ -17,7 +18,14 @@ double logRestrictedPartitionNumber(size_t n, size_t k);
 double logRestrictedPartitionNumber(size_t n, size_t k);
 double logApproxRestrictedPartitionNumber(size_t n, size_t k);
 
-BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge&);
+template<typename T>
+std::pair<T, T> getOrderedPair(const std::pair<T, T>& myPair){
+    if (myPair.first < myPair.second)
+        return myPair;
+    return {myPair.second, myPair.first};
+}
+
+BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge& edge) ;
 
 } // namespace FastMIDyNet
 

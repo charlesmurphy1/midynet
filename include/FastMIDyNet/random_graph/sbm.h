@@ -1,5 +1,5 @@
-#ifndef FAST_MIDYNET_DCSBM_H
-#define FAST_MIDYNET_DCSBM_H
+#ifndef FAST_MIDYNET_SBM_H
+#define FAST_MIDYNET_SBM_H
 
 #include <map>
 #include <utility>
@@ -8,21 +8,19 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/prior/dcsbm/edge_matrix.h"
 #include "FastMIDyNet/prior/dcsbm/block.h"
-#include "FastMIDyNet/prior/dcsbm/degree.h"
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 
 namespace FastMIDyNet{
 
-class DegreeCorrectedStochasticBlockModelFamily: public RandomGraph{
+class StochasticBlockModelFamily: public RandomGraph{
 protected:
     EdgeMatrixPrior& m_edgeMatrixPrior;
     BlockPrior& m_blockPrior;
-    DegreePrior& m_degreePrior;
 public:
-    DegreeCorrectedStochasticBlockModelFamily(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior, DegreePrior& degreePrior):
-    m_edgeMatrixPrior(edgeMatrixPrior),m_blockPrior(blockPrior), m_degreePrior(degreePrior), RandomGraph(blockPrior.getSize()) { }
+    StochasticBlockModelFamily(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
+    m_edgeMatrixPrior(edgeMatrixPrior),m_blockPrior(blockPrior), RandomGraph(blockPrior.getSize()) { }
 
     void sampleState () ;
     void samplePriors () ;
@@ -33,7 +31,6 @@ public:
     const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPrior.getState(); }
     std::vector<size_t> getEdgeCountInBlock() const { return std::vector<size_t>(getBlockCount(), 0); } // à changer lorsque EdgeMatrixPrior sera fait
     const size_t& getEdgeCount() const { return m_edgeMatrixPrior.getEdgeCount(); }
-    const DegreeSequence& getDegreeSequence() const { return m_degreePrior.getState(); }
 
     void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, std::map<std::pair<BlockIndex, BlockIndex>, size_t>&);
     void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, std::map<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>, size_t>&);

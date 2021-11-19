@@ -4,8 +4,9 @@
 #include <vector>
 
 #include "BaseGraph/types.h"
-#include "FastMIDyNet/random_graph/dcsbm.h"
+#include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/types.h"
@@ -14,39 +15,25 @@ using namespace std;
 using namespace FastMIDyNet;
 using namespace BaseGraph;
 
-void DegreeCorrectedStochasticBlockModelFamily::samplePriors(){
-    m_blockPrior.sample();
-    m_edgeMatrixPrior.sample();
-    m_degreePrior.sample();
-};
-
-void DegreeCorrectedStochasticBlockModelFamily::sampleState(){
-    BlockSequence blockSeq = getBlockSequence();
-    EdgeMatrix edgeMat = getEdgeMatrix();
-    DegreeSequence degreeSeq = getDegreeSequence();
-    setState( generateDCSBM(blockSeq, edgeMat, degreeSeq) );
-}
-
-
-double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{
+double StochasticBlockModelFamily::getLogLikelihood() const{
     double logLikelihood = 0;
 
     auto edgeMat = getEdgeMatrix() ;
     vector<size_t> edgesInBlock = getEdgeCountInBlock();
-    auto numBlocks = getBlockCount();
+    vector<size_t> vertexCountInBlock = getVertexCountInBlock();
+
+    auto numBlocks = edgeMat.size();
     for (size_t r = 0; r < numBlocks; r++) {
         logLikelihood += logDoubleFactorial(edgeMat[r][r]);
-        logLikelihood -= logFactorial(edgesInBlock[r]);
+        logLikelihood -= edgesInBlock[r] * log(vertexCountInBlock[r]);
         for (size_t s = r + 1; s < numBlocks; s++) {
             logLikelihood += logFactorial(edgeMat[r][s]);
         }
     }
 
-    auto degreeSeq = getDegreeSequence();
     auto graph = getState();
     size_t neighborIdx, edgeMult;
     for (auto idx : graph){
-        logLikelihood += logFactorial(degreeSeq[idx]);
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
             neighborIdx = neighbor.first;
             edgeMult = neighbor.second;
@@ -63,15 +50,15 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{
     return logLikelihood;
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogPrior() const {
-    return m_blockPrior.getLogJoint() + m_edgeMatrixPrior.getLogJoint() + m_degreePrior.getLogJoint();
+double StochasticBlockModelFamily::getLogPrior() const {
+    return m_blockPrior.getLogJoint() + m_edgeMatrixPrior.getLogJoint();
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogJoint() const{
+double StochasticBlockModelFamily::getLogJoint() const{
     return getLogLikelihood() + getLogPrior();
 };
 
-void DegreeCorrectedStochasticBlockModelFamily::getDiffEdgeMatMapFromEdgeMove( const Edge& edge, int counter, map<pair<BlockIndex, BlockIndex>, size_t>& diffEdgeMatMap ){
+void StochasticBlockModelFamily::getDiffEdgeMatMapFromEdgeMove( const Edge& edge, int counter, map<pair<BlockIndex, BlockIndex>, size_t>& diffEdgeMatMap ){
     Edge orderedEdge = getOrderedEdge(edge);
     BlockSequence blockSeq = getBlockSequence();
     if (diffEdgeMatMap.count({blockSeq[orderedEdge.first], blockSeq[orderedEdge.second]}) == 0){
@@ -80,10 +67,11 @@ void DegreeCorrectedStochasticBlockModelFamily::getDiffEdgeMatMapFromEdgeMove( c
     diffEdgeMatMap[getOrderedPair<BlockIndex>({blockSeq[orderedEdge.first], blockSeq[orderedEdge.second]})] += counter;
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) {
+double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) {
     BlockSequence blockSeq = getBlockSequence();
     EdgeMatrix edgeMat = getEdgeMatrix();
     vector<size_t> edgesInBlock = getEdgeCountInBlock();
+    vector<size_t> verticesInBLock = getVertexCountInBlock();
     double logLikelihoodRatioTerm = 0;
 
     map<pair<BlockIndex, BlockIndex>, size_t> diffEdgeMatMap;
@@ -111,13 +99,13 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm 
     }
 
     for (auto it=diffEdgesInBlockMap.begin(); it!= diffEdgesInBlockMap.end(); ++it){
-            auto bu = it->first;
-            logLikelihoodRatioTerm -= logFactorial(edgesInBlock[bu] + it->second) - logFactorial(edgesInBlock[bu]);
+            auto r = it->first;
+            logLikelihoodRatioTerm -= it->second *  log(verticesInBLock[r]);
     }
     return logLikelihoodRatioTerm;
 };
 
-void DegreeCorrectedStochasticBlockModelFamily::getDiffAdjMatMapFromEdgeMove( const Edge& edge, int counter, map<pair<VertexIndex, VertexIndex>, size_t>& diffAdjMatMap){
+void StochasticBlockModelFamily::getDiffAdjMatMapFromEdgeMove( const Edge& edge, int counter, map<pair<VertexIndex, VertexIndex>, size_t>& diffAdjMatMap){
     Edge orderedEdge = getOrderedEdge(edge);
     if (diffAdjMatMap.count({orderedEdge.first, orderedEdge.second}) == 0){
         diffAdjMatMap.insert( pair<pair<VertexIndex, VertexIndex>, size_t>({orderedEdge.first, orderedEdge.second}, 0) );
@@ -125,10 +113,8 @@ void DegreeCorrectedStochasticBlockModelFamily::getDiffAdjMatMapFromEdgeMove( co
     diffAdjMatMap[{orderedEdge.first, orderedEdge.second}] += counter;
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (const GraphMove& move) {
-    DegreeSequence degreeSeq = getDegreeSequence();
+double StochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (const GraphMove& move) {
     map<pair<VertexIndex, VertexIndex>, size_t> diffAdjMatMap;
-    map<VertexIndex, size_t> diffDegreesMap;
     double logLikelihoodRatioTerm = 0;
 
     for (auto edge : move.addedEdges){
@@ -140,10 +126,6 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (
     for (auto it=diffAdjMatMap.begin(); it!= diffAdjMatMap.end(); ++it){
         auto u = it->first.first, v = it->first.second;
         auto edgeMult = m_state.getEdgeMultiplicityIdx(u, v);
-        if (diffDegreesMap.count(u) == 0) diffDegreesMap.insert(pair<BlockIndex, size_t>(u, 0) );
-        if (diffDegreesMap.count(v) == 0) diffDegreesMap.insert(pair<BlockIndex, size_t>(v, 0) );
-        diffDegreesMap[u] ++;
-        diffDegreesMap[v] ++;
 
         if (u == v){
             logLikelihoodRatioTerm -= logDoubleFactorial(2 * edgeMult + 2 * it->second) - logDoubleFactorial(2 * edgeMult);
@@ -153,19 +135,14 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (
         }
     }
 
-    for (auto it=diffDegreesMap.begin(); it!= diffDegreesMap.end(); ++it){
-            auto u = it->first;
-            logLikelihoodRatioTerm += logFactorial(degreeSeq[u] + it->second) - logFactorial(degreeSeq[u]);
-    }
-
     return logLikelihoodRatioTerm;
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio (const GraphMove& move) {
+double StochasticBlockModelFamily::getLogLikelihoodRatio (const GraphMove& move) {
     return getLogLikelihoodRatioEdgeTerm(move) + getLogLikelihoodRatioAdjTerm(move);
 }
 
-void DegreeCorrectedStochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove& move, map<pair<BlockIndex, BlockIndex>, size_t>& diffEdgeMatMap){
+void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove& move, map<pair<BlockIndex, BlockIndex>, size_t>& diffEdgeMatMap){
     BlockSequence blockSeq = getBlockSequence();
     for (auto neighbor : m_state.getNeighboursOfIdx(move.vertexIdx)){
         VertexIndex idx = neighbor.first;
@@ -184,10 +161,11 @@ void DegreeCorrectedStochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( 
     }
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
+double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
     BlockSequence blockSeq = getBlockSequence();
     EdgeMatrix edgeMat = getEdgeMatrix();
     vector<size_t> edgesInBlock = getEdgeCountInBlock();
+    vector<size_t> verticesInBlock = getVertexCountInBlock();
     double logLikelihoodRatio = 0;
 
     map<pair<BlockIndex, BlockIndex>, size_t> diffEdgeMatMap;
@@ -209,13 +187,20 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio(const Bl
     }
 
     for (auto it=diffEdgesInBlockMap.begin(); it!= diffEdgesInBlockMap.end(); ++it){
-            auto bu = it->first;
-            logLikelihoodRatio -= logFactorial(edgesInBlock[bu] + it->second) - logFactorial(edgesInBlock[bu]);
+        if (it->first == move.nextBlockIdx && it->first < getBlockCount()){
+            logLikelihoodRatio -= (edgesInBlock[ it->first ] + it->second) * log(verticesInBlock[ it->first ] + 1) ;
+        }else if (it->first == move.prevBlockIdx){
+            logLikelihoodRatio -= (edgesInBlock[ it->first ] + it->second) * log(verticesInBlock[ it->first - 1]) ;
+        }
+        if (it->first < getBlockCount()){
+            logLikelihoodRatio += (edgesInBlock[ it->first ]) * log(verticesInBlock[ it->first ]) ;
+        }
     }
+
     return logLikelihoodRatio;
 };
 
-EdgeMatrix DegreeCorrectedStochasticBlockModelFamily::getEdgeMatrixFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq){
+EdgeMatrix StochasticBlockModelFamily::getEdgeMatrixFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq){
     size_t numBlocks = *max_element(blockSeq.begin(), blockSeq.end());
     EdgeMatrix edgeMat(numBlocks, vector<size_t>(numBlocks, 0));
 
@@ -233,47 +218,21 @@ EdgeMatrix DegreeCorrectedStochasticBlockModelFamily::getEdgeMatrixFromGraph(con
     return edgeMat;
 };
 
-DegreeSequence DegreeCorrectedStochasticBlockModelFamily::getDegreeSequenceFromGraph(const MultiGraph& graph){
-    DegreeSequence degreeSeq(graph.getSize(), 0);
-
-    size_t neighborIdx, edgeMult ;
-    for (auto idx : graph){
-        for (auto neighbor : graph.getNeighboursOfIdx(idx)){
-            neighborIdx = neighbor.first;
-            edgeMult = neighbor.second;
-            degreeSeq[idx] += edgeMult;
-        }
-    }
-
-    return degreeSeq;
-}
-
-void DegreeCorrectedStochasticBlockModelFamily::checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat){
+void StochasticBlockModelFamily::checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat){
     EdgeMatrix actualEdgeMat = getEdgeMatrixFromGraph(graph, blockSeq);
+    size_t numBlocks = *max_element(blockSeq.begin(), blockSeq.end());
 
-    for (auto r = 0; r < actualEdgeMat.size(); r ++){
-        for (auto s = 0; s < actualEdgeMat.size(); s ++){
+    for (auto r = 0; r < numBlocks; r ++){
+        for (auto s = 0; s < numBlocks; s ++){
             if (expectedEdgeMat[r][s] != actualEdgeMat[r][s])
-                throw "Inconsistency error on edge matrix in DCSBM family.";
+                throw ConsistencyError("StochasticBlockModelFamily: edge matrix is inconsistent with graph.");
         }
     }
 };
 
-void DegreeCorrectedStochasticBlockModelFamily::checkGraphConsistencyWithDegreeSequence(const MultiGraph& graph, const DegreeSequence& expectedDegreeSeq){
-    DegreeSequence actualDegreeSeq = getDegreeSequenceFromGraph(graph);
-
-    for (auto idx : graph){
-        if (expectedDegreeSeq[idx] != actualDegreeSeq[idx])
-            throw "Inconsistency error on degree sequence in DCSBM family.";
-    }
-
-}
-
-void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency(){
+void StochasticBlockModelFamily::checkSelfConsistency(){
     m_blockPrior.checkSelfConsistency();
     m_edgeMatrixPrior.checkSelfConsistency();
-    m_degreePrior.checkSelfConsistency();
 
     checkGraphConsistencyWithEdgeMatrix(m_state, getBlockSequence(), getEdgeMatrix());
-    checkGraphConsistencyWithDegreeSequence(m_state, getDegreeSequence());
 }
