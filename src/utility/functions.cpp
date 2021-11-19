@@ -4,6 +4,7 @@
 
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/exceptions.h"
 
 
 using namespace std;
@@ -54,6 +55,11 @@ BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge& edge) {
     if (edge.first < edge.second)
         return edge;
     return {edge.second, edge.first};
+}
+
+void assertValidProbability(double probability) {
+    if (probability > 1 || probability < 0)
+        throw ConsistencyError("Probability " + std::to_string(probability) + " is not between 0 and 1.");
 }
 
 } // namespace FastMIDyNet
