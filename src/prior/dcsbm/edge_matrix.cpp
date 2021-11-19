@@ -103,7 +103,7 @@ void EdgeMatrixUniformPrior::sampleState() {
     auto blockCount = m_blockPrior.getBlockCount();
     auto flattenedEdgeMatrix = sampleRandomWeakComposition(
             m_edgeCountPrior.getState(),
-            choose2(blockCount)
+            blockCount*(blockCount+1)/2
             );
 
     m_state = Matrix<size_t>(blockCount, std::vector<size_t>(blockCount));
