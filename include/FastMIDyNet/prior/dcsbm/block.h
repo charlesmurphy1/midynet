@@ -45,6 +45,31 @@ public:
 
 };
 
+class BlockDeltaPrior: public BlockPrior{
+    BlockCountDeltaPrior m_blockCountDeltaPrior;
+public:
+    BlockDeltaPrior(const BlockSequence& blockSeq):
+        m_blockCountDeltaPrior(*max_element(blockSeq.begin(), blockSeq.end())),
+        BlockPrior(blockSeq.size(), m_blockCountDeltaPrior) { }
+
+    void sampleState() {  };
+
+    void samplePriors() { };
+
+    double getLogLikelihood(const BlockSequence& state) const {
+        if (state.size() != getSize()) return -INFINITY;
+        for (size_t i = 0; i < state.size(); i++) {
+            if (state[i] != m_state[i]) return -INFINITY;
+        }
+        return 0.;
+    };
+
+    double getLogPrior() { return 0.; };
+
+    void checkSelfConsistency() const { };
+
+};
+
 class BlockUniformPrior: public BlockPrior{
 public:
     BlockUniformPrior(size_t size, BlockCountPrior& blockCountPrior):
@@ -59,9 +84,7 @@ public:
     double getLogLikelihoodRatio(const BlockMove&) const;
 
     double getLogPriorRatio(const BlockMove& move) {
-        return processRecursiveFunction<double>( [&]() {
-                return m_blockCountPrior.getLogJointRatio(move); },
-                0);
+        return processRecursiveFunction<double>( [&]() { return m_blockCountPrior.getLogJointRatio(move); }, 0);
     };
 
     double getLogJointRatio(const BlockMove& move) {

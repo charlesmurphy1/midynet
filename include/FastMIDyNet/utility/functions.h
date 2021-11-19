@@ -7,6 +7,8 @@
 
 namespace FastMIDyNet {
 
+// static const double INFINITY = std::numeric_limits<double>::infinity();
+
 double logFactorial(size_t);
 double logDoubleFactorial(size_t);
 double logBinomialCoefficient(size_t, size_t);
