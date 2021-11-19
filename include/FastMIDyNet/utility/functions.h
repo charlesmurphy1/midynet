@@ -17,6 +17,8 @@ double logRestrictedPartitionNumber(size_t n, size_t k);
 double logRestrictedPartitionNumber(size_t n, size_t k);
 double logApproxRestrictedPartitionNumber(size_t n, size_t k);
 
+BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge&);
+
 } // namespace FastMIDyNet
 
 #endif
