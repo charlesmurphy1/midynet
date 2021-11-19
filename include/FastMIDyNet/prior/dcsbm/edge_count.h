@@ -14,11 +14,10 @@ class EdgeCountPrior: public Prior<size_t> {
              return getLogLikelihood(getStateAfterMove(move)) - getLogLikelihood();
         }
         double getLogJointRatio(const GraphMove& move) {
-            double logJointRatio = 0;
-            if (!m_isProcessed)
-                logJointRatio = getLogLikelihoodRatio(move);
-            m_isProcessed = true;
-            return logJointRatio;
+            return processRecursiveFunction<double>( [&]() {
+                    return getLogLikelihoodRatio(move); },
+                    0
+                );
         }
         double getLogJointRatio(const BlockMove& move) { return 0; }
 
@@ -26,9 +25,7 @@ class EdgeCountPrior: public Prior<size_t> {
             setState(sample());
         }
         void applyMove(const GraphMove& move) {
-            if (!m_isProcessed)
-                setState(getStateAfterMove(move));
-            m_isProcessed=true;
+            processRecursiveFunction( [&](){ setState(getStateAfterMove(move)); } );
         }
         void applyMove(const BlockMove& move) { }
         size_t getStateAfterMove(const GraphMove&) const;

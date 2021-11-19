@@ -26,8 +26,7 @@ class EdgeMatrixPrior: public Prior< Matrix<size_t> >{
         virtual double getLogLikelihoodRatio(const BlockMove&) const = 0;
 
         double getLogJointRatio(const GraphMove& move) {
-            return processRecursiveFunction<double>(
-                    [this, &move] () {
+            return processRecursiveFunction<double>( [&]() {
                         return getLogLikelihoodRatio(move) +
                             m_edgeCountPrior.getLogJointRatio(move) + m_blockPrior.getLogJointRatio(move);
                     },
@@ -36,8 +35,7 @@ class EdgeMatrixPrior: public Prior< Matrix<size_t> >{
         }
 
         double getLogJointRatio(const BlockMove& move) {
-            return processRecursiveFunction<double>(
-                    [this, &move] () {
+            return processRecursiveFunction<double>( [&]() {
                         return getLogLikelihoodRatio(move) +
                             m_edgeCountPrior.getLogJointRatio(move) + m_blockPrior.getLogJointRatio(move);
                     },

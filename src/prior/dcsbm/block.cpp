@@ -48,12 +48,6 @@ namespace FastMIDyNet{
 
     };
 
-    void BlockUniformPrior::applyMove(const BlockMove& move) {
-        if (!m_isProcessed)
-            m_state[move.vertexIdx] = move.nextBlockIdx;
-        m_isProcessed = true;
-    };
-
     void BlockUniformPrior::checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) {
         size_t actualBlockCount = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
         if (actualBlockCount != expectedBlockCount)

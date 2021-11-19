@@ -20,11 +20,9 @@ public:
     double getLogPrior() { return m_edgeCountPrior.getLogJoint(); }
     virtual double getLogLikelihoodRatio(const GraphMove& move) const = 0;
     double getLogJointRatio(const GraphMove& move) {
-        double logJointRatio = 0;
-        if (!m_isProcessed)
-            logJointRatio = getLogLikelihoodRatio(move) + m_edgeCountPrior.getLogJointRatio(move);
-        m_isProcessed = true;
-        return logJointRatio;
+        return processRecursiveFunction<double>( [&]() {
+                return getLogLikelihoodRatio(move) + m_edgeCountPrior.getLogJointRatio(move); },
+                0);
     }
     double getLogJointRatio(const BlockMove& move) { return 0; }
 

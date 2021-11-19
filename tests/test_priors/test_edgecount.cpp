@@ -85,7 +85,7 @@ TEST_F(TestEdgeCountPrior, getLogJointRatio_calledTwice_return0) {
 TEST_F(TestEdgeCountPrior, getLogJointRatio_blockMove_return0) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
-    FastMIDyNet::MultiBlockMove move = {{0, 0, 0}};
+    FastMIDyNet::BlockMove move = {0, 0, 0};
 
     EXPECT_EQ(prior.getLogJointRatio(move), 0);
 }

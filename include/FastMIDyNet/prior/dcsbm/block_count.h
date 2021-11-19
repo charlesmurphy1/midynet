@@ -16,20 +16,19 @@ class BlockCountPrior: public Prior<size_t> {
 
         double getLogJointRatio(const GraphMove& move) { return 0; }
         double getLogJointRatio(const BlockMove& move) {
-            double logJointRatio = 0;
-            if (!m_isProcessed)
-                logJointRatio = getLogLikelihoodRatio(move);
-            m_isProcessed = true;
-            return logJointRatio;
+            return processRecursiveFunction<double>( [&]() {
+                    return getLogLikelihoodRatio(move); },
+                    0
+                );
         }
 
         double getLogPrior() { return 0; }
 
         void applyMove(const GraphMove& move) { }
         void applyMove(const BlockMove& move) {
-            if (!m_isProcessed)
-                setState(getStateAfterMove(move));
-            m_isProcessed = true;
+            processRecursiveFunction(
+                    [&](){ setState(getStateAfterMove(move)); }
+                );
         }
 
         size_t getStateAfterMove(const GraphMove&) const { return m_state; };

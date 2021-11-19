@@ -54,18 +54,20 @@ public:
     double getLogLikelihoodRatio(const BlockMove&) const;
 
     double getLogPriorRatio(const BlockMove& move) {
-        double logPriorRatio = 0;
-        if (!m_isProcessed)
-            logPriorRatio = m_blockCountPrior.getLogJointRatio(move);
-        m_isProcessed = true;
-        return logPriorRatio;
+        return processRecursiveFunction<double>( [&]() {
+                return m_blockCountPrior.getLogJointRatio(move); },
+                0);
     };
 
-    double getLogJointRatio(const BlockMove& move) { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); };
+    double getLogJointRatio(const BlockMove& move) {
+        return getLogLikelihoodRatio(move) + getLogPriorRatio(move);
+    };
 
-    void applyMove(const BlockMove&) ;
+    void applyMove(const BlockMove& move) { m_state[move.vertexIdx] = move.nextBlockIdx; };
     static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;
-    void checkSelfConsistency() const { checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount()); };
+    void checkSelfConsistency() const {
+        checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
+    };
 
 };
 
