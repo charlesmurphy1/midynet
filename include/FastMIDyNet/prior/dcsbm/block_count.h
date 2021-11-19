@@ -9,38 +9,32 @@ namespace FastMIDyNet{
 
 class BlockCountPrior: public Prior<size_t> {
     public:
+        void samplePriors() { }
+
         double getLogLikelihoodRatio(const GraphMove& move) const { return 0; }
-        double getLogLikelihoodRatio(const MultiBlockMove& move) const {
+        double getLogLikelihoodRatio(const BlockMove& move) const {
             return getLogLikelihood(getStateAfterMove(move)) - Prior::getLogLikelihood();
         }
 
         double getLogJointRatio(const GraphMove& move) { return 0; }
-        double getLogJointRatio(const MultiBlockMove& move) {
-            double logJointRatio = 0;
-            if (!m_isProcessed)
-                logJointRatio = getLogLikelihoodRatio(move);
-            m_isProcessed = true;
-            return logJointRatio;
+        double getLogJointRatio(const BlockMove& move) {
+            return processRecursiveFunction<double>( [&]() {
+                    return getLogLikelihoodRatio(move); },
+                    0
+                );
         }
 
         double getLogPrior() { return 0; }
 
         void applyMove(const GraphMove& move) { }
-        void applyMove(const MultiBlockMove& move) {
-            if (!m_isProcessed)
-                setState(getStateAfterMove(move));
-            m_isProcessed = true;
+        void applyMove(const BlockMove& move) {
+            processRecursiveFunction(
+                    [&](){ setState(getStateAfterMove(move)); }
+                );
         }
 
         size_t getStateAfterMove(const GraphMove&) const { return m_state; };
         size_t getStateAfterMove(const BlockMove&) const;
-        size_t getStateAfterMove(const MultiBlockMove& move) const {
-            size_t newState = getState() ;
-            for (auto blockMove: move){
-                newState = getStateAfterMove(blockMove) ;
-            }
-            return newState;
-        };
 };
 
 
@@ -51,7 +45,7 @@ class BlockCountPoissonPrior: public BlockCountPrior{
     public:
         BlockCountPoissonPrior(double mean): m_mean(mean), m_poissonDistribution(mean) { }
 
-        size_t sample();
+        void sampleState();
         double getLogLikelihood(const size_t& state) const;
 
         void checkSelfConsistency() const;

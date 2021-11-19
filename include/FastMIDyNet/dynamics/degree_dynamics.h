@@ -12,8 +12,8 @@ class DegreeDynamics: public BinaryDynamics {
     double m_C;
 
     public:
-        DegreeDynamics(RandomGraph& random_graph, RNG& rng, double C):
-                BinaryDynamics(random_graph, rng), m_C(C) {}
+        DegreeDynamics(RandomGraph& random_graph, double C):
+                BinaryDynamics(random_graph), m_C(C) {}
 
         double getActivationProb(const VertexNeighborhoodState& neighborhood_state) const;
         double getDeactivationProb(const VertexNeighborhoodState& neighborhood_state) const;

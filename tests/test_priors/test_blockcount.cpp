@@ -13,7 +13,7 @@ const std::vector<size_t> TESTED_INTEGERS;
 
 class DummyBlockCountPrior: public FastMIDyNet::BlockCountPrior {
     public:
-        size_t sample() { return 0; }
+        void sampleState() {}
         double getLogLikelihood(const size_t& state) const { return state; }
         double getLogPrior() { return 0; }
 
@@ -36,12 +36,12 @@ class TestBlockCountPoissonPrior: public::testing::Test{
 TEST_F(TestBlockCountPrior, getStateAfterMove_blockMove_returnCorrectBlockNumberIfVertexInNewBlock) {
     for (auto currentBlockNumber: {1, 2, 5, 10}){
         prior.setState(currentBlockNumber);
-        for ( auto nextBlockIdx : {0, 1, 2, 6}){
-            std::vector<FastMIDyNet::BlockMove> blockMoves(2, FastMIDyNet::BlockMove(0, 0, nextBlockIdx));
+        for (FastMIDyNet::BlockIndex nextBlockIdx : {0, 1, 2, 6}){
+            FastMIDyNet::BlockMove blockMove = {0, 0, nextBlockIdx};
             if (currentBlockNumber > nextBlockIdx)
-                EXPECT_EQ(prior.getStateAfterMove(blockMoves), currentBlockNumber);
+                EXPECT_EQ(prior.getStateAfterMove(blockMove), currentBlockNumber);
             else
-                EXPECT_EQ(prior.getStateAfterMove(blockMoves), nextBlockIdx + 1);
+                EXPECT_EQ(prior.getStateAfterMove(blockMove), nextBlockIdx + 1);
         }
     }
 
@@ -49,26 +49,26 @@ TEST_F(TestBlockCountPrior, getStateAfterMove_blockMove_returnCorrectBlockNumber
 
 TEST_F(TestBlockCountPrior, getLogLikelihoodRatio_noNewblockMove_return0) {
     prior.setState(5);
-    std::vector<FastMIDyNet::BlockMove> blockMove(1, FastMIDyNet::BlockMove(0, 0, 1));
+    FastMIDyNet::BlockMove blockMove = {0, 0, 1};
     EXPECT_EQ(prior.getLogLikelihoodRatio(blockMove), 0);
 }
 
 TEST_F(TestBlockCountPrior, getLogLikelihoodRatio_newblockMove_returnCorrectRatio) {
     prior.setState(5);
-    std::vector<FastMIDyNet::BlockMove> blockMove(1, FastMIDyNet::BlockMove(0, 0, 7));
+    FastMIDyNet::BlockMove blockMove = {0, 0, 7};
     EXPECT_EQ(prior.getLogLikelihoodRatio(blockMove), 3);
 }
 
 TEST_F(TestBlockCountPrior, applyMove_noNewblockMove_blockNumberUnchangedIsProcessedIsTrue) {
     prior.setState(5);
-    std::vector<FastMIDyNet::BlockMove> blockMove(1, FastMIDyNet::BlockMove(0, 0, 2));
+    FastMIDyNet::BlockMove blockMove = {0, 0, 2};
     prior.applyMove(blockMove);
     EXPECT_EQ(prior.getState(), 5);
 }
 
 TEST_F(TestBlockCountPrior, applyMove_newblockMove_blockNumberIncrementsIsProcessedIsTrue) {
     prior.setState(5);
-    std::vector<FastMIDyNet::BlockMove> blockMove(1, FastMIDyNet::BlockMove(0, 0, 7));
+    FastMIDyNet::BlockMove blockMove = {0, 0, 7};
     prior.applyMove(blockMove);
     EXPECT_EQ(prior.getState(), 8);
 }

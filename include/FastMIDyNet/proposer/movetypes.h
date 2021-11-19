@@ -25,8 +25,6 @@ struct BlockMove{
     BlockIndex nextBlockIdx;
 };
 
-typedef std::vector<BlockMove> MultiBlockMove;
-
 }
 
 #endif

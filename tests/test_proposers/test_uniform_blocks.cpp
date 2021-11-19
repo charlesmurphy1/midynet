@@ -49,25 +49,51 @@ TEST_F(TestUniformBlockProposer, getLogProposalProbRatio_destroyBlock_returnCorr
 TEST_F(TestUniformBlockProposer, updateProbabilities_moveBetweenExistsingAndNonEmptyBlocks_incrementNewAndDecrementPreviousBlocks) {
     FastMIDyNet::BlockMove move = {0, 0, 1};
     blockProposer.updateProbabilities(move);
-    auto vertexCountInBlocks = blockProposer.getVertexCountInBlocks();
 
-    EXPECT_EQ(vertexCountInBlocks, std::vector<size_t>({3, 2}));
+    EXPECT_EQ(blockProposer.getVertexCountInBlocks(), std::vector<size_t>({3, 2}));
 }
 
 TEST_F(TestUniformBlockProposer, updateProbabilities_creatingNewBlock_createNewEntry) {
     FastMIDyNet::BlockMove move = {0, 0, 2};
     blockProposer.updateProbabilities(move);
-    auto vertexCountInBlocks = blockProposer.getVertexCountInBlocks();
 
-    EXPECT_EQ(vertexCountInBlocks, std::vector<size_t>({3, 1, 1}));
+    EXPECT_EQ(blockProposer.getVertexCountInBlocks(), std::vector<size_t>({3, 1, 1}));
 }
 
-TEST_F(TestUniformBlockProposer, updateProbabilities_destryingBlock_createNewEntry) {
-    FastMIDyNet::BlockMove move = {2, 1, 0};
-    blockProposer.updateProbabilities(move);
-    auto vertexCountInBlocks = blockProposer.getVertexCountInBlocks();
+TEST_F(TestUniformBlockProposer, updateProbabilities_destroyingMiddleBlock_blockRemovedInVertexCounts) {
+    size_t blockCount = 3;
+    FastMIDyNet::BlockSequence blockSequence = {0, 0, 1, 2, 2};
+    blockProposer.setup(blockSequence, blockCount);
 
-    EXPECT_EQ(vertexCountInBlocks, std::vector<size_t>({5}));
+    FastMIDyNet::BlockMove move = {2, 1, 2};
+    blockProposer.updateProbabilities(move);
+
+    EXPECT_EQ(blockProposer.getVertexCountInBlocks(), std::vector<size_t>({2, 3}));
+}
+
+TEST_F(TestUniformBlockProposer, updateProbabilities_noBlockCreatedOrDestroyed_blockCountConstant) {
+    FastMIDyNet::BlockMove move = {0, 0, 1};
+    blockProposer.updateProbabilities(move);
+
+    EXPECT_EQ(BLOCK_COUNT, blockProposer.getInternalBlockCount());
+}
+
+TEST_F(TestUniformBlockProposer, updateProbabilities_creatingNewBlock_blockCountIncrement) {
+    FastMIDyNet::BlockMove move = {0, 0, 2};
+    blockProposer.updateProbabilities(move);
+
+    EXPECT_EQ(BLOCK_COUNT+1, blockProposer.getInternalBlockCount());
+}
+
+TEST_F(TestUniformBlockProposer, updateProbabilities_destroyingMiddleBlock_blockCountDecrement) {
+    size_t blockCount = 3;
+    FastMIDyNet::BlockSequence blockSequence = {0, 0, 1, 2, 2};
+    blockProposer.setup(blockSequence, blockCount);
+
+    FastMIDyNet::BlockMove move = {2, 1, 2};
+    blockProposer.updateProbabilities(move);
+
+    EXPECT_EQ(blockCount-1, blockProposer.getInternalBlockCount());
 }
 
 TEST_F(TestUniformBlockProposer, checkConsistency_lowerBlockCount_throwConsistencyError) {

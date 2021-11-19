@@ -13,8 +13,8 @@ size_t EdgeCountPrior::getStateAfterMove(const GraphMove& move) const {
     return m_state + edgeNumberDifference;
 }
 
-size_t EdgeCountPoissonPrior::sample() {
-    return m_poissonDistribution(rng);
+void EdgeCountPoissonPrior::sampleState() {
+    setState( m_poissonDistribution(rng) );
 }
 
 double EdgeCountPoissonPrior::getLogLikelihood(const size_t& state) const {

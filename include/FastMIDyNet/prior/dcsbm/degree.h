@@ -10,16 +10,27 @@
 namespace FastMIDyNet{
 
 class DegreePrior: public Prior<DegreeSequence>{
-
+    protected:
+        size_t m_graphSize;
     public:
 
-        virtual double getLogPrior() = 0;
-        double getLogJointRatio(const MultiBlockMove& move) { return 0; }
+        DegreePrior(size_t graphSize): m_graphSize(graphSize) {}
+
+        size_t getGraphSize() { return m_graphSize; }
+
+        double getLogLikelihoodRatio(const BlockMove&) const { return 0; }
+        double getLogLikelihoodRatio(const GraphMove&) const { return 0; }
+
+        double getLogJointRatio(const BlockMove& move) { return 0; }
         double getLogJointRatio(const GraphMove& move) { return 0; }
 
-        double getLogLikelihoodRatio(const MultiBlockMove&) const { return 0; }
-        double getLogLikelihoodRatio(const GraphMove&) const { return 0; }
+        double getLogPriorRatio(const BlockMove& move) { return 0; }
+        double getLogPriorRatio(const GraphMove& move) { return 0; }
+
+        double getLogPrior() { return 0;};
+
         void applyMove(const BlockMove&) { }
+        void applyMove(const GraphMove&) { }
 };
 
 

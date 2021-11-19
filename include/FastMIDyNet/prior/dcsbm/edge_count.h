@@ -9,30 +9,25 @@ namespace FastMIDyNet{
 
 class EdgeCountPrior: public Prior<size_t> {
     public:
+        void samplePriors() {}
         double getLogPrior() { return 0; }
         double getLogLikelihoodRatio(const GraphMove& move) const {
              return getLogLikelihood(getStateAfterMove(move)) - getLogLikelihood();
         }
         double getLogJointRatio(const GraphMove& move) {
-            double logJointRatio = 0;
-            if (!m_isProcessed)
-                logJointRatio = getLogLikelihoodRatio(move);
-            m_isProcessed = true;
-            return logJointRatio;
+            return processRecursiveFunction<double>( [&]() {
+                    return getLogLikelihoodRatio(move); },
+                    0
+                );
         }
         double getLogJointRatio(const BlockMove& move) { return 0; }
-        double getLogJointRatio(const MultiBlockMove& move) { return 0; }
 
         void applyMove(const GraphMove& move) {
-            if (!m_isProcessed)
-                setState(getStateAfterMove(move));
-            m_isProcessed=true;
+            processRecursiveFunction( [&](){ setState(getStateAfterMove(move)); } );
         }
         void applyMove(const BlockMove& move) { }
-        void applyMove(const MultiBlockMove& move) { }
         size_t getStateAfterMove(const GraphMove&) const;
         size_t getStateAfterMove(const BlockMove&) const { return getState(); }
-        size_t getStateAfterMove(const MultiBlockMove&) const { return getState(); }
 };
 
 
@@ -43,7 +38,7 @@ class EdgeCountPoissonPrior: public EdgeCountPrior{
     public:
         EdgeCountPoissonPrior(double mean): m_mean(mean), m_poissonDistribution(mean) { }
 
-        size_t sample();
+        void sampleState();
         double getLogLikelihood(const size_t& state) const;
 
         void checkSelfConsistency() const;

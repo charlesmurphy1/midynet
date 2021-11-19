@@ -13,7 +13,7 @@ const std::vector<size_t> TESTED_INTEGERS;
 
 class DummyEdgeCountPrior: public FastMIDyNet::EdgeCountPrior {
     public:
-        size_t sample() { return 0; }
+        void sampleState() {}
         double getLogLikelihood(const size_t& state) const { return state; }
         double getLogPrior() { return 0; }
         void checkSelfConsistency() const { }
@@ -85,7 +85,7 @@ TEST_F(TestEdgeCountPrior, getLogJointRatio_calledTwice_return0) {
 TEST_F(TestEdgeCountPrior, getLogJointRatio_blockMove_return0) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
-    FastMIDyNet::MultiBlockMove move = {{0, 0, 0}};
+    FastMIDyNet::BlockMove move = {0, 0, 0};
 
     EXPECT_EQ(prior.getLogJointRatio(move), 0);
 }

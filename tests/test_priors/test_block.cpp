@@ -25,15 +25,6 @@ class DummyBlockPrior: public BlockPrior {
             return blockSeq;
         }
         double getLogLikelihood(const BlockSequence& state) const { return 0.5; }
-        double getLogLikelihoodRatio(const MultiBlockMove& move) const { return 3;};
-        double getLogPriorRatio(const MultiBlockMove& move) {
-            if (!m_isProcessed) return 2.;
-            else return 0.;
-        };
-        double getLogJointRatio(const MultiBlockMove& move) {
-            if (!m_isProcessed) return getLogPriorRatio(move) + getLogLikelihoodRatio(move);
-            else return 0.;
-        };
         double getLogPrior() { return 0.1; }
         void applyMove(const BlockMove& move) {
             if (!m_isProcessed)
@@ -153,7 +144,7 @@ TEST_F(TestBlockUniformPrior, getLogLikelihood_fromSomeRandomBlockSeq_returnCorr
 }
 
 TEST_F(TestBlockUniformPrior, getLogLikelihoodRatio_fromSomeMultiBlockMove_returnCorrectLogLikelihoodRatio){
-    MultiBlockMove move(1, {2, 0, 1});
+    BlockMove move = {2, 0, 1};
 
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatio(move);
     double expectedLogLikelihoodRatio = -prior.getLogLikelihood(prior.getState());
@@ -174,7 +165,7 @@ TEST_F(TestBlockUniformPrior, checkSelfConsistency_noError_noThrow){
 }
 
 TEST_F(TestBlockUniformPrior, checkSelfConsistency_inconsistenBlockSeqWithBlockCOunt_ThrowConsistencyError){
-    MultiBlockMove move(1, {0,0,20});
+    BlockMove move = {0, 0, 20};
     prior.BlockPrior::applyMove(move);
     EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
 }
