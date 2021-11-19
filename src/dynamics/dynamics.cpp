@@ -2,6 +2,7 @@
 #include <cmath>
 #include <map>
 
+#include "BaseGraph/types.h"
 #include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/rng.h"
