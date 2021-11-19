@@ -13,7 +13,7 @@ using namespace std;
 
 namespace FastMIDyNet{
 
-vector<size_t> BlockPrior::getVertexCount(const BlockSequence& state) const {
+vector<size_t> BlockPrior::computeVertexCountInBlock(const BlockSequence& state) const {
     size_t numBlocks = *max_element(state.begin(), state.end()) + 1;
     vector<size_t> vertexCount(numBlocks);
 
@@ -22,20 +22,22 @@ vector<size_t> BlockPrior::getVertexCount(const BlockSequence& state) const {
     }
 
     return vertexCount;
+
+    void BlockUniformPrior::sampleState() {
+        BlockSequence blockSeq(getSize());
+        uniform_int_distribution<size_t> dist(0, getBlockCount() - 1);
+        for (size_t vertexIdx = 0; vertexIdx < getSize(); vertexIdx++) {
+            blockSeq[vertexIdx] = dist(rng);
+        }
+        setState(blockSeq);
+    };
+
+
+    double BlockUniformPrior::getLogLikelihood(const BlockSequence& state) const {
+        return -logMultisetCoefficient(getSize(), getBlockCount());
+    };
 };
 
-void BlockUniformPrior::sampleState() {
-    BlockSequence blockSeq(getSize());
-    uniform_int_distribution<size_t> dist(0, getBlockCount() - 1);
-    for (size_t vertexIdx = 0; vertexIdx < getSize(); vertexIdx++) {
-        blockSeq[vertexIdx] = dist(rng);
-    }
-    setState(blockSeq);
-};
-
-double BlockUniformPrior::getLogLikelihood(const BlockSequence& state) const {
-    return -logMultisetCoefficient(getSize(), getBlockCount());
-};
 
 
 double BlockUniformPrior::getLogLikelihoodRatio(const BlockMove& move) const {
