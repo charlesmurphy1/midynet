@@ -2,6 +2,7 @@
 #include <cmath>
 #include <map>
 
+#include "BaseGraph/types.h"
 #include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/rng.h"
@@ -137,7 +138,7 @@ const std::vector<double> Dynamics::getTransitionProbs(VertexState prevVertexSta
     return transProbs;
 };
 
-void Dynamics::updateNeighborStateMapFromEdgeMove(Edge edge, int direction, map<VertexIndex, VertexNeighborhoodStateSequence>& prevNeighborMap, map<VertexIndex, VertexNeighborhoodStateSequence>& nextNeighborMap) const{
+void Dynamics::updateNeighborStateMapFromEdgeMove(BaseGraph::Edge edge, int direction, map<VertexIndex, VertexNeighborhoodStateSequence>& prevNeighborMap, map<VertexIndex, VertexNeighborhoodStateSequence>& nextNeighborMap) const{
     int numSteps = m_pastStateSequence.size();
     VertexIndex v = edge.first, u = edge.second;
     if (prevNeighborMap.count(v) == 0){
