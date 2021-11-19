@@ -21,8 +21,8 @@ public:
 
     void setState(const BlockSequence& blockSeq){
         m_blockCountPrior.setState(*max_element(blockSeq.begin(), blockSeq.end()) + 1);
-        m_verticesInBlock = computeVertexCountInBlock(m_state);
         m_state = blockSeq;
+        m_verticesInBlock = computeVertexCountInBlock(m_state);
     }
     void samplePriors() { m_blockCountPrior.sample(); }
     const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
@@ -47,8 +47,8 @@ public:
 
 class BlockUniformPrior: public BlockPrior{
 public:
-    BlockUniformPrior(size_t size, BlockCountPrior& blockCountPrior):
-        BlockPrior(size, blockCountPrior) { }
+    BlockUniformPrior(size_t graphSize, BlockCountPrior& blockCountPrior):
+        BlockPrior(graphSize, blockCountPrior) { }
 
     void sampleState();
 
