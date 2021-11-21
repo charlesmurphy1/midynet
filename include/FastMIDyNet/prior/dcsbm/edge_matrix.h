@@ -17,14 +17,15 @@ class EdgeMatrixPrior: public Prior< Matrix<size_t> >{
             m_edgeCountPrior(edgeCountPrior), m_blockPrior(blockPrior) {}
 
         void setGraph(const MultiGraph& graph);
+        void setState(const Matrix<size_t>&) override;
 
-        void samplePriors() { m_edgeCountPrior.sample(); m_blockPrior.sample(); }
+        void samplePriors() override { m_edgeCountPrior.sample(); m_blockPrior.sample(); }
 
         const size_t& getEdgeCount() const { return m_edgeCountPrior.getState(); }
-        const std::vector<size_t>& getEdgesInBlock() { return m_edgesInBlock; }
+        const std::vector<size_t>& getEdgesInBlock() { return m_edgeCountInBlocks; }
         const BlockSequence& getBlockSequence() { return m_blockPrior.getState(); }
 
-        double getLogPrior() { return m_edgeCountPrior.getLogJoint() + m_blockPrior.getLogJoint(); }
+        double getLogPrior() override { return m_edgeCountPrior.getLogJoint() + m_blockPrior.getLogJoint(); }
         virtual double getLogLikelihoodRatio(const GraphMove&) const = 0;
         virtual double getLogLikelihoodRatio(const BlockMove&) const = 0;
 
@@ -49,13 +50,18 @@ class EdgeMatrixPrior: public Prior< Matrix<size_t> >{
         virtual void applyMove(const GraphMove&) = 0;
         virtual void applyMove(const BlockMove&) = 0;
 
-        void checkSelfConsistency() const;
+        void computationFinished() override {
+            m_isProcessed = false;
+            m_blockPrior.computationFinished();
+            m_edgeCountPrior.computationFinished();
+        }
+        void checkSelfConsistency() const override;
 
     protected:
         const MultiGraph* m_graph;
         EdgeCountPrior& m_edgeCountPrior;
         BlockPrior& m_blockPrior;
-        std::vector<size_t> m_edgesInBlock;
+        std::vector<size_t> m_edgeCountInBlocks;
 
         void createBlock();
         void destroyBlock(const BlockIndex&);
@@ -74,7 +80,7 @@ class EdgeMatrixUniformPrior: public EdgeMatrixPrior {
         void applyMove(const GraphMove&);
         void applyMove(const BlockMove&);
 
-    private:
+    protected:
         double getLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {
             return getLogLikelihood(m_edgeCountPrior.getState(), m_blockPrior.getBlockCount())
                 - getLogLikelihood(blockCountAfter, edgeNumberAfter);

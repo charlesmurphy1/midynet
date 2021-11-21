@@ -17,8 +17,8 @@ public:
         m_graphSize(graphSize), m_edgeCountPrior(edgeCountPrior) { }
 
 
-    void samplePriors() { m_edgeCountPrior.sample(); }
-    double getLogPrior() { return m_edgeCountPrior.getLogJoint(); }
+    void samplePriors() override { m_edgeCountPrior.sample(); }
+    double getLogPrior() override { return m_edgeCountPrior.getLogJoint(); }
     virtual double getLogLikelihoodRatio(const GraphMove& move) const = 0;
     double getLogJointRatio(const GraphMove& move) {
         return processRecursiveFunction<double>( [&]() {
@@ -30,6 +30,7 @@ public:
 
     double getLogLikelihoodRatio(const BlockMove&) const { return 0; }
     void applyMove(const BlockMove&) { }
+    void computationFinished() override { m_isProcessed = false; m_edgeCountPrior.computationFinished(); }
 };
 
 

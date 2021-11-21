@@ -14,7 +14,7 @@ void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
     const auto& blockCount = m_blockPrior.getBlockCount();
 
     m_state = Matrix<size_t>(blockCount, std::vector<size_t>(blockCount, 0));
-    m_edgesInBlock = std::vector<size_t>(blockCount, 0);
+    m_edgeCountInBlocks = std::vector<size_t>(blockCount, 0);
 
     for (auto vertex: graph) {
         const BlockIndex& r(vertexBlocks[vertex]);
@@ -23,41 +23,65 @@ void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
                 continue;
 
             const BlockIndex& s(vertexBlocks[neighbor.first]);
-            m_edgesInBlock[r]+=neighbor.second;
-            m_edgesInBlock[s]+=neighbor.second;
+            m_edgeCountInBlocks[r]+=neighbor.second;
+            m_edgeCountInBlocks[s]+=neighbor.second;
             m_state[r][s]+=neighbor.second;
             m_state[s][r]+=neighbor.second;
         }
     }
 }
 
+void EdgeMatrixPrior::setState(const Matrix<size_t>& edgeMatrix) {
+    m_state = edgeMatrix;
+
+    const auto& blockCount = m_blockPrior.getBlockCount();
+    m_edgeCountInBlocks = std::vector<size_t>(blockCount, 0);
+    for (size_t i=0; i<blockCount; i++)
+        for (size_t j=0; j<blockCount; j++)
+            m_edgeCountInBlocks[i] += edgeMatrix[i][j];
+}
+
 void EdgeMatrixPrior::createBlock() {
     const auto& blockCount = m_blockPrior.getBlockCount();
+
+    m_state.push_back(std::vector<size_t>(blockCount, 0));
+    m_edgeCountInBlocks.push_back(0);
     for (auto& row: m_state)
         row.push_back(0);
-    m_state.push_back(std::vector<size_t>(blockCount, 0));
 }
 
 void EdgeMatrixPrior::destroyBlock(const BlockIndex& block) {
+    m_state.erase(m_state.begin()+block);
+    m_edgeCountInBlocks.erase(m_edgeCountInBlocks.begin()+block);
+
     for (auto& row: m_state)
         row.erase(row.begin()+block);
-    m_state.erase(m_state.begin()+block);
 }
 
 void EdgeMatrixPrior::moveEdgesInBlocks(const BlockMove& move) {
+    if (move.prevBlockIdx == move.nextBlockIdx)
+        return;
+
     const auto& vertexBlocks = m_blockPrior.getState();
-    BlockIndex neighborBlock;
 
     for (auto neighbor: m_graph->getNeighboursOfIdx(move.vertexIdx)) {
-        neighborBlock = vertexBlocks[neighbor.first];
+        if (neighbor.first == move.vertexIdx) {
+            m_state[move.prevBlockIdx][move.prevBlockIdx] -= 2*neighbor.second;
+            m_edgeCountInBlocks[move.prevBlockIdx] -= 2*neighbor.second;
 
-        m_state[move.prevBlockIdx][neighborBlock] -= neighbor.second;
-        m_state[neighborBlock][move.prevBlockIdx] -= neighbor.second;
-        m_edgesInBlock[move.prevBlockIdx] -= neighbor.second;
+            m_state[move.nextBlockIdx][move.nextBlockIdx] += 2*neighbor.second;
+            m_edgeCountInBlocks[move.nextBlockIdx] += 2*neighbor.second;
+        }
+        else {
+            const BlockIndex& neighborBlock = vertexBlocks[neighbor.first];
+            m_state[move.prevBlockIdx][neighborBlock] -= neighbor.second;
+            m_state[neighborBlock][move.prevBlockIdx] -= neighbor.second;
+            m_edgeCountInBlocks[move.prevBlockIdx] -= neighbor.second;
 
-        m_state[move.nextBlockIdx][neighborBlock] += neighbor.second;
-        m_state[neighborBlock][move.nextBlockIdx] += neighbor.second;
-        m_edgesInBlock[move.nextBlockIdx] += neighbor.second;
+            m_state[move.nextBlockIdx][neighborBlock] += neighbor.second;
+            m_state[neighborBlock][move.nextBlockIdx] += neighbor.second;
+            m_edgeCountInBlocks[move.nextBlockIdx] += neighbor.second;
+        }
     }
 }
 
@@ -75,7 +99,7 @@ void EdgeMatrixPrior::checkSelfConsistency() const {
     m_edgeCountPrior.checkSelfConsistency();
 
     const size_t& blockCount = m_blockPrior.getBlockCount();
-    verifyVectorHasSize(m_edgesInBlock, blockCount, "edgesInBlock", "blocks");
+    verifyVectorHasSize(m_edgeCountInBlocks, blockCount, "m_edgeCoutInBlocks", "blocks");
     verifyVectorHasSize(m_state, blockCount, "Edge matrix", "blocks");
 
     std::vector<size_t> actualEdgesInBlock(blockCount, 0);
@@ -89,13 +113,14 @@ void EdgeMatrixPrior::checkSelfConsistency() const {
                 throw ConsistencyError("EdgeMatrixPrior: Edge matrix is not symmetric.");
             actualEdgesInBlock += m_state[i][j];
         }
-        if (actualEdgesInBlock != m_edgesInBlock[i])
+        if (actualEdgesInBlock != m_edgeCountInBlocks[i])
             throw ConsistencyError("EdgeMatrixPrior: Edge matrix row doesn't sum to edgesInBlock.");
         sumEdges += actualEdgesInBlock;
     }
     if (sumEdges != 2*m_edgeCountPrior.getState())
         throw ConsistencyError("EdgeMatrixPrior: Sum of edge matrix isn't equal to twice the number of edges.");
 }
+
 
 
 
@@ -110,12 +135,12 @@ void EdgeMatrixUniformPrior::sampleState() {
     std::pair<BlockIndex, BlockIndex> rs;
     BlockIndex& r(rs.first), s(rs.second);
 
-    m_edgesInBlock = std::vector<size_t>(blockCount, 0);
+    m_edgeCountInBlocks = std::vector<size_t>(blockCount, 0);
     size_t index(0), correctedEdgeCount;
     for (auto edgeCountBetweenBlocks: flattenedEdgeMatrix) {
         rs = getUndirectedPairFromIndex(index, blockCount);
-        m_edgesInBlock[r] += edgeCountBetweenBlocks;
-        m_edgesInBlock[s] += edgeCountBetweenBlocks;
+        m_edgeCountInBlocks[r] += edgeCountBetweenBlocks;
+        m_edgeCountInBlocks[s] += edgeCountBetweenBlocks;
 
         correctedEdgeCount = r!=s ? edgeCountBetweenBlocks : 2*edgeCountBetweenBlocks;
         m_state[r][s] = correctedEdgeCount;
@@ -148,28 +173,24 @@ void EdgeMatrixUniformPrior::applyMove(const GraphMove& move) {
         const BlockIndex& r(vertexBlocks[addedEdge.first]), s(vertexBlocks[addedEdge.second]);
         m_state[r][s]++;
         m_state[s][r]++;
-        m_edgesInBlock[r]++;
-        m_edgesInBlock[s]++;
+        m_edgeCountInBlocks[r]++;
+        m_edgeCountInBlocks[s]++;
     }
     for (auto removedEdge: move.removedEdges) {
         const BlockIndex& r(vertexBlocks[removedEdge.first]), s(vertexBlocks[removedEdge.second]);
         m_state[r][s]--;
         m_state[s][r]--;
-        m_edgesInBlock[r]--;
-        m_edgesInBlock[s]--;
+        m_edgeCountInBlocks[r]--;
+        m_edgeCountInBlocks[s]--;
     }
 }
 
 void EdgeMatrixUniformPrior::applyMove(const BlockMove& move) {
-    auto vertexCountInBlocks = m_blockPrior.getVertexCountInBlock();
+    /* Must be computed before calling createBlock and destroyBlock because these methods
+     * change m_edgeCountInBlocks size*/
+    bool creatingBlock = m_edgeCountInBlocks.size()+1 == m_blockPrior.getBlockCount();
+    bool destroyingBlock = m_edgeCountInBlocks.size() == m_blockPrior.getBlockCount()+1;
 
-    bool creatingBlock = move.nextBlockIdx == m_blockPrior.getBlockCount();
-    bool destroyingBlock = move.nextBlockIdx != move.prevBlockIdx &&
-                        vertexCountInBlocks[move.prevBlockIdx] == 1;
-
-
-    if (creatingBlock && destroyingBlock)
-        return;
     if (creatingBlock)
         createBlock();
 
