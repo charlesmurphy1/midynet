@@ -26,8 +26,9 @@ std::pair<T, T> getOrderedPair(const std::pair<T, T>& myPair){
         return myPair;
     return {myPair.second, myPair.first};
 }
-
-BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge& edge) ;
+BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge&);
+inline size_t choose2(size_t n) { return n*(n-1)/2; }
+std::pair<size_t, size_t> getUndirectedPairFromIndex(size_t index, size_t n);
 
 } // namespace FastMIDyNet
 
