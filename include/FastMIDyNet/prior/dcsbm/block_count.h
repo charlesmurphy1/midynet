@@ -11,26 +11,24 @@ namespace FastMIDyNet{
 class BlockCountPrior: public Prior<size_t> {
     public:
         void samplePriors() { }
-
+        virtual double getLogLikelihood(const size_t&) const = 0;
+        double getLogLikelihood() const { return getLogLikelihood(m_state); }
+        double getLogPrior() { return 0; }
         double getLogLikelihoodRatio(const GraphMove& move) const { return 0; }
         double getLogLikelihoodRatio(const BlockMove& move) const {
             return getLogLikelihood(getStateAfterMove(move)) - getLogLikelihood();
         }
-
         double getLogJointRatio(const GraphMove& move) { return 0; }
         double getLogJointRatio(const BlockMove& move) {
             return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatio(move); }, 0);
         }
-
-        double getLogPrior() { return 0; }
-
         void applyMove(const GraphMove& move) { }
         void applyMove(const BlockMove& move) {
             processRecursiveFunction( [&](){ setState(getStateAfterMove(move)); } );
         }
-
         size_t getStateAfterMove(const GraphMove&) const { return m_state; };
         size_t getStateAfterMove(const BlockMove&) const;
+
 };
 
 class BlockCountDeltaPrior: public BlockCountPrior{
@@ -41,15 +39,8 @@ public:
     double getLogLikelihood(const size_t& blockCount) const{
         if (blockCount != m_state) return -INFINITY;
         else return 0;
-}
-    double getLogLikelihoodRatio(const BlockMove& move) const {
-        if (move.nextBlockIdx >= m_state) return -INFINITY;
-        else return 0.;
     }
-    double getLogPriorRatio(const BlockMove& move) { return 0.;}
-    double getLogJointRatio(const BlockMove& move) {
-        return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatio(move); }, 0);
-    }
+    double getLogLikelihoodRatio(const BlockMove& move) { if (move.addedBlocks == 0) return 0; else return -INFINITY; }
 
     void checkSelfConsistency() const{ };
 

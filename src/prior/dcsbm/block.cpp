@@ -14,7 +14,7 @@ using namespace std;
 
 namespace FastMIDyNet{
 
-vector<size_t> BlockPrior::computeVertexCountInBlock(const BlockSequence& state) const {
+vector<size_t> BlockPrior::computeVertexCountsInBlock(const BlockSequence& state) const {
     size_t numBlocks = *max_element(state.begin(), state.end()) + 1;
 
     vector<size_t> vertexCount(numBlocks, 0);
@@ -54,6 +54,7 @@ double BlockUniformPrior::getLogLikelihoodRatio(const BlockMove& move) const {
 
 void BlockUniformPrior::checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) {
     size_t actualBlockCount = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
+
     if (actualBlockCount != expectedBlockCount)
         throw ConsistencyError("BlockUniformPrior: blockSeq is inconsistent with expected block count.");
 
