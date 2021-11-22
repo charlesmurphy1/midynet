@@ -22,10 +22,10 @@ TEST_F(TestDoubleEdgeSwap, setup_anyGraph_samplableSetContainsAllEdges) {
 TEST_F(TestDoubleEdgeSwap, setup_anyGraph_samplableSetHasOnlyOrderedEdges) {
     for (auto vertex: graph)
         for (auto neighbor: graph.getNeighboursOfIdx(vertex))
-            if (vertex <= neighbor.first)
-                EXPECT_EQ(round(swapProposer.getSamplableSet().get_weight({vertex, neighbor.first})), neighbor.second);
+            if (vertex <= neighbor.vertexIndex)
+                EXPECT_EQ(round(swapProposer.getSamplableSet().get_weight({vertex, neighbor.vertexIndex})), neighbor.label);
             else
-                EXPECT_EQ(swapProposer.getSamplableSet().count({vertex, neighbor.first}), 0);
+                EXPECT_EQ(swapProposer.getSamplableSet().count({vertex, neighbor.vertexIndex}), 0);
 }
 
 TEST_F(TestDoubleEdgeSwap, updateProbabilities_addExistentEdge_edgeWeightIncreased) {

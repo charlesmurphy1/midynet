@@ -27,8 +27,8 @@ void HingeFlip::setup(const MultiGraph& graph) {
     for (auto vertex: graph) {
         m_nodeSamplableSet.insert(vertex, 1);
         for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {
-            if (vertex <= neighbor.first)
-                m_edgeSamplableSet.insert({vertex, neighbor.first}, neighbor.second);
+            if (vertex <= neighbor.vertexIndex)
+                m_edgeSamplableSet.insert({vertex, neighbor.vertexIndex}, neighbor.label);
         }
     }
 }

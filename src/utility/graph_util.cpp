@@ -13,10 +13,10 @@ size_t getDegreeIdx(const FastMIDyNet::MultiGraph& graph, size_t vertex) {
     size_t degree = 0;
 
     for (auto neighbor: graph.getNeighboursOfIdx(vertex))
-        if (neighbor.first == vertex)
-            degree += 2*neighbor.second;
+        if (neighbor.vertexIndex == vertex)
+            degree += 2*neighbor.label;
         else
-            degree += neighbor.second;
+            degree += neighbor.label;
     return degree;
 }
 
