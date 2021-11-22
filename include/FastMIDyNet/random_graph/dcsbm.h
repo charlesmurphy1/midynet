@@ -29,9 +29,9 @@ public:
 
     const BlockSequence& getBlockSequence() const { return m_blockPrior.getState(); }
     const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
-    const std::vector<size_t>& getVertexCountInBlock() const { return m_blockPrior.getVertexCountInBlock(); }
+    const std::vector<size_t>& getVertexCountsInBlock() const { return m_blockPrior.getVertexCountsInBlock(); }
     const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPrior.getState(); }
-    std::vector<size_t> getEdgeCountInBlock() const { return std::vector<size_t>(getBlockCount(), 0); } // à changer lorsque EdgeMatrixPrior sera fait
+    std::vector<size_t> getEdgeCountsInBlock() const { return m_edgeMatrixPrior.getEdgeCountsInBlock(); }
     const size_t& getEdgeCount() const { return m_edgeMatrixPrior.getEdgeCount(); }
     const DegreeSequence& getDegreeSequence() const { return m_degreePrior.getState(); }
 

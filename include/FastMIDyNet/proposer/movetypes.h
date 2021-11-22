@@ -18,11 +18,12 @@ struct GraphMove{
 };
 
 struct BlockMove{
-    BlockMove(BaseGraph::VertexIndex vertexIdx, BlockIndex prevBlockIdx, BlockIndex nextBlockIdx):
-        vertexIdx(vertexIdx), prevBlockIdx(prevBlockIdx), nextBlockIdx(nextBlockIdx){ }
+    BlockMove(BaseGraph::VertexIndex vertexIdx, BlockIndex prevBlockIdx, BlockIndex nextBlockIdx, int addedBlocks=0):
+        vertexIdx(vertexIdx), prevBlockIdx(prevBlockIdx), nextBlockIdx(nextBlockIdx), addedBlocks(addedBlocks){ }
     BaseGraph::VertexIndex vertexIdx;
     BlockIndex prevBlockIdx;
     BlockIndex nextBlockIdx;
+    int addedBlocks;
 };
 
 }

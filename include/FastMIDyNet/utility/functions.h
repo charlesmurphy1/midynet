@@ -30,6 +30,17 @@ BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge&);
 inline size_t choose2(size_t n) { return n*(n-1)/2; }
 std::pair<size_t, size_t> getUndirectedPairFromIndex(size_t index, size_t n);
 
+template<typename T>
+T sumElementsOfMatrix(Matrix<T> mat, T init){
+    T sum = init;
+    for (auto rows = mat.begin(); rows != mat.end(); rows ++){
+        for (auto cols = rows->begin(); cols != rows->end(); cols ++){
+            sum += *cols;
+        }
+    }
+    return sum;
+}
+
 } // namespace FastMIDyNet
 
 #endif

@@ -23,15 +23,13 @@ class Prior{
                     sampleState();
                 });
         }
-        double getLogLikelihood() const { return getLogLikelihood(m_state); }
-        virtual double getLogLikelihood(const STATE& state) const = 0;
+        // double getLogLikelihood() const { return getLogLikelihood(m_state); }
+        // virtual double getLogLikelihood(const STATE& state) const = 0;
+        virtual double getLogLikelihood() const = 0;
         virtual double getLogPrior() = 0;
 
         double getLogJoint() {
-            return processRecursiveFunction<double>(
-                        [&]() { return getLogPrior()+getLogLikelihood(); },
-                        0
-                    );
+            return processRecursiveFunction<double>( [&]() { return getLogPrior()+getLogLikelihood(); }, 0);
         }
 
         virtual void checkSelfConsistency() const = 0;

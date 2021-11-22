@@ -19,13 +19,13 @@ double StochasticBlockModelFamily::getLogLikelihood() const{
     double logLikelihood = 0;
 
     auto edgeMat = getEdgeMatrix() ;
-    vector<size_t> edgesInBlock = getEdgeCountInBlock();
-    vector<size_t> vertexCountInBlock = getVertexCountInBlock();
+    vector<size_t> edgesInBlock = getEdgeCountsInBlock();
+    vector<size_t> vertexCountsInBlock = getVertexCountsInBlock();
 
     auto numBlocks = edgeMat.size();
     for (size_t r = 0; r < numBlocks; r++) {
         logLikelihood += logDoubleFactorial(edgeMat[r][r]);
-        logLikelihood -= edgesInBlock[r] * log(vertexCountInBlock[r]);
+        logLikelihood -= edgesInBlock[r] * log(vertexCountsInBlock[r]);
         for (size_t s = r + 1; s < numBlocks; s++) {
             logLikelihood += logFactorial(edgeMat[r][s]);
         }
@@ -50,11 +50,11 @@ double StochasticBlockModelFamily::getLogLikelihood() const{
     return logLikelihood;
 };
 
-double StochasticBlockModelFamily::getLogPrior() const {
+double StochasticBlockModelFamily::getLogPrior() {
     return m_blockPrior.getLogJoint() + m_edgeMatrixPrior.getLogJoint();
 };
 
-double StochasticBlockModelFamily::getLogJoint() const{
+double StochasticBlockModelFamily::getLogJoint() {
     return getLogLikelihood() + getLogPrior();
 };
 
@@ -70,8 +70,8 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromEdgeMove( const Edge& edge
 double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) {
     BlockSequence blockSeq = getBlockSequence();
     EdgeMatrix edgeMat = getEdgeMatrix();
-    vector<size_t> edgesInBlock = getEdgeCountInBlock();
-    vector<size_t> verticesInBLock = getVertexCountInBlock();
+    vector<size_t> edgesInBlock = getEdgeCountsInBlock();
+    vector<size_t> verticesInBLock = getVertexCountsInBlock();
     double logLikelihoodRatioTerm = 0;
 
     map<pair<BlockIndex, BlockIndex>, size_t> diffEdgeMatMap;
@@ -164,8 +164,8 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove
 double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
     BlockSequence blockSeq = getBlockSequence();
     EdgeMatrix edgeMat = getEdgeMatrix();
-    vector<size_t> edgesInBlock = getEdgeCountInBlock();
-    vector<size_t> verticesInBlock = getVertexCountInBlock();
+    vector<size_t> edgesInBlock = getEdgeCountsInBlock();
+    vector<size_t> verticesInBlock = getVertexCountsInBlock();
     double logLikelihoodRatio = 0;
 
     map<pair<BlockIndex, BlockIndex>, size_t> diffEdgeMatMap;

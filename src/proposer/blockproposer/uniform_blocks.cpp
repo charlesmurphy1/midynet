@@ -21,8 +21,11 @@ BlockMove UniformBlockProposer::proposeMove() {
     const BlockIndex& currentBlock = (*m_blockSequencePtr)[movedVertex];
 
     BlockIndex newBlock;
-    if (m_createNewBlockDistribution(rng))
+    int addedBlocks = 0;
+    if (m_createNewBlockDistribution(rng)){
         newBlock = m_blockCount;
+        addedBlocks = 1;
+    }
     else {
         BlockIndex newBlock = std::uniform_int_distribution<BlockIndex>(0, m_blockCount-2)(rng);
         if (newBlock >= currentBlock)
