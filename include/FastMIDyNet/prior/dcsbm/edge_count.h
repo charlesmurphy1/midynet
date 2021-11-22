@@ -10,15 +10,14 @@ namespace FastMIDyNet{
 class EdgeCountPrior: public Prior<size_t> {
     public:
         void samplePriors() {}
+        virtual double getLogLikelihood(const size_t&) const = 0;
+        double getLogLikelihood() const { return getLogLikelihood(m_state); }
         double getLogPrior() { return 0; }
         double getLogLikelihoodRatio(const GraphMove& move) const {
              return getLogLikelihood(getStateAfterMove(move)) - getLogLikelihood();
         }
         double getLogJointRatio(const GraphMove& move) {
-            return processRecursiveFunction<double>( [&]() {
-                    return getLogLikelihoodRatio(move); },
-                    0
-                );
+            return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatio(move); }, 0);
         }
         double getLogJointRatio(const BlockMove& move) { return 0; }
 
@@ -30,6 +29,15 @@ class EdgeCountPrior: public Prior<size_t> {
         size_t getStateAfterMove(const BlockMove&) const { return getState(); }
 };
 
+class EdgeCountDeltaPrior: public EdgeCountPrior{
+    size_t m_edgeCount;
+public:
+    EdgeCountDeltaPrior(const size_t& edgeCount): m_edgeCount(edgeCount){ setState(m_edgeCount); }
+    void sampleState() { };
+    double getLogLikelihood(const size_t& state) const { if (state == m_state) return 0; else return -INFINITY; }
+    double getLogLikelihoodRatio(const GraphMove& move) { if (move.addedEdges.size() == move.removedEdges.size()) return 0; else return -INFINITY;}
+    void checkSelfConsistency() const { };
+};
 
 class EdgeCountPoissonPrior: public EdgeCountPrior{
     double m_mean;
