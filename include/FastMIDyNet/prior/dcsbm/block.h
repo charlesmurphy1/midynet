@@ -84,17 +84,9 @@ class BlockUniformPrior: public BlockPrior{
 
         double getLogLikelihoodRatio(const BlockMove&) const;
 
-<<<<<<< HEAD
     double getLogPriorRatio(const BlockMove& move) {
         return processRecursiveFunction<double>( [&]() { return m_blockCountPrior.getLogJointRatio(move); }, 0);
     };
-=======
-        double getLogPriorRatio(const BlockMove& move) {
-            return processRecursiveFunction<double>( [&]() {
-                    return m_blockCountPrior.getLogJointRatio(move); },
-                    0);
-        };
->>>>>>> 6315f3c71524ed5e975adafa723cd6fde146429b
 
         double getLogJointRatio(const BlockMove& move) {
             return getLogLikelihoodRatio(move) + getLogPriorRatio(move);
