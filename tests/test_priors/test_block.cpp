@@ -81,11 +81,11 @@ TEST_F(TestBlockPrior, getBlockCount_returnCorrectBlockCount){
     EXPECT_EQ(numBlocks, BLOCK_COUNT);
 }
 
-TEST_F(TestBlockPrior, computeVertexCountInBlock_forSomeBlockSeq_returnCorrectVertexCount){
+TEST_F(TestBlockPrior, computeVertexCountsInBlock_forSomeBlockSeq_returnCorrectVertexCount){
     BlockSequence blockSeq = BlockSequence(GRAPH_SIZE, 0);
     blockSeq[0] = BLOCK_COUNT - 1;
 
-    std::vector<size_t> actualVertexCount = prior.computeVertexCountInBlock(blockSeq);
+    std::vector<size_t> actualVertexCount = prior.computeVertexCountsInBlock(blockSeq);
     EXPECT_EQ(actualVertexCount[0], GRAPH_SIZE - 1);
     EXPECT_EQ(actualVertexCount[BLOCK_COUNT - 1], 1);
 }
@@ -96,12 +96,12 @@ TEST_F(TestBlockPrior, getSize_returnGraphSize){
 
 TEST_F(TestBlockPrior, getLogLikelihoodRatio_forSomeGraphMove_return0){
     GraphMove move({{0,0}}, {});
-    EXPECT_EQ(prior.getLogLikelihoodRatio(move), 0);
+    EXPECT_EQ(prior.getLogLikelihoodRatio(move), 0.);
 }
 
 TEST_F(TestBlockPrior, getLogLikelihoodRatio_forSomeBlockMove_return0){
     BlockMove move = {0, 0, 1};
-    EXPECT_EQ(prior.getLogLikelihoodRatio(move), 3);
+    EXPECT_EQ(prior.getLogLikelihoodRatio(move), 0.);
 }
 
 TEST_F(TestBlockPrior, getLogPrior_forSomeGraphMove_return0){
@@ -111,18 +111,18 @@ TEST_F(TestBlockPrior, getLogPrior_forSomeGraphMove_return0){
 
 TEST_F(TestBlockPrior, getLogPrior_forSomeBlockMove_return0){
     BlockMove move = {0, 0, 1};
-    EXPECT_EQ(prior.getLogPriorRatio(move), 2);
+    EXPECT_EQ(prior.getLogPriorRatio(move), 0.);
 }
 
 
 TEST_F(TestBlockPrior, getLogJoint_forSomeGraphMove_return0){
     GraphMove move({{0,0}}, {});
-    EXPECT_EQ(prior.getLogJointRatio(move), 0);
+    EXPECT_EQ(prior.getLogJointRatio(move), 0.);
 }
 
 TEST_F(TestBlockPrior, getLogJoint_forSomeBlockMove_return0){
     BlockMove move = {0, 0, 1};
-    EXPECT_EQ(prior.getLogJointRatio(move), 2);
+    EXPECT_EQ(prior.getLogJointRatio(move), 0.);
 }
 
 TEST_F(TestBlockPrior, applyMove_forSomeGraphMove_doNothing){
@@ -174,7 +174,6 @@ TEST_F(TestBlockUniformPrior, checkSelfConsistency_noError_noThrow){
 }
 
 TEST_F(TestBlockUniformPrior, checkSelfConsistency_inconsistenBlockSeqWithBlockCOunt_ThrowConsistencyError){
-    BlockMove move = {0, 0, 20};
-    prior.applyMove(move);
+    blockCountPrior.setState(20); // expected to be 5 in prior.
     EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
 }

@@ -17,7 +17,7 @@ static MultiGraph GRAPH = getUndirectedHouseMultiGraph();
 
 class TestRandomGraphBaseClass: public::testing::Test{
     public:
-        DummyRandomGraph randomGraph = DummyRandomGraph(NUM_VERTICES);
+        DummyRandomGraph randomGraph = {NUM_VERTICES};
         MultiGraph graph = GRAPH;
 
 

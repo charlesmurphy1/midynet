@@ -14,7 +14,7 @@ class DummyPrior: public FastMIDyNet::Prior<size_t> {
     public:
         void samplePriors() { }
         void sampleState() { }
-        double getLogLikelihood(const size_t& state) const { return state; }
+        double getLogLikelihood() const { return m_state; }
         double getLogPrior() { return 0; }
         void checkSelfConsistency() const {}
         const bool getIsProcessed() const { return m_isProcessed; }

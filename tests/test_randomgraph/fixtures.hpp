@@ -48,8 +48,9 @@ public:
     void sampleState() { };
     virtual void samplePriors() { };
     double getLogLikelihood() const { return 0; }
-    double getLogPrior() const { return 0; }
-    double getLogJointRatio(const GraphMove& move) const { return 0; }
+    double getLogPrior() { return 0; }
+    double getLogJointRatio(const GraphMove& move) { return 0; }
+
 };
 
 } // namespace FastMIDyNet
