@@ -18,6 +18,8 @@ double logRestrictedPartitionNumber(size_t n, size_t k);
 double logApproxRestrictedPartitionNumber(size_t n, size_t k);
 
 BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge&);
+inline size_t choose2(size_t n) { return n*(n-1)/2; }
+std::pair<size_t, size_t> getUndirectedPairFromIndex(size_t index, size_t n);
 
 } // namespace FastMIDyNet
 

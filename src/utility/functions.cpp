@@ -62,4 +62,10 @@ void assertValidProbability(double probability) {
         throw ConsistencyError("Probability " + std::to_string(probability) + " is not between 0 and 1.");
 }
 
+std::pair<size_t, size_t> getUndirectedPairFromIndex(size_t index, size_t n) {
+    const size_t i = 1 + floor(-.5 + sqrt(.25+2*index));
+    const size_t j = index - i*(i-1)*.5;
+    return {i, j};
+}
+
 } // namespace FastMIDyNet

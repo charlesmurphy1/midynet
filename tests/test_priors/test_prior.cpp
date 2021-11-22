@@ -18,13 +18,13 @@ class DummyPrior: public FastMIDyNet::Prior<size_t> {
         double getLogPrior() { return 0; }
         void checkSelfConsistency() const {}
         const bool getIsProcessed() const { return m_isProcessed; }
-
+        void computationFinished() { m_isProcessed = false; }
 };
 
 class TestPrior: public ::testing::Test {
     public:
         DummyPrior prior;
-        void SetUp() { prior.setState(3); prior.computationFinished(); }
+        void SetUp() { prior.setState(3); }
 };
 
 TEST_F(TestPrior, IsProcessed_afterLogJointComputation_returnIsProcessedIsTrue){

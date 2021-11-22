@@ -13,7 +13,7 @@ template <typename STATE>
 class Prior{
     public:
         const STATE& getState() const { return m_state; }
-        void setState(const STATE& state) { m_state = state; }
+        virtual void setState(const STATE& state) { m_state = state; }
 
         virtual void sampleState() = 0;
         virtual void samplePriors() = 0;
@@ -35,7 +35,7 @@ class Prior{
         }
 
         virtual void checkSelfConsistency() const = 0;
-        virtual void computationFinished() { m_isProcessed=false; }
+        virtual void computationFinished() { m_isProcessed = false; }
 
 
         template<typename RETURN_TYPE>

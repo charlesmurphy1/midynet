@@ -16,10 +16,10 @@ namespace FastMIDyNet{
 
 vector<size_t> BlockPrior::computeVertexCountInBlock(const BlockSequence& state) const {
     size_t numBlocks = *max_element(state.begin(), state.end()) + 1;
-    vector<size_t> vertexCount(numBlocks);
 
+    vector<size_t> vertexCount(numBlocks, 0);
     for (auto blockIdx: state) {
-        vertexCount[blockIdx] ++;
+        vertexCount[blockIdx]++;
     }
 
     return vertexCount;
