@@ -19,14 +19,14 @@ void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
     for (auto vertex: graph) {
         const BlockIndex& r(vertexBlocks[vertex]);
         for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {
-            if (vertex > neighbor.first)
+            if (vertex > neighbor.vertexIndex)
                 continue;
 
-            const BlockIndex& s(vertexBlocks[neighbor.first]);
-            m_edgeCountInBlocks[r]+=neighbor.second;
-            m_edgeCountInBlocks[s]+=neighbor.second;
-            m_state[r][s]+=neighbor.second;
-            m_state[s][r]+=neighbor.second;
+            const BlockIndex& s(vertexBlocks[neighbor.vertexIndex]);
+            m_edgeCountInBlocks[r]+=neighbor.label;
+            m_edgeCountInBlocks[s]+=neighbor.label;
+            m_state[r][s]+=neighbor.label;
+            m_state[s][r]+=neighbor.label;
         }
     }
 }
@@ -65,22 +65,22 @@ void EdgeMatrixPrior::moveEdgesInBlocks(const BlockMove& move) {
     const auto& vertexBlocks = m_blockPrior.getState();
 
     for (auto neighbor: m_graph->getNeighboursOfIdx(move.vertexIdx)) {
-        if (neighbor.first == move.vertexIdx) {
-            m_state[move.prevBlockIdx][move.prevBlockIdx] -= 2*neighbor.second;
-            m_edgeCountInBlocks[move.prevBlockIdx] -= 2*neighbor.second;
+        if (neighbor.vertexIndex == move.vertexIdx) {
+            m_state[move.prevBlockIdx][move.prevBlockIdx] -= 2*neighbor.label;
+            m_edgeCountInBlocks[move.prevBlockIdx] -= 2*neighbor.label;
 
-            m_state[move.nextBlockIdx][move.nextBlockIdx] += 2*neighbor.second;
-            m_edgeCountInBlocks[move.nextBlockIdx] += 2*neighbor.second;
+            m_state[move.nextBlockIdx][move.nextBlockIdx] += 2*neighbor.label;
+            m_edgeCountInBlocks[move.nextBlockIdx] += 2*neighbor.label;
         }
         else {
-            const BlockIndex& neighborBlock = vertexBlocks[neighbor.first];
-            m_state[move.prevBlockIdx][neighborBlock] -= neighbor.second;
-            m_state[neighborBlock][move.prevBlockIdx] -= neighbor.second;
-            m_edgeCountInBlocks[move.prevBlockIdx] -= neighbor.second;
+            const BlockIndex& neighborBlock = vertexBlocks[neighbor.vertexIndex];
+            m_state[move.prevBlockIdx][neighborBlock] -= neighbor.label;
+            m_state[neighborBlock][move.prevBlockIdx] -= neighbor.label;
+            m_edgeCountInBlocks[move.prevBlockIdx] -= neighbor.label;
 
-            m_state[move.nextBlockIdx][neighborBlock] += neighbor.second;
-            m_state[neighborBlock][move.nextBlockIdx] += neighbor.second;
-            m_edgeCountInBlocks[move.nextBlockIdx] += neighbor.second;
+            m_state[move.nextBlockIdx][neighborBlock] += neighbor.label;
+            m_state[neighborBlock][move.nextBlockIdx] += neighbor.label;
+            m_edgeCountInBlocks[move.nextBlockIdx] += neighbor.label;
         }
     }
 }
