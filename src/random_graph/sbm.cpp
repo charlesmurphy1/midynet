@@ -35,8 +35,8 @@ double StochasticBlockModelFamily::getLogLikelihood() const{
     size_t neighborIdx, edgeMult;
     for (auto idx : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
-            neighborIdx = neighbor.first;
-            edgeMult = neighbor.second;
+            neighborIdx = neighbor.vertexIndex;
+            edgeMult = neighbor.label;
             if (idx < neighborIdx){
                 continue;
             }else if (idx == neighborIdx){
@@ -145,8 +145,8 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio (const GraphMove& move)
 void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove& move, map<pair<BlockIndex, BlockIndex>, size_t>& diffEdgeMatMap){
     BlockSequence blockSeq = getBlockSequence();
     for (auto neighbor : m_state.getNeighboursOfIdx(move.vertexIdx)){
-        VertexIndex idx = neighbor.first;
-        size_t edgeMult = neighbor.second;
+        VertexIndex idx = neighbor.vertexIndex;
+        size_t edgeMult = neighbor.label;
         pair<BlockIndex, BlockIndex> orderedBlockPair = getOrderedPair<BlockIndex> ({move.prevBlockIdx, blockSeq[idx]});
         if (diffEdgeMatMap.count(getOrderedPair<BlockIndex>({orderedBlockPair.first, orderedBlockPair.second})) == 0){
             diffEdgeMatMap.insert( pair<pair<BlockIndex, BlockIndex>, size_t>(orderedBlockPair, 0));
@@ -207,8 +207,8 @@ EdgeMatrix StochasticBlockModelFamily::getEdgeMatrixFromGraph(const MultiGraph& 
     size_t neighborIdx, edgeMult, r, s;
     for (auto idx : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
-            neighborIdx = neighbor.first;
-            edgeMult = neighbor.second;
+            neighborIdx = neighbor.vertexIndex;
+            edgeMult = neighbor.label;
             r = blockSeq[idx];
             s = blockSeq[neighborIdx];
             edgeMat[r][s] += edgeMult;

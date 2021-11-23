@@ -131,20 +131,32 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (
     map<VertexIndex, size_t> diffDegreesMap;
     double logLikelihoodRatioTerm = 0;
 
-    for (auto blockMove : move){
-        for ( auto neighbor : m_state.getNeighboursOfIdx(blockMove.vertexIdx) ){
-            neighborBlockIdx = blockSeq[neighborIdx];
-            edgeMult = neighbor.label;
-            nextEdgeMat[blockMove.prevBlockIdx][neighborBlockIdx] -= edgeMult;
-            nextEdgeMat[neighborBlockIdx][blockMove.prevBlockIdx] -= edgeMult;
-            nextEdgeMat[blockMove.nextBlockIdx][neighborBlockIdx] += edgeMult;
-            nextEdgeMat[neighborBlockIdx][blockMove.nextBlockIdx] += edgeMult;
-        }
-        else{
-            logLikelihoodRatioTerm -= logFactorial(edgeMult + it->second) - logFactorial(edgeMult);
-        }
+    for (auto e: move.addedEdges){
+        getDiffAdjMatMapFromEdgeMove(e, 1, diffAdjMatMap);
+        if (diffDegreesMap.count(e.first) == 0) diffDegreesMap.insert({e.first, 0});
+        if (diffDegreesMap.count(e.second) == 0) diffDegreesMap.insert({e.second, 0});
+        diffDegreesMap[e.first] += 1;
+        diffDegreesMap[e.second] += 1;
     }
 
+    for (auto e: move.removedEdges){
+        getDiffAdjMatMapFromEdgeMove(e, -1, diffAdjMatMap);
+        if (diffDegreesMap.count(e.first) == 0) diffDegreesMap.insert({e.first, 0});
+        if (diffDegreesMap.count(e.second) == 0) diffDegreesMap.insert({e.second, 0});
+        diffDegreesMap[e.first] -= 1;
+        diffDegreesMap[e.second] -= 1;
+    }
+
+    for (auto it = diffAdjMatMap.begin(); it != diffAdjMatMap.end(); ++it){
+        auto u = it->first.first, v = it->first.first;
+        Edge orderedEdge({u, v});
+        auto edgeMult = m_state.getEdgeMultiplicityIdx(u, v);
+        auto diff = diffAdjMatMap[orderedEdge];
+        if (u == v)
+            logLikelihoodRatioTerm -= logDoubleFactorial(2 * edgeMult + 2 * it->second) - logDoubleFactorial(2 * edgeMult);
+        else
+            logLikelihoodRatioTerm -= logFactorial(edgeMult + it->second) - logFactorial(edgeMult);
+    }
     for (auto it=diffDegreesMap.begin(); it!= diffDegreesMap.end(); ++it){
             auto u = it->first;
             logLikelihoodRatioTerm += logFactorial(degreeSeq[u] + it->second) - logFactorial(degreeSeq[u]);
@@ -160,15 +172,14 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio (const G
 void DegreeCorrectedStochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove& move, map<pair<BlockIndex, BlockIndex>, size_t>& diffEdgeMatMap){
     BlockSequence blockSeq = getBlockSequence();
     for (auto neighbor : m_state.getNeighboursOfIdx(move.vertexIdx)){
-        VertexIndex idx = neighbor.first;
-        size_t edgeMult = neighbor.second;
-        pair<BlockIndex, BlockIndex> orderedBlockPair = getOrderedPair<BlockIndex> ({move.prevBlockIdx, blockSeq[idx]});
+        VertexIndex idx = neighbor.vertexIndex;
+        pair<BlockIndex, BlockIndex> orderedBlockPair = getOrderedPair<BlockIndex> ({move.prevBlockIdx, blockSeq[ neighbor.vertexIndex ]});
         if (diffEdgeMatMap.count(getOrderedPair<BlockIndex>({orderedBlockPair.first, orderedBlockPair.second})) == 0){
             diffEdgeMatMap.insert( pair<pair<BlockIndex, BlockIndex>, size_t>(orderedBlockPair, 0));
         }
         diffEdgeMatMap[orderedBlockPair] --;
 
-        orderedBlockPair = getOrderedPair<BlockIndex> ({move.nextBlockIdx, blockSeq[idx]});
+        orderedBlockPair = getOrderedPair<BlockIndex> ({move.nextBlockIdx, blockSeq[ neighbor.vertexIndex ]});
         if (diffEdgeMatMap.count(getOrderedPair<BlockIndex>({orderedBlockPair.first, orderedBlockPair.second})) == 0){
             diffEdgeMatMap.insert( pair<pair<BlockIndex, BlockIndex>, size_t>(orderedBlockPair, 0));
         }

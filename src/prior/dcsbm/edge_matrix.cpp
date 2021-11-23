@@ -22,7 +22,7 @@ void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
             if (vertex > neighbor.vertexIndex)
                 continue;
 
-            const BlockIndex& s(vertexBlocks[neighbor.vertexIdx]);
+            const BlockIndex& s(vertexBlocks[neighbor.vertexIndex]);
             m_edgeCountsInBlocks[r]+=neighbor.label;
             m_edgeCountsInBlocks[s]+=neighbor.label;
             m_state[r][s]+=neighbor.label;
