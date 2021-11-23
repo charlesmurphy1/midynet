@@ -35,15 +35,15 @@ void BlockUniformPrior::sampleState() {
 };
 
 
-double BlockUniformPrior::getLogLikelihood(const BlockSequence& state) const {
+double BlockUniformPrior::getLogLikelihood() const {
     return -logMultisetCoefficient(getSize(), getBlockCount());
 };
 
 
 
-double BlockUniformPrior::getLogLikelihoodRatio(const BlockMove& move) const {
+double BlockUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
     size_t prevNumBlocks = m_blockCountPrior.getState();
-    size_t newNumBlocks = m_blockCountPrior.getStateAfterMove(move);
+    size_t newNumBlocks = m_blockCountPrior.getStateAfterBlockMove(move);
     double logLikelihoodRatio = 0;
     logLikelihoodRatio += -logMultisetCoefficient(getSize(), newNumBlocks);
     logLikelihoodRatio -= -logMultisetCoefficient(getSize(), prevNumBlocks);

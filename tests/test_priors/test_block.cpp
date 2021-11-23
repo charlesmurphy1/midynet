@@ -25,21 +25,21 @@ class DummyBlockPrior: public BlockPrior {
             setState( blockSeq );
         }
         void samplePriors() {};
-        double getLogLikelihood(const BlockSequence& state) const { return 0.5; }
+        double getLogLikelihood() const { return 0.5; }
         double getLogPrior() { return 0.1; }
-        void applyMove(const GraphMove& move) { }
-        void applyMove(const BlockMove& move) {
+        void applyGraphMove(const GraphMove& move) { }
+        void applyBlockMove(const BlockMove& move) {
             processRecursiveFunction( [&](){ m_state[move.vertexIdx] = move.nextBlockIdx; } );
         }
 
-        double getLogLikelihoodRatio(const GraphMove& move) const { return 0; }
-        double getLogLikelihoodRatio(const BlockMove& move) const { return 0; }
+        double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
+        double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
-        double getLogPriorRatio(const GraphMove& move) { return 0; }
-        double getLogPriorRatio(const BlockMove& move) { return 0; }
+        double getLogPriorRatioFromGraphMove(const GraphMove& move) { return 0; }
+        double getLogPriorRatioFromBlockMove(const BlockMove& move) { return 0; }
 
-        double getLogJointRatio(const GraphMove& move) { return 0; }
-        double getLogJointRatio(const BlockMove& move) { return 0; }
+        double getLogJointRatioFromGraphMove(const GraphMove& move) { return 0; }
+        double getLogJointRatioFromBlockMove(const BlockMove& move) { return 0; }
 
 
         void checkSelfConsistency() const { }
@@ -96,43 +96,43 @@ TEST_F(TestBlockPrior, getSize_returnGraphSize){
 
 TEST_F(TestBlockPrior, getLogLikelihoodRatio_forSomeGraphMove_return0){
     GraphMove move({{0,0}}, {});
-    EXPECT_EQ(prior.getLogLikelihoodRatio(move), 0.);
+    EXPECT_EQ(prior.getLogLikelihoodRatioFromGraphMove(move), 0.);
 }
 
 TEST_F(TestBlockPrior, getLogLikelihoodRatio_forSomeBlockMove_return0){
     BlockMove move = {0, 0, 1};
-    EXPECT_EQ(prior.getLogLikelihoodRatio(move), 0.);
+    EXPECT_EQ(prior.getLogLikelihoodRatioFromBlockMove(move), 0.);
 }
 
 TEST_F(TestBlockPrior, getLogPrior_forSomeGraphMove_return0){
     GraphMove move({{0,0}}, {});
-    EXPECT_EQ(prior.getLogPriorRatio(move), 0);
+    EXPECT_EQ(prior.getLogPriorRatioFromGraphMove(move), 0);
 }
 
 TEST_F(TestBlockPrior, getLogPrior_forSomeBlockMove_return0){
     BlockMove move = {0, 0, 1};
-    EXPECT_EQ(prior.getLogPriorRatio(move), 0.);
+    EXPECT_EQ(prior.getLogPriorRatioFromBlockMove(move), 0.);
 }
 
 
 TEST_F(TestBlockPrior, getLogJoint_forSomeGraphMove_return0){
     GraphMove move({{0,0}}, {});
-    EXPECT_EQ(prior.getLogJointRatio(move), 0.);
+    EXPECT_EQ(prior.getLogJointRatioFromGraphMove(move), 0.);
 }
 
 TEST_F(TestBlockPrior, getLogJoint_forSomeBlockMove_return0){
     BlockMove move = {0, 0, 1};
-    EXPECT_EQ(prior.getLogJointRatio(move), 0.);
+    EXPECT_EQ(prior.getLogJointRatioFromBlockMove(move), 0.);
 }
 
 TEST_F(TestBlockPrior, applyMove_forSomeGraphMove_doNothing){
     GraphMove move({{0,0}}, {});
-    prior.applyMove(move);
+    prior.applyGraphMove(move);
 }
 
 TEST_F(TestBlockPrior, applyMove_forSomeBlockMove_changeBlockOfNode0From0To1){
     BlockMove move = {0, 0, 1};
-    prior.applyMove(move);
+    prior.applyBlockMove(move);
 }
 
 TEST_F(TestBlockUniformPrior, sample_returnBlockSeqWithExpectedSizeAndBlockCount){
@@ -145,8 +145,7 @@ TEST_F(TestBlockUniformPrior, sample_returnBlockSeqWithExpectedSizeAndBlockCount
 TEST_F(TestBlockUniformPrior, getLogLikelihood_fromSomeRandomBlockSeq_returnCorrectLogLikelihood){
     for (size_t i = 0; i < 10; i++) {
         prior.sample();
-        auto blockSeq = prior.getState();
-        double logLikelihood = prior.getLogLikelihood(blockSeq);
+        double logLikelihood = prior.getLogLikelihood();
         double expectedLogLikelihood = -logMultisetCoefficient(GRAPH_SIZE, prior.getBlockCount());
         EXPECT_EQ(expectedLogLikelihood, logLikelihood);
     }
@@ -155,17 +154,17 @@ TEST_F(TestBlockUniformPrior, getLogLikelihood_fromSomeRandomBlockSeq_returnCorr
 TEST_F(TestBlockUniformPrior, getLogLikelihoodRatio_fromSomeBlockMove_returnCorrectLogLikelihoodRatio){
     BlockMove move = {2, 0, 1};
 
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatio(move);
-    double expectedLogLikelihoodRatio = -prior.getLogLikelihood(prior.getState());
-    prior.applyMove(move);
-    expectedLogLikelihoodRatio += prior.getLogLikelihood(prior.getState());
+    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
+    double expectedLogLikelihoodRatio = -prior.getLogLikelihood();
+    prior.applyBlockMove(move);
+    expectedLogLikelihoodRatio += prior.getLogLikelihood();
     EXPECT_EQ(expectedLogLikelihoodRatio, actualLogLikelihoodRatio);
 }
 
 TEST_F(TestBlockUniformPrior, applyMove_forSomeBlockMove_changeBlockOfNode2From0To1){
     BlockMove move = {2, 0, 1};
     EXPECT_EQ(prior.getState()[2], 0);
-    prior.applyMove(move);
+    prior.applyBlockMove(move);
     EXPECT_EQ(prior.getState()[2], 1);
 }
 

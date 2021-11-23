@@ -12,6 +12,7 @@ namespace FastMIDyNet{
 template <typename STATE>
 class Prior{
     public:
+        Prior<STATE>(){}
         const STATE& getState() const { return m_state; }
         virtual void setState(const STATE& state) { m_state = state; }
 
@@ -23,8 +24,6 @@ class Prior{
                     sampleState();
                 });
         }
-        // double getLogLikelihood() const { return getLogLikelihood(m_state); }
-        // virtual double getLogLikelihood(const STATE& state) const = 0;
         virtual double getLogLikelihood() const = 0;
         virtual double getLogPrior() = 0;
 

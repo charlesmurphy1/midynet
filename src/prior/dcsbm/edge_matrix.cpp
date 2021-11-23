@@ -85,7 +85,7 @@ void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {
     }
 }
 
-void EdgeMatrixPrior::applyMoveToState(const GraphMove& move){
+void EdgeMatrixPrior::applyGraphMoveToState(const GraphMove& move){
     const auto& vertexBlocks = m_blockPrior.getState();
 
     for (auto addedEdge: move.addedEdges) {
@@ -106,7 +106,7 @@ void EdgeMatrixPrior::applyMoveToState(const GraphMove& move){
 
 
 
-void EdgeMatrixPrior::applyMoveToState(const BlockMove& move) {
+void EdgeMatrixPrior::applyBlockMoveToState(const BlockMove& move) {
     /* Must be computed before calling createBlock and destroyBlock because these methods
      * change m_edgeCountsInBlocks size*/
     bool creatingBlock = m_edgeCountsInBlocks.size()+1 == m_blockPrior.getBlockCount();
@@ -161,11 +161,11 @@ void EdgeMatrixPrior::checkSelfConsistency() const {
 }
 
 
-double EdgeMatrixDeltaPrior::getLogLikelihoodRatio(const GraphMove& move) const{
+double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const{
     return -INFINITY;
 }
 
-double EdgeMatrixDeltaPrior::getLogLikelihoodRatio(const BlockMove& move) const{
+double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const{
     return -INFINITY;
 }
 
@@ -191,13 +191,13 @@ void EdgeMatrixUniformPrior::sampleState() {
     }
 }
 
-double EdgeMatrixUniformPrior::getLogLikelihoodRatio(const GraphMove& move) const {
+double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
     double currentLogLikelihood =  getLogLikelihood(m_blockPrior.getBlockCount(), m_edgeCountPrior.getState());
     double newLogLikelihood =  getLogLikelihood(m_blockPrior.getBlockCount(), m_edgeCountPrior.getState() + move.addedEdges.size() - move.removedEdges.size());
     return newLogLikelihood - currentLogLikelihood;
 }
 
-double EdgeMatrixUniformPrior::getLogLikelihoodRatio(const BlockMove& move) const {
+double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
     auto vertexCountsInBlocks = m_blockPrior.getVertexCountsInBlock();
 
     bool creatingBlock = move.nextBlockIdx == m_blockPrior.getBlockCount();

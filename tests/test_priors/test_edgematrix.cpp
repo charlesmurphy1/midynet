@@ -16,11 +16,11 @@ class DummyEdgeMatrixPrior: public FastMIDyNet::EdgeMatrixPrior {
         void sampleState() {}
         double getLogLikelihood() const { return 0.; }
 
-        double getLogLikelihoodRatio(const FastMIDyNet::GraphMove&) const { return 0; }
-        double getLogLikelihoodRatio(const FastMIDyNet::BlockMove&) const { return 0; }
+        double getLogLikelihoodRatioFromGraphMove(const FastMIDyNet::GraphMove&) const { return 0; }
+        double getLogLikelihoodRatioFromBlockMove(const FastMIDyNet::BlockMove&) const { return 0; }
 
-        void applyMove(const FastMIDyNet::GraphMove&) { };
-        void applyMove(const FastMIDyNet::BlockMove&) { };
+        void applyGraphMove(const FastMIDyNet::GraphMove&) { };
+        void applyBlockMove(const FastMIDyNet::BlockMove&) { };
 
 
         void _createBlock() { createBlock(); }
@@ -176,15 +176,15 @@ TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihood_forSomeSampledMatrix_returnC
 
 TEST_F(TestEdgeMatrixUniformPrior, applyMove_forSomeGraphMove_changeEdgeMatrix){
     FastMIDyNet::GraphMove move = {{{0, 0}}, {{0, 2}}};
-    prior.applyMove(move);
+    prior.applyGraphMove(move);
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveContainingASelfLoop_returnCorrectLogLikelihoodRatio){
     FastMIDyNet::GraphMove move = {{{0, 0}}, {{0, 2}}};
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatio(move);
+    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
-    prior.applyMove(move);
+    prior.applyGraphMove(move);
     double logLikelihoodAfterMove = prior.getLogLikelihood();
     double expectedLogLikelihood = logLikelihoodAfterMove - logLikelihoodBeforeMove ;
 
@@ -193,9 +193,9 @@ TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveContain
 
 TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveChangingTheEdgeCount_returnCorrectLogLikelihoodRatio){
     FastMIDyNet::GraphMove move = {{}, {{0, 2}}};
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatio(move);
+    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
-    prior.applyMove(move);
+    prior.applyGraphMove(move);
     double logLikelihoodAfterMove = prior.getLogLikelihood();
     double expectedLogLikelihood = logLikelihoodAfterMove - logLikelihoodBeforeMove ;
 
@@ -204,15 +204,15 @@ TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveChangin
 
 TEST_F(TestEdgeMatrixUniformPrior, applyMove_forSomeBlockMove_changeEdgeMatrix){
     FastMIDyNet::BlockMove move = {0, BLOCK_SEQUENCE[0], BLOCK_SEQUENCE[0] + 1};
-    prior.applyMove(move);
+    prior.applyBlockMove(move);
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeBlockMove_returnCorrectLogLikelihoodRatio){
     FastMIDyNet::BlockMove move = {0, BLOCK_SEQUENCE[0], BLOCK_SEQUENCE[0]+1};
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatio(move);
+    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
-    prior.applyMove(move);
+    prior.applyBlockMove(move);
     double logLikelihoodAfterMove = prior.getLogLikelihood();
     double expectedLogLikelihood = logLikelihoodAfterMove - logLikelihoodBeforeMove ;
 
@@ -225,13 +225,11 @@ TEST_F(TestEdgeMatrixUniformPrior, checkSelfConsistency_noError_noThrow){
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, checkSelfConsistency_inconsistenBlockCount_ThrowConsistencyError){
-    // FastMIDyNet::BlockMove move = {0, 0, 20};
     blockCountPrior.setState(10);
     EXPECT_THROW(prior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, checkSelfConsistency_inconsistentEdgeCount_ThrowConsistencyError){
-    // FastMIDyNet::BlockMove move = {0, 0, 20};
     edgeCountPrior.setState(50);
     EXPECT_THROW(prior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
 }

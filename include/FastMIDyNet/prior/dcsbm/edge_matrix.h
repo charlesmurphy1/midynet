@@ -29,27 +29,27 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
 
         double getLogPrior() override { return m_edgeCountPrior.getLogJoint() + m_blockPrior.getLogJoint(); }
 
-        virtual double getLogLikelihoodRatio(const GraphMove&) const = 0;
-        virtual double getLogLikelihoodRatio(const BlockMove&) const = 0;
+        virtual double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
+        virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const = 0;
 
-        double getLogPriorRatio(const GraphMove& move) { return m_edgeCountPrior.getLogJointRatio(move) + m_blockPrior.getLogJointRatio(move); }
-        double getLogPriorRatio(const BlockMove& move) { return m_edgeCountPrior.getLogJointRatio(move) + m_blockPrior.getLogJointRatio(move); }
+        double getLogPriorRatioFromGraphMove(const GraphMove& move) { return m_edgeCountPrior.getLogJointRatioFromGraphMove(move) + m_blockPrior.getLogJointRatioFromGraphMove(move); }
+        double getLogPriorRatioFromBlockMove(const BlockMove& move) { return m_edgeCountPrior.getLogJointRatioFromBlockMove(move) + m_blockPrior.getLogJointRatioFromBlockMove(move); }
 
-        double getLogJointRatio(const GraphMove& move) {
-            return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }, 0);
+        double getLogJointRatioFromGraphMove(const GraphMove& move) {
+            return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move); }, 0);
         }
 
-        double getLogJointRatio(const BlockMove& move) {
-            return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }, 0);
+        double getLogJointRatioFromBlockMove(const BlockMove& move) {
+            return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
         }
 
-        void applyMoveToState(const GraphMove&);
-        void applyMoveToState(const BlockMove&);
-        void applyMove(const GraphMove& move){
-            processRecursiveFunction( [&]() { m_edgeCountPrior.applyMove(move); m_blockPrior.applyMove(move); applyMoveToState(move); } );
+        void applyGraphMoveToState(const GraphMove&);
+        void applyBlockMoveToState(const BlockMove&);
+        void applyGraphMove(const GraphMove& move){
+            processRecursiveFunction( [&]() { m_edgeCountPrior.applyGraphMove(move); m_blockPrior.applyGraphMove(move); applyGraphMoveToState(move); } );
         }
-        void applyMove(const BlockMove& move) {
-            processRecursiveFunction( [&]() { m_edgeCountPrior.applyMove(move); m_blockPrior.applyMove(move); applyMoveToState(move); } );
+        void applyBlockMove(const BlockMove& move) {
+            processRecursiveFunction( [&]() { m_edgeCountPrior.applyBlockMove(move); m_blockPrior.applyBlockMove(move); applyBlockMoveToState(move); } );
         }
 
         void computationFinished() override {
@@ -81,8 +81,9 @@ public:
     EdgeMatrixPrior(m_edgeCountDeltaPrior, blockPrior) { setState(m_edgeMatrix); }
 
     void sampleState() const { }
-    double getLogLikelihoodRatio(const GraphMove&) const;
-    double getLogLikelihoodRatio(const BlockMove&) const;
+    double getLogLikelihood() const { return 0.; }
+    double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const;
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
 };
 
 class EdgeMatrixUniformPrior: public EdgeMatrixPrior {
@@ -92,8 +93,8 @@ public:
     double getLogLikelihood() const {
         return getLogLikelihood(m_blockPrior.getBlockCount(), m_edgeCountPrior.getState());
     }
-    double getLogLikelihoodRatio(const GraphMove&) const;
-    double getLogLikelihoodRatio(const BlockMove&) const;
+    double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const;
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
 
 protected:
     double getLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {

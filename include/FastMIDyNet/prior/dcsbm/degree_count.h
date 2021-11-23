@@ -18,11 +18,13 @@ public:
 
 
     void samplePriors() override { m_edgeCountPrior.sample(); }
+    double getLogLikelihood() const { return getLogLikelihoodFromState(m_state); }
+    virtual double getLogLikelihoodFromState(const DegreeSequence&) const = 0;
     double getLogPrior() override { return m_edgeCountPrior.getLogJoint(); }
-    virtual double getLogLikelihoodRatio(const GraphMove& move) const = 0;
+    virtual double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const = 0;
     double getLogJointRatio(const GraphMove& move) {
         return processRecursiveFunction<double>( [&]() {
-                return getLogLikelihoodRatio(move) + m_edgeCountPrior.getLogJointRatio(move); },
+                return getLogLikelihoodRatioFromGraphMove(move) + m_edgeCountPrior.getLogJointRatioFromGraphMove(move); },
                 0);
     }
     double getLogJointRatio(const BlockMove& move) { return 0; }
@@ -36,9 +38,9 @@ public:
 
 class DegreeCountUniformPrior: public DegreeCountPrior {
 public:
-    double getLogLikelihood(size_t state) const;
-    double getLogLikelihoodRatio(const GraphMove&) const;
-    void applyMove(const GraphMove&);
+    double getLogLikelihoodFromState(size_t state) const;
+    double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const;
+    void applyGraphMove(const GraphMove&);
 
     void checkSelfConsistency() const;
 };
