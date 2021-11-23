@@ -52,8 +52,8 @@ const NeighborsState Dynamics::getNeighborsState(const State& state) const {
     for ( auto idx: getGraph() ){
         neighborSates[idx].resize(m_numStates);
         for ( auto neighbor: getGraph().getNeighboursOfIdx(idx) ){
-            neighborIdx = neighbor.first;
-            edgeMultiplicity = neighbor.second;
+            neighborIdx = neighbor.vertexIndex;
+            edgeMultiplicity = neighbor.label;
             neighborSates[ idx ][ state[neighborIdx] ] += edgeMultiplicity;
         }
     }
@@ -76,8 +76,8 @@ void Dynamics::updateNeighborStateInPlace(
     NeighborsState& neighborState) const {
     int neighborIdx, edgeMultiplicity;
     for ( auto neighbor: getGraph().getNeighboursOfIdx(vertex_idx) ){
-        neighborIdx = neighbor.first;
-        edgeMultiplicity = neighbor.second;
+        neighborIdx = neighbor.vertexIndex;
+        edgeMultiplicity = neighbor.label;
         neighborState[neighborIdx][prevVertexState] -= edgeMultiplicity;
         neighborState[neighborIdx][newVertexState] += edgeMultiplicity;
     }
@@ -119,8 +119,8 @@ double Dynamics::getLogLikelihood() const {
         for (auto idx: getGraph()){
             fill(neighborState.begin(), neighborState.end(), 0);
             for (auto neighbor: getGraph().getNeighboursOfIdx(idx)){
-                neighborIdx = neighbor.first;
-                edgeMultiplicity = neighbor.second;
+                neighborIdx = neighbor.vertexIndex;
+                edgeMultiplicity = neighbor.label;
                 neighborState[m_pastStateSequence[t][idx]] += edgeMultiplicity;
             }
             log_likelihood += log(getTransitionProb(m_pastStateSequence[t][idx],

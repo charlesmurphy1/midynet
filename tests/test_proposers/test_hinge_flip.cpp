@@ -28,10 +28,10 @@ TEST_F(TestHingeFlip, setup_anyGraph_nodeSamplableSetContainsAllEdges) {
 TEST_F(TestHingeFlip, setup_anyGraph_samplableSetHasOnlyOrderedEdges) {
     for (auto vertex: graph)
         for (auto neighbor: graph.getNeighboursOfIdx(vertex))
-            if (vertex <= neighbor.first)
-                EXPECT_EQ(round(flipProposer.getEdgeSamplableSet().get_weight({vertex, neighbor.first})), neighbor.second);
+            if (vertex <= neighbor.vertexIndex)
+                EXPECT_EQ(round(flipProposer.getEdgeSamplableSet().get_weight({vertex, neighbor.vertexIndex})), neighbor.label);
             else
-                EXPECT_EQ(flipProposer.getEdgeSamplableSet().count({vertex, neighbor.first}), 0);
+                EXPECT_EQ(flipProposer.getEdgeSamplableSet().count({vertex, neighbor.vertexIndex}), 0);
 }
 
 

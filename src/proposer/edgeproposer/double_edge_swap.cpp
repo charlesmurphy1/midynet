@@ -29,8 +29,8 @@ void DoubleEdgeSwap::setup(const MultiGraph& graph) {
     m_edgeSamplableSet.clear();
     for (auto vertex: graph)
         for (auto neighbor: graph.getNeighboursOfIdx(vertex))
-            if (vertex <= neighbor.first)
-                m_edgeSamplableSet.insert({vertex, neighbor.first}, neighbor.second);
+            if (vertex <= neighbor.vertexIndex)
+                m_edgeSamplableSet.insert({vertex, neighbor.vertexIndex}, neighbor.label);
 }
 
 void DoubleEdgeSwap::updateProbabilities(const GraphMove& move) {

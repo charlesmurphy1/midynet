@@ -1,7 +1,6 @@
 #include "gtest/gtest.h"
 
 #include "FastMIDyNet/generators.h"
-#include "FastMIDyNet/utility/graph_util.h"
 
 
 static const FastMIDyNet::Matrix<size_t> EDGE_MATRIX = {
@@ -30,25 +29,32 @@ static FastMIDyNet::Matrix<size_t> getEdgeMatrix(const FastMIDyNet::MultiGraph& 
 
     for (auto vertex: graph) {
         for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {
-            if (neighbor.first > vertex)
+            if (neighbor.vertexIndex > vertex)
                 continue;
 
             block1 = vertexBlocks[vertex];
-            block2 = vertexBlocks[neighbor.first];
-            edgeMatrix[block1][block2] += neighbor.second;
-            edgeMatrix[block2][block1] += neighbor.second;
+            block2 = vertexBlocks[neighbor.vertexIndex];
+            edgeMatrix[block1][block2] += neighbor.label;
+            edgeMatrix[block2][block1] += neighbor.label;
         }
     }
     return edgeMatrix;
 }
 static const size_t numberOfGeneratedGraphs = 10;
 
+static const FastMIDyNet::DegreeSequence convertDegrees(const std::vector<size_t>& basegraphDegrees) {
+    FastMIDyNet::DegreeSequence degrees;
+    for (auto d: basegraphDegrees)
+        degrees.push_back(d);
+    return degrees;
+}
+
 
 TEST(TestDCSBMGenerator, generateDCSBM_givenEdgeMatrixAndDegrees_generatedGraphsRespectEdgeMatrixAndDegrees) {
     for (size_t i=0; i<numberOfGeneratedGraphs; i++) {
         auto randomGraph = FastMIDyNet::generateDCSBM(VERTEX_BLOCKS, EDGE_MATRIX, DEGREES);
         EXPECT_EQ(EDGE_MATRIX, getEdgeMatrix(randomGraph, VERTEX_BLOCKS));
-        EXPECT_EQ(DEGREES, FastMIDyNet::getDegrees(randomGraph));
+        EXPECT_EQ(DEGREES, convertDegrees(randomGraph.getDegrees()));
     }
 }
 

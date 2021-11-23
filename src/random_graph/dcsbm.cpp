@@ -48,8 +48,8 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{
     for (auto idx : graph){
         logLikelihood += logFactorial(degreeSeq[idx]);
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
-            neighborIdx = neighbor.first;
-            edgeMult = neighbor.second;
+            neighborIdx = neighbor.vertexIndex;
+            edgeMult = neighbor.label;
             if (idx < neighborIdx){
                 continue;
             }else if (idx == neighborIdx){
@@ -131,6 +131,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (
     map<VertexIndex, size_t> diffDegreesMap;
     double logLikelihoodRatioTerm = 0;
 
+<<<<<<< HEAD
     for (auto edge : move.addedEdges){
         getDiffAdjMatMapFromEdgeMove(edge, 1, diffAdjMatMap);
     }
@@ -147,6 +148,16 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (
 
         if (u == v){
             logLikelihoodRatioTerm -= logDoubleFactorial(2 * edgeMult + 2 * it->second) - logDoubleFactorial(2 * edgeMult);
+=======
+    for (auto blockMove : move){
+        for ( auto neighbor : m_state.getNeighboursOfIdx(blockMove.vertexIdx) ){
+            neighborBlockIdx = blockSeq[neighborIdx];
+            edgeMult = neighbor.label;
+            nextEdgeMat[blockMove.prevBlockIdx][neighborBlockIdx] -= edgeMult;
+            nextEdgeMat[neighborBlockIdx][blockMove.prevBlockIdx] -= edgeMult;
+            nextEdgeMat[blockMove.nextBlockIdx][neighborBlockIdx] += edgeMult;
+            nextEdgeMat[neighborBlockIdx][blockMove.nextBlockIdx] += edgeMult;
+>>>>>>> main
         }
         else{
             logLikelihoodRatioTerm -= logFactorial(edgeMult + it->second) - logFactorial(edgeMult);
@@ -222,8 +233,8 @@ EdgeMatrix DegreeCorrectedStochasticBlockModelFamily::getEdgeMatrixFromGraph(con
     size_t neighborIdx, edgeMult, r, s;
     for (auto idx : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
-            neighborIdx = neighbor.first;
-            edgeMult = neighbor.second;
+            neighborIdx = neighbor.vertexIndex;
+            edgeMult = neighbor.label;
             r = blockSeq[idx];
             s = blockSeq[neighborIdx];
             edgeMat[r][s] += edgeMult;
@@ -239,8 +250,8 @@ DegreeSequence DegreeCorrectedStochasticBlockModelFamily::getDegreeSequenceFromG
     size_t neighborIdx, edgeMult ;
     for (auto idx : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
-            neighborIdx = neighbor.first;
-            edgeMult = neighbor.second;
+            neighborIdx = neighbor.vertexIndex;
+            edgeMult = neighbor.label;
             degreeSeq[idx] += edgeMult;
         }
     }
