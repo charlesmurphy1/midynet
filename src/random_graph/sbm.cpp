@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <map>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -15,17 +16,30 @@ using namespace std;
 using namespace FastMIDyNet;
 using namespace BaseGraph;
 
+void StochasticBlockModelFamily::sampleState(){
+    auto blockSeq = getBlockSequence();
+    auto edgeMat = getEdgeMatrix();
+    auto graph = generateSBM(blockSeq, edgeMat);
+    setState(graph);
+}
+
+void StochasticBlockModelFamily::samplePriors(){
+    m_blockPrior.sample();
+    m_edgeMatrixPrior.sample();
+    computationFinished();
+}
+
 double StochasticBlockModelFamily::getLogLikelihood() const{
     double logLikelihood = 0;
 
     auto edgeMat = getEdgeMatrix() ;
-    vector<size_t> edgesInBlock = getEdgeCountsInBlock();
-    vector<size_t> vertexCountsInBlock = getVertexCountsInBlock();
+    vector<size_t> edgeCountsInBlocks = getEdgeCountsInBlock();
+    vector<size_t> vertexCountsInBlocks = getVertexCountsInBlock();
 
     auto numBlocks = edgeMat.size();
     for (size_t r = 0; r < numBlocks; r++) {
         logLikelihood += logDoubleFactorial(edgeMat[r][r]);
-        logLikelihood -= edgesInBlock[r] * log(vertexCountsInBlock[r]);
+        logLikelihood -= edgeCountsInBlocks[r] * log(vertexCountsInBlocks[r]);
         for (size_t s = r + 1; s < numBlocks; s++) {
             logLikelihood += logFactorial(edgeMat[r][s]);
         }
@@ -51,7 +65,8 @@ double StochasticBlockModelFamily::getLogLikelihood() const{
 };
 
 double StochasticBlockModelFamily::getLogPrior() {
-    return m_blockPrior.getLogJoint() + m_edgeMatrixPrior.getLogJoint();
+    double logPrior = m_blockPrior.getLogJoint() + m_edgeMatrixPrior.getLogJoint();
+    computationFinished();
 };
 
 double StochasticBlockModelFamily::getLogJoint() {
@@ -200,10 +215,37 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
     return logLikelihoodRatio;
 };
 
-EdgeMatrix StochasticBlockModelFamily::getEdgeMatrixFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq){
-    size_t numBlocks = *max_element(blockSeq.begin(), blockSeq.end());
-    EdgeMatrix edgeMat(numBlocks, vector<size_t>(numBlocks, 0));
+double StochasticBlockModelFamily::getLogPriorRatio (const GraphMove& move) {
+    double logPriorRatio = m_blockPrior.getLogPriorRatioFromGraphMove(move) + m_edgeMatrixPrior.getLogPriorRatioFromGraphMove(move);
+    computationFinished();
+    return logPriorRatio;
+};
 
+double StochasticBlockModelFamily::getLogPriorRatio (const BlockMove& move) {
+    double logPriorRatio = m_blockPrior.getLogPriorRatioFromBlockMove(move) + m_edgeMatrixPrior.getLogPriorRatioFromBlockMove(move);
+    computationFinished();
+    return logPriorRatio;
+};
+
+void StochasticBlockModelFamily::applyMove (const GraphMove& move){
+    m_blockPrior.applyGraphMove(move);
+    m_edgeMatrixPrior.applyGraphMove(move);
+    RandomGraph::applyMove(move);
+    #if DEBUG
+    checkSelfConsistency();
+    #endif
+};
+void StochasticBlockModelFamily::applyMove (const BlockMove& move){
+    m_blockPrior.applyBlockMove(move);
+    m_edgeMatrixPrior.applyBlockMove(move);
+    #if DEBUG
+    checkSelfConsistency();
+    #endif
+};
+
+EdgeMatrix StochasticBlockModelFamily::getEdgeMatrixFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq){
+    size_t numBlocks = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
+    EdgeMatrix edgeMat(numBlocks, vector<size_t>(numBlocks, 0));
     size_t neighborIdx, edgeMult, r, s;
     for (auto idx : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
@@ -211,23 +253,40 @@ EdgeMatrix StochasticBlockModelFamily::getEdgeMatrixFromGraph(const MultiGraph& 
             edgeMult = neighbor.label;
             r = blockSeq[idx];
             s = blockSeq[neighborIdx];
-            edgeMat[r][s] += edgeMult;
+
+            if (idx == neighbor.vertexIndex){
+                edgeMat[s][r] += 2 * neighbor.label;
+                edgeMat[r][s] += 2 * neighbor.label;
+            }else{
+                edgeMat[s][r] += neighbor.label;
+                edgeMat[r][s] += neighbor.label;
+            }
         }
     }
-
+    for (auto r = 0; r < numBlocks; r ++){
+        for (auto s = 0; s < numBlocks; s ++){
+            edgeMat[r][s] /= 2; // all edges are counted twice.
+        }
+    }
     return edgeMat;
 };
 
-void StochasticBlockModelFamily::checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat){
+void StochasticBlockModelFamily::checkGraphConsistencyWithEdgeMatrix(
+    const MultiGraph& graph,
+    const BlockSequence& blockSeq,
+    const EdgeMatrix& expectedEdgeMat){
     EdgeMatrix actualEdgeMat = getEdgeMatrixFromGraph(graph, blockSeq);
     size_t numBlocks = *max_element(blockSeq.begin(), blockSeq.end());
 
     for (auto r = 0; r < numBlocks; r ++){
         for (auto s = 0; s < numBlocks; s ++){
             if (expectedEdgeMat[r][s] != actualEdgeMat[r][s])
-                throw ConsistencyError("StochasticBlockModelFamily: edge matrix is inconsistent with graph.");
+                throw ConsistencyError("StochasticBlockModelFamily: at indices ("
+                + to_string(r) + ", " + to_string(s) + ") edge matrix is inconsistent with graph:"
+                + to_string(expectedEdgeMat[r][s]) + " != " + to_string(actualEdgeMat[r][s]));
         }
     }
+
 };
 
 void StochasticBlockModelFamily::checkSelfConsistency(){

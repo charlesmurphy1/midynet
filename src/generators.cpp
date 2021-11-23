@@ -59,6 +59,12 @@ std::list<size_t> sampleRandomComposition(size_t n, size_t k) {
 
 
 std::list<size_t> sampleRandomWeakComposition(size_t n, size_t k) {
+    if (k == 1){
+        std::list<size_t> ret = {n};
+        return ret;
+    } else if (k == 0){
+        throw std::invalid_argument("k must be greater than 0.");
+    }
     std::list<size_t> weakComposition;
     std::vector<size_t> uniformRandomSequence(k-1);
 
@@ -97,26 +103,26 @@ std::list<size_t> sampleRandomRestrictedPartition(size_t n, size_t k, size_t num
     return partition;
 }
 
-BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks,
-        const EdgeMatrix& blockEdgeMatrix, const DegreeSequence& degrees) {
-    if (degrees.size() != vertexBlocks.size())
-        throw std::logic_error("generateDCSBM: Degrees don't have the same length as vertexBlocks.");
-    if (*std::max(vertexBlocks.begin(), vertexBlocks.end()) >= blockEdgeMatrix.size())
-        throw std::logic_error("generateDCSBM: Vertex is out of range of blockEdgeMatrix.");
+BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& blockSeq,
+        const EdgeMatrix& edgeMat, const DegreeSequence& degrees) {
+    if (degrees.size() != blockSeq.size())
+        throw std::logic_error("generateDCSBM: Degrees don't have the same length as blockSeq.");
+    if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= edgeMat.size())
+        throw std::logic_error("generateDCSBM: Vertex is out of range of edgeMat.");
 
     size_t vertexNumber = degrees.size();
-    size_t blockNumber = blockEdgeMatrix.size();
+    size_t blockNumber = edgeMat.size();
 
     std::vector<std::vector<size_t>> verticesInBlock(blockNumber);
     for (size_t vertex=0; vertex<vertexNumber; vertex++)
-        verticesInBlock[vertexBlocks[vertex]].push_back(vertex);
+        verticesInBlock[blockSeq[vertex]].push_back(vertex);
 
     std::vector<std::vector<size_t>> stubsOfBlock(blockNumber);
     for (size_t block=0; block<blockNumber; block++) {
         size_t sumEdgeMatrix(0);
 
         for (size_t otherBlock=0; otherBlock<blockNumber; otherBlock++)
-            sumEdgeMatrix += blockEdgeMatrix[block][otherBlock];
+            sumEdgeMatrix += edgeMat[block][otherBlock];
 
         for (auto vertex: verticesInBlock[block])
             stubsOfBlock[block].insert(stubsOfBlock[block].end(), degrees[vertex], vertex);
@@ -134,7 +140,7 @@ BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks,
     size_t vertex1, vertex2;
     for (size_t inBlock=0; inBlock<blockNumber; inBlock++) {
         for (size_t outBlock=inBlock; outBlock<blockNumber; outBlock++) {
-            edgeNumberBetweenBlocks = blockEdgeMatrix[inBlock][outBlock];
+            edgeNumberBetweenBlocks = edgeMat[inBlock][outBlock];
             if (inBlock==outBlock)
                 edgeNumberBetweenBlocks /= 2;
 
@@ -151,17 +157,17 @@ BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks,
     return multigraph;
 }
 
-BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& vertexBlocks,
-        const EdgeMatrix& blockEdgeMatrix) {
-    if (*std::max(vertexBlocks.begin(), vertexBlocks.end()) >= blockEdgeMatrix.size())
-        throw std::logic_error("generateSBM: Vertex is out of range of blockEdgeMatrix.");
+BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq,
+        const EdgeMatrix& edgeMat) {
+    if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= edgeMat.size())
+        throw std::logic_error("generateSBM: Vertex is out of range of edgeMat.");
 
-    size_t vertexNumber = vertexBlocks.size();
-    size_t blockNumber = blockEdgeMatrix.size();
+    size_t vertexNumber = blockSeq.size();
+    size_t blockNumber = edgeMat.size();
 
     std::vector<std::vector<size_t>> verticesInBlock(blockNumber);
     for (size_t vertex=0; vertex<vertexNumber; vertex++)
-        verticesInBlock[vertexBlocks[vertex]].push_back(vertex);
+        verticesInBlock[blockSeq[vertex]].push_back(vertex);
 
     FastMIDyNet::MultiGraph multigraph(vertexNumber);
 
@@ -169,7 +175,7 @@ BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& vertexBlocks,
     size_t vertex1, vertex2;
     for (size_t inBlock=0; inBlock!=blockNumber; inBlock++) {
         for (size_t outBlock=inBlock; outBlock!=blockNumber; outBlock++) {
-            edgeNumberBetweenBlocks = blockEdgeMatrix[inBlock][outBlock];
+            edgeNumberBetweenBlocks = edgeMat[inBlock][outBlock];
             if (inBlock==outBlock)
                 edgeNumberBetweenBlocks /= 2;
 

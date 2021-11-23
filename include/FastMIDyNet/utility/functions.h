@@ -4,6 +4,7 @@
 #include <list>
 #include <utility>
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/exceptions.h"
 
 namespace FastMIDyNet {
 
@@ -39,6 +40,18 @@ T sumElementsOfMatrix(Matrix<T> mat, T init){
         }
     }
     return sum;
+}
+
+template<typename T>
+static void verifyVectorHasSize(
+    const std::vector<T>& vec,
+    size_t size,
+    const std::string& vectorName,
+    const std::string& sizeName) {
+    if (vec.size() != size)
+        throw ConsistencyError("EdgeMatrixPrior: "+vectorName+" has size "+
+                std::to_string(vec.size())+" while there are "+
+                std::to_string(size)+" "+sizeName+".");
 }
 
 } // namespace FastMIDyNet

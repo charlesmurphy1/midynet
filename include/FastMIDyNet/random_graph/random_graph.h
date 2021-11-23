@@ -23,6 +23,9 @@ class RandomGraph{
         void sample() {
             samplePriors();
             sampleState();
+            #if DEBUG
+            checkSelfConsistency();
+            #endif
         };
         virtual void sampleState() = 0;
         virtual void samplePriors() = 0;
@@ -34,7 +37,7 @@ class RandomGraph{
         void applyMove(const GraphMove& move);
         void enumerateAllGraphs() const;
         void doMetropolisHastingsStep(double beta=1.0) { };
-        void checkConsistency() { };
+        void checkSelfConsistency() { };
 
     protected:
         size_t m_size;

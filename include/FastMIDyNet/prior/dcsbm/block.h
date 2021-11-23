@@ -14,7 +14,7 @@ class BlockPrior: public Prior<BlockSequence>{
 protected:
     size_t m_size;
     BlockCountPrior& m_blockCountPrior;
-    std::vector<size_t> m_vertexCountsInBlock;
+    std::vector<size_t> m_vertexCountsInBlocks;
 public:
     BlockPrior(size_t size, BlockCountPrior& blockCountPrior):
         m_size(size), m_blockCountPrior(blockCountPrior) { }
@@ -22,12 +22,14 @@ public:
     void setState(const BlockSequence& blockSeq) override{
         m_blockCountPrior.setState(*max_element(blockSeq.begin(), blockSeq.end()) + 1);
         m_state = blockSeq;
-        m_vertexCountsInBlock = computeVertexCountsInBlock(m_state);
+        m_vertexCountsInBlocks = computeVertexCountsInBlock(m_state);
     }
-    void samplePriors() override { m_blockCountPrior.sample(); }
+    void samplePriors() override {
+        m_blockCountPrior.sample();
+    }
     const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
     std::vector<size_t> computeVertexCountsInBlock(const BlockSequence&) const;
-    const std::vector<size_t>& getVertexCountsInBlock() const { return m_vertexCountsInBlock; };
+    const std::vector<size_t>& getVertexCountsInBlock() const { return m_vertexCountsInBlocks; };
     const size_t& getSize() const { return m_size; }
 
     double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; };
@@ -57,7 +59,9 @@ public:
     BlockDeltaPrior(const BlockSequence& blockSeq):
         m_blockSeq(blockSeq),
         m_blockCountDeltaPrior(*max_element(blockSeq.begin(), blockSeq.end())),
-        BlockPrior(blockSeq.size(), m_blockCountDeltaPrior) { }
+        BlockPrior(blockSeq.size(), m_blockCountDeltaPrior) {
+            setState(blockSeq);
+        }
 
     void sampleState() {  };
     void samplePriors() { };
@@ -65,9 +69,11 @@ public:
     double getLogLikelihood() const { return 0.; }
     double getLogPrior() { return 0.; };
 
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return -INFINITY; }
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) { return -INFINITY; }
-    double getLogJointRatioFromBlockMove(const BlockMove& move) { return -INFINITY; }
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { if (move.prevBlockIdx != move.nextBlockIdx) return -INFINITY; else return 0.;}
+    double getLogPriorRatioFromBlockMove(const BlockMove& move) { return 0; }
+    double getLogJointRatioFromBlockMove(const BlockMove& move) {
+        return processRecursiveFunction<double>( [&](){ return getLogLikelihoodRatioFromBlockMove(move); }, 0);
+    }
 
 
     void applyBlockMove(const BlockMove& move){

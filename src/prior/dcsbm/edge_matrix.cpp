@@ -1,8 +1,11 @@
+#include <string>
+#include <vector>
+
+
 #include "FastMIDyNet/prior/dcsbm/edge_matrix.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/generators.h"
-#include <string>
 
 
 namespace FastMIDyNet {
@@ -10,19 +13,19 @@ namespace FastMIDyNet {
 
 void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
     m_graph = &graph;
-    const auto& vertexBlocks = m_blockPrior.getState();
+    const auto& blockSeq = m_blockPrior.getState();
     const auto& blockCount = m_blockPrior.getBlockCount();
 
     m_state = Matrix<size_t>(blockCount, std::vector<size_t>(blockCount, 0));
     m_edgeCountsInBlocks = std::vector<size_t>(blockCount, 0);
 
     for (auto vertex: graph) {
-        const BlockIndex& r(vertexBlocks[vertex]);
+        const BlockIndex& r(blockSeq[vertex]);
         for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {
             if (vertex > neighbor.vertexIndex)
                 continue;
 
-            const BlockIndex& s(vertexBlocks[neighbor.vertexIndex]);
+            const BlockIndex& s(blockSeq[neighbor.vertexIndex]);
             m_edgeCountsInBlocks[r]+=neighbor.label;
             m_edgeCountsInBlocks[s]+=neighbor.label;
             m_state[r][s]+=neighbor.label;
@@ -62,7 +65,7 @@ void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {
     if (move.prevBlockIdx == move.nextBlockIdx)
         return;
 
-    const auto& vertexBlocks = m_blockPrior.getState();
+    const auto& blockSeq = m_blockPrior.getState();
 
     for (auto neighbor: m_graph->getNeighboursOfIdx(move.vertexIdx)) {
         if (neighbor.vertexIndex == move.vertexIdx) {
@@ -73,7 +76,7 @@ void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {
             m_edgeCountsInBlocks[move.nextBlockIdx] += 2*neighbor.label;
         }
         else {
-            const BlockIndex& neighborBlock = vertexBlocks[neighbor.vertexIndex];
+            const BlockIndex& neighborBlock = blockSeq[neighbor.vertexIndex];
             m_state[move.prevBlockIdx][neighborBlock] -= neighbor.label;
             m_state[neighborBlock][move.prevBlockIdx] -= neighbor.label;
             m_edgeCountsInBlocks[move.prevBlockIdx] -= neighbor.label;
@@ -86,17 +89,17 @@ void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {
 }
 
 void EdgeMatrixPrior::applyGraphMoveToState(const GraphMove& move){
-    const auto& vertexBlocks = m_blockPrior.getState();
+    const auto& blockSeq = m_blockPrior.getState();
 
     for (auto addedEdge: move.addedEdges) {
-        const BlockIndex& r(vertexBlocks[addedEdge.first]), s(vertexBlocks[addedEdge.second]);
+        const BlockIndex& r(blockSeq[addedEdge.first]), s(blockSeq[addedEdge.second]);
         m_state[r][s]++;
         m_state[s][r]++;
         m_edgeCountsInBlocks[r]++;
         m_edgeCountsInBlocks[s]++;
     }
     for (auto removedEdge: move.removedEdges) {
-        const BlockIndex& r(vertexBlocks[removedEdge.first]), s(vertexBlocks[removedEdge.second]);
+        const BlockIndex& r(blockSeq[removedEdge.first]), s(blockSeq[removedEdge.second]);
         m_state[r][s]--;
         m_state[s][r]--;
         m_edgeCountsInBlocks[r]--;
@@ -121,18 +124,6 @@ void EdgeMatrixPrior::applyBlockMoveToState(const BlockMove& move) {
         destroyBlock(move.prevBlockIdx);
 }
 
-template<typename T>
-static void verifyVectorHasSize(
-    const std::vector<T>& vec,
-    size_t size,
-    const std::string& vectorName,
-    const std::string& sizeName) {
-    if (vec.size() != size)
-        throw ConsistencyError("EdgeMatrixPrior: "+vectorName+" has size "+
-                std::to_string(vec.size())+" while there are "+
-                std::to_string(size)+" "+sizeName+".");
-}
-
 void EdgeMatrixPrior::checkSelfConsistency() const {
     m_blockPrior.checkSelfConsistency();
     m_edgeCountPrior.checkSelfConsistency();
@@ -141,32 +132,22 @@ void EdgeMatrixPrior::checkSelfConsistency() const {
     verifyVectorHasSize(m_edgeCountsInBlocks, blockCount, "m_edgeCoutInBlocks", "blocks");
     verifyVectorHasSize(m_state, blockCount, "Edge matrix", "blocks");
 
-    std::vector<size_t> actualEdgesInBlock(blockCount, 0);
+    std::vector<size_t> actualEdgeCountsInBlocks(blockCount, 0);
     size_t sumEdges = 0;
     for (BlockIndex i=0; i<blockCount; i++) {
-        size_t actualEdgesInBlock = 0;
+        size_t actualEdgeCountsInBlocks = 0;
         verifyVectorHasSize(m_state[i], blockCount, "Edge matrix's row", "blocks");
-
         for (BlockIndex j=0; j<blockCount; j++) {
             if (m_state[i][j] != m_state[j][i])
                 throw ConsistencyError("EdgeMatrixPrior: Edge matrix is not symmetric.");
-            actualEdgesInBlock += m_state[i][j];
+            actualEdgeCountsInBlocks += m_state[i][j];
         }
-        if (actualEdgesInBlock != m_edgeCountsInBlocks[i])
-            throw ConsistencyError("EdgeMatrixPrior: Edge matrix row doesn't sum to edgesInBlock.");
-        sumEdges += actualEdgesInBlock;
+        if (actualEdgeCountsInBlocks != m_edgeCountsInBlocks[i])
+            throw ConsistencyError("EdgeMatrixPrior: Edge matrix row doesn't sum to edgeCountsInBlocks.");
+        sumEdges += actualEdgeCountsInBlocks;
     }
     if (sumEdges != 2*m_edgeCountPrior.getState())
         throw ConsistencyError("EdgeMatrixPrior: Sum of edge matrix isn't equal to twice the number of edges.");
-}
-
-
-double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const{
-    return -INFINITY;
-}
-
-double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const{
-    return -INFINITY;
 }
 
 void EdgeMatrixUniformPrior::sampleState() {
@@ -179,14 +160,13 @@ void EdgeMatrixUniformPrior::sampleState() {
     m_state = EdgeMatrix(blockCount, std::vector<size_t>(blockCount, 0));
     std::pair<BlockIndex, BlockIndex> rs;
     m_edgeCountsInBlocks = std::vector<size_t>(blockCount, 0);
-    size_t index(0), correctedEdgeCount;
+    size_t index = 0, correctedEdgeCount;
     for (auto edgeCountBetweenBlocks: flattenedEdgeMatrix) {
         rs = getUndirectedPairFromIndex(index, blockCount);
         m_edgeCountsInBlocks[rs.first] += edgeCountBetweenBlocks;
         m_edgeCountsInBlocks[rs.second] += edgeCountBetweenBlocks;
-        correctedEdgeCount = rs.first!=rs.second ? edgeCountBetweenBlocks : 2*edgeCountBetweenBlocks;
-        m_state[rs.first][rs.second] = correctedEdgeCount;
-        m_state[rs.second][rs.first] = correctedEdgeCount;
+        m_state[rs.first][rs.second] += edgeCountBetweenBlocks;
+        m_state[rs.second][rs.first] += edgeCountBetweenBlocks;
         index++;
     }
 }

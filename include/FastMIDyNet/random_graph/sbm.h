@@ -24,6 +24,14 @@ public:
 
     void sampleState () ;
     void samplePriors () ;
+    void sample(){
+        samplePriors();
+        sampleState();
+        m_edgeMatrixPrior.setGraph(m_state);
+        #if DEBUG
+        checkSelfConsistency();
+        #endif
+    }
 
     const BlockSequence& getBlockSequence() const { return m_blockPrior.getState(); }
     const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
@@ -40,9 +48,9 @@ public:
     double getLogPrior() ;
     double getLogJoint() ;
 
-    double getLogLikelihoodRatioEdgeTerm (const GraphMove& move) ;
-    double getLogLikelihoodRatioAdjTerm (const GraphMove& move) ;
-    double getLogLikelihoodRatio (const GraphMove& move) ;
+    double getLogLikelihoodRatioEdgeTerm (const GraphMove&) ;
+    double getLogLikelihoodRatioAdjTerm (const GraphMove&) ;
+    double getLogLikelihoodRatio (const GraphMove&) ;
     double getLogLikelihoodRatio (const BlockMove&) ;
 
     double getLogPriorRatio (const GraphMove&) ;
@@ -51,8 +59,13 @@ public:
     double getLogJointRatio (const GraphMove& move) { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }
     double getLogJointRatio (const BlockMove& move) { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }
 
-    void applyMove (const GraphMove& move) { RandomGraph::applyMove(move); }
+    void applyMove (const GraphMove&);
     void applyMove (const BlockMove&);
+
+    void computationFinished(){
+        m_blockPrior.computationFinished();
+        m_edgeMatrixPrior.computationFinished();
+    }
 
     static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
     static DegreeSequence getDegreeSequenceFromGraph(const MultiGraph&) ;

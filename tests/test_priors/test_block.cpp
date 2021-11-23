@@ -9,11 +9,13 @@
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/exceptions.h"
 
+using namespace FastMIDyNet;
+
 const double GRAPH_SIZE=10;
 const double BLOCK_COUNT=5;
 const double POISSON_MEAN=5;
+const BlockSequence BLOCK_SEQ={0,0,0,0,0,1,1,1,1,1};
 
-using namespace FastMIDyNet;
 
 class DummyBlockPrior: public BlockPrior {
     public:
@@ -59,20 +61,6 @@ class TestBlockPrior: public ::testing::Test {
             blockSeq[0] = BLOCK_COUNT - 1;
             prior.setState(blockSeq);
             prior.computationFinished();
-        }
-};
-
-class TestBlockUniformPrior: public::testing::Test{
-    public:
-        FastMIDyNet::BlockCountPoissonPrior blockCountPrior = FastMIDyNet::BlockCountPoissonPrior(POISSON_MEAN);
-        FastMIDyNet::BlockUniformPrior prior = FastMIDyNet::BlockUniformPrior(GRAPH_SIZE, blockCountPrior);
-        void SetUp() {
-            BlockSequence blockSeq;
-            for (size_t idx = 0; idx < GRAPH_SIZE; idx++) {
-                blockSeq.push_back(0);
-            }
-            blockSeq[0] = BLOCK_COUNT - 1;
-            prior.setState(blockSeq);
         }
 };
 
@@ -134,6 +122,80 @@ TEST_F(TestBlockPrior, applyMove_forSomeBlockMove_changeBlockOfNode0From0To1){
     BlockMove move = {0, 0, 1};
     prior.applyBlockMove(move);
 }
+
+// void sampleState() {  };
+// void samplePriors() { };
+// double getLogLikelihood() const { return 0.; }
+// double getLogPrior() { return 0.; };
+// double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { if (move.prevBlockIdx != move.nextBlockIdx) return -INFINITY; else return 0.;}
+// double getLogPriorRatioFromBlockMove(const BlockMove& move) { return 0; }
+
+
+class TestBlockDeltaPrior: public::testing::Test{
+    public:
+        FastMIDyNet::BlockDeltaPrior prior = FastMIDyNet::BlockDeltaPrior(BLOCK_SEQ);
+        void SetUp() { }
+
+        bool isCorrectBlockSequence(const FastMIDyNet::BlockSequence& blockSeq){
+            if (blockSeq.size() != BLOCK_SEQ.size()) return false;
+            for (size_t i=0; i<blockSeq.size(); ++i){
+                if (blockSeq[i] != BLOCK_SEQ[i]) return false;
+            }
+            return true;
+        }
+};
+
+TEST_F(TestBlockDeltaPrior, sampleState_doNothing){
+    prior.sampleState();
+    EXPECT_TRUE( isCorrectBlockSequence( prior.getState() ) );
+}
+
+TEST_F(TestBlockDeltaPrior, samplePriors_doNothing){
+    prior.samplePriors();
+    EXPECT_TRUE( isCorrectBlockSequence( prior.getState() ) );
+}
+
+TEST_F(TestBlockDeltaPrior, getLogLikelihood_return0){
+    EXPECT_EQ(prior.getLogLikelihood(), 0);
+}
+
+TEST_F(TestBlockDeltaPrior, getLogPrior_return0){
+    EXPECT_EQ(prior.getLogPrior(), 0);
+}
+
+TEST_F(TestBlockDeltaPrior, getLogLikelihoodRatioFromBlockMove_forSomePreservingBlockMove_return0){
+    FastMIDyNet::BlockMove move = {0, 0, 0, 0};
+    EXPECT_EQ(prior.getLogLikelihoodRatioFromBlockMove(move), 0);
+}
+
+TEST_F(TestBlockDeltaPrior, getLogLikelihoodRatioFromBlockMove_forSomeNonPreservingBlockMove_returnMinusInf){
+    FastMIDyNet::BlockMove move = {0, 0, 1, 0};
+    EXPECT_EQ(prior.getLogLikelihoodRatioFromBlockMove(move), -INFINITY);
+}
+
+TEST_F(TestBlockDeltaPrior, getLogPriorRatioFromBlockMove_forSomePreservingBlockMove_return0){
+    FastMIDyNet::BlockMove move = {0, 0, 0, 0};
+    EXPECT_EQ(prior.getLogPriorRatioFromBlockMove(move), 0);
+}
+
+TEST_F(TestBlockDeltaPrior, getLogPriorRatioFromBlockMove_forSomeNonPreservingBlockMove_return0){
+    FastMIDyNet::BlockMove move = {0, 0, 1, 0};
+    EXPECT_EQ(prior.getLogPriorRatioFromBlockMove(move), 0);
+}
+
+class TestBlockUniformPrior: public::testing::Test{
+    public:
+        FastMIDyNet::BlockCountPoissonPrior blockCountPrior = FastMIDyNet::BlockCountPoissonPrior(POISSON_MEAN);
+        FastMIDyNet::BlockUniformPrior prior = FastMIDyNet::BlockUniformPrior(GRAPH_SIZE, blockCountPrior);
+        void SetUp() {
+            BlockSequence blockSeq;
+            for (size_t idx = 0; idx < GRAPH_SIZE; idx++) {
+                blockSeq.push_back(0);
+            }
+            blockSeq[0] = BLOCK_COUNT - 1;
+            prior.setState(blockSeq);
+        }
+};
 
 TEST_F(TestBlockUniformPrior, sample_returnBlockSeqWithExpectedSizeAndBlockCount){
     prior.sample();
