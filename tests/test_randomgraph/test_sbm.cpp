@@ -87,15 +87,70 @@ TEST_F(TestStochasticBlockModelFamily, getLogLikelihood_returnNonZeroValue){
 }
 
 TEST_F(TestStochasticBlockModelFamily, applyMove_forAddedEdge){
-    FastMIDyNet::GraphMove move = {{}, {{0,2}}};
-    std::cout << randomGraph.getState().getEdgeMultiplicityIdx(0, 0) << endl;
-    displayMatrix(randomGraph.getEdgeMatrix(), "edgeMat");
+    BaseGraph::Edge addedEdge = {0, 2};
+    size_t addedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
+    FastMIDyNet::GraphMove move = {{}, {addedEdge}};
     randomGraph.applyMove(move);
+    size_t addedEdgeMultAfter = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
+    EXPECT_EQ(addedEdgeMultAfter - 1, addedEdgeMultBefore);
 }
 
 TEST_F(TestStochasticBlockModelFamily, applyMove_forRemovedEdge){
     auto neighbor = *randomGraph.getState().getNeighboursOfIdx(0).begin();
-    FastMIDyNet::GraphMove move = {{{0, neighbor.vertexIndex}}, {}};
-    displayMatrix(randomGraph.getEdgeMatrix(), "edgeMat");
+    BaseGraph::Edge removedEdge = {0, neighbor.vertexIndex};
+    size_t removedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
+    FastMIDyNet::GraphMove move = {{removedEdge}, {}};
     randomGraph.applyMove(move);
+    size_t removedEdgeMultAfter = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
+    EXPECT_EQ(removedEdgeMultAfter + 1, removedEdgeMultBefore);
+}
+
+TEST_F(TestStochasticBlockModelFamily, applyMove_forRemovedEdgeAndAddedEdge){
+    auto neighbor = *randomGraph.getState().getNeighboursOfIdx(0).begin();
+    BaseGraph::Edge removedEdge = {0, neighbor.vertexIndex};
+    BaseGraph::Edge addedEdge = {0, 2};
+    size_t removedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
+    size_t addedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
+    FastMIDyNet::GraphMove move = {{removedEdge}, {addedEdge}};
+    randomGraph.applyMove(move);
+    size_t removedEdgeMultAfter = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
+    size_t addedEdgeMultAfter = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
+    EXPECT_EQ(removedEdgeMultAfter + 1, removedEdgeMultBefore);
+    EXPECT_EQ(addedEdgeMultAfter - 1, addedEdgeMultBefore);
+
+}
+
+TEST_F(TestStochasticBlockModelFamily, applyMove_forNoEdgesAddedOrRemoved){
+    FastMIDyNet::GraphMove move = {{}, {}};
+    randomGraph.applyMove(move);
+}
+
+TEST_F(TestStochasticBlockModelFamily, getLogLikelihoodRatio_forAddedEdge_returnCorrectLogLikelihoodRatio){
+    FastMIDyNet::GraphMove move = {{}, {{0, 2}}};
+    double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatio(move);
+    double logLikelihoodBefore = randomGraph.getLogLikelihood();
+    randomGraph.applyMove(move);
+    double logLikelihoodAfter = randomGraph.getLogLikelihood();
+    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
+}
+
+TEST_F(TestStochasticBlockModelFamily, getLogLikelihoodRatio_forAddedSelfLoop_returnCorrectLogLikelihoodRatio){
+    FastMIDyNet::GraphMove move = {{}, {{0, 0}}};
+    double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatio(move);
+    double logLikelihoodBefore = randomGraph.getLogLikelihood();
+    randomGraph.applyMove(move);
+    double logLikelihoodAfter = randomGraph.getLogLikelihood();
+    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
+}
+
+TEST_F(TestStochasticBlockModelFamily, getLogLikelihoodRatio_forRemovedEdge_returnCorrectLogLikelihoodRatio){
+
+    auto neighbor = *randomGraph.getState().getNeighboursOfIdx(0).begin();
+    BaseGraph::Edge removedEdge = {0, neighbor.vertexIndex};
+    FastMIDyNet::GraphMove move = {{removedEdge}, {}};
+    double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatio(move);
+    double logLikelihoodBefore = randomGraph.getLogLikelihood();
+    randomGraph.applyMove(move);
+    double logLikelihoodAfter = randomGraph.getLogLikelihood();
+    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }

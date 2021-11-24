@@ -2,6 +2,7 @@
 #include <list>
 #include <algorithm>
 #include <iostream>
+#include <stdexcept>
 
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/types.h"
@@ -53,8 +54,13 @@ TEST_F(TestRandomGraphBaseClass, getLogJoint_return0){
     EXPECT_EQ(randomGraph.getLogJoint(), 0);
 }
 
-TEST_F(TestRandomGraphBaseClass, applyMove_forSomeGraphMove_changeGraph){
+TEST_F(TestRandomGraphBaseClass, applyMove_forSomeGraphMove){
     randomGraph.applyMove(GRAPH_MOVE);
     EXPECT_FALSE( randomGraph.getState().isEdgeIdx(GRAPH_MOVE.removedEdges[0]) );
     EXPECT_TRUE( randomGraph.getState().isEdgeIdx(GRAPH_MOVE.addedEdges[0]) );
+}
+
+TEST_F(TestRandomGraphBaseClass, applyMove_forNonExistingEdgeRemoved_throwLogicError){
+    GraphMove move = {{{0,0}}, {}}; // non-existing edge, throw logic_error
+    EXPECT_THROW(randomGraph.applyMove(move), std::logic_error);
 }
