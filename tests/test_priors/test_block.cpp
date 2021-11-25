@@ -73,7 +73,7 @@ TEST_F(TestBlockPrior, computeVertexCountsInBlock_forSomeBlockSeq_returnCorrectV
     BlockSequence blockSeq = BlockSequence(GRAPH_SIZE, 0);
     blockSeq[0] = BLOCK_COUNT - 1;
 
-    std::vector<size_t> actualVertexCount = prior.computeVertexCountsInBlock(blockSeq);
+    std::vector<size_t> actualVertexCount = prior.computeVertexCountsInBlocks(blockSeq);
     EXPECT_EQ(actualVertexCount[0], GRAPH_SIZE - 1);
     EXPECT_EQ(actualVertexCount[BLOCK_COUNT - 1], 1);
 }

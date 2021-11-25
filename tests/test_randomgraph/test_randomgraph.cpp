@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <stdexcept>
+#include <iostream>
 
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/types.h"

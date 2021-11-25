@@ -3,6 +3,7 @@
 
 #include <list>
 #include <utility>
+#include <iostream>
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/exceptions.h"
 
@@ -53,6 +54,20 @@ static void verifyVectorHasSize(
                 std::to_string(vec.size())+" while there are "+
                 std::to_string(size)+" "+sizeName+".");
 }
+
+template<typename T>
+void displayMatrix(Matrix<T> martrix, std::string name){
+    std::cout << name << " = [" << std::endl;
+    for (auto row : martrix){
+        std::cout << "  [ ";
+        for (auto col : row){
+            std::cout << std::to_string(col) << " ";
+        }
+        std::cout << "]" << std::endl;
+    }
+    std::cout << "]" << std::endl;
+}
+
 
 } // namespace FastMIDyNet
 

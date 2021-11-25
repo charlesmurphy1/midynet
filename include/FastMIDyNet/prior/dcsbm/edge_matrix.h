@@ -22,7 +22,7 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         const size_t& getEdgeCount() { return m_edgeCountPrior.getState(); }
         const size_t& getBlockCount() { return m_blockPrior.getBlockCount(); }
         const size_t& getEdgeCount() const { return m_edgeCountPrior.getState(); }
-        const std::vector<size_t>& getEdgeCountsInBlock() { return m_edgeCountsInBlocks; }
+        const std::vector<size_t>& getEdgeCountsInBlocks() { return m_edgeCountsInBlocks; }
         const BlockSequence& getBlockSequence() { return m_blockPrior.getState(); }
 
         void samplePriors() override { m_edgeCountPrior.sample(); m_blockPrior.sample(); }

@@ -32,7 +32,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{
     double logLikelihood = 0;
 
     auto edgeMat = getEdgeMatrix() ;
-    vector<size_t> edgesInBlock = getEdgeCountsInBlock();
+    vector<size_t> edgesInBlock = getEdgeCountsInBlocks();
     auto numBlocks = getBlockCount();
     for (size_t r = 0; r < numBlocks; r++) {
         logLikelihood += logDoubleFactorial(edgeMat[r][r]);
@@ -83,7 +83,7 @@ void DegreeCorrectedStochasticBlockModelFamily::getDiffEdgeMatMapFromEdgeMove( c
 double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) {
     BlockSequence blockSeq = getBlockSequence();
     EdgeMatrix edgeMat = getEdgeMatrix();
-    vector<size_t> edgesInBlock = getEdgeCountsInBlock();
+    vector<size_t> edgesInBlock = getEdgeCountsInBlocks();
     double logLikelihoodRatioTerm = 0;
 
     map<pair<BlockIndex, BlockIndex>, size_t> diffEdgeMatMap;
@@ -190,7 +190,7 @@ void DegreeCorrectedStochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( 
 double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
     BlockSequence blockSeq = getBlockSequence();
     EdgeMatrix edgeMat = getEdgeMatrix();
-    vector<size_t> edgesInBlock = getEdgeCountsInBlock();
+    vector<size_t> edgesInBlock = getEdgeCountsInBlocks();
     double logLikelihoodRatio = 0;
 
     map<pair<BlockIndex, BlockIndex>, size_t> diffEdgeMatMap;

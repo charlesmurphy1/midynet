@@ -47,7 +47,7 @@ void EdgeMatrixPrior::setState(const Matrix<size_t>& edgeMatrix) {
 void EdgeMatrixPrior::createBlock() {
     const auto& blockCount = m_blockPrior.getBlockCount();
 
-    m_state.push_back(std::vector<size_t>(blockCount, 0));
+    m_state.push_back(std::vector<size_t>(blockCount - 1, 0));
     m_edgeCountsInBlocks.push_back(0);
     for (auto& row: m_state)
         row.push_back(0);
@@ -91,19 +91,19 @@ void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {
 void EdgeMatrixPrior::applyGraphMoveToState(const GraphMove& move){
     const auto& blockSeq = m_blockPrior.getState();
 
-    for (auto addedEdge: move.addedEdges) {
-        const BlockIndex& r(blockSeq[addedEdge.first]), s(blockSeq[addedEdge.second]);
-        m_state[r][s]++;
-        m_state[s][r]++;
-        m_edgeCountsInBlocks[r]++;
-        m_edgeCountsInBlocks[s]++;
-    }
     for (auto removedEdge: move.removedEdges) {
         const BlockIndex& r(blockSeq[removedEdge.first]), s(blockSeq[removedEdge.second]);
         m_state[r][s]--;
         m_state[s][r]--;
-        m_edgeCountsInBlocks[r]--;
-        m_edgeCountsInBlocks[s]--;
+        m_edgeCountsInBlocks[r] --;
+        m_edgeCountsInBlocks[s] --;
+    }
+    for (auto addedEdge: move.addedEdges) {
+        const BlockIndex& r(blockSeq[addedEdge.first]), s(blockSeq[addedEdge.second]);
+        m_state[r][s]++;
+        m_state[s][r]++;
+        m_edgeCountsInBlocks[r] ++;
+        m_edgeCountsInBlocks[s] ++;
     }
 }
 
@@ -112,15 +112,15 @@ void EdgeMatrixPrior::applyGraphMoveToState(const GraphMove& move){
 void EdgeMatrixPrior::applyBlockMoveToState(const BlockMove& move) {
     /* Must be computed before calling createBlock and destroyBlock because these methods
      * change m_edgeCountsInBlocks size*/
-    bool creatingBlock = m_edgeCountsInBlocks.size()+1 == m_blockPrior.getBlockCount();
-    bool destroyingBlock = m_edgeCountsInBlocks.size() == m_blockPrior.getBlockCount()+1;
+    // bool creatingBlock = m_edgeCountsInBlocks.size()+1 == m_blockPrior.getBlockCount();
+    // bool destroyingBlock = m_edgeCountsInBlocks.size() == m_blockPrior.getBlockCount()+1;
 
-    if (creatingBlock)
+    if (move.addedBlocks == 1)
         createBlock();
 
     moveEdgeCountsInBlocks(move);
 
-    if (destroyingBlock)
+    if (move.addedBlocks == -1)
         destroyBlock(move.prevBlockIdx);
 }
 
@@ -178,7 +178,7 @@ double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMov
 }
 
 double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
-    auto vertexCountsInBlocks = m_blockPrior.getVertexCountsInBlock();
+    auto vertexCountsInBlocks = m_blockPrior.getVertexCountsInBlocks();
 
     bool creatingBlock = move.nextBlockIdx == m_blockPrior.getBlockCount();
     bool destroyingBlock = move.nextBlockIdx != move.prevBlockIdx &&

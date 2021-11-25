@@ -49,7 +49,7 @@ TEST_F(TestEdgeMatrixPrior, setGraph_anyGraph_edgeMatrixCorrectlySet) {
     EXPECT_EQ(edgeMatrixPrior.getState(),
             FastMIDyNet::Matrix<size_t>({{8, 6}, {6, 2}})
         );
-    EXPECT_EQ(edgeMatrixPrior.getEdgeCountsInBlock(), FastMIDyNet::BlockSequence({14, 8}));
+    EXPECT_EQ(edgeMatrixPrior.getEdgeCountsInBlocks(), FastMIDyNet::BlockSequence({14, 8}));
 }
 
 TEST_F(TestEdgeMatrixPrior, samplePriors_anyGraph_returnSumOfPriors) {
@@ -66,7 +66,7 @@ TEST_F(TestEdgeMatrixPrior, createBlock_anySetup_addRowAndColumnToEdgeMatrix) {
 
 TEST_F(TestEdgeMatrixPrior, createBlock_anySetup_addElementToEdgeCountOfBlocks) {
     edgeMatrixPrior._createBlock();
-    EXPECT_EQ(edgeMatrixPrior.getEdgeCountsInBlock(), std::vector<size_t>({14, 8, 0}));
+    EXPECT_EQ(edgeMatrixPrior.getEdgeCountsInBlocks(), std::vector<size_t>({14, 8, 0}));
 }
 
 TEST_F(TestEdgeMatrixPrior, destroyBlock_anyBlock_removeFirstRowAndColumn) {
@@ -82,7 +82,7 @@ TEST_F(TestEdgeMatrixPrior, destroyBlock_anyBlock_removeFirstRowAndColumn) {
         edgeMatrixPrior._destroyBlock(removedBlock);
         EXPECT_EQ(edgeMatrixPrior.getState(),
                 FastMIDyNet::Matrix<size_t>( {{18, 1}, {1, 2}} ));
-        EXPECT_EQ(edgeMatrixPrior.getEdgeCountsInBlock(), std::vector<size_t>({19, 3}));
+        EXPECT_EQ(edgeMatrixPrior.getEdgeCountsInBlocks(), std::vector<size_t>({19, 3}));
 
         removedBlock++;
     }

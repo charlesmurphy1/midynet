@@ -35,14 +35,14 @@ public:
 
     const BlockSequence& getBlockSequence() const { return m_blockPrior.getState(); }
     const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
-    const std::vector<size_t>& getVertexCountsInBlock() const { return m_blockPrior.getVertexCountsInBlock(); }
+    const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPrior.getVertexCountsInBlocks(); }
     const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPrior.getState(); }
-    std::vector<size_t> getEdgeCountsInBlock() const { return m_edgeMatrixPrior.getEdgeCountsInBlock(); } // à changer lorsque EdgeMatrixPrior sera fait
+    std::vector<size_t> getEdgeCountsInBlocks() const { return m_edgeMatrixPrior.getEdgeCountsInBlocks(); } // à changer lorsque EdgeMatrixPrior sera fait
     const size_t& getEdgeCount() const { return m_edgeMatrixPrior.getEdgeCount(); }
 
-    void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, std::map<std::pair<BlockIndex, BlockIndex>, size_t>&);
-    void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, std::map<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>, size_t>&);
-    void getDiffEdgeMatMapFromBlockMove(const BlockMove&, std::map<std::pair<BlockIndex, BlockIndex>, size_t>&);
+    void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, std::map<std::pair<BlockIndex, BlockIndex>, int>&);
+    void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, std::map<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>, int>&);
+    void getDiffEdgeMatMapFromBlockMove(const BlockMove&, std::map<std::pair<BlockIndex, BlockIndex>, int>&);
 
     double getLogLikelihood() const;
     double getLogPrior() ;

@@ -22,14 +22,14 @@ public:
     void setState(const BlockSequence& blockSeq) override{
         m_blockCountPrior.setState(*max_element(blockSeq.begin(), blockSeq.end()) + 1);
         m_state = blockSeq;
-        m_vertexCountsInBlocks = computeVertexCountsInBlock(m_state);
+        m_vertexCountsInBlocks = computeVertexCountsInBlocks(m_state);
     }
     void samplePriors() override {
         m_blockCountPrior.sample();
     }
     const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
-    std::vector<size_t> computeVertexCountsInBlock(const BlockSequence&) const;
-    const std::vector<size_t>& getVertexCountsInBlock() const { return m_vertexCountsInBlocks; };
+    std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&) const;
+    const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
     const size_t& getSize() const { return m_size; }
 
     double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; };

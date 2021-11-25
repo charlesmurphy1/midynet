@@ -14,7 +14,7 @@ using namespace std;
 
 namespace FastMIDyNet{
 
-vector<size_t> BlockPrior::computeVertexCountsInBlock(const BlockSequence& state) const {
+vector<size_t> BlockPrior::computeVertexCountsInBlocks(const BlockSequence& state) const {
     size_t blockCount = *max_element(state.begin(), state.end()) + 1;
 
     vector<size_t> vertexCount(blockCount, 0);
