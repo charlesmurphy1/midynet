@@ -68,6 +68,7 @@ double StochasticBlockModelFamily::getLogLikelihood() const{
 double StochasticBlockModelFamily::getLogPrior() {
     double logPrior = m_blockPrior.getLogJoint() + m_edgeMatrixPrior.getLogJoint();
     computationFinished();
+    return logPrior;
 };
 
 double StochasticBlockModelFamily::getLogJoint() {
@@ -162,14 +163,18 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove
     BlockSequence blockSeq = getBlockSequence();
     for (auto neighbor : m_state.getNeighboursOfIdx(move.vertexIdx)){
         VertexIndex idx = neighbor.vertexIndex;
+        BlockIndex blockIdx = blockSeq[idx];
         size_t edgeMult = neighbor.label;
-        pair<BlockIndex, BlockIndex> orderedBlockPair = getOrderedPair<BlockIndex> ({move.prevBlockIdx, blockSeq[idx]});
+        pair<BlockIndex, BlockIndex> orderedBlockPair = getOrderedPair<BlockIndex> ({move.prevBlockIdx, blockIdx});
         if (diffEdgeMatMap.count(getOrderedPair<BlockIndex>({orderedBlockPair.first, orderedBlockPair.second})) == 0){
             diffEdgeMatMap.insert( pair<pair<BlockIndex, BlockIndex>, int>(orderedBlockPair, 0));
         }
         diffEdgeMatMap[orderedBlockPair] -= edgeMult;
 
-        orderedBlockPair = getOrderedPair<BlockIndex> ({move.nextBlockIdx, blockSeq[idx]});
+        if (idx == move.vertexIdx) // handling self-loops
+            blockIdx = move.nextBlockIdx;
+
+        orderedBlockPair = getOrderedPair<BlockIndex> ({move.nextBlockIdx, blockIdx});
         if (diffEdgeMatMap.count(getOrderedPair<BlockIndex>({orderedBlockPair.first, orderedBlockPair.second})) == 0){
             diffEdgeMatMap.insert( pair<pair<BlockIndex, BlockIndex>, int>(orderedBlockPair, 0));
         }
@@ -199,16 +204,21 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
 
 
     getDiffEdgeMatMapFromBlockMove(move, diffEdgeMatMap);
+    // displayMatrix(edgeMat);
 
     for (auto diff : diffEdgeMatMap){
         auto bu = diff.first.first, bv = diff.first.second;
         diffEdgeCountsInBlocksMap[bu] += diff.second;
         diffEdgeCountsInBlocksMap[bv] += diff.second;
+        size_t ers;
+        if (bu == getBlockCount() or bv == getBlockCount()) ers = 0;
+        else ers = edgeMat[bu][bv];
         if (bu == bv){
-            logLikelihoodRatio += logDoubleFactorial(edgeMat[bu][bv] + 2 * diff.second) - logDoubleFactorial(edgeMat[bu][bv]);
+            logLikelihoodRatio += logDoubleFactorial(ers + 2 * diff.second) - logDoubleFactorial(ers);
         }
         else{
-            logLikelihoodRatio += logFactorial(edgeMat[bu][bv] + diff.second) - logFactorial(edgeMat[bu][bv]);
+            logLikelihoodRatio += logFactorial(ers + diff.second) - logFactorial(ers);
+
         }
     }
 
@@ -216,7 +226,10 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
         if (diff.first < getBlockCount()) {
             auto er = edgeCountsInBlocks[ diff.first ];
             auto nr = verticesInBlock[ diff.first ];
-            logLikelihoodRatio -= (er + diff.second) * log(nr + diffVertexCountsInBlocksMap[diff.first]) - er * log(nr);
+            if (er + diff.second == 0 && nr + diffVertexCountsInBlocksMap[diff.first] == 0)
+                logLikelihoodRatio -= -er * log(nr);
+            else
+                logLikelihoodRatio -= (er + diff.second) * log(nr + diffVertexCountsInBlocksMap[diff.first]) - er * log(nr);
         } else if (diff.first == getBlockCount() && diff.second != 0){
             logLikelihoodRatio -= (diff.second) * log(diffVertexCountsInBlocksMap[diff.first]);
         }

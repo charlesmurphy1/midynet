@@ -56,7 +56,7 @@ static void verifyVectorHasSize(
 }
 
 template<typename T>
-void displayMatrix(Matrix<T> matrix, std::string name="m"){
+void displayMatrix(const Matrix<T>& matrix, std::string name="m"){
     std::cout << name << " = [" << std::endl;
     for (auto row : matrix){
         std::cout << "  [ ";
@@ -68,7 +68,7 @@ void displayMatrix(Matrix<T> matrix, std::string name="m"){
     std::cout << "]" << std::endl;
 }
 template<typename T>
-void displayVector(std::vector<T> vec, std::string name="v"){
+void displayVector(const std::vector<T>& vec, std::string name="v"){
     std::cout << name << " = [ " << std::endl;
     for (auto row : vec){
         std::cout << std::to_string(row) << " ";

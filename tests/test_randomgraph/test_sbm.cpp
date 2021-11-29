@@ -14,13 +14,13 @@
 using namespace std;
 using namespace FastMIDyNet;
 
-static const int NUM_BLOCKS = 3;
+static const int NUM_BLOCKS = 5;
 static const int NUM_EDGES = 100;
 static const int NUM_VERTICES = 50;
 
 class TestStochasticBlockModelFamily: public::testing::Test{
     public:
-        BlockCountDeltaPrior blockCountPrior = {NUM_BLOCKS};
+        BlockCountPoissonPrior blockCountPrior = {NUM_BLOCKS};
         BlockUniformPrior blockPrior = {NUM_VERTICES, blockCountPrior};
         EdgeCountPoissonPrior edgeCountPrior = {NUM_EDGES};
         EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
@@ -32,27 +32,6 @@ class TestStochasticBlockModelFamily: public::testing::Test{
             randomGraph.sample();
         }
 };
-
-// void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, std::map<std::pair<BlockIndex, BlockIndex>, size_t>&);
-// void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, std::map<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>, size_t>&);
-// void getDiffEdgeMatMapFromBlockMove(const BlockMove&, std::map<std::pair<BlockIndex, BlockIndex>, size_t>&);
-// double getLogLikelihoodRatio (const GraphMove&) ;
-// double getLogLikelihoodRatio (const BlockMove&) ;
-// double getLogPriorRatio (const GraphMove&) ;
-// double getLogPriorRatio (const BlockMove&) ;
-// double getLogJointRatio (const GraphMove& move) { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }
-// double getLogJointRatio (const BlockMove& move) { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }
-// void applyMove (const GraphMove&);
-// void applyMove (const BlockMove&);
-// void computationFinished(){
-//     m_blockPrior.computationFinished();
-//     m_edgeMatrixPrior.computationFinished();
-// }
-// static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
-// static DegreeSequence getDegreeSequenceFromGraph(const MultiGraph&) ;
-// static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
-// static void checkGraphConsistencyWithDegreeSequence(const MultiGraph& graph, const DegreeSequence& degreeSeq) ;
-// void checkSelfConsistency() ;
 
 
 TEST_F(TestStochasticBlockModelFamily, sampleState_graphChanges){
@@ -233,7 +212,6 @@ TEST_F(TestStochasticBlockModelFamily, getLogLikelihoodRatio_forBlockMove_return
     FastMIDyNet::BlockIndex nextBlockIdx = prevBlockIdx;
     if (prevBlockIdx == randomGraph.getBlockCount() - 1) nextBlockIdx --;
     else nextBlockIdx ++;
-
     FastMIDyNet::BlockMove move = {vertexIdx, prevBlockIdx, nextBlockIdx, 0};
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatio(move);
     double logLikelihoodBefore = randomGraph.getLogLikelihood();
@@ -250,38 +228,29 @@ TEST_F(TestStochasticBlockModelFamily, getLogLikelihoodRatio_forBlockMoveWithBlo
 
     FastMIDyNet::BlockMove move = {vertexIdx, prevBlockIdx, nextBlockIdx, 1};
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatio(move);
-    cout << "MOVE = " << vertexIdx << " " << prevBlockIdx << " " << nextBlockIdx << endl;
-    cout << "BEFORE MOVE" << endl;
-    displayMatrix(randomGraph.getEdgeMatrix());
-    displayVector(randomGraph.getEdgeCountsInBlocks());
-    displayVector(randomGraph.getVertexCountsInBlocks());
     double logLikelihoodBefore = randomGraph.getLogLikelihood();
     randomGraph.applyMove(move);
     double logLikelihoodAfter = randomGraph.getLogLikelihood();
-    cout << "AFTER MOVE" << endl;
-    displayMatrix(randomGraph.getEdgeMatrix());
-    displayVector(randomGraph.getEdgeCountsInBlocks());
-    displayVector(randomGraph.getVertexCountsInBlocks());
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
-//
-// TEST_F(TestStochasticBlockModelFamily, applyMove_forBlockMoveWithBlockCreation_changeBlockIdxAndBlockCount){
-//     FastMIDyNet::BlockIndex prevBlockIdx = randomGraph.getBlockSequence()[0];
-//     FastMIDyNet::BlockIndex nextBlockIdx = randomGraph.getBlockCount();
-//     FastMIDyNet::BlockMove move = {0, prevBlockIdx, nextBlockIdx, 1};
-//     randomGraph.applyMove(move);
-//     EXPECT_NE(randomGraph.getBlockSequence()[0], prevBlockIdx);
-//     EXPECT_EQ(randomGraph.getBlockSequence()[0], nextBlockIdx);
-// }
-//
-// TEST_F(TestStochasticBlockModelFamily, applyMove_forBlockMoveWithBlockDestruction_changeBlockIdxAndBlockCount){
-//     BaseGraph::VertexIndex idx = 4;
-//     FastMIDyNet::BlockIndex prevBlockIdx = randomGraph.getBlockCount();
-//     FastMIDyNet::BlockIndex nextBlockIdx = randomGraph.getBlockSequence()[idx];
-//     FastMIDyNet::BlockMove move = {idx, nextBlockIdx, prevBlockIdx, 1};
-//     randomGraph.applyMove(move); // creating block before destroying it
-//     move = {idx, prevBlockIdx, nextBlockIdx, -1};
-//     randomGraph.applyMove(move);
-//     EXPECT_EQ(randomGraph.getBlockSequence()[idx], nextBlockIdx);
-//     EXPECT_NE(randomGraph.getBlockSequence()[idx], prevBlockIdx);
-// }
+
+TEST_F(TestStochasticBlockModelFamily, getLogLikelihoodRatio_forBlockMoveWithBlockDestruction_returnCorrectLogLikelihoodRatio){
+
+    FastMIDyNet::BlockIndex prevBlockIdx = randomGraph.getBlockSequence()[vertexIdx];
+    FastMIDyNet::BlockIndex nextBlockIdx = randomGraph.getBlockCount();
+
+    FastMIDyNet::BlockMove move = {vertexIdx, prevBlockIdx, nextBlockIdx, 1};
+    randomGraph.applyMove(move);
+    move = {vertexIdx, nextBlockIdx, prevBlockIdx, -1};
+    double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatio(move);
+    double logLikelihoodBefore = randomGraph.getLogLikelihood();
+    randomGraph.applyMove(move);
+    double logLikelihoodAfter = randomGraph.getLogLikelihood();
+    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
+}
+
+
+// static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
+// static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
+// static void checkGraphConsistencyWithDegreeSequence(const MultiGraph& graph, const DegreeSequence& degreeSeq) ;
+// void checkSelfConsistency() ;
