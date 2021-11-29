@@ -167,13 +167,13 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove
         if (diffEdgeMatMap.count(getOrderedPair<BlockIndex>({orderedBlockPair.first, orderedBlockPair.second})) == 0){
             diffEdgeMatMap.insert( pair<pair<BlockIndex, BlockIndex>, int>(orderedBlockPair, 0));
         }
-        diffEdgeMatMap[orderedBlockPair] --;
+        diffEdgeMatMap[orderedBlockPair] -= edgeMult;
 
         orderedBlockPair = getOrderedPair<BlockIndex> ({move.nextBlockIdx, blockSeq[idx]});
         if (diffEdgeMatMap.count(getOrderedPair<BlockIndex>({orderedBlockPair.first, orderedBlockPair.second})) == 0){
             diffEdgeMatMap.insert( pair<pair<BlockIndex, BlockIndex>, int>(orderedBlockPair, 0));
         }
-        diffEdgeMatMap[orderedBlockPair] ++;
+        diffEdgeMatMap[orderedBlockPair] += edgeMult;
     }
 };
 
@@ -191,18 +191,14 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
     for (size_t r = 0; r < getBlockCount() + 1 ; ++r){
         diffVertexCountsInBlocksMap[r] = 0;
         diffEdgeCountsInBlocksMap[r] = 0;
-        cout << r << " " << getBlockCount() << endl;
     }
-    cout << "counter created" << endl;
 
 
-    diffVertexCountsInBlocksMap[move.prevBlockIdx] += 1;
-    diffVertexCountsInBlocksMap[move.nextBlockIdx] -= 1;
+    diffVertexCountsInBlocksMap[move.prevBlockIdx] -= 1;
+    diffVertexCountsInBlocksMap[move.nextBlockIdx] += 1;
 
 
     getDiffEdgeMatMapFromBlockMove(move, diffEdgeMatMap);
-
-    cout << "counter computed" << endl;
 
     for (auto diff : diffEdgeMatMap){
         auto bu = diff.first.first, bv = diff.first.second;
@@ -215,17 +211,15 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
             logLikelihoodRatio += logFactorial(edgeMat[bu][bv] + diff.second) - logFactorial(edgeMat[bu][bv]);
         }
     }
-    cout << "edge term computed" << endl;
 
     for (auto diff : diffEdgeCountsInBlocksMap){
-        size_t er = 0, nr = 0;
-        cout << diff.first << " " << diff.second << endl;
         if (diff.first < getBlockCount()) {
-            er = edgeCountsInBlocks[ diff.first ];
-            nr = verticesInBlock[ diff.first ];
+            auto er = edgeCountsInBlocks[ diff.first ];
+            auto nr = verticesInBlock[ diff.first ];
+            logLikelihoodRatio -= (er + diff.second) * log(nr + diffVertexCountsInBlocksMap[diff.first]) - er * log(nr);
+        } else if (diff.first == getBlockCount() && diff.second != 0){
+            logLikelihoodRatio -= (diff.second) * log(diffVertexCountsInBlocksMap[diff.first]);
         }
-        logLikelihoodRatio -= (er + diff.second) * log(nr + diffVertexCountsInBlocksMap[diff.first]);
-        logLikelihoodRatio += er * log(nr);
     }
 
     return logLikelihoodRatio;

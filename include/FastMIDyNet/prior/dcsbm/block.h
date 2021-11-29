@@ -11,6 +11,8 @@
 namespace FastMIDyNet{
 
 class BlockPrior: public Prior<BlockSequence>{
+private:
+    void moveVertexCountsInBlocks(const BlockMove& move);
 protected:
     size_t m_size;
     BlockCountPrior& m_blockCountPrior;
@@ -28,7 +30,7 @@ public:
         m_blockCountPrior.sample();
     }
     const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
-    std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&) const;
+    static std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&);
     const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
     const size_t& getSize() const { return m_size; }
 
@@ -42,14 +44,20 @@ public:
     virtual double getLogJointRatioFromBlockMove(const BlockMove& move) = 0;
 
     void applyGraphMove(const GraphMove&) { };
-    void applyBlockMoveLocally(const BlockMove& move) { m_state[move.vertexIdx] = move.nextBlockIdx; };
+    void applyBlockMoveToState(const BlockMove& move) { m_state[move.vertexIdx] = move.nextBlockIdx; };
+    void applyBlockMoveToVertexCounts(const BlockMove& move) {
+        if (move.addedBlocks == 1) m_vertexCountsInBlocks.push_back(0);
+        else if (move.addedBlocks == -1) m_vertexCountsInBlocks.pop_back();
+
+        --m_vertexCountsInBlocks[move.prevBlockIdx];
+        ++m_vertexCountsInBlocks[move.nextBlockIdx];
+    };
     virtual void applyBlockMove(const BlockMove&) = 0;
     void computationFinished() override { m_isProcessed=false; m_blockCountPrior.computationFinished(); }
 
-private:
-    void destroyBlock();
-    void createBlock();
-    void moveVertexCountsInBlocks(const BlockMove& move);
+    static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;
+    static void checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, std::vector<size_t> expectedVertexCountsInBlocks) ;
+
 };
 
 class BlockDeltaPrior: public BlockPrior{
@@ -77,7 +85,7 @@ public:
 
 
     void applyBlockMove(const BlockMove& move){
-        processRecursiveFunction( [&]() { applyBlockMoveLocally(move); });
+        processRecursiveFunction( [&]() { applyBlockMoveToState(move); });
     }
 
     void checkSelfConsistency() const { };
@@ -104,11 +112,15 @@ public:
     };
 
     void applyBlockMove(const BlockMove& move){
-        processRecursiveFunction( [&]() { m_blockCountPrior.applyBlockMove(move); applyBlockMoveLocally(move); });
+        processRecursiveFunction( [&]() {
+            m_blockCountPrior.applyBlockMove(move);
+            applyBlockMoveToVertexCounts(move);
+            applyBlockMoveToState(move);
+        });
     }
-    static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;
     void checkSelfConsistency() const {
         checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
+        checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
     };
 
 };

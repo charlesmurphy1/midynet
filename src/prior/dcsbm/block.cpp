@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <random>
+#include <string>
 #include <vector>
 
 #include "FastMIDyNet/prior/dcsbm/block.h"
@@ -14,7 +15,7 @@ using namespace std;
 
 namespace FastMIDyNet{
 
-vector<size_t> BlockPrior::computeVertexCountsInBlocks(const BlockSequence& state) const {
+vector<size_t> BlockPrior::computeVertexCountsInBlocks(const BlockSequence& state) {
     size_t blockCount = *max_element(state.begin(), state.end()) + 1;
 
     vector<size_t> vertexCount(blockCount, 0);
@@ -23,6 +24,30 @@ vector<size_t> BlockPrior::computeVertexCountsInBlocks(const BlockSequence& stat
     }
 
     return vertexCount;
+}
+
+void BlockPrior::checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) {
+    size_t actualBlockCount = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
+    if (actualBlockCount != expectedBlockCount)
+        throw ConsistencyError("BlockPrior: blockSeq is inconsistent with expected block count.");
+
+};
+
+void BlockPrior::checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, std::vector<size_t> expectedVertexCountsInBlocks) {
+    vector<size_t> actualVertexCountsInBlocks = computeVertexCountsInBlocks(blockSeq);
+    if (actualVertexCountsInBlocks.size() != expectedVertexCountsInBlocks.size())
+        throw ConsistencyError("BlockPrior: size of vertex count in blockSeq is inconsistent with expected block count.");
+
+    for (size_t i=0; i<actualVertexCountsInBlocks.size(); ++i){
+        auto x = actualVertexCountsInBlocks[i];
+        auto y = expectedVertexCountsInBlocks[i];
+        if (x != y){
+            throw ConsistencyError("BlockPrior: actual vertex count at index"
+            + to_string(i) + " is inconsistent with expected vertex count: "
+            + to_string(x) + " != " + to_string(y) + ".");
+        }
+    }
+
 }
 
 void BlockUniformPrior::sampleState() {
@@ -52,12 +77,5 @@ double BlockUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& mo
 
 };
 
-void BlockUniformPrior::checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) {
-    size_t actualBlockCount = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
-
-    if (actualBlockCount != expectedBlockCount)
-        throw ConsistencyError("BlockUniformPrior: blockSeq is inconsistent with expected block count.");
-
-};
 
 }

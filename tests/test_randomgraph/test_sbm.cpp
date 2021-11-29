@@ -20,7 +20,7 @@ static const int NUM_VERTICES = 50;
 
 class TestStochasticBlockModelFamily: public::testing::Test{
     public:
-        BlockCountPoissonPrior blockCountPrior = {NUM_BLOCKS};
+        BlockCountDeltaPrior blockCountPrior = {NUM_BLOCKS};
         BlockUniformPrior blockPrior = {NUM_VERTICES, blockCountPrior};
         EdgeCountPoissonPrior edgeCountPrior = {NUM_EDGES};
         EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
@@ -243,17 +243,27 @@ TEST_F(TestStochasticBlockModelFamily, getLogLikelihoodRatio_forBlockMove_return
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
 
-// TEST_F(TestStochasticBlockModelFamily, applyMove_forBlockMoveWithNoBlockCreation_changeBlockIdx){
-//     FastMIDyNet::BlockIndex prevBlockIdx = randomGraph.getBlockSequence()[0];
-//     FastMIDyNet::BlockIndex nextBlockIdx = prevBlockIdx;
-//     if (prevBlockIdx == randomGraph.getBlockCount() - 1) nextBlockIdx --;
-//     else nextBlockIdx ++;
-//
-//     FastMIDyNet::BlockMove move = {0, prevBlockIdx, nextBlockIdx, 0};
-//     randomGraph.applyMove(move);
-//     EXPECT_NE(randomGraph.getBlockSequence()[0], prevBlockIdx);
-//     EXPECT_EQ(randomGraph.getBlockSequence()[0], nextBlockIdx);
-// }
+TEST_F(TestStochasticBlockModelFamily, getLogLikelihoodRatio_forBlockMoveWithBlockCreation_returnCorrectLogLikelihoodRatio){
+
+    FastMIDyNet::BlockIndex prevBlockIdx = randomGraph.getBlockSequence()[vertexIdx];
+    FastMIDyNet::BlockIndex nextBlockIdx = randomGraph.getBlockCount();
+
+    FastMIDyNet::BlockMove move = {vertexIdx, prevBlockIdx, nextBlockIdx, 1};
+    double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatio(move);
+    cout << "MOVE = " << vertexIdx << " " << prevBlockIdx << " " << nextBlockIdx << endl;
+    cout << "BEFORE MOVE" << endl;
+    displayMatrix(randomGraph.getEdgeMatrix());
+    displayVector(randomGraph.getEdgeCountsInBlocks());
+    displayVector(randomGraph.getVertexCountsInBlocks());
+    double logLikelihoodBefore = randomGraph.getLogLikelihood();
+    randomGraph.applyMove(move);
+    double logLikelihoodAfter = randomGraph.getLogLikelihood();
+    cout << "AFTER MOVE" << endl;
+    displayMatrix(randomGraph.getEdgeMatrix());
+    displayVector(randomGraph.getEdgeCountsInBlocks());
+    displayVector(randomGraph.getVertexCountsInBlocks());
+    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
+}
 //
 // TEST_F(TestStochasticBlockModelFamily, applyMove_forBlockMoveWithBlockCreation_changeBlockIdxAndBlockCount){
 //     FastMIDyNet::BlockIndex prevBlockIdx = randomGraph.getBlockSequence()[0];
