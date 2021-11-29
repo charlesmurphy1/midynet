@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "FastMIDyNet/prior/dcsbm/block.h"
+#include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/rng.h"

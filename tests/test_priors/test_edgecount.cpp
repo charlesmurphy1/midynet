@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <vector>
 
-#include "FastMIDyNet/prior/dcsbm/edge_count.h"
+#include "FastMIDyNet/prior/sbm/edge_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/exceptions.h"

@@ -11,7 +11,6 @@ class EdgeCountPrior: public Prior<size_t> {
     public:
 
         using Prior::Prior;
-        // EdgeCountPrior(): Prior<size_t>(){}
         void samplePriors() {}
         virtual double getLogLikelihoodFromState(const size_t&) const = 0;
         virtual double getLogLikelihood() const { return getLogLikelihoodFromState(m_state); }
@@ -27,6 +26,10 @@ class EdgeCountPrior: public Prior<size_t> {
 
         void applyGraphMove(const GraphMove& move) {
             processRecursiveFunction( [&](){ setState(getStateAfterGraphMove(move)); } );
+            #if DEBUG
+            checkSelfConsistency();
+            #endif
+
         }
         void applyBlockMove(const BlockMove& move) { }
         size_t getStateAfterGraphMove(const GraphMove&) const;

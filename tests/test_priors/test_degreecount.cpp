@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "FastMIDyNet/prior/dcsbm/degree_count.h"
-#include "FastMIDyNet/prior/dcsbm/edge_count.h"
+#include "FastMIDyNet/prior/sbm/degree_count.h"
+#include "FastMIDyNet/prior/sbm/edge_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
 

@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <string>
 
-#include "FastMIDyNet/prior/dcsbm/block_count.h"
+#include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/exceptions.h"

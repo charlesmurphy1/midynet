@@ -18,9 +18,9 @@ using namespace FastMIDyNet;
 using namespace BaseGraph;
 
 void StochasticBlockModelFamily::sampleState(){
-    auto blockSeq = getBlockSequence();
-    auto edgeMat = getEdgeMatrix();
-    auto graph = generateSBM(blockSeq, edgeMat);
+    const BlockSequence& blockSeq = getBlockSequence();
+    const EdgeMatrix& edgeMat = getEdgeMatrix();
+    MultiGraph graph = generateSBM(blockSeq, edgeMat);
     setState(graph);
 }
 
@@ -33,11 +33,11 @@ void StochasticBlockModelFamily::samplePriors(){
 double StochasticBlockModelFamily::getLogLikelihood() const{
     double logLikelihood = 0;
 
-    auto edgeMat = getEdgeMatrix() ;
-    vector<size_t> edgeCountsInBlocks = getEdgeCountsInBlocks();
-    vector<size_t> vertexCountsInBlocks = getVertexCountsInBlocks();
+    const EdgeMatrix& edgeMat = getEdgeMatrix() ;
+    const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
+    const vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
 
-    auto numBlocks = edgeMat.size();
+    const size_t& numBlocks = edgeMat.size();
     for (size_t r = 0; r < numBlocks; r++) {
         logLikelihood += logDoubleFactorial(edgeMat[r][r]);
         logLikelihood -= edgeCountsInBlocks[r] * log(vertexCountsInBlocks[r]);
@@ -46,7 +46,7 @@ double StochasticBlockModelFamily::getLogLikelihood() const{
         }
     }
 
-    auto graph = getState();
+    const MultiGraph& graph = getState();
     size_t neighborIdx, edgeMult;
     for (auto idx : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
@@ -71,13 +71,9 @@ double StochasticBlockModelFamily::getLogPrior() {
     return logPrior;
 };
 
-double StochasticBlockModelFamily::getLogJoint() {
-    return getLogLikelihood() + getLogPrior();
-};
-
 void StochasticBlockModelFamily::getDiffEdgeMatMapFromEdgeMove( const Edge& edge, int counter, map<pair<BlockIndex, BlockIndex>, int>& diffEdgeMatMap ){
     Edge orderedEdge = getOrderedEdge(edge);
-    BlockSequence blockSeq = getBlockSequence();
+    const BlockSequence& blockSeq = getBlockSequence();
     if (diffEdgeMatMap.count({blockSeq[orderedEdge.first], blockSeq[orderedEdge.second]}) == 0){
         diffEdgeMatMap.insert( pair<pair<BlockIndex, BlockIndex>, int>({blockSeq[orderedEdge.first], blockSeq[orderedEdge.first]}, 0) );
     }
@@ -86,10 +82,10 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromEdgeMove( const Edge& edge
 };
 
 double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) {
-    BlockSequence blockSeq = getBlockSequence();
-    EdgeMatrix edgeMat = getEdgeMatrix();
-    vector<size_t> edgeCountsInBlocks = getEdgeCountsInBlocks();
-    vector<size_t> vertexCountsInBlocks = getVertexCountsInBlocks();
+    const BlockSequence& blockSeq = getBlockSequence();
+    const EdgeMatrix& edgeMat = getEdgeMatrix();
+    const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
+    const vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
     double logLikelihoodRatioTerm = 0;
 
     map<pair<BlockIndex, BlockIndex>, int> diffEdgeMatMap;
@@ -160,7 +156,7 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio (const GraphMove& move)
 }
 
 void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove& move, map<pair<BlockIndex, BlockIndex>, int>& diffEdgeMatMap){
-    BlockSequence blockSeq = getBlockSequence();
+    const BlockSequence& blockSeq = getBlockSequence();
     for (auto neighbor : m_state.getNeighboursOfIdx(move.vertexIdx)){
         VertexIndex idx = neighbor.vertexIndex;
         BlockIndex blockIdx = blockSeq[idx];
@@ -183,10 +179,10 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove
 };
 
 double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
-    BlockSequence blockSeq = getBlockSequence();
-    EdgeMatrix edgeMat = getEdgeMatrix();
-    vector<size_t> edgeCountsInBlocks = getEdgeCountsInBlocks();
-    vector<size_t> verticesInBlock = getVertexCountsInBlocks();
+    const BlockSequence& blockSeq = getBlockSequence();
+    const EdgeMatrix& edgeMat = getEdgeMatrix();
+    const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
+    const vector<size_t>& verticesInBlock = getVertexCountsInBlocks();
     double logLikelihoodRatio = 0;
 
     map<pair<BlockIndex, BlockIndex>, int> diffEdgeMatMap;

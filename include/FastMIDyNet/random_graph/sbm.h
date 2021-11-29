@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "BaseGraph/types.h"
-#include "FastMIDyNet/prior/dcsbm/edge_matrix.h"
-#include "FastMIDyNet/prior/dcsbm/block.h"
+#include "FastMIDyNet/prior/sbm/edge_matrix.h"
+#include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
@@ -46,7 +46,7 @@ public:
 
     double getLogLikelihood() const;
     double getLogPrior() ;
-    double getLogJoint() ;
+    double getLogJoint() { return getLogLikelihood() + getLogPrior(); }
 
     double getLogLikelihoodRatioEdgeTerm (const GraphMove&) ;
     double getLogLikelihoodRatioAdjTerm (const GraphMove&) ;

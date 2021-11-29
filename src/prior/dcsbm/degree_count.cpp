@@ -1,4 +1,4 @@
-#include "FastMIDyNet/prior/dcsbm/degree_count.h"
+#include "FastMIDyNet/prior/sbm/degree_count.h"
 
 
 using namespace FastMIDyNet;

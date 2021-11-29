@@ -1,4 +1,4 @@
-#include "FastMIDyNet/prior/dcsbm/edge_count.h"
+#include "FastMIDyNet/prior/sbm/edge_count.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/exceptions.h"

@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "FastMIDyNet/prior/prior.hpp"
-#include "FastMIDyNet/prior/dcsbm/block_count.h"
+#include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
 

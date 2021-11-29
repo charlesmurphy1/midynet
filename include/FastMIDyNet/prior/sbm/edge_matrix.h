@@ -2,8 +2,8 @@
 #define FAST_MIDYNET_EDGE_MATRIX_H
 
 #include "FastMIDyNet/prior/prior.hpp"
-#include "FastMIDyNet/prior/dcsbm/edge_count.h"
-#include "FastMIDyNet/prior/dcsbm/block.h"
+#include "FastMIDyNet/prior/sbm/edge_count.h"
+#include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"
@@ -19,8 +19,7 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         void setGraph(const MultiGraph& graph);
         void setState(const EdgeMatrix&) override;
 
-        const size_t& getEdgeCount() { return m_edgeCountPrior.getState(); }
-        const size_t& getBlockCount() { return m_blockPrior.getBlockCount(); }
+        const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
         const size_t& getEdgeCount() const { return m_edgeCountPrior.getState(); }
         const std::vector<size_t>& getEdgeCountsInBlocks() { return m_edgeCountsInBlocks; }
         const BlockSequence& getBlockSequence() { return m_blockPrior.getState(); }
@@ -47,9 +46,15 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         void applyBlockMoveToState(const BlockMove&);
         void applyGraphMove(const GraphMove& move){
             processRecursiveFunction( [&]() { m_edgeCountPrior.applyGraphMove(move); m_blockPrior.applyGraphMove(move); applyGraphMoveToState(move); } );
+            #if DEBUG
+            checkSelfConsistency();
+            #endif
         }
         void applyBlockMove(const BlockMove& move) {
             processRecursiveFunction( [&]() { m_edgeCountPrior.applyBlockMove(move); m_blockPrior.applyBlockMove(move); applyBlockMoveToState(move); } );
+            #if DEBUG
+            checkSelfConsistency();
+            #endif
         }
 
         void computationFinished() override {

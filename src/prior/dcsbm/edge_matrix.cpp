@@ -2,7 +2,7 @@
 #include <vector>
 
 
-#include "FastMIDyNet/prior/dcsbm/edge_matrix.h"
+#include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/generators.h"
@@ -42,6 +42,10 @@ void EdgeMatrixPrior::setState(const Matrix<size_t>& edgeMatrix) {
     for (size_t i=0; i<blockCount; i++)
         for (size_t j=0; j<blockCount; j++)
             m_edgeCountsInBlocks[i] += edgeMatrix[i][j];
+
+    #if DEBUG
+    checkSelfConsistency();
+    #endif
 }
 
 void EdgeMatrixPrior::createBlock() {
@@ -112,8 +116,6 @@ void EdgeMatrixPrior::applyGraphMoveToState(const GraphMove& move){
 void EdgeMatrixPrior::applyBlockMoveToState(const BlockMove& move) {
     /* Must be computed before calling createBlock and destroyBlock because these methods
      * change m_edgeCountsInBlocks size*/
-    // bool creatingBlock = m_edgeCountsInBlocks.size()+1 == m_blockPrior.getBlockCount();
-    // bool destroyingBlock = m_edgeCountsInBlocks.size() == m_blockPrior.getBlockCount()+1;
 
     if (move.addedBlocks == 1)
         createBlock();

@@ -2,8 +2,8 @@
 #include <vector>
 #include <iostream>
 
-#include "FastMIDyNet/prior/dcsbm/block_count.h"
-#include "FastMIDyNet/prior/dcsbm/block.h"
+#include "FastMIDyNet/prior/sbm/block_count.h"
+#include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/types.h"

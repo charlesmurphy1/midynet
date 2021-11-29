@@ -2,7 +2,7 @@
 #define FAST_MIDYNET_DEGREE_COUNT_H
 
 #include "FastMIDyNet/prior/prior.hpp"
-#include "FastMIDyNet/prior/dcsbm/edge_count.h"
+#include "FastMIDyNet/prior/sbm/edge_count.h"
 
 
 namespace FastMIDyNet{

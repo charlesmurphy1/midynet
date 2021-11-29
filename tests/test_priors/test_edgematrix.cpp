@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <vector>
 
-#include "FastMIDyNet/prior/dcsbm/edge_matrix.h"
+#include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "fixtures.hpp"
