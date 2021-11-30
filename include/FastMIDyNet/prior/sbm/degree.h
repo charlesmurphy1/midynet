@@ -59,6 +59,7 @@ class DegreePrior: public Prior< DegreeSequence >{
             m_blockPrior.computationFinished();
             m_edgeMatrixPrior.computationFinished();
         }
+        static void checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence&, size_t);
         static void checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(const DegreeSequence&, const BlockSequence&, const std::vector<CounterMap<size_t>>&);
         void checkSelfConsistency() const override;
 

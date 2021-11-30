@@ -60,22 +60,22 @@ void DegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& move){
         if (edge.first != edge.second){
             m_degreeCountsInBlocks[blockSeq[edge.first]].decrement(degreeSeq[edge.first]);
             m_degreeCountsInBlocks[blockSeq[edge.second]].decrement(degreeSeq[edge.second]);
-            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(1 + degreeSeq[edge.first]);
-            m_degreeCountsInBlocks[blockSeq[edge.second]].increment(1 + degreeSeq[edge.second]);
+            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(degreeSeq[edge.first] + 1);
+            m_degreeCountsInBlocks[blockSeq[edge.second]].increment(degreeSeq[edge.second] + 1);
         } else {
             m_degreeCountsInBlocks[blockSeq[edge.first]].decrement(degreeSeq[edge.first]);
-            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(2 + degreeSeq[edge.first]);
+            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(degreeSeq[edge.first] + 2);
         }
     }
     for (auto edge : move.removedEdges){
         if (edge.first != edge.second){
             m_degreeCountsInBlocks[blockSeq[edge.first]].decrement(degreeSeq[edge.first]);
             m_degreeCountsInBlocks[blockSeq[edge.second]].decrement(degreeSeq[edge.second]);
-            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(1 - degreeSeq[edge.first]);
-            m_degreeCountsInBlocks[blockSeq[edge.second]].increment(1 - degreeSeq[edge.second]);
+            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(degreeSeq[edge.first] - 1);
+            m_degreeCountsInBlocks[blockSeq[edge.second]].increment(degreeSeq[edge.second] - 1);
         } else {
             m_degreeCountsInBlocks[blockSeq[edge.first]].decrement(degreeSeq[edge.first]);
-            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(2 - degreeSeq[edge.first]);
+            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(degreeSeq[edge.first] - 2);
         }
     }
 }
@@ -103,9 +103,14 @@ void DegreePrior::applyBlockMove(const BlockMove& move) {
         applyBlockMoveToDegreeCounts(move);
         applyBlockMoveToState(move); }
     );
-    #if DEBUG
-    checkSelfConsistency();
-    #endif
+}
+
+void DegreePrior::checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence& degreeSeq, size_t expectedEdgeCount){
+    size_t actualEdgeCount = 0;
+    for (auto k : degreeSeq) actualEdgeCount += k;
+    if (actualEdgeCount != 2 * expectedEdgeCount)
+        throw ConsistencyError("DegreePrior: degree sequence is inconsistent with expected edge count: "
+        + std::to_string(actualEdgeCount) + "!=" + std::to_string(2 * expectedEdgeCount));
 }
 
 void DegreePrior::checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(
@@ -128,15 +133,16 @@ void DegreePrior::checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(
             if ( expectedDegreeCountsInBlocks[r].isEmpty(k.first) )
                 throw ConsistencyError("DegreePrior: expected degree counts is inconsistent with degree sequence, n_"
                 + std::to_string(k.first) + " is empty.");
-            if ( expectedDegreeCountsInBlocks[r].get(k.first) != k.second )
+            if ( expectedDegreeCountsInBlocks[r][k.first] != k.second )
                 throw ConsistencyError("DegreePrior: expected degree counts is inconsistent with actual degree counts for n_"
                 + std::to_string(k.first) + ": "
-                + std::to_string(expectedDegreeCountsInBlocks[r].get(k.first)) + "!=" + std::to_string(k.second));
+                + std::to_string(expectedDegreeCountsInBlocks[r][k.first]) + "!=" + std::to_string(k.second));
         }
     }
 }
 
 void DegreePrior::checkSelfConsistency() const{
+    checkDegreeSequenceConsistencyWithEdgeCount(getState(), getEdgeCount());
     checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(getState(), getBlockSequence(), getDegreeCountsInBlocks());
 };
 
@@ -175,7 +181,7 @@ double DegreeUniformPrior::getLogLikelihood() const{
     const std::vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
 
     for (size_t r = 0; r < getBlockCount(); r++) {
-        logLikelihood += logMultisetCoefficient(edgeCountsInBlocks[r], vertexCountsInBlocks[r]);
+        logLikelihood -= logMultisetCoefficient(vertexCountsInBlocks[r], edgeCountsInBlocks[r]);
     }
     return logLikelihood;
 }
@@ -193,8 +199,8 @@ double DegreeUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& m
         diffEdgeCountsInBlocksMap.decrement(blockSeq[edge.second]) ;
     }
 
-    const std::vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks() ;
-    const std::vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks() ;
+    const auto& edgeCountsInBlocks = getEdgeCountsInBlocks() ;
+    const auto& vertexCountsInBlocks = getVertexCountsInBlocks() ;
 
     double logLikelihoodRatio = 0;
     for (auto diff : diffEdgeCountsInBlocksMap){

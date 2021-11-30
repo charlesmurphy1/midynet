@@ -9,6 +9,7 @@
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/utility/maps.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 
@@ -40,9 +41,9 @@ public:
     std::vector<size_t> getEdgeCountsInBlocks() const { return m_edgeMatrixPrior.getEdgeCountsInBlocks(); } // à changer lorsque EdgeMatrixPrior sera fait
     const size_t& getEdgeCount() const { return m_edgeMatrixPrior.getEdgeCount(); }
 
-    void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, std::map<std::pair<BlockIndex, BlockIndex>, int>&);
-    void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, std::map<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>, int>&);
-    void getDiffEdgeMatMapFromBlockMove(const BlockMove&, std::map<std::pair<BlockIndex, BlockIndex>, int>&);
+    void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BlockIndex, BlockIndex>>&);
+    void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>>&);
+    void getDiffEdgeMatMapFromBlockMove(const BlockMove&, IntMap<std::pair<BlockIndex, BlockIndex>>&);
 
     double getLogLikelihood() const;
     double getLogPrior() ;

@@ -29,7 +29,7 @@ TEST(MapBaseClass, get_forSomeEmptyKey_returnDefaultValue){
     Map<int, int> map(0);
     EXPECT_EQ(0, map.size());
     EXPECT_EQ(0, map.get(3));
-    EXPECT_EQ(1, map.size());
+    EXPECT_EQ(0, map.size());
 }
 
 TEST(MapBaseClass, set_forSomeEmptyKeyWithSomeValue){
@@ -85,11 +85,26 @@ TEST(MapBaseClass, testing_maps_in_for_loops){
     map.set(1, 5);
     map.set(2, 36);
     map.set(3, 7);
+}
 
-    for(auto k : map){
-        std::cout << k.first << " " << k.second << std::endl;
-    }
+TEST(MapBaseClass,operatorEqualEqual_forSameMap_returnTrue){
+    Map<int, int> map1, map2;
 
+    map1.set(0, 4); map2.set(0, 4);
+    map1.set(1, 5); map2.set(1, 5);
+    map1.set(2, 36); map2.set(2, 36);
+    map1.set(3, 7); map2.set(3, 7);
+    EXPECT_TRUE(map1 == map2);
+}
+
+TEST(MapBaseClass,operatorEqualEqual_forDifferentMap_returnFalse){
+    Map<int, int> map1, map2;
+
+    map1.set(0, 4); map2.set(0, 3); //difference here
+    map1.set(1, 5); map2.set(1, 5);
+    map1.set(2, 36); map2.set(2, 36);
+    map1.set(3, 7); map2.set(3, 7);
+    EXPECT_FALSE(map1 == map2);
 }
 
 TEST(IntMapClass, increment_forEmptyKey_keyIsNow1){
@@ -113,16 +128,6 @@ TEST(IntMapClass, increment_forNonEmptyKeyWithIncEqualToTwo_keyIsIncrementedTwic
     EXPECT_EQ(map[3], 6);
 }
 
-//
-// void increment(KeyType key, size_t inc=1){
-//     if (get(key) + inc == 0) erase(key);
-//     else this->set(key, get(key) + inc);
-// }
-//
-// void decrement(KeyType key, size_t dec=1){
-//     if (get(key) - dec == 0) erase(key);
-//     else this->set(key, get(key) - dec);
-// }
 TEST(CounterMapClass, increment_forEmptyKey_keyIsNow1){
     CounterMap<int> map;
     map.increment(3);

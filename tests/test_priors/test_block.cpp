@@ -62,6 +62,10 @@ class TestBlockPrior: public ::testing::Test {
             prior.setState(blockSeq);
             prior.computationFinished();
         }
+
+        void TearDown(){
+            prior.computationFinished();
+        }
 };
 
 TEST_F(TestBlockPrior, getBlockCount_returnCorrectBlockCount){
@@ -116,20 +120,14 @@ TEST_F(TestBlockPrior, getLogJoint_forSomeBlockMove_return0){
 TEST_F(TestBlockPrior, applyMove_forSomeGraphMove_doNothing){
     GraphMove move({{0,0}}, {});
     prior.applyGraphMove(move);
+    EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
 TEST_F(TestBlockPrior, applyMove_forSomeBlockMove_changeBlockOfNode0From0To1){
     BlockMove move = {0, 0, 1};
     prior.applyBlockMove(move);
+    EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
-
-// void sampleState() {  };
-// void samplePriors() { };
-// double getLogLikelihood() const { return 0.; }
-// double getLogPrior() { return 0.; };
-// double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { if (move.prevBlockIdx != move.nextBlockIdx) return -INFINITY; else return 0.;}
-// double getLogPriorRatioFromBlockMove(const BlockMove& move) { return 0; }
-
 
 class TestBlockDeltaPrior: public::testing::Test{
     public:

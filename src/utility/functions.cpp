@@ -29,7 +29,8 @@ double logDoubleFactorial(size_t n){
 }
 
 double logBinomialCoefficient(size_t n, size_t k){
-    if (n < k) throw invalid_argument("`n` must be greater or equal to `k`.");
+    if (n < k) throw invalid_argument("`n` must be greater or equal to `k`: "
+    + to_string(n) + " !> " + to_string(k));
     return logFactorial(n) - logFactorial(k) - logFactorial(n - k);
 }
 
@@ -49,6 +50,10 @@ double logMultisetCoefficient(size_t n, size_t k){
 
 double logPoissonPMF(size_t x, double mean) {
     return x*log(mean) - logFactorial(x) - mean;
+}
+
+double logZeroTruncatedPoissonPMF(size_t x, double mean) {
+    return x*log(mean) - logFactorial(x) - mean - log(1 - exp(-mean));
 }
 
 BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge& edge) {

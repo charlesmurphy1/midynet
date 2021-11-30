@@ -26,17 +26,19 @@ public:
         return m_map.size();
     }
 
-    const ValueType& operator[](KeyType key){ return get(key); }
-    const ValueType& get(KeyType key) {
-        if ( isEmpty(key) ) set(key, m_defaultValue);
-        return m_map[key];
+    const ValueType& operator[](const KeyType& key) const { return get(key); }
+    bool operator==(const Map<KeyType, ValueType> rhs){
+        for( auto k : *this){
+            if (rhs.isEmpty(k.first) or rhs.get(k.first) != k.second) return false;
+        }
+        return true;
+    }
+    const ValueType& get(const KeyType& key) const {
+        if ( isEmpty(key) ) return m_defaultValue;
+        else return m_map.at(key);
     }
 
-    const ValueType& get(KeyType key) const {
-        return m_map[key];
-    }
-
-    void set(KeyType key, ValueType value) {
+    void set(const KeyType& key, const ValueType& value) {
         m_map[key] = value;
     }
 
@@ -72,6 +74,18 @@ public:
 
     void decrement(KeyType key, int dec=1){ increment(key, -dec); }
 
+};
+
+template < typename T1, typename T2 >
+class OrderedPair: public std::pair<T1, T2>{
+public:
+    OrderedPair(T1 first, T2 second):std::pair<T1, T2>(first, second){
+        if (first > second){
+            auto temp = this->first ;
+            this->first = this->second ;
+            this->second = temp;
+        }
+    }
 };
 
 

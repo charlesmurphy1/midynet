@@ -18,11 +18,14 @@ size_t BlockCountPrior::getStateAfterBlockMove(const BlockMove& move) const {
 };
 
 void BlockCountPoissonPrior::sampleState() {
-    setState(m_poissonDistribution(rng));
+    auto blockCount = 0;
+    while (blockCount == 0) // zero-truncated Poisson sampling
+        blockCount = m_poissonDistribution(rng);
+    setState(blockCount);
 };
 
 double BlockCountPoissonPrior::getLogLikelihoodFromState(const size_t& state) const {
-    return logPoissonPMF(state, m_mean);
+    return logZeroTruncatedPoissonPMF(state, m_mean);
 };
 
 void BlockCountPoissonPrior::checkSelfConsistency() const {

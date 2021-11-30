@@ -15,6 +15,7 @@ double logFactorial(size_t);
 double logDoubleFactorial(size_t);
 double logBinomialCoefficient(size_t, size_t);
 double logPoissonPMF(size_t x, double mean);
+double logZeroTruncatedPoissonPMF(size_t x, double mean);
 double logMultinomialCoefficient(std::list<size_t> sequence);
 double logMultisetCoefficient(size_t n, size_t k);
 
@@ -69,7 +70,7 @@ void displayMatrix(const Matrix<T>& matrix, std::string name="m"){
 }
 template<typename T>
 void displayVector(const std::vector<T>& vec, std::string name="v"){
-    std::cout << name << " = [ " << std::endl;
+    std::cout << name << " = [ ";
     for (auto row : vec){
         std::cout << std::to_string(row) << " ";
     }

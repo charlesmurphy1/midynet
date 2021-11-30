@@ -13,6 +13,7 @@ static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
     //      *                   \__|
     //      *      (6)
     //      */
+    // k = {4, 3, 5, 5, 2, 3, 0}
     FastMIDyNet::MultiGraph graph(7);
     graph.addMultiedgeIdx(0, 2, 3);
     graph.addEdgeIdx(0, 3);

@@ -42,16 +42,11 @@ void EdgeMatrixPrior::setState(const Matrix<size_t>& edgeMatrix) {
     for (size_t i=0; i<blockCount; i++)
         for (size_t j=0; j<blockCount; j++)
             m_edgeCountsInBlocks[i] += edgeMatrix[i][j];
-
-    #if DEBUG
-    checkSelfConsistency();
-    #endif
 }
 
 void EdgeMatrixPrior::createBlock() {
-    const auto& blockCount = m_blockPrior.getBlockCount();
-
-    m_state.push_back(std::vector<size_t>(blockCount - 1, 0));
+    const auto& currentBlockCount = m_state.size();
+    m_state.push_back(std::vector<size_t>(currentBlockCount, 0));
     m_edgeCountsInBlocks.push_back(0);
     for (auto& row: m_state)
         row.push_back(0);

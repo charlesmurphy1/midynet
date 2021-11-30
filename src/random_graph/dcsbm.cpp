@@ -6,6 +6,7 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/random_graph/dcsbm.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/utility/maps.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/types.h"
@@ -75,8 +76,8 @@ double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMov
     const vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
     double logLikelihoodRatioTerm = 0;
 
-    map<pair<BlockIndex, BlockIndex>, int> diffEdgeMatMap;
-    map<BlockIndex, int> diffEdgeCountsInBlocksMap;
+    IntMap<pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
+    IntMap<BlockIndex> diffEdgeCountsInBlocksMap;
 
     for (auto edge : move.addedEdges){
         getDiffEdgeMatMapFromEdgeMove(edge, 1, diffEdgeMatMap);
@@ -87,10 +88,8 @@ double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMov
 
     for (auto diff : diffEdgeMatMap){
         auto bu = diff.first.first, bv = diff.first.second;
-        if (diffEdgeCountsInBlocksMap.count(bu) == 0) diffEdgeCountsInBlocksMap.insert(pair<BlockIndex, int>(bu, 0) );
-        diffEdgeCountsInBlocksMap[bu] += diff.second;
-        if (diffEdgeCountsInBlocksMap.count(bv) == 0) diffEdgeCountsInBlocksMap.insert(pair<BlockIndex, int>(bv, 0) );
-        diffEdgeCountsInBlocksMap[bv] += diff.second;
+        diffEdgeCountsInBlocksMap.increment(bu, diff.second);
+        diffEdgeCountsInBlocksMap.increment(bv, diff.second);
         if (bu == bv){
             logLikelihoodRatioTerm += logDoubleFactorial(edgeMat[bu][bv] + 2 * diff.second) - logDoubleFactorial(edgeMat[bu][bv]);
         }
@@ -106,24 +105,20 @@ double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMov
 };
 
 double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (const GraphMove& move) {
-    map<pair<VertexIndex, VertexIndex>, int> diffAdjMatMap;
-    map<VertexIndex, int> diffDegreeMap;
+    IntMap<pair<VertexIndex, VertexIndex>> diffAdjMatMap;
+    IntMap<VertexIndex> diffDegreeMap;
     double logLikelihoodRatioTerm = 0;
 
 
     for (auto edge : move.addedEdges){
         getDiffAdjMatMapFromEdgeMove(edge, 1, diffAdjMatMap);
-        if (diffDegreeMap.count(edge.first) == 0) diffDegreeMap.insert({edge.first, 0});
-        ++ diffDegreeMap[edge.first];
-        if (diffDegreeMap.count(edge.second) == 0) diffDegreeMap.insert({edge.second, 0});
-        ++ diffDegreeMap[edge.second];
+        diffDegreeMap.increment(edge.first);
+        diffDegreeMap.increment(edge.second);
     }
     for (auto edge : move.removedEdges){
         getDiffAdjMatMapFromEdgeMove(edge, -1, diffAdjMatMap);
-        if (diffDegreeMap.count(edge.first) == 0) diffDegreeMap.insert({edge.first, 0});
-        -- diffDegreeMap[edge.first];
-        if (diffDegreeMap.count(edge.second) == 0) diffDegreeMap.insert({edge.second, 0});
-        -- diffDegreeMap[edge.second];
+        diffDegreeMap.decrement(edge.first);
+        diffDegreeMap.decrement(edge.second);
     }
 
     for (auto diff : diffAdjMatMap){
@@ -155,16 +150,14 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio(const Bl
     vector<size_t> edgesInBlock = getEdgeCountsInBlocks();
     double logLikelihoodRatio = 0;
 
-    map<pair<BlockIndex, BlockIndex>, int> diffEdgeMatMap;
-    map<BlockIndex, int> diffEdgesInBlockMap;
+    IntMap<pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
+    IntMap<BlockIndex> diffEdgesInBlockMap;
 
     getDiffEdgeMatMapFromBlockMove(move, diffEdgeMatMap);
     for (auto it=diffEdgeMatMap.begin(); it!= diffEdgeMatMap.end(); ++it){
         auto bu = it->first.first, bv = it->first.second;
-        if (diffEdgesInBlockMap.count(bu) == 0) diffEdgesInBlockMap.insert(pair<BlockIndex, size_t>(bu, 0) );
-        if (diffEdgesInBlockMap.count(bv) == 0) diffEdgesInBlockMap.insert(pair<BlockIndex, size_t>(bv, 0) );
-        diffEdgesInBlockMap[bu] += it->second;
-        diffEdgesInBlockMap[bv] += it->second;
+        diffEdgesInBlockMap.increment(bu, it->second);
+        diffEdgesInBlockMap.increment(bv, it->second);
         if (bu == bv){
             logLikelihoodRatio += logDoubleFactorial(edgeMat[bu][bv] + 2 * it->second) - logDoubleFactorial(edgeMat[bu][bv]);
         }
