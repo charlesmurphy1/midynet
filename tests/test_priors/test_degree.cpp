@@ -11,6 +11,7 @@
 #include "FastMIDyNet/prior/sbm/degree.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/exceptions.h"
 
@@ -20,6 +21,7 @@ const double GRAPH_SIZE=7;
 const double BLOCK_COUNT=5;
 const double POISSON_MEAN=5;
 const BlockSequence BLOCK_SEQ={0,0,0,0,1,1,1};
+const double TOL=1E-8;
 
 
 class DummyDegreePrior: public DegreePrior {
@@ -132,7 +134,7 @@ TEST_F(TestDegreePrior, applyBlockMoveToState_forNonEmptyBlockMove_doNothing){
 }
 
 TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
-    blockPrior.setState({0,0,0,0,1,1,1});
+    blockPrior.setState(BLOCK_SEQ);
     FastMIDyNet::GraphMove move = {{}, {{0,1}}};
     size_t E = prior.getEdgeCount();
     auto expected = prior.getDegreeCountsInBlocks();
@@ -147,7 +149,7 @@ TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectD
 }
 
 TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrectDegreeCounts){
-    blockPrior.setState({0,0,0,0,1,1,1});
+    blockPrior.setState(BLOCK_SEQ);
     FastMIDyNet::GraphMove move = {{{0, 6}}, {}};
     size_t E = prior.getEdgeCount();
     auto expected = prior.getDegreeCountsInBlocks();
@@ -162,7 +164,6 @@ TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrec
 }
 
 TEST_F(TestDegreePrior, applyBlockMoveToDegreeCounts_forNonEmptyBlockMove_returnCorrectDegreeCounts){
-    blockPrior.setState({0,0,0,0,1,1,1});
     FastMIDyNet::BlockMove move = {0, 0, 1, 0};
     size_t E = prior.getEdgeCount();
     auto expected = prior.getDegreeCountsInBlocks();
@@ -176,12 +177,14 @@ TEST_F(TestDegreePrior, applyBlockMoveToDegreeCounts_forNonEmptyBlockMove_return
     }
 }
 
+
+
 class TestDegreeUniformPrior: public ::testing::Test {
     public:
 
         FastMIDyNet::BlockCountPoissonPrior blockCountPrior = FastMIDyNet::BlockCountPoissonPrior(POISSON_MEAN);
-        FastMIDyNet::BlockUniformPrior blockPrior = FastMIDyNet::BlockUniformPrior(GRAPH_SIZE, blockCountPrior);
-        FastMIDyNet::EdgeCountPoissonPrior edgeCountPrior = FastMIDyNet::EdgeCountPoissonPrior(POISSON_MEAN);
+        FastMIDyNet::BlockUniformPrior blockPrior = FastMIDyNet::BlockUniformPrior(100, blockCountPrior);
+        FastMIDyNet::EdgeCountPoissonPrior edgeCountPrior = FastMIDyNet::EdgeCountPoissonPrior(200);
         FastMIDyNet::EdgeMatrixUniformPrior edgeMatrixPrior = FastMIDyNet::EdgeMatrixUniformPrior(edgeCountPrior, blockPrior);
         FastMIDyNet::DegreeUniformPrior prior = FastMIDyNet::DegreeUniformPrior(blockPrior, edgeMatrixPrior);
         void SetUp() {
@@ -189,9 +192,6 @@ class TestDegreeUniformPrior: public ::testing::Test {
             prior.computationFinished();
         }
 };
-
-// double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const;
-// double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
 
 TEST_F(TestDegreeUniformPrior, sampleState_returnConsistentState){
     prior.sampleState();
@@ -210,5 +210,18 @@ TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_r
     prior.applyGraphMove(move);
     double logLikelihoodAfter = prior.getLogLikelihood();
 
-    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
+    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
+}
+
+TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_returnCorrectRatio){
+    BaseGraph::VertexIndex idx = 0;
+    auto g = FastMIDyNet::generateDCSBM(prior.getBlockSequence(), prior.getEdgeMatrix(), prior.getState());
+    prior.setGraph(g);
+    FastMIDyNet::BlockMove move = {idx, prior.getBlockSequence()[idx], prior.getBlockSequence()[idx] + 1, 0};
+    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
+    double logLikelihoodBefore = prior.getLogLikelihood();
+    prior.applyBlockMove(move);
+    double logLikelihoodAfter = prior.getLogLikelihood();
+
+    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
 }

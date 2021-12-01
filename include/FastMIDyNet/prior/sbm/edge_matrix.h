@@ -17,6 +17,7 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
             m_edgeCountPrior(edgeCountPrior), m_blockPrior(blockPrior) {}
 
         void setGraph(const MultiGraph& graph);
+        const MultiGraph& getGraph() { return *m_graph; }
         void setState(const EdgeMatrix&) override;
 
         const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }

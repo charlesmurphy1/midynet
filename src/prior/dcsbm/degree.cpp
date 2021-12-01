@@ -8,18 +8,17 @@
 #include "FastMIDyNet/utility/maps.h"
 
 namespace FastMIDyNet{
-
-
 void DegreePrior::setGraph(const MultiGraph& graph) {
     m_graph = &graph;
+    m_edgeMatrixPrior.setGraph(graph);
     const auto& blockSeq = getBlockSequence();
     const auto& blockCount = getBlockCount();
 
     m_state = graph.getDegrees();
-    m_degreeCountsInBlocks = DegreeCountsMap(blockCount, 0);
+    m_degreeCountsInBlocks = std::vector<CounterMap<BlockIndex>>(blockCount, 0);
 
-    for (auto idx: graph){
-        m_degreeCountsInBlocks[blockSeq[idx]].increment(m_state[idx]);
+    for (auto vertex: graph){
+        m_degreeCountsInBlocks[blockSeq[vertex]].increment(m_state[vertex]);
     }
 }
 
@@ -27,9 +26,6 @@ void DegreePrior::setGraph(const MultiGraph& graph) {
 void DegreePrior::setState(const DegreeSequence& degreeSeq) {
     m_degreeCountsInBlocks = computeDegreeCountsInBlocks(degreeSeq, getBlockSequence());
     m_state = degreeSeq;
-    #if DEBUG
-    checkSelfConsistency();
-    #endif
 }
 
 std::vector<CounterMap<size_t>> DegreePrior::computeDegreeCountsInBlocks(const DegreeSequence& degreeSeq, const BlockSequence& blockSeq){
@@ -79,6 +75,7 @@ void DegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& move){
         }
     }
 }
+
 void DegreePrior::applyBlockMoveToDegreeCounts(const BlockMove& move){
     const DegreeSequence& degreeSeq = getState();
     m_degreeCountsInBlocks[move.prevBlockIdx].decrement(degreeSeq[move.vertexIdx]);
@@ -92,9 +89,6 @@ void DegreePrior::applyGraphMove(const GraphMove& move){
         applyGraphMoveToDegreeCounts(move);
         applyGraphMoveToState(move); }
     );
-    #if DEBUG
-    checkSelfConsistency();
-    #endif
 }
 void DegreePrior::applyBlockMove(const BlockMove& move) {
     processRecursiveFunction( [&]() {
@@ -181,7 +175,7 @@ double DegreeUniformPrior::getLogLikelihood() const{
     const std::vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
 
     for (size_t r = 0; r < getBlockCount(); r++) {
-        logLikelihood -= logMultisetCoefficient(vertexCountsInBlocks[r], edgeCountsInBlocks[r]);
+        logLikelihood -= logMultisetCoefficient(edgeCountsInBlocks[r], vertexCountsInBlocks[r]);
     }
     return logLikelihood;
 }
@@ -206,7 +200,7 @@ double DegreeUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& m
     for (auto diff : diffEdgeCountsInBlocksMap){
         auto er = edgeCountsInBlocks[diff.first];
         auto nr = vertexCountsInBlocks[diff.first];
-        logLikelihoodRatio += logMultisetCoefficient(er + diff.second, nr) - logMultisetCoefficient(er, nr);
+        logLikelihoodRatio -= logMultisetCoefficient(er + diff.second, nr) - logMultisetCoefficient(er, nr);
     }
 
     return logLikelihoodRatio;
@@ -218,7 +212,7 @@ double DegreeUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& m
     IntMap<BlockIndex> diffVertexCountsInBlocksMap;
     diffVertexCountsInBlocksMap.decrement(move.prevBlockIdx);
     diffVertexCountsInBlocksMap.increment(move.nextBlockIdx);
-    for (auto neighbor : m_graph->getNeighboursOfIdx(move.vertexIdx)){
+    for (auto neighbor : getGraph().getNeighboursOfIdx(move.vertexIdx)){
         auto neighborIdx = neighbor.vertexIndex;
         auto neighborBlockIdx = blockSeq[neighborIdx];
         auto edgeMult = neighbor.label;
@@ -228,13 +222,13 @@ double DegreeUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& m
 
     const std::vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks() ;
     const std::vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks() ;
-
     double logLikelihoodRatio = 0;
-    for (auto diff : diffEdgeCountsInBlocksMap){
-        auto er = edgeCountsInBlocks[diff.first];
-        auto nr = vertexCountsInBlocks[diff.first];
-        auto dnr = diffVertexCountsInBlocksMap.get(diff.first);
-        logLikelihoodRatio += logMultisetCoefficient(er + diff.second, nr + dnr) - logMultisetCoefficient(er, nr);
+    for (size_t r = 0 ; r < getBlockCount() ; ++r){
+        auto er = edgeCountsInBlocks[r];
+        auto nr = vertexCountsInBlocks[r];
+        auto dnr = diffVertexCountsInBlocksMap.get(r);
+        auto der = diffEdgeCountsInBlocksMap.get(r);
+        logLikelihoodRatio -= logMultisetCoefficient(er + der, nr + dnr) - logMultisetCoefficient(er, nr);
     }
 
     return logLikelihoodRatio;

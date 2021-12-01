@@ -45,7 +45,11 @@ double logMultinomialCoefficient(std::list<size_t> sequence) {
     return lgamma(sumSequence + 1) - sumLGammaSequencePlusOne;
 }
 double logMultisetCoefficient(size_t n, size_t k){
-    return logBinomialCoefficient(n + k - 1, k);
+    if (n == 0){
+        return 0;
+    } else {
+        return logBinomialCoefficient(n + k - 1, k);
+    }
 }
 
 double logPoissonPMF(size_t x, double mean) {

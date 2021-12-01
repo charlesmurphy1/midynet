@@ -44,6 +44,7 @@ std::vector<size_t> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k
 
 
 std::list<size_t> sampleRandomComposition(size_t n, size_t k) {
+    // sample the composition of n into exactly k parts
     std::list<size_t> composition;
     std::vector<size_t> uniformRandomSequence(k-1);
 
@@ -59,11 +60,13 @@ std::list<size_t> sampleRandomComposition(size_t n, size_t k) {
 
 
 std::list<size_t> sampleRandomWeakComposition(size_t n, size_t k) {
+    // sample the weak composition of n into exactly k parts
     if (k == 1){
         std::list<size_t> ret = {n};
         return ret;
     } else if (k == 0){
-        throw std::invalid_argument("k must be greater than 0.");
+        std::list<size_t> ret;
+        return ret;
     }
     std::list<size_t> weakComposition;
     std::vector<size_t> uniformRandomSequence(k-1);
@@ -75,6 +78,7 @@ std::list<size_t> sampleRandomWeakComposition(size_t n, size_t k) {
     for (size_t i=1; i<uniformRandomSequence.size(); i++)
         weakComposition.push_back(uniformRandomSequence[i] - uniformRandomSequence[i-1] - 1);
     weakComposition.push_back(n + k - 2 - uniformRandomSequence[k-2]);
+
     return weakComposition;
 }
 

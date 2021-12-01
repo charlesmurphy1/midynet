@@ -18,12 +18,14 @@ class DegreePrior: public Prior< DegreeSequence >{
             m_blockPrior(blockPrior), m_edgeMatrixPrior(edgeMatrixPrior) {}
 
         void setGraph(const MultiGraph&);
+        const MultiGraph& getGraph() const { return *m_graph; }
         void setState(const DegreeSequence&) override;
 
         const size_t& getSize() const { return m_blockPrior.getSize(); }
         const size_t& getEdgeCount() const { return m_edgeMatrixPrior.getEdgeCount(); }
         const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
         const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPrior.getEdgeCountsInBlocks(); }
+        const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPrior.getState(); }
         const BlockSequence& getBlockSequence() const { return m_blockPrior.getState(); }
         const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPrior.getVertexCountsInBlocks(); }
         static DegreeCountsMap computeDegreeCountsInBlocks(const DegreeSequence& degreeSeq, const BlockSequence& blockSeq);
