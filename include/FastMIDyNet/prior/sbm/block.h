@@ -2,6 +2,7 @@
 #define FAST_MIDYNET_BLOCK_H
 
 #include <vector>
+#include <iostream>
 
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/prior/sbm/block_count.h"
@@ -78,7 +79,10 @@ public:
     double getLogLikelihood() const { return 0.; }
     double getLogPrior() { return 0.; };
 
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { if (move.prevBlockIdx != move.nextBlockIdx) return -INFINITY; else return 0.;}
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+        if (move.prevBlockIdx != move.nextBlockIdx) return -INFINITY;
+        else return 0.;
+    }
     double getLogPriorRatioFromBlockMove(const BlockMove& move) { return 0; }
     double getLogJointRatioFromBlockMove(const BlockMove& move) {
         return processRecursiveFunction<double>( [&](){ return getLogLikelihoodRatioFromBlockMove(move); }, 0);

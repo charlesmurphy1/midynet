@@ -126,7 +126,7 @@ void EdgeMatrixPrior::checkSelfConsistency() const {
     m_edgeCountPrior.checkSelfConsistency();
 
     const size_t& blockCount = m_blockPrior.getBlockCount();
-    verifyVectorHasSize(m_edgeCountsInBlocks, blockCount, "m_edgeCoutInBlocks", "blocks");
+    verifyVectorHasSize(m_edgeCountsInBlocks, blockCount, "m_edgeCountInBlocks", "blocks");
     verifyVectorHasSize(m_state, blockCount, "Edge matrix", "blocks");
 
     std::vector<size_t> actualEdgeCountsInBlocks(blockCount, 0);

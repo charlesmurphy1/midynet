@@ -4,6 +4,7 @@
 
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/utility/polylog2_integral.h"
 #include "FastMIDyNet/exceptions.h"
 
 
@@ -11,10 +12,11 @@ using namespace std;
 
 namespace FastMIDyNet {
 
-
+const size_t MAX_INTEGER_THRESHOLD = 500;
 
 double logFactorial(size_t n){
-    return lgamma(n + 1);
+    if (n < MAX_INTEGER_THRESHOLD) return lgamma(n + 1);
+    else return 0.5 * sqrt(2 * PI * n) + n * (log(n) - 1);
 }
 
 double logDoubleFactorial(size_t n){

@@ -11,14 +11,16 @@
 namespace FastMIDyNet{
 
 class ErdosRenyiFamily: public StochasticBlockModelFamily{
-// protected:
-//     EdgeMatrixPrior& m_edgeMatrixPrior;
-//     BlockPrior& m_blockPrior;
-// public:
-//     ErdosRenyiFamily(size_t graphSize, EdgeCountPrior& edgeMatrixPrior):
-//     m_edgeMatrixPrior(edgeMatrixPrior),m_blockPrior(blockPrior), RandomGraph(blockPrior.getSize()) { }
-
-
+protected:
+    EdgeMatrixUniformPrior m_edgeMatrixUniformPrior;
+    BlockSequence m_blockSeq;
+    BlockDeltaPrior m_blockDeltaPrior;
+public:
+    ErdosRenyiFamily(size_t graphSize, EdgeCountPrior& edgeCountPrior):
+    m_blockSeq(graphSize, 0),
+    m_blockDeltaPrior(m_blockSeq),
+    m_edgeMatrixUniformPrior(edgeCountPrior, m_blockDeltaPrior),
+    StochasticBlockModelFamily(m_blockDeltaPrior, m_edgeMatrixUniformPrior){ }
 };
 
 }// end FastMIDyNet

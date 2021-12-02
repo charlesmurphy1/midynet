@@ -29,4 +29,29 @@ void EdgeCountPoissonPrior::checkSelfConsistency() const {
         throw ConsistencyError("EdgeCountPoissonPrior: Negative state `" + std::to_string(m_state) + "`.");
 }
 
+void EdgeCountMultisetPrior::sampleState(){
+    size_t E = m_maxWeightEdgeCount;
+    std::uniform_int_distribution<int> flipDist(0, 1);
+    std::uniform_real_distribution<double> uniformDist(0, 1);
+
+    for(size_t i = 0; i < m_iteration; ++i){
+        int dE = 2 * flipDist(rng) - 1;
+
+        if (static_cast<int>(E + dE) > 0 and E + dE <= m_maxEdgeCount){
+            double dS = this->getWeight(E + dE) - this->getWeight(E);
+
+            if ( uniformDist(rng) < exp(dS) ) E += dE;
+        }
+    }
+    setState(E);
+}
+
+double EdgeCountMultisetPrior::getLogNormalization() const {
+    double Z = 0, maxLogZ = getWeight(m_maxWeightEdgeCount);
+    for (size_t i = 0; i <= m_maxEdgeCount; ++i){
+        Z += exp(getWeight(i) - maxLogZ);
+    }
+    return log(Z) + maxLogZ;
+}
+
 }
