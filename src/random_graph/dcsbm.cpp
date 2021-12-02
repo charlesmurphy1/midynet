@@ -54,7 +54,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{
             if (idx < neighborIdx){
                 continue;
             }else if (idx == neighborIdx){
-                logLikelihood -= logDoubleFactorial(edgeMult);
+                logLikelihood -= logDoubleFactorial(2 * edgeMult);
             }else{
                 logLikelihood -= logFactorial(edgeMult);
             }
@@ -69,7 +69,8 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogPrior() {
     computationFinished();
     return logPrior;
 };
-double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) {
+
+double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) {
     const BlockSequence& blockSeq = getBlockSequence();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
@@ -125,7 +126,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (
         auto u = diff.first.first, v = diff.first.second;
         auto edgeMult = m_state.getEdgeMultiplicityIdx(u, v);
         if (u == v){
-            logLikelihoodRatioTerm -= logDoubleFactorial(2 * edgeMult + 2 * diff.second) - logDoubleFactorial(2 * edgeMult);
+            logLikelihoodRatioTerm -= logDoubleFactorial(2 * (edgeMult + diff.second)) - logDoubleFactorial(2 * edgeMult);
         }
         else{
             logLikelihoodRatioTerm -= logFactorial(edgeMult + diff.second) - logFactorial(edgeMult);
@@ -152,23 +153,31 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio(const Bl
 
     IntMap<pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
     IntMap<BlockIndex> diffEdgesInBlockMap;
-
     getDiffEdgeMatMapFromBlockMove(move, diffEdgeMatMap);
-    for (auto it=diffEdgeMatMap.begin(); it!= diffEdgeMatMap.end(); ++it){
-        auto bu = it->first.first, bv = it->first.second;
-        diffEdgesInBlockMap.increment(bu, it->second);
-        diffEdgesInBlockMap.increment(bv, it->second);
+    for (auto diff : diffEdgeMatMap){
+        size_t ers;
+        auto bu = diff.first.first, bv = diff.first.second;
+        auto dErs = diff.second;
+        diffEdgesInBlockMap.increment(bu, dErs);
+        diffEdgesInBlockMap.increment(bv, dErs);
+
+        if (bu == getBlockCount() or bv == getBlockCount()) ers = 0;
+        else ers = edgeMat[bu][bv];
         if (bu == bv){
-            logLikelihoodRatio += logDoubleFactorial(edgeMat[bu][bv] + 2 * it->second) - logDoubleFactorial(edgeMat[bu][bv]);
+            logLikelihoodRatio += logDoubleFactorial(ers + 2 * dErs) - logDoubleFactorial(ers);
         }
         else{
-            logLikelihoodRatio += logFactorial(edgeMat[bu][bv] + it->second) - logFactorial(edgeMat[bu][bv]);
+            logLikelihoodRatio += logFactorial(ers + dErs) - logFactorial(ers);
         }
     }
 
-    for (auto it=diffEdgesInBlockMap.begin(); it!= diffEdgesInBlockMap.end(); ++it){
-            auto bu = it->first;
-            logLikelihoodRatio -= logFactorial(edgesInBlock[bu] + it->second) - logFactorial(edgesInBlock[bu]);
+    for (auto diff : diffEdgesInBlockMap){
+            size_t er = 0;
+            auto bu = diff.first;
+            auto dEr = diff.second;
+            if (bu == getBlockCount()) er = 0;
+            else er = edgesInBlock[bu];
+            logLikelihoodRatio -= logFactorial(er + dEr) - logFactorial(er);
     }
     return logLikelihoodRatio;
 };
@@ -208,12 +217,10 @@ void DegreeCorrectedStochasticBlockModelFamily::applyMove (const BlockMove& move
 DegreeSequence DegreeCorrectedStochasticBlockModelFamily::getDegreeSequenceFromGraph(const MultiGraph& graph){
     DegreeSequence degreeSeq(graph.getSize(), 0);
 
-    size_t neighborIdx, edgeMult ;
     for (auto idx : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
-            neighborIdx = neighbor.vertexIndex;
-            edgeMult = neighbor.label;
-            degreeSeq[idx] += edgeMult;
+            if (idx == neighbor.vertexIndex) degreeSeq[idx] += 2 * neighbor.label;
+            else degreeSeq[idx] += neighbor.label;
         }
     }
 
@@ -222,9 +229,11 @@ DegreeSequence DegreeCorrectedStochasticBlockModelFamily::getDegreeSequenceFromG
 
 void DegreeCorrectedStochasticBlockModelFamily::checkGraphConsistencyWithDegreeSequence(const MultiGraph& graph, const DegreeSequence& expectedDegreeSeq){
     DegreeSequence actualDegreeSeq = getDegreeSequenceFromGraph(graph);
+
     for (auto idx : graph){
         if (expectedDegreeSeq[idx] != actualDegreeSeq[idx])
-            throw "Inconsistency error on degree sequence in DCSBM family.";
+            throw ConsistencyError("DCSBMFamily: expected degree of index " + to_string(idx)
+            + " is inconsistent with graph : " + to_string(expectedDegreeSeq[idx]) + " != " + to_string(actualDegreeSeq[idx]));
     }
 }
 

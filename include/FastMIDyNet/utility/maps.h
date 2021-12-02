@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <map>
+#include <string>
+#include <sstream>
 #include <vector>
 
 namespace FastMIDyNet{
@@ -49,6 +51,14 @@ public:
     void erase(KeyType key){ if (not isEmpty(key)) { m_map.erase(key); }}
     typename std::map<KeyType, ValueType>::iterator begin() { return m_map.begin(); }
     typename std::map<KeyType, ValueType>::iterator end() { return m_map.end(); }
+
+    std::string display() const{
+        std::stringstream ss;
+        for (auto k : m_map){
+            ss << "(" << std::to_string(k.first) << " -> " << std::to_string(k.second) << ") ";
+        }
+        return ss.str();
+    }
 
 protected:
     std::map<KeyType, ValueType> m_map;

@@ -30,6 +30,7 @@ public:
         m_blockCountPrior.sample();
     }
     const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
+    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
     static std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&);
     const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
     const size_t& getSize() const { return m_size; }

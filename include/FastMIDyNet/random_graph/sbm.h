@@ -25,15 +25,10 @@ public:
 
     void sampleState () ;
     void samplePriors () ;
-    void sample(){
-        samplePriors();
-        sampleState();
-        m_edgeMatrixPrior.setGraph(m_state);
-        #if DEBUG
-        checkSelfConsistency();
-        #endif
-    }
 
+    void setState(const MultiGraph& state) { m_state = state; m_edgeMatrixPrior.setGraph(m_state); }
+
+    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_blockPrior.getBlockOfIdx(idx); }
     const BlockSequence& getBlockSequence() const { return m_blockPrior.getState(); }
     const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
     const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPrior.getVertexCountsInBlocks(); }
@@ -70,9 +65,6 @@ public:
 
     static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
     static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
-    static void checkGraphConsistencyWithDegreeSequence(const MultiGraph& graph, const DegreeSequence& degreeSeq) ;
-
-
     void checkSelfConsistency() ;
 
 };

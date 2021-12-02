@@ -150,17 +150,16 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio (const GraphMove& move)
 void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove& move, IntMap<pair<BlockIndex, BlockIndex>>& diffEdgeMatMap){
     const BlockSequence& blockSeq = getBlockSequence();
     for (auto neighbor : m_state.getNeighboursOfIdx(move.vertexIdx)){
-        VertexIndex idx = neighbor.vertexIndex;
-        BlockIndex blockIdx = blockSeq[idx];
+        BlockIndex blockIdx = blockSeq[neighbor.vertexIndex];
         size_t edgeMult = neighbor.label;
         pair<BlockIndex, BlockIndex> orderedBlockPair = getOrderedPair<BlockIndex> ({move.prevBlockIdx, blockIdx});
-        diffEdgeMatMap.decrement(orderedBlockPair, edgeMult);
+        diffEdgeMatMap.decrement(orderedBlockPair, neighbor.label);
 
-        if (idx == move.vertexIdx) // handling self-loops
+        if (neighbor.vertexIndex == move.vertexIdx) // handling self-loops
             blockIdx = move.nextBlockIdx;
 
         orderedBlockPair = getOrderedPair<BlockIndex> ({move.nextBlockIdx, blockIdx});
-        diffEdgeMatMap.increment(orderedBlockPair, edgeMult);
+        diffEdgeMatMap.increment(orderedBlockPair, neighbor.label);
     }
 };
 
@@ -180,7 +179,6 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
 
 
     getDiffEdgeMatMapFromBlockMove(move, diffEdgeMatMap);
-    // displayMatrix(edgeMat);
 
     for (auto diff : diffEdgeMatMap){
         auto bu = diff.first.first, bv = diff.first.second;
@@ -198,16 +196,18 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
         }
     }
 
-    for (auto diff : diffEdgeCountsInBlocksMap){
-        if (diff.first < getBlockCount()) {
-            auto er = edgeCountsInBlocks[ diff.first ];
-            auto nr = verticesInBlock[ diff.first ];
-            if (er + diff.second == 0 && nr + diffVertexCountsInBlocksMap[diff.first] == 0)
+    for (size_t r = 0; r <= getBlockCount(); ++r){
+        int dEr = diffEdgeCountsInBlocksMap[r];
+        int dNr = diffVertexCountsInBlocksMap[r];
+        if (r < getBlockCount()) {
+            auto er = edgeCountsInBlocks[r];
+            auto nr = verticesInBlock[r];
+            if (er + dEr == 0 && nr + dNr == 0)
                 logLikelihoodRatio -= -er * log(nr);
             else
-                logLikelihoodRatio -= (er + diff.second) * log(nr + diffVertexCountsInBlocksMap[diff.first]) - er * log(nr);
-        } else if (diff.first == getBlockCount() && diff.second != 0){
-            logLikelihoodRatio -= (diff.second) * log(diffVertexCountsInBlocksMap[diff.first]);
+                logLikelihoodRatio -= (er + dEr) * log(nr + dNr) - er * log(nr);
+        } else if (r == getBlockCount() && dEr != 0){
+            logLikelihoodRatio -= (dEr) * log(dNr);
         }
     }
 

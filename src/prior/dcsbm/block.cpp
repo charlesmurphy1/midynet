@@ -7,6 +7,7 @@
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/rng.h"
+#include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/exceptions.h"
 
 
@@ -20,7 +21,7 @@ vector<size_t> BlockPrior::computeVertexCountsInBlocks(const BlockSequence& stat
 
     vector<size_t> vertexCount(blockCount, 0);
     for (auto blockIdx: state) {
-        vertexCount[blockIdx]++;
+        ++vertexCount[blockIdx];
     }
 
     return vertexCount;
@@ -31,7 +32,7 @@ void BlockPrior::checkBlockSequenceConsistencyWithBlockCount(const BlockSequence
     if (actualBlockCount != expectedBlockCount)
         throw ConsistencyError("BlockPrior: blockSeq is inconsistent with expected block count.");
 
-};
+}
 
 void BlockPrior::checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, std::vector<size_t> expectedVertexCountsInBlocks) {
     vector<size_t> actualVertexCountsInBlocks = computeVertexCountsInBlocks(blockSeq);
@@ -57,12 +58,12 @@ void BlockUniformPrior::sampleState() {
         blockSeq[vertexIdx] = dist(rng);
     }
     setState(blockSeq);
-};
+}
 
 
 double BlockUniformPrior::getLogLikelihood() const {
     return -logMultisetCoefficient(getSize(), getBlockCount());
-};
+}
 
 
 
@@ -73,9 +74,7 @@ double BlockUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& mo
     logLikelihoodRatio += -logMultisetCoefficient(getSize(), newNumBlocks);
     logLikelihoodRatio -= -logMultisetCoefficient(getSize(), prevNumBlocks);
     return logLikelihoodRatio;
-
-
-};
+}
 
 
 }

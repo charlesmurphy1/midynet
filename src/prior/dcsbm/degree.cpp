@@ -7,6 +7,8 @@
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/utility/maps.h"
 
+using namespace std;
+
 namespace FastMIDyNet{
 void DegreePrior::setGraph(const MultiGraph& graph) {
     m_graph = &graph;
@@ -15,7 +17,7 @@ void DegreePrior::setGraph(const MultiGraph& graph) {
     const auto& blockCount = getBlockCount();
 
     m_state = graph.getDegrees();
-    m_degreeCountsInBlocks = std::vector<CounterMap<BlockIndex>>(blockCount, 0);
+    m_degreeCountsInBlocks = vector<CounterMap<BlockIndex>>(blockCount, 0);
 
     for (auto vertex: graph){
         m_degreeCountsInBlocks[blockSeq[vertex]].increment(m_state[vertex]);
@@ -28,8 +30,8 @@ void DegreePrior::setState(const DegreeSequence& degreeSeq) {
     m_state = degreeSeq;
 }
 
-std::vector<CounterMap<size_t>> DegreePrior::computeDegreeCountsInBlocks(const DegreeSequence& degreeSeq, const BlockSequence& blockSeq){
-    if (blockSeq.size() != degreeSeq.size()) throw std::invalid_argument("blockSeq and degreeSeq have different sizes.");
+vector<CounterMap<size_t>> DegreePrior::computeDegreeCountsInBlocks(const DegreeSequence& degreeSeq, const BlockSequence& blockSeq){
+    if (blockSeq.size() != degreeSeq.size()) throw invalid_argument("blockSeq and degreeSeq have different sizes.");
     size_t numBlocks = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
     size_t maxDegree = *max_element(degreeSeq.begin(), degreeSeq.end()) + 1;
     DegreeCountsMap degreeCountsInBlocks(numBlocks, 0);
@@ -52,27 +54,20 @@ void DegreePrior::applyGraphMoveToState(const GraphMove& move){
 void DegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& move){
     const DegreeSequence& degreeSeq = getState();
     const BlockSequence& blockSeq = getBlockSequence();
+
+    IntMap<BaseGraph::VertexIndex> diffDegreeMap;
     for (auto edge : move.addedEdges){
-        if (edge.first != edge.second){
-            m_degreeCountsInBlocks[blockSeq[edge.first]].decrement(degreeSeq[edge.first]);
-            m_degreeCountsInBlocks[blockSeq[edge.second]].decrement(degreeSeq[edge.second]);
-            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(degreeSeq[edge.first] + 1);
-            m_degreeCountsInBlocks[blockSeq[edge.second]].increment(degreeSeq[edge.second] + 1);
-        } else {
-            m_degreeCountsInBlocks[blockSeq[edge.first]].decrement(degreeSeq[edge.first]);
-            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(degreeSeq[edge.first] + 2);
-        }
+        diffDegreeMap.increment(edge.first);
+        diffDegreeMap.increment(edge.second);
     }
     for (auto edge : move.removedEdges){
-        if (edge.first != edge.second){
-            m_degreeCountsInBlocks[blockSeq[edge.first]].decrement(degreeSeq[edge.first]);
-            m_degreeCountsInBlocks[blockSeq[edge.second]].decrement(degreeSeq[edge.second]);
-            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(degreeSeq[edge.first] - 1);
-            m_degreeCountsInBlocks[blockSeq[edge.second]].increment(degreeSeq[edge.second] - 1);
-        } else {
-            m_degreeCountsInBlocks[blockSeq[edge.first]].decrement(degreeSeq[edge.first]);
-            m_degreeCountsInBlocks[blockSeq[edge.first]].increment(degreeSeq[edge.first] - 2);
-        }
+        diffDegreeMap.decrement(edge.first);
+        diffDegreeMap.decrement(edge.second);
+    }
+
+    for (auto diff : diffDegreeMap){
+        m_degreeCountsInBlocks[blockSeq[diff.first]].decrement(degreeSeq[diff.first]);
+        m_degreeCountsInBlocks[blockSeq[diff.first]].increment(degreeSeq[diff.first] + diff.second);
     }
 }
 
@@ -87,16 +82,18 @@ void DegreePrior::applyGraphMove(const GraphMove& move){
         m_blockPrior.applyGraphMove(move);
         m_edgeMatrixPrior.applyGraphMove(move);
         applyGraphMoveToDegreeCounts(move);
-        applyGraphMoveToState(move); }
-    );
+        applyGraphMoveToState(move);
+    } );
 }
 void DegreePrior::applyBlockMove(const BlockMove& move) {
     processRecursiveFunction( [&]() {
+        if (move.addedBlocks == 1) createBlock();
         m_blockPrior.applyBlockMove(move);
         m_edgeMatrixPrior.applyBlockMove(move);
         applyBlockMoveToDegreeCounts(move);
-        applyBlockMoveToState(move); }
-    );
+        applyBlockMoveToState(move);
+        if (move.addedBlocks == -1) destroyBlock(move.prevBlockIdx);
+    } );
 }
 
 void DegreePrior::checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence& degreeSeq, size_t expectedEdgeCount){
@@ -104,33 +101,33 @@ void DegreePrior::checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequen
     for (auto k : degreeSeq) actualEdgeCount += k;
     if (actualEdgeCount != 2 * expectedEdgeCount)
         throw ConsistencyError("DegreePrior: degree sequence is inconsistent with expected edge count: "
-        + std::to_string(actualEdgeCount) + "!=" + std::to_string(2 * expectedEdgeCount));
+        + to_string(actualEdgeCount) + "!=" + to_string(2 * expectedEdgeCount));
 }
 
 void DegreePrior::checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(
     const DegreeSequence& degreeSeq,
     const BlockSequence& blockSeq,
-    const std::vector<CounterMap<size_t>>& expectedDegreeCountsInBlocks){
+    const vector<CounterMap<size_t>>& expectedDegreeCountsInBlocks){
     if (degreeSeq.size() != blockSeq.size())
-        throw std::invalid_argument("size of degreeSeq is inconsistent with size of blockSeq: "
-        + std::to_string(degreeSeq.size()) + "!=" + std::to_string(blockSeq.size()));
+        throw invalid_argument("size of degreeSeq is inconsistent with size of blockSeq: "
+        + to_string(degreeSeq.size()) + "!=" + to_string(blockSeq.size()));
 
     size_t numBlocks = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
-    std::vector<CounterMap<size_t>> actualDegreeCountsInBlocks = DegreePrior::computeDegreeCountsInBlocks(degreeSeq, blockSeq);
+    vector<CounterMap<size_t>> actualDegreeCountsInBlocks = DegreePrior::computeDegreeCountsInBlocks(degreeSeq, blockSeq);
 
     if (expectedDegreeCountsInBlocks.size() != actualDegreeCountsInBlocks.size())
         throw ConsistencyError("DegreePrior: expected degree counts are inconsistent with block count: "
-        + std::to_string(expectedDegreeCountsInBlocks.size()) + "!=" + std::to_string(actualDegreeCountsInBlocks.size()));
+        + to_string(expectedDegreeCountsInBlocks.size()) + "!=" + to_string(actualDegreeCountsInBlocks.size()));
 
     for (size_t r = 0; r < numBlocks; ++r){
         for (auto k : actualDegreeCountsInBlocks[r]){
             if ( expectedDegreeCountsInBlocks[r].isEmpty(k.first) )
                 throw ConsistencyError("DegreePrior: expected degree counts is inconsistent with degree sequence, n_"
-                + std::to_string(k.first) + " is empty.");
+                + to_string(k.first) + " is empty but actually n_" + to_string(k.first)+" = "+to_string(k.second) + ".");
             if ( expectedDegreeCountsInBlocks[r][k.first] != k.second )
                 throw ConsistencyError("DegreePrior: expected degree counts is inconsistent with actual degree counts for n_"
-                + std::to_string(k.first) + ": "
-                + std::to_string(expectedDegreeCountsInBlocks[r][k.first]) + "!=" + std::to_string(k.second));
+                + to_string(k.first) + ": "
+                + to_string(expectedDegreeCountsInBlocks[r][k.first]) + "!=" + to_string(k.second));
         }
     }
 }
@@ -149,11 +146,11 @@ void DegreePrior::destroyBlock(const BlockIndex& blockIdx){
 }
 
 void DegreeUniformPrior::sampleState(){
-    std::vector<std::list<size_t>> degreeSeqInBlocks(getBlockCount());
-    std::vector<std::list<size_t>::iterator> ptr_degreeSeqInBlocks(getBlockCount());
+    vector<list<size_t>> degreeSeqInBlocks(getBlockCount());
+    vector<list<size_t>::iterator> ptr_degreeSeqInBlocks(getBlockCount());
     const BlockSequence& blockSeq = getBlockSequence();
-    const std::vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
-    const std::vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
+    const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
+    const vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
     for (size_t r = 0; r < getBlockCount(); r++) {
         degreeSeqInBlocks[r] = sampleRandomWeakComposition(edgeCountsInBlocks[r], vertexCountsInBlocks[r]);
         ptr_degreeSeqInBlocks[r] = degreeSeqInBlocks[r].begin();
@@ -171,8 +168,8 @@ void DegreeUniformPrior::sampleState(){
 
 double DegreeUniformPrior::getLogLikelihood() const{
     double logLikelihood = 0;
-    const std::vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
-    const std::vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
+    const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
+    const vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
 
     for (size_t r = 0; r < getBlockCount(); r++) {
         logLikelihood -= logMultisetCoefficient(edgeCountsInBlocks[r], vertexCountsInBlocks[r]);
@@ -220,8 +217,8 @@ double DegreeUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& m
         diffEdgeCountsInBlocksMap.increment(move.nextBlockIdx, edgeMult);
     }
 
-    const std::vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks() ;
-    const std::vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks() ;
+    const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks() ;
+    const vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks() ;
     double logLikelihoodRatio = 0;
     for (size_t r = 0 ; r < getBlockCount() ; ++r){
         auto er = edgeCountsInBlocks[r];

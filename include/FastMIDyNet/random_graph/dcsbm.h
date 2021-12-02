@@ -26,21 +26,24 @@ public:
     void sampleState () ;
     void samplePriors () ;
 
+    void setState(const MultiGraph& state) { m_state = state; m_degreePrior.setGraph(m_state); }
+
+    const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_degreePrior.getDegreeOfIdx(idx); }
     const DegreeSequence& getDegreeSequence() const { return m_degreePrior.getState(); }
     const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const  { return m_degreePrior.getDegreeCountsInBlocks(); }
 
     double getLogLikelihood() const;
     double getLogPrior() ;
 
-    double getLogLikelihoodRatioEdgeTerm (const GraphMove& move) ;
-    double getLogLikelihoodRatioAdjTerm (const GraphMove& move) ;
-    double getLogLikelihoodRatio (const GraphMove& move) ;
+    double getLogLikelihoodRatioEdgeTerm (const GraphMove&) ;
+    double getLogLikelihoodRatioAdjTerm (const GraphMove&) ;
+    double getLogLikelihoodRatio (const GraphMove&) ;
     double getLogLikelihoodRatio (const BlockMove&) ;
 
     double getLogPriorRatio (const GraphMove&) ;
     double getLogPriorRatio (const BlockMove&) ;
 
-    void applyMove (const GraphMove& move) ;
+    void applyMove (const GraphMove&) ;
     void applyMove (const BlockMove&) ;
 
     void computationFinished(){
@@ -50,7 +53,7 @@ public:
     }
 
     static DegreeSequence getDegreeSequenceFromGraph(const MultiGraph&) ;
-    static void checkGraphConsistencyWithDegreeSequence(const MultiGraph& graph, const DegreeSequence& degreeSeq) ;
+    static void checkGraphConsistencyWithDegreeSequence(const MultiGraph&, const DegreeSequence&) ;
 
 
     void checkSelfConsistency() ;

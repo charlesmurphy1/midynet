@@ -22,6 +22,8 @@ class DegreePrior: public Prior< DegreeSequence >{
         void setState(const DegreeSequence&) override;
 
         const size_t& getSize() const { return m_blockPrior.getSize(); }
+        const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_blockPrior.getBlockOfIdx(idx); }
+        const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
         const size_t& getEdgeCount() const { return m_edgeMatrixPrior.getEdgeCount(); }
         const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
         const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPrior.getEdgeCountsInBlocks(); }

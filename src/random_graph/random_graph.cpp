@@ -24,7 +24,7 @@ namespace FastMIDyNet {
             if ( m_state.isEdgeIdx(u, v) )
                 m_state.removeEdgeIdx(v, u);
             else
-                throw std::logic_error("Cannot remove non-existing edge ("+to_string(u)+","+to_string(v)+").");
+                throw std::logic_error("Cannot remove non-existing edge (" + to_string(u) + ", " + to_string(v) + ").");
         }
 
     };
