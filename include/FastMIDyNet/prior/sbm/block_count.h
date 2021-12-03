@@ -1,7 +1,6 @@
 #ifndef FAST_MIDYNET_BLOCK_COUNT_H
 #define FAST_MIDYNET_BLOCK_COUNT_H
 
-#include <limits>
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/prior/prior.hpp"
 

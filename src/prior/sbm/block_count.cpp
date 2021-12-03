@@ -11,9 +11,6 @@ namespace FastMIDyNet{
 
 
 size_t BlockCountPrior::getStateAfterBlockMove(const BlockMove& move) const {
-    // size_t newState = getState();
-    // if (newState <= move.nextBlockIdx)
-    //     newState = move.nextBlockIdx + 1;
     return getState() + move.addedBlocks;
 };
 

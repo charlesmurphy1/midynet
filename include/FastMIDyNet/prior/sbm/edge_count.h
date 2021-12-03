@@ -31,7 +31,6 @@ class EdgeCountPrior: public Prior<size_t> {
             #if DEBUG
             checkSelfConsistency();
             #endif
-
         }
         void applyBlockMove(const BlockMove& move) { }
         size_t getStateAfterGraphMove(const GraphMove&) const;
