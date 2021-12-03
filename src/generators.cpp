@@ -107,8 +107,36 @@ std::list<size_t> sampleRandomRestrictedPartition(size_t n, size_t k, size_t num
     return partition;
 }
 
-BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& blockSeq,
-        const EdgeMatrix& edgeMat, const DegreeSequence& degrees) {
+std::vector<size_t> sampleRandomPermutation(const std::vector<size_t>& nk){
+    size_t sum = 0;
+    std::vector<size_t> cumul;
+
+    for (auto n : nk){
+        sum += n;
+        cumul.push_back(sum);
+    }
+
+    std::vector<size_t> indices;
+    for (size_t i = 0; i < sum; ++i) {
+        indices.push_back(i);
+    }
+    std::shuffle(indices.begin(), indices.end(), rng);
+
+    std::vector<size_t> sequence(indices.size());
+    size_t idx = 0;
+    for (size_t i = 0; i < sum; ++i ){
+        if (i == cumul[idx]) ++idx;
+        sequence[indices[i]] = idx;
+    }
+    return sequence;
+}
+
+
+BaseGraph::UndirectedMultigraph generateDCSBM(
+    const BlockSequence& blockSeq,
+    const EdgeMatrix& edgeMat,
+    const DegreeSequence& degrees) {
+
     if (degrees.size() != blockSeq.size())
         throw std::logic_error("generateDCSBM: Degrees don't have the same length as blockSeq.");
     if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= edgeMat.size())

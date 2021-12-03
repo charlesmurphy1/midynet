@@ -73,3 +73,24 @@ TEST(TestRestrictedPartitionGenerator, generateRestrictedPartition_givenNAndK_pa
         EXPECT_EQ(sum, N);
     }
 }
+
+
+TEST(TestRandomPermutationGenerator, generatePermutation_givenNk_permutationIsConsistentWithNk) {
+    for (int i=0; i<10; i++) {
+        std::list<size_t> nkList = FastMIDyNet::sampleRandomComposition(N, K);
+        std::vector<size_t> nk;
+        for (auto _nk : nkList) nk.push_back(_nk);
+
+        std::vector<size_t> permutation = FastMIDyNet::sampleRandomPermutation(nk);
+
+        EXPECT_EQ(permutation.size(), N);
+
+        std::vector<size_t> actualNk(K, 0);
+        for (auto i : permutation){
+            ++actualNk[i];
+        }
+        for (size_t i = 0 ; i < K ; ++i){
+            EXPECT_EQ(actualNk[i], nk[i]);
+        }
+    }
+}

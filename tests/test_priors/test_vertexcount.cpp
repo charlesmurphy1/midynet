@@ -50,12 +50,23 @@ class TestVertexCountPrior: public ::testing::Test {
         }
 };
 
-TEST_F(TestVertexCountPrior, applyBlockMoveOnState_stateChangesAccordingly) {
+TEST_F(TestVertexCountPrior, applyBlockMoveOnState_forSomeBlockMove_stateChangesAccordingly) {
     BlockMove move = {0, 0, 1, 0};
     prior.applyBlockMoveToState(move);
     EXPECT_EQ(prior.getState()[0], SIZE - prior.getBlockCount());
     EXPECT_EQ(prior.getState()[1], 2);
     for(size_t i = 2; i < prior.getBlockCount(); ++i){
+        EXPECT_EQ(prior.getState()[i], 1);
+    }
+}
+
+TEST_F(TestVertexCountPrior, applyBlockMoveOnState_forSomeBlockMoveCreatingBlock_stateChangesAccordingly) {
+    auto B = prior.getBlockCount();
+    BlockMove move = {0, 0, B, 1};
+    prior.applyBlockMoveToState(move);
+    EXPECT_EQ(prior.getState()[0], SIZE - B);
+    EXPECT_EQ(prior.getState()[B], 1);
+    for(size_t i = 2; i < B; ++i){
         EXPECT_EQ(prior.getState()[i], 1);
     }
 }
@@ -90,6 +101,10 @@ class TestVertexCountUniformPrior: public ::testing::Test {
         }
 };
 
+TEST_F(TestVertexCountUniformPrior, getLogLikelihood){
+    EXPECT_LE(prior.getLogLikelihood(), 0);
+}
+
 TEST_F(TestVertexCountUniformPrior, sampleState){
     prior.sampleState();
     EXPECT_NO_THROW(prior.checkSelfConsistency());
@@ -97,7 +112,8 @@ TEST_F(TestVertexCountUniformPrior, sampleState){
 
 TEST_F(TestVertexCountUniformPrior, getLogLikelihood_returnCorrectLogLikehood){
     size_t n = SIZE, b = prior.getBlockCount();
-    EXPECT_EQ(prior.getLogLikelihood(), logBinomialCoefficient(n - 1, b - 1));
+    EXPECT_LE(prior.getLogLikelihood(), 0);
+    EXPECT_EQ(prior.getLogLikelihood(), -logBinomialCoefficient(n - 1, b - 1));
 }
 
 TEST_F(TestVertexCountUniformPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_returnCorrectLogLikehoodRatio){

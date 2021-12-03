@@ -22,6 +22,7 @@ public:
 
     const size_t& getSize() const { return m_size; }
     const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
+    BlockCountPrior& getBlockCountPrior() const { return m_blockCountPrior; }
 
     double getLogPrior() {
         return m_blockCountPrior.getLogJoint();
@@ -43,9 +44,6 @@ public:
         processRecursiveFunction( [&]() {
             applyBlockMoveToState(move);
             m_blockCountPrior.applyBlockMove(move);
-            #if DEBUG
-            checkSelfConsistency();
-            #endif
         });
     }
     void applyBlockMoveToState(const BlockMove& move) {
@@ -77,7 +75,7 @@ public:
     }
 
 protected:
-    double getLogLikelihoodFromState(size_t size, size_t blockCount) const { return logBinomialCoefficient(size - 1, blockCount - 1);}
+    double getLogLikelihoodFromState(size_t size, size_t blockCount) const { return -logBinomialCoefficient(size - 1, blockCount - 1);}
 
 };
 

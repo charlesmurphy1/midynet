@@ -17,12 +17,12 @@ namespace FastMIDyNet{
 
 
 int generateCategorical(const std::vector<double>& probs);
-
 std::vector<size_t> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k);
 std::list<size_t> sampleRandomComposition(size_t n, size_t k);
 std::list<size_t> sampleRandomWeakComposition(size_t n, size_t k);
-
 std::list<size_t> sampleRandomRestrictedPartition(size_t n, size_t k, size_t numberOfSteps=0);
+
+std::vector<size_t> sampleRandomPermutation(const std::vector<size_t>& nk); 
 
 BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks,
         const EdgeMatrix& blockEdgeMatrix, const DegreeSequence& degrees);

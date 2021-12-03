@@ -5,6 +5,7 @@
 
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/utility/maps.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/generators.h"
@@ -43,7 +44,7 @@ void BlockPrior::checkBlockSequenceConsistencyWithVertexCountsInBlocks(const Blo
         auto x = actualVertexCountsInBlocks[i];
         auto y = expectedVertexCountsInBlocks[i];
         if (x != y){
-            throw ConsistencyError("BlockPrior: actual vertex count at index"
+            throw ConsistencyError("BlockPrior: actual vertex count at index "
             + to_string(i) + " is inconsistent with expected vertex count: "
             + to_string(x) + " != " + to_string(y) + ".");
         }
@@ -65,8 +66,6 @@ double BlockUniformPrior::getLogLikelihood() const {
     return -logMultisetCoefficient(getSize(), getBlockCount());
 }
 
-
-
 double BlockUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
     size_t prevNumBlocks = m_blockCountPrior.getState();
     size_t newNumBlocks = m_blockCountPrior.getStateAfterBlockMove(move);
@@ -75,6 +74,29 @@ double BlockUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& mo
     logLikelihoodRatio -= -logMultisetCoefficient(getSize(), prevNumBlocks);
     return logLikelihoodRatio;
 }
+
+
+void BlockHyperPrior::sampleState(){
+    setState( sampleRandomPermutation( getVertexCountsInBlocks() ) );
+};
+
+double BlockHyperPrior::getLogLikelihood() const {
+    std::list<size_t> nrList;
+    for (auto nr : getVertexCountsInBlocks()) nrList.push_back(nr);
+    return -logMultinomialCoefficient(nrList);
+};
+double BlockHyperPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const{
+    auto nr = getVertexCountsInBlocks();
+    double logLikelihoodRatio = 0;
+    size_t prevNr = getVertexCountsInBlocks()[move.prevBlockIdx];
+    size_t nextNr;
+    if (move.addedBlocks == 1){ nextNr = 1; }
+    else nextNr = getVertexCountsInBlocks()[move.nextBlockIdx] + 1;
+
+    logLikelihoodRatio += log(prevNr) - log(nextNr);
+
+    return logLikelihoodRatio;
+};
 
 
 }

@@ -6,6 +6,7 @@
 
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/prior/sbm/block_count.h"
+#include "FastMIDyNet/prior/sbm/vertex_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
 
@@ -22,10 +23,10 @@ public:
     BlockPrior(size_t size, BlockCountPrior& blockCountPrior):
         m_size(size), m_blockCountPrior(blockCountPrior) { }
 
-    void setState(const BlockSequence& blockSeq) override{
+    virtual void setState(const BlockSequence& blockSeq) override{
         m_blockCountPrior.setState(*max_element(blockSeq.begin(), blockSeq.end()) + 1);
+        m_vertexCountsInBlocks = computeVertexCountsInBlocks(blockSeq);
         m_state = blockSeq;
-        m_vertexCountsInBlocks = computeVertexCountsInBlocks(m_state);
     }
     void samplePriors() override {
         m_blockCountPrior.sample();
@@ -33,7 +34,7 @@ public:
     const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
     const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
     static std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&);
-    const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
+    virtual const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
     const size_t& getSize() const { return m_size; }
 
     double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; };
@@ -43,7 +44,9 @@ public:
     virtual double getLogPriorRatioFromBlockMove(const BlockMove& move) = 0;
 
     double getLogJointRatioFromGraphMove(const GraphMove& move) { return 0; };
-    virtual double getLogJointRatioFromBlockMove(const BlockMove& move) = 0;
+    double getLogJointRatioFromBlockMove(const BlockMove& move) {
+        return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
+    };
 
     void applyGraphMove(const GraphMove&) { };
     void applyBlockMoveToState(const BlockMove& move) { m_state[move.vertexIdx] = move.nextBlockIdx; };
@@ -112,9 +115,6 @@ public:
     double getLogPriorRatioFromBlockMove(const BlockMove& move) {
         return m_blockCountPrior.getLogJointRatioFromBlockMove(move);
     };
-    double getLogJointRatioFromBlockMove(const BlockMove& move) {
-        return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
-    };
 
     void applyBlockMove(const BlockMove& move){
         processRecursiveFunction( [&]() {
@@ -123,6 +123,7 @@ public:
             applyBlockMoveToState(move);
         });
     }
+
     void checkSelfConsistency() const {
         checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
@@ -131,6 +132,54 @@ public:
 };
 
 class BlockHyperPrior: public BlockPrior{
+public:
+    BlockHyperPrior(VertexCountPrior& vertexCountPrior):
+        m_vertexCountPrior(vertexCountPrior),
+        BlockPrior(vertexCountPrior.getSize(), vertexCountPrior.getBlockCountPrior()){ }
+
+    void setState(const BlockSequence& blockSeq) override{
+        m_blockCountPrior.setState(*max_element(blockSeq.begin(), blockSeq.end()) + 1);
+        m_vertexCountPrior.setState( computeVertexCountsInBlocks(blockSeq) );
+        m_state = blockSeq;
+    }
+    const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCountPrior.getState(); };
+    void sampleState();
+
+    void samplePriors() override {
+        m_blockCountPrior.sample();
+        m_vertexCountPrior.sample();
+    }
+
+    double getLogLikelihood() const ;
+    double getLogPrior() { return m_blockCountPrior.getLogJoint() + m_vertexCountPrior.getLogJoint(); }
+
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
+    double getLogPriorRatioFromBlockMove(const BlockMove& move) {
+        return m_blockCountPrior.getLogJointRatioFromBlockMove(move);
+    };
+
+    void applyBlockMove(const BlockMove& move){
+        processRecursiveFunction( [&]() {
+            m_blockCountPrior.applyBlockMove(move);
+            m_vertexCountPrior.applyBlockMove(move);
+            applyBlockMoveToState(move);
+        });
+    }
+    void computationFinished() override {
+        m_isProcessed=false;
+        m_blockCountPrior.computationFinished();
+        m_vertexCountPrior.computationFinished();
+    }
+
+
+    void checkSelfConsistency() const {
+        m_blockCountPrior.checkSelfConsistency();
+        m_vertexCountPrior.checkSelfConsistency();
+        checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
+        checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
+    };
+private:
+    VertexCountPrior& m_vertexCountPrior;
 
 };
 

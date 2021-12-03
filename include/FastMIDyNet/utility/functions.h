@@ -24,6 +24,20 @@ double logRestrictedPartitionNumber(size_t n, size_t k);
 double logApproxRestrictedPartitionNumber(size_t n, size_t k);
 
 template<typename T>
+std::vector<T> listToVec(std::list<T> other){
+    std::vector<T> myVec;
+    for(auto x : other) myVec.push_back(x);
+    return myVec;
+}
+
+template<typename T>
+std::list<T> vecToList(std::vector<T> other){
+    std::list<T> myList;
+    for(auto x : other) myList.push_back(x);
+    return myList;
+}
+
+template<typename T>
 std::pair<T, T> getOrderedPair(const std::pair<T, T>& myPair){
     if (myPair.first < myPair.second)
         return myPair;
