@@ -52,7 +52,6 @@ public:
     double getLogPriorRatio (const GraphMove&) ;
     double getLogPriorRatio (const BlockMove&) ;
 
-    double getLogJointRatio (const GraphMove& move) { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }
     double getLogJointRatio (const BlockMove& move) { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }
 
     void applyMove (const GraphMove&);

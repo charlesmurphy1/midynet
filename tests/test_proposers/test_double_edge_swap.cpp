@@ -9,7 +9,7 @@ class TestDoubleEdgeSwap: public::testing::Test {
         FastMIDyNet::MultiGraph graph = getUndirectedHouseMultiGraph();
         FastMIDyNet::DoubleEdgeSwap swapProposer;
         void SetUp() {
-            swapProposer.setup(graph);
+            swapProposer.setUp(graph);
         }
 };
 

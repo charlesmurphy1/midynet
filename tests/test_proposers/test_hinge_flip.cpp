@@ -9,7 +9,7 @@ class TestHingeFlip: public::testing::Test {
         FastMIDyNet::MultiGraph graph = getUndirectedHouseMultiGraph();
         FastMIDyNet::HingeFlip flipProposer;
         void SetUp() {
-            flipProposer.setup(graph);
+            flipProposer.setUp(graph);
         }
 };
 

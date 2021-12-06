@@ -159,7 +159,7 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(BaseGraph::Edge edge, int dire
     }
 };
 
-double Dynamics::getLogJointRatio(const GraphMove& move) const{
+double Dynamics::getLogLikelihoodRatio(const GraphMove& move) const{
     int numSteps = m_pastStateSequence.size();
     double logLikelihoodRatio = 0;
     set<size_t> verticesAffected;
@@ -190,6 +190,15 @@ double Dynamics::getLogJointRatio(const GraphMove& move) const{
 
     return logLikelihoodRatio;
 }
+
+double Dynamics::getLogPriorRatio(const GraphMove& move){
+    return m_randomGraph.getLogJointRatio(move);
+}
+
+double Dynamics::getLogJointRatio(const GraphMove& move){
+    return getLogPriorRatio(move) + getLogLikelihoodRatio(move);
+}
+
 
 void Dynamics::applyMove(const GraphMove& move){
     int numSteps = m_pastStateSequence.size();

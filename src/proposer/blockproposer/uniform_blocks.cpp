@@ -7,7 +7,8 @@ namespace FastMIDyNet {
 
 
 UniformBlockProposer::UniformBlockProposer(size_t graphSize, double createNewBlockProbability):
-    m_createNewBlockDistribution(createNewBlockProbability), m_vertexDistribution(0, graphSize-1),
+    m_createNewBlockDistribution(createNewBlockProbability),
+    m_vertexDistribution(0, graphSize-1),
     m_blockCreationProbability(createNewBlockProbability) {
     assertValidProbability(createNewBlockProbability);
 }
@@ -36,9 +37,9 @@ BlockMove UniformBlockProposer::proposeMove() {
     return {movedVertex, currentBlock, newBlock};
 }
 
-void UniformBlockProposer::setup(const StochasticBlockModelFamily& sbmGraph) {
-    m_blockCount = sbmGraph.getBlockCount();
-    m_blockSequencePtr = &sbmGraph.getBlockSequence();
+void UniformBlockProposer::setUp(const BlockSequence& blocks, size_t blockCount) {
+    m_blockCount = blockCount;
+    m_blockSequencePtr = &blocks;
 
     m_vertexCountInBlocks.clear();
     m_vertexCountInBlocks.resize(m_blockCount, 0);

@@ -12,12 +12,12 @@ class TestUniformBlockProposer: public::testing::Test {
     public:
         FastMIDyNet::UniformBlockProposer blockProposer = FastMIDyNet::UniformBlockProposer(5, NEW_BLOCK_PROBABILITY);
         void SetUp() {
-            blockProposer.setup(BLOCK_SEQUENCE, BLOCK_COUNT);
+            blockProposer.setUp(BLOCK_SEQUENCE, BLOCK_COUNT);
         }
 };
 
 
-TEST_F(TestUniformBlockProposer, setup_anyBlockSequence_correctCountOfVerticesInBlocks) {
+TEST_F(TestUniformBlockProposer, setUp_anyBlockSequence_correctCountOfVerticesInBlocks) {
     auto vertexCountInBlocks = blockProposer.getVertexCountInBlocks();
     EXPECT_EQ(vertexCountInBlocks[0], 4);
     EXPECT_EQ(vertexCountInBlocks[1], 1);
@@ -63,7 +63,7 @@ TEST_F(TestUniformBlockProposer, updateProbabilities_creatingNewBlock_createNewE
 TEST_F(TestUniformBlockProposer, updateProbabilities_destroyingMiddleBlock_blockRemovedInVertexCounts) {
     size_t blockCount = 3;
     FastMIDyNet::BlockSequence blockSequence = {0, 0, 1, 2, 2};
-    blockProposer.setup(blockSequence, blockCount);
+    blockProposer.setUp(blockSequence, blockCount);
 
     FastMIDyNet::BlockMove move = {2, 1, 2};
     blockProposer.updateProbabilities(move);
@@ -88,7 +88,7 @@ TEST_F(TestUniformBlockProposer, updateProbabilities_creatingNewBlock_blockCount
 TEST_F(TestUniformBlockProposer, updateProbabilities_destroyingMiddleBlock_blockCountDecrement) {
     size_t blockCount = 3;
     FastMIDyNet::BlockSequence blockSequence = {0, 0, 1, 2, 2};
-    blockProposer.setup(blockSequence, blockCount);
+    blockProposer.setUp(blockSequence, blockCount);
 
     FastMIDyNet::BlockMove move = {2, 1, 2};
     blockProposer.updateProbabilities(move);
@@ -98,12 +98,12 @@ TEST_F(TestUniformBlockProposer, updateProbabilities_destroyingMiddleBlock_block
 
 TEST_F(TestUniformBlockProposer, checkConsistency_lowerBlockCount_throwConsistencyError) {
     size_t wrongCount = 1;
-    blockProposer.setup(BLOCK_SEQUENCE, wrongCount);
+    blockProposer.setUp(BLOCK_SEQUENCE, wrongCount);
     EXPECT_THROW(blockProposer.checkConsistency(), FastMIDyNet::ConsistencyError);
 }
 
 TEST_F(TestUniformBlockProposer, checkConsistency_higherBlockCount_throwConsistencyError) {
     FastMIDyNet::BlockSequence wrongBlocks = {0, 0, 0, 0, 0};
-    blockProposer.setup(wrongBlocks, BLOCK_COUNT);
+    blockProposer.setUp(wrongBlocks, BLOCK_COUNT);
     EXPECT_THROW(blockProposer.checkConsistency(), FastMIDyNet::ConsistencyError);
 }

@@ -143,7 +143,6 @@ double StochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (const GraphMove
 };
 
 double StochasticBlockModelFamily::getLogLikelihoodRatio (const GraphMove& move) {
-
     return getLogLikelihoodRatioEdgeTerm(move) + getLogLikelihoodRatioAdjTerm(move);
 }
 

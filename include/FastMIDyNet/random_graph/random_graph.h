@@ -33,7 +33,11 @@ class RandomGraph{
         virtual double getLogPrior() = 0;
         double getLogJoint() { return getLogLikelihood() + getLogPrior(); }
 
-        virtual double getLogJointRatio (const GraphMove& move) = 0;
+        virtual double getLogLikelihoodRatio (const GraphMove& move) = 0;
+        virtual double getLogPriorRatio (const GraphMove& move) = 0;
+        double getLogJointRatio (const GraphMove& move){
+            return getLogPriorRatio(move) + getLogLikelihoodRatio(move);
+        }
         void applyMove(const GraphMove& move);
         void enumerateAllGraphs() const;
         void doMetropolisHastingsStep(double beta=1.0) { };

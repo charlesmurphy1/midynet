@@ -9,7 +9,7 @@ class TestSingleEdgeMove: public::testing::Test {
         FastMIDyNet::MultiGraph graph = getUndirectedHouseMultiGraph();
         FastMIDyNet::SingleEdgeMove edgeMover;
         void SetUp() {
-            edgeMover.setup(graph);
+            edgeMover.setUp(graph);
         }
 };
 

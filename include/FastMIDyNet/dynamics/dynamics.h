@@ -33,6 +33,9 @@ class Dynamics{
                 m_neighborsStateSequence[t] = getNeighborsState(m_pastStateSequence[t]);
             }
         }
+
+        const RandomGraph& getRandomGraph() const { return m_randomGraph; }
+
         const int getSize() const { return m_randomGraph.getSize(); }
         const int getNumStates() const { return m_numStates; }
 
@@ -58,9 +61,10 @@ class Dynamics{
             VertexNeighborhoodState neighborhoodState
         ) const;
 
-        double getLogJointRatio(const GraphMove& move) const;
+        double getLogLikelihoodRatio(const GraphMove& move) const;
+        double getLogPriorRatio(const GraphMove& move);
+        double getLogJointRatio(const GraphMove& move);
         void applyMove(const GraphMove& move);
-        // void doMetropolisHastingsStep(double beta = 1., double sampleGraphPrior = 0.);
 
     protected:
         int m_numStates;

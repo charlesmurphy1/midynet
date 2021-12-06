@@ -49,7 +49,8 @@ public:
     virtual void samplePriors() { };
     double getLogLikelihood() const { return 0; }
     double getLogPrior() { return 0; }
-    double getLogJointRatio(const GraphMove& move) { return 0; }
+    double getLogLikelihoodRatio(const GraphMove& move) { return 0; }
+    double getLogPriorRatio(const GraphMove& move) { return 0; }
 
 };
 

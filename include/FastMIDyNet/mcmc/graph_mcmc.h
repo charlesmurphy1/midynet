@@ -1,35 +1,53 @@
 #ifndef FAST_MIDYNET_GRAPH_MCMC_H
 #define FAST_MIDYNET_GRAPH_MCMC_H
 
+#include <random>
+
 #include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/proposer/blockproposer/blockproposer.h"
 #include "FastMIDyNet/proposer/movetypes.h"
+#include "FastMIDyNet/mcmc/mcmc.h"
+#include "FastMIDyNet/mcmc/callbacks/callback.h"
+#include "FastMIDyNet/rng.h"
 
 namespace FastMIDyNet{
 
-class RandomGraphMCMC{
+class RandomGraphMCMC: public MCMC{
 protected:
     RandomGraph& m_randomGraph;
+    double m_betaLikelihood, m_betaPrior;
+    std::uniform_real_distribution<double> m_uniform;
 public:
-    RandomGraphMCMC(RandomGraph& randomGraph): m_randomGraph(randomGraph) {}
-    virtual void setUp() { };
-    virtual void doMetropolisHastingsStep(double beta) { };
-
+    RandomGraphMCMC(RandomGraph& randomGraph,
+    double betaLikelihood=1,
+    double betaPrior=1,
+    const CallBackList& callBacks={}):
+    MCMC(callBacks),
+    m_randomGraph(randomGraph),
+    m_betaLikelihood(betaLikelihood),
+    m_betaPrior(betaPrior),
+    m_uniform(0., 1.) {}
 };
 
 class StochasticBlockGraphMCMC: public RandomGraphMCMC{
 private:
     BlockProposer& m_blockProposer;
+    StochasticBlockModelFamily& m_sbmGraph;
 public:
-    StochasticBlockGraphMCMC(StochasticBlockModelFamily& randomGraph, BlockProposer& blockProposer):
-    RandomGraphMCMC(randomGraph), m_blockProposer(blockProposer) {}
 
-    void setUp() {
-        m_blockProposer.setUp(m_randomGraph.getBlockSequence(), m_randomGraph.getBlockCount());
-    };
-    void doMetropolisHastingsStep(double beta) {
-        BlockMove move = m_blockProposer.proposeMove();
-    };
+    StochasticBlockGraphMCMC(
+        StochasticBlockModelFamily& sbmGraph,
+        BlockProposer& blockProposer,
+        double betaLikelihood=1,
+        double betaPrior=1,
+        const CallBackList& callBacks={}):
+    RandomGraphMCMC(sbmGraph, betaLikelihood, betaPrior, callBacks),
+    m_sbmGraph(sbmGraph),
+    m_blockProposer(blockProposer){}
+
+    void setUp();
+
+    void doMetropolisHastingsStep();
 
 };
 
