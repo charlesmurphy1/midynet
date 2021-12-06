@@ -16,7 +16,7 @@ class SingleEdgeMove: public EdgeProposer {
 
     public:
         GraphMove proposeMove();
-        void setup(const MultiGraph&);
+        void setup(const RandomGraph&);
         double getLogProposalProbRatio(const GraphMove&) const;
         void updateProbabilities(const GraphMove&) { }
 

@@ -15,7 +15,7 @@ class HingeFlip: public EdgeProposer {
 
     public:
         GraphMove proposeMove();
-        void setup(const MultiGraph&);
+        void setup(const RandomGraph&);
         double getLogProposalProbRatio(const GraphMove&) const { return 0; }
         void updateProbabilities(const GraphMove&);
 

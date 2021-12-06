@@ -2,6 +2,7 @@
 #define FAST_MIDYNET_DOUBLE_EDGE_SWAP_H
 
 
+#include "FastMIDyNet/random_graph/random_graph.h"
 #include "edge_proposer.h"
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
@@ -15,7 +16,7 @@ class DoubleEdgeSwap: public EdgeProposer {
 
     public:
         GraphMove proposeMove();
-        void setup(const MultiGraph&);
+        void setup(const RandomGraph&);
         double getLogProposalProbRatio(const GraphMove&) const { return 0; }
         void updateProbabilities(const GraphMove&);
 

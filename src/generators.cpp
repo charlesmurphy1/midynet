@@ -84,6 +84,7 @@ std::list<size_t> sampleRandomWeakComposition(size_t n, size_t k) {
 
 
 std::list<size_t> sampleRandomRestrictedPartition(size_t n, size_t k, size_t numberOfSteps) {
+    // sample the partition of n into exactly k parts with zeros
     if (numberOfSteps==0)
         numberOfSteps = n;
 
@@ -108,6 +109,7 @@ std::list<size_t> sampleRandomRestrictedPartition(size_t n, size_t k, size_t num
 }
 
 std::vector<size_t> sampleRandomPermutation(const std::vector<size_t>& nk){
+    // sample the permutation of a multiset of K elements with multiciplicity {nk}.
     size_t sum = 0;
     std::vector<size_t> cumul;
 

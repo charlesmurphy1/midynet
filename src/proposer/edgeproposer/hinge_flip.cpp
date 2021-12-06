@@ -23,7 +23,8 @@ GraphMove HingeFlip::proposeMove() {
     return {{edge}, {newEdge}};
 }
 
-void HingeFlip::setup(const MultiGraph& graph) {
+void HingeFlip::setup(const RandomGraph& randomGraph) {
+    const MultiGraph& graph = randomGraph.getState();
     for (auto vertex: graph) {
         m_nodeSamplableSet.insert(vertex, 1);
         for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {

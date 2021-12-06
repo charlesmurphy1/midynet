@@ -25,7 +25,8 @@ GraphMove DoubleEdgeSwap::proposeMove() {
     return {{edge1, edge2}, {newEdge1, newEdge2}};
 }
 
-void DoubleEdgeSwap::setup(const MultiGraph& graph) {
+void DoubleEdgeSwap::setup(const RandomGraph& randomGraph) {
+    const MultiGraph& graph = randomGraph.getState();
     m_edgeSamplableSet.clear();
     for (auto vertex: graph)
         for (auto neighbor: graph.getNeighboursOfIdx(vertex))

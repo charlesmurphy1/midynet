@@ -19,7 +19,8 @@ GraphMove SingleEdgeMove::proposeMove() {
     return {{proposedEdge}, {}};
 }
 
-void SingleEdgeMove::setup(const MultiGraph& graph) {
+void SingleEdgeMove::setup(const RandomGraph& randomGraph) {
+    const MultiGraph& graph = randomGraph.getState();
     m_graphPtr = &graph;
     m_vertexDistribution.clear();
     for (auto vertex: graph)

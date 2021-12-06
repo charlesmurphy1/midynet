@@ -5,6 +5,7 @@
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/proposer/blockproposer/blockproposer.h"
+#include "FastMIDyNet/random_graph/sbm.h"
 
 
 namespace FastMIDyNet {
@@ -21,7 +22,7 @@ class UniformBlockProposer: public BlockProposer {
     public:
         UniformBlockProposer(size_t graphSize, double createNewBlockProbability=.1);
         BlockMove proposeMove();
-        void setup(const BlockSequence&, const BlockIndex& BlockCount);
+        void setup(const StochasticBlockModelFamily& sbmGraph);
         double getLogProposalProbRatio(const BlockMove&) const;
         void updateProbabilities(const BlockMove&);
 

@@ -36,13 +36,13 @@ BlockMove UniformBlockProposer::proposeMove() {
     return {movedVertex, currentBlock, newBlock};
 }
 
-void UniformBlockProposer::setup(const BlockSequence& blockSequence, const size_t& blockCount) {
-    m_blockCount = blockCount;
-    m_blockSequencePtr = &blockSequence;
+void UniformBlockProposer::setup(const StochasticBlockModelFamily& sbmGraph) {
+    m_blockCount = sbmGraph.getBlockCount();
+    m_blockSequencePtr = &sbmGraph.getBlockSequence();
 
     m_vertexCountInBlocks.clear();
     m_vertexCountInBlocks.resize(m_blockCount, 0);
-    for (auto block: blockSequence)
+    for (auto block : *m_blockSequencePtr)
         m_vertexCountInBlocks[block]++;
 }
 
