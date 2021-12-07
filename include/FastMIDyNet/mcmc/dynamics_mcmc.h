@@ -37,9 +37,10 @@ public:
 
     void setUp();
 
-    const MultiGraph& getGraph() { return m_dynamics.getGraph(); }
+    const MultiGraph& getGraph() const { return m_dynamics.getGraph(); }
+    const int getSize() const { return m_dynamics.getSize(); }
 
-    virtual double getLogLikelihood() { return m_dynamics.getLogLikelihood(); }
+    virtual double getLogLikelihood() const { return m_dynamics.getLogLikelihood(); }
     virtual double getLogPrior() { return m_dynamics.getLogPrior(); }
     virtual double getLogJoint() { return m_dynamics.getLogJoint(); }
 

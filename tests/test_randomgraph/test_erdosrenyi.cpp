@@ -26,7 +26,7 @@ class TestErdosRenyiFamily: public::testing::Test{
 };
 
 TEST_F(TestErdosRenyiFamily, randomGraph_hasCorrectBlockSequence){
-    auto blocks = randomGraph.getBlockSequence();
+    auto blocks = randomGraph.getBlocks();
     for (auto b : blocks) EXPECT_EQ(b, 0);
 }
 

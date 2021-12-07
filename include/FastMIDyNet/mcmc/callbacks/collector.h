@@ -46,6 +46,18 @@ public:
     void clear() { m_collectedGraphs.clear(); }
 };
 
+class CollectEdgeMultiplicityOnSweep: public SweepCollector, public DynamicsCollector{
+private:
+    MultiGraph m_edgeMultiplicity;
+public:
+    void setUp(DynamicsMCMC* mcmcPtr) {
+        DynamicsCollector::setUp(mcmcPtr);
+        m_edgeMultiplicity = MultiGraph(m_dynamicsMCMCPtr->getSize());
+    }
+    void collect() ;
+    void clear() { m_edgeMultiplicity.clearEdges(); }
+};
+
 class WriteGraphToFileOnSweep: public SweepCollector, public DynamicsCollector{
 private:
     std::string m_filename;

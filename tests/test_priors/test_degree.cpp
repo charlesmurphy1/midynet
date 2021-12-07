@@ -69,7 +69,7 @@ TEST_F(TestDegreePrior, setGraph_forHouseGraph_applyChangesToDegreeSequence){
 
 TEST_F(TestDegreePrior, computeDegreeCountsInBlocks_forLocalDegreeSeqNBlockSeq_returnCorrectDegreeCountsInBlocks){
     blockPrior.setState({0,0,0,0,1,1,1});
-    auto degreeCountsInBlocks = prior.computeDegreeCountsInBlocks(prior.getState(), prior.getBlockSequence());
+    auto degreeCountsInBlocks = prior.computeDegreeCountsInBlocks(prior.getState(), prior.getBlocks());
     EXPECT_EQ(degreeCountsInBlocks.size(), 2);
 
     EXPECT_EQ(degreeCountsInBlocks[0].size(), 2);
@@ -122,7 +122,7 @@ TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCor
 }
 
 TEST_F(TestDegreePrior, applyBlockMoveToState_forNonEmptyBlockMove_doNothing){
-    FastMIDyNet::BlockMove move = {0, prior.getBlockSequence()[0], 0, 0};
+    FastMIDyNet::BlockMove move = {0, prior.getBlocks()[0], 0, 0};
     FastMIDyNet::DegreeSequence degreeSeqBefore = prior.getState();
     prior.applyBlockMoveToState(move);
     FastMIDyNet::DegreeSequence degreeSeqAfter = prior.getState();
@@ -215,9 +215,9 @@ TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_r
 
 TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
-    auto g = FastMIDyNet::generateDCSBM(prior.getBlockSequence(), prior.getEdgeMatrix(), prior.getState());
+    auto g = FastMIDyNet::generateDCSBM(prior.getBlocks(), prior.getEdgeMatrix(), prior.getState());
     prior.setGraph(g);
-    FastMIDyNet::BlockMove move = {idx, prior.getBlockSequence()[idx], prior.getBlockSequence()[idx] + 1, 0};
+    FastMIDyNet::BlockMove move = {idx, prior.getBlocks()[idx], prior.getBlocks()[idx] + 1, 0};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
     prior.applyBlockMove(move);

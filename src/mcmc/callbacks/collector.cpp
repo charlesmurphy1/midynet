@@ -15,4 +15,16 @@ void WriteGraphToFileOnSweep::collect(){
     file.close();
 }
 
+void CollectEdgeMultiplicityOnSweep::collect(){
+    const MultiGraph& graph = m_dynamicsMCMCPtr->getGraph();
+
+    for ( auto idx : graph){
+        for (auto neighbor : graph.getNeighboursOfIdx(idx)){
+            if (neighbor.vertexIndex > idx){
+                m_edgeMultiplicity.addMultiedgeIdx(idx, neighbor.vertexIndex, neighbor.label, true);
+            }
+        }
+    }
 }
+
+} // FastMIDyNet
