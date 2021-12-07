@@ -23,7 +23,7 @@ class UniformBlockProposer: public BlockProposer {
         UniformBlockProposer(size_t graphSize, double createNewBlockProbability=.1);
         BlockMove proposeMove();
         void setUp(const StochasticBlockModelFamily& sbmGraph) {
-            setUp(sbmGraph.getBlockSequence(), sbmGraph.getBlockCount());
+            setUp(sbmGraph.getBlocks(), sbmGraph.getBlockCount());
         }
         void setUp(const BlockSequence& blocks, size_t blockCount);
         double getLogProposalProbRatio(const BlockMove&) const;

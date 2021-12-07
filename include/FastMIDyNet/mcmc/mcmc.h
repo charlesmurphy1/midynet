@@ -26,6 +26,14 @@ public:
     const bool getLastIsAccepted() const { return m_lastIsAccepted; }
     const bool getNumSteps() const { return m_numSteps; }
     const bool getNumSweeps() const { return m_numSweeps; }
+
+    virtual double getLogLikelihood() = 0 ;
+    virtual double getLogPrior() = 0 ;
+    virtual double getLogJoint() = 0 ;
+
+    void addCallBack(CallBack& callBack) { callBack.setUp(this); m_callBacks.pushBack(callBack); }
+    void removeCallBack(size_t& idx) { m_callBacks.remove(idx); }
+
     virtual void setUp() { m_callBacks.setUp(this); m_numSteps = m_numSweeps = 0; }
     virtual void tearDown() { m_callBacks.tearDown(); m_numSteps = m_numSweeps = 0; }
     virtual void doMetropolisHastingsStep() = 0;

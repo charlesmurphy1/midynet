@@ -29,7 +29,7 @@ public:
     void setState(const MultiGraph& state) { m_state = state; m_edgeMatrixPrior.setGraph(m_state); }
 
     const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_blockPrior.getBlockOfIdx(idx); }
-    const BlockSequence& getBlockSequence() const { return m_blockPrior.getState(); }
+    const BlockSequence& getBlocks() const { return m_blockPrior.getState(); }
     const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
     const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPrior.getVertexCountsInBlocks(); }
     const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPrior.getState(); }

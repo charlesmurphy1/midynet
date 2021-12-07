@@ -19,7 +19,7 @@ using namespace FastMIDyNet;
 using namespace BaseGraph;
 
 void StochasticBlockModelFamily::sampleState(){
-    const BlockSequence& blockSeq = getBlockSequence();
+    const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     MultiGraph graph = generateSBM(blockSeq, edgeMat);
     setState(graph);
@@ -74,12 +74,12 @@ double StochasticBlockModelFamily::getLogPrior() {
 
 void StochasticBlockModelFamily::getDiffEdgeMatMapFromEdgeMove( const Edge& edge, int counter, IntMap<pair<BlockIndex, BlockIndex>>& diffEdgeMatMap ){
     Edge orderedEdge = getOrderedEdge(edge);
-    const BlockSequence& blockSeq = getBlockSequence();
+    const BlockSequence& blockSeq = getBlocks();
     diffEdgeMatMap.increment(getOrderedPair<BlockIndex>({blockSeq[orderedEdge.first], blockSeq[orderedEdge.second]}), counter);
 };
 
 double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) {
-    const BlockSequence& blockSeq = getBlockSequence();
+    const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
     const vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
@@ -147,7 +147,7 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio (const GraphMove& move)
 }
 
 void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove& move, IntMap<pair<BlockIndex, BlockIndex>>& diffEdgeMatMap){
-    const BlockSequence& blockSeq = getBlockSequence();
+    const BlockSequence& blockSeq = getBlocks();
     for (auto neighbor : m_state.getNeighboursOfIdx(move.vertexIdx)){
         BlockIndex blockIdx = blockSeq[neighbor.vertexIndex];
         size_t edgeMult = neighbor.label;
@@ -163,7 +163,7 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove( const BlockMove
 };
 
 double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
-    const BlockSequence& blockSeq = getBlockSequence();
+    const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
     const vector<size_t>& verticesInBlock = getVertexCountsInBlocks();
@@ -293,5 +293,5 @@ void StochasticBlockModelFamily::checkSelfConsistency(){
     m_blockPrior.checkSelfConsistency();
     m_edgeMatrixPrior.checkSelfConsistency();
 
-    checkGraphConsistencyWithEdgeMatrix(m_state, getBlockSequence(), getEdgeMatrix());
+    checkGraphConsistencyWithEdgeMatrix(m_state, getBlocks(), getEdgeMatrix());
 }

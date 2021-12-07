@@ -27,6 +27,12 @@ public:
     m_betaLikelihood(betaLikelihood),
     m_betaPrior(betaPrior),
     m_uniform(0., 1.) {}
+
+
+    double getLogLikelihood() { return m_randomGraph.getLogLikelihood(); }
+    double getLogPrior() { return m_randomGraph.getLogPrior(); }
+    double getLogJoint() { return m_randomGraph.getLogJoint(); }
+
 };
 
 class StochasticBlockGraphMCMC: public RandomGraphMCMC{
@@ -46,6 +52,8 @@ public:
     m_blockProposer(blockProposer){}
 
     void setUp();
+
+    const BlockSequence& getBlocks() { return m_sbmGraph.getBlocks(); }
 
     void doMetropolisHastingsStep();
 

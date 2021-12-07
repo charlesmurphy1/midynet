@@ -38,6 +38,9 @@ public:
     void onSweepBegin() { for(auto c : m_callbacksVec) c->onSweepBegin(); }
     void onSweepEnd() { for(auto c : m_callbacksVec) c->onSweepEnd(); }
 
+    void pushBack(CallBack& callback) { m_callbacksVec.push_back(&callback); }
+    void remove(size_t idx) { m_callbacksVec.erase(m_callbacksVec.begin() + idx); }
+
 };
 
 }

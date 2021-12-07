@@ -23,7 +23,7 @@ void DegreeCorrectedStochasticBlockModelFamily::samplePriors(){
 };
 
 void DegreeCorrectedStochasticBlockModelFamily::sampleState(){
-    const BlockSequence& blockSeq = getBlockSequence();
+    const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const DegreeSequence& degreeSeq = getDegreeSequence();
     setState( generateDCSBM(blockSeq, edgeMat, degreeSeq) );
@@ -71,7 +71,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogPrior() {
 };
 
 double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) {
-    const BlockSequence& blockSeq = getBlockSequence();
+    const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
     const vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
@@ -146,7 +146,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio (const G
 }
 
 double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
-    BlockSequence blockSeq = getBlockSequence();
+    BlockSequence blockSeq = getBlocks();
     EdgeMatrix edgeMat = getEdgeMatrix();
     vector<size_t> edgesInBlock = getEdgeCountsInBlocks();
     double logLikelihoodRatio = 0;
@@ -242,6 +242,6 @@ void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency(){
     m_edgeMatrixPrior.checkSelfConsistency();
     m_degreePrior.checkSelfConsistency();
 
-    checkGraphConsistencyWithEdgeMatrix(m_state, getBlockSequence(), getEdgeMatrix());
+    checkGraphConsistencyWithEdgeMatrix(m_state, getBlocks(), getEdgeMatrix());
     checkGraphConsistencyWithDegreeSequence(m_state, getDegreeSequence());
 }
