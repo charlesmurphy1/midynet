@@ -3,7 +3,7 @@
 #include <random>
 #include <time.h>
 
-#include "FastMIDyNet/proposer/blockproposer/uniform_blocks.h"
+#include "FastMIDyNet/proposer/block_proposer/uniform_blocks.h"
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/prior/sbm/edge_count.h"
@@ -12,12 +12,13 @@
 #include "FastMIDyNet/mcmc/graph_mcmc.h"
 #include "FastMIDyNet/rng.h"
 
+
+using namespace std;
+
+namespace FastMIDyNet{
 size_t GRAPH_SIZE = 100;
 size_t BLOCK_COUNT = 5;
 size_t EDGE_COUNT = 250;
-
-
-namespace FastMIDyNet{
 
 class TestStochasticBlockGraphMCMC: public::testing::Test{
 public:
@@ -28,19 +29,28 @@ public:
     EdgeMatrixUniformPrior edgeMatrix = EdgeMatrixUniformPrior(edgeCount, blockPrior);
     StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(blockPrior, edgeMatrix);
     StochasticBlockGraphMCMC mcmc = StochasticBlockGraphMCMC(randomGraph, blockProposer);
-    void setUp(){
+    void SetUp(){
         setSeed(time(NULL));
-        mcmc.setUp();
         mcmc.sample();
+        mcmc.setUp();
 
     }
-    void tearDown(){
+    void TearDown(){
         mcmc.tearDown();
     }
 };
 
 TEST_F(TestStochasticBlockGraphMCMC, doMetropolisHastingsStep){
-    mcmc.doMetropolisHastingsStep();
+    auto blocksBefore = mcmc.getBlocks();
+    while ( not mcmc.isLastAccepted() || mcmc.getLastLogJointRatio() == 0 )
+        mcmc.doMetropolisHastingsStep();
+    auto blocksAfter = mcmc.getBlocks();
+
+    size_t numDiff = 0;
+    for (size_t i=0; i < blocksBefore.size(); ++i){
+        if (blocksBefore[i] != blocksAfter[i]) ++numDiff;
+    }
+    EXPECT_EQ(numDiff, 1);
 }
 
 

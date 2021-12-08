@@ -4,7 +4,7 @@
 
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/proposer/blockproposer/blockproposer.h"
+#include "FastMIDyNet/proposer/block_proposer/blockproposer.h"
 #include "FastMIDyNet/random_graph/sbm.h"
 
 

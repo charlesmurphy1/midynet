@@ -178,10 +178,11 @@ public:
         checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
     };
-private:
+protected:
     VertexCountPrior& m_vertexCountPrior;
 
 };
+
 
 }
 

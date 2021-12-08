@@ -77,7 +77,9 @@ double BlockUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& mo
 
 
 void BlockHyperPrior::sampleState(){
-    setState( sampleRandomPermutation( getVertexCountsInBlocks() ) );
+    auto nr = getVertexCountsInBlocks();
+    auto b = sampleRandomPermutation( nr );
+    setState( b );
 };
 
 double BlockHyperPrior::getLogLikelihood() const {

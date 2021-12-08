@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "FastMIDyNet/proposer/blockproposer/uniform_blocks.h"
+#include "FastMIDyNet/proposer/block_proposer/uniform_blocks.h"
 #include "FastMIDyNet/types.h"
 #include "fixtures.hpp"
 

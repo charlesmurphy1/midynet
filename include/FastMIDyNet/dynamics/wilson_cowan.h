@@ -9,17 +9,18 @@ namespace FastMIDyNet{
 
 
 class WilsonCowanDynamics: public BinaryDynamics {
+private:
     double m_a;
     double m_nu;
     double m_mu;
     double m_eta;
 
-    public:
-        WilsonCowanDynamics(RandomGraph& randomGraph, double a, double nu, double mu, double eta):
-            BinaryDynamics(randomGraph), m_a(a), m_nu(nu), m_mu(mu), m_eta(eta) {}
+public:
+    WilsonCowanDynamics(RandomGraph& randomGraph, size_t numSteps, double a, double nu, double mu, double eta):
+        BinaryDynamics(randomGraph, numSteps), m_a(a), m_nu(nu), m_mu(mu), m_eta(eta) {}
 
-        double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const;
-        double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const;
+    double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const;
+    double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const;
 };
 
 } // namespace FastMIDyNet

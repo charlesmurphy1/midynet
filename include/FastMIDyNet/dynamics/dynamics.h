@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <map>
+#include <iostream>
 
 #include "BaseGraph/types.h"
 
@@ -17,9 +18,10 @@ namespace FastMIDyNet{
 class Dynamics{
 
     public:
-        explicit Dynamics(RandomGraph& randomGraph, int numStates):
+        explicit Dynamics(RandomGraph& randomGraph, size_t numStates, size_t numSteps):
             m_randomGraph(randomGraph),
-            m_numStates(numStates)
+            m_numStates(numStates),
+            m_numSteps(numSteps)
             { }
 
         const State& getState() const { return m_state; }
@@ -39,8 +41,14 @@ class Dynamics{
         const int getSize() const { return m_randomGraph.getSize(); }
         const int getNumStates() const { return m_numStates; }
 
-        void sampleState(int numSteps, const State& initialState, bool async=true);
-        void sampleState(int numSteps, bool async=true){ return sampleState(numSteps, getRandomState(), async); }
+        void sample(const State& initialState, bool async=true){
+
+            m_randomGraph.sample();
+            sampleState(initialState, async);
+        }
+        void sample(bool async=true){ sample(getRandomState(), async); }
+        void sampleState(const State& initialState, bool async=true);
+        void sampleState(bool async=true){ return sampleState(getRandomState(), async); }
         const State getRandomState();
         const NeighborsState getNeighborsState(const State& state) const;
         const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const;
@@ -67,7 +75,8 @@ class Dynamics{
         void applyMove(const GraphMove& move);
 
     protected:
-        int m_numStates;
+        size_t m_numStates;
+        size_t m_numSteps;
         State m_state;
         StateSequence m_pastStateSequence;
         StateSequence m_futureStateSequence;

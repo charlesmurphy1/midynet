@@ -33,7 +33,9 @@ class BlockCountDeltaPrior: public BlockCountPrior{
     size_t m_blockCount;
 public:
     BlockCountDeltaPrior(size_t blockCount): m_blockCount(blockCount){ setState(m_blockCount); }
+
     void sampleState() { }
+
     double getLogLikelihoodFromState(const size_t& blockCount) const{
         if (blockCount != m_state) return -INFINITY;
         else return 0;

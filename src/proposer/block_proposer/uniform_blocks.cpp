@@ -1,5 +1,5 @@
 #include "FastMIDyNet/rng.h"
-#include "FastMIDyNet/proposer/blockproposer/uniform_blocks.h"
+#include "FastMIDyNet/proposer/block_proposer/uniform_blocks.h"
 #include <random>
 
 
@@ -15,7 +15,7 @@ UniformBlockProposer::UniformBlockProposer(size_t graphSize, double createNewBlo
 
 BlockMove UniformBlockProposer::proposeMove() {
     if (m_blockCount == 1 && m_blockCreationProbability == 0)
-        return {0, (*m_blockSequencePtr)[0], (*m_blockSequencePtr)[0]};
+        return {0, (*m_blockSequencePtr)[0], (*m_blockSequencePtr)[0], 0};
 
 
     auto movedVertex = m_vertexDistribution(rng);
@@ -28,13 +28,14 @@ BlockMove UniformBlockProposer::proposeMove() {
         addedBlocks = 1;
     }
     else {
-        BlockIndex newBlock = std::uniform_int_distribution<BlockIndex>(0, m_blockCount-2)(rng);
+        newBlock = std::uniform_int_distribution<BlockIndex>(0, m_blockCount-2)(rng);
         if (newBlock >= currentBlock)
             newBlock++;
     }
-    if (destroyingBlock(currentBlock, newBlock) && creatingNewBlock(newBlock))
-        return {0, (*m_blockSequencePtr)[0], (*m_blockSequencePtr)[0]};
-    return {movedVertex, currentBlock, newBlock};
+    if (destroyingBlock(currentBlock, newBlock) && creatingNewBlock(newBlock)){
+        return {0, (*m_blockSequencePtr)[0], (*m_blockSequencePtr)[0], -1};
+    }
+    return {movedVertex, currentBlock, newBlock, addedBlocks};
 }
 
 void UniformBlockProposer::setUp(const BlockSequence& blocks, size_t blockCount) {
@@ -68,6 +69,9 @@ void UniformBlockProposer::updateProbabilities(const BlockMove& move) {
         m_vertexCountInBlocks.erase(m_vertexCountInBlocks.begin() + move.prevBlockIdx);
         m_blockCount--;
     }
+    #if DEBUG
+    checkConsistency();
+    #endif
 }
 
 void UniformBlockProposer::checkConsistency() {

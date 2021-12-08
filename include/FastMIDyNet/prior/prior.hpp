@@ -18,7 +18,7 @@ class Prior{
 
         virtual void sampleState() = 0;
         virtual void samplePriors() = 0;
-        virtual void sample() {
+        void sample() {
             processRecursiveFunction([&]() {
                     samplePriors();
                     sampleState();

@@ -62,7 +62,7 @@ protected:
     size_t m_numberOfSuccesses;
 public:
     void onSweepBegin(){ m_numberOfSuccesses = 0; }
-    void onStepEnd(){ if ( m_mcmcPtr->getLastIsAccepted() ) ++m_numberOfSuccesses; }
+    void onStepEnd(){ if ( m_mcmcPtr->isLastAccepted() ) ++m_numberOfSuccesses; }
     std::string getMessage() const{
         std::stringstream message;
         message.precision(4);
@@ -77,7 +77,7 @@ protected:
     size_t m_numberOfFailure;
 public:
     void onSweepBegin(){ m_numberOfFailure = 0; }
-    void onStepEnd(){ if ( not m_mcmcPtr->getLastIsAccepted() ) ++m_numberOfFailure; }
+    void onStepEnd(){ if ( not m_mcmcPtr->isLastAccepted() ) ++m_numberOfFailure; }
     std::string getMessage() const{
         std::stringstream message;
         message.precision(4);

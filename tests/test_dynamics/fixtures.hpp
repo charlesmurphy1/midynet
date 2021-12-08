@@ -13,6 +13,8 @@
 
 namespace FastMIDyNet{
 
+static const size_t NUM_STEPS = 10;
+
 class DummyRandomGraph: public RandomGraph{
     public:
         DummyRandomGraph(size_t size): RandomGraph(size) { };
@@ -26,8 +28,8 @@ class DummyRandomGraph: public RandomGraph{
 
 class DummyDynamics: public Dynamics{
     public:
-        DummyDynamics(RandomGraph& randomGraph, int numStates):
-            Dynamics(randomGraph, numStates) { }
+        DummyDynamics(RandomGraph& randomGraph, int numStates, size_t numSteps):
+            Dynamics(randomGraph, numStates, numSteps) { }
 
         double getTransitionProb(
             VertexState prevVertexState,
@@ -68,7 +70,7 @@ template <size_t StateNumber>
 class TestDynamics: public::testing::Test{
     public:
         FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7);
-        FastMIDyNet::DummyDynamics dynamics = FastMIDyNet::DummyDynamics(graph, StateNumber);
+        FastMIDyNet::DummyDynamics dynamics = FastMIDyNet::DummyDynamics(graph, StateNumber, NUM_STEPS);
         void SetUp() {
             auto graph = getUndirectedHouseMultiGraph();
             FastMIDyNet::State state = {0, 0, 0, 1, 1, 1, 2};

@@ -4,6 +4,7 @@
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/dynamics/dynamics.h"
+#include "FastMIDyNet/utility/maps.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/types.h"
@@ -14,22 +15,19 @@ using namespace BaseGraph;
 
 
 namespace FastMIDyNet {
-void Dynamics::sampleState(int numSteps, const State& x0, bool async){
-    State state = x0;
+void Dynamics::sampleState(const State& x0, bool async){
+    m_state = x0;
+
     m_pastStateSequence.clear();
     m_futureStateSequence.clear();
     m_neighborsStateSequence.clear();
 
-    m_pastStateSequence.resize(numSteps);
-    m_futureStateSequence.resize(numSteps);
-    m_neighborsStateSequence.resize(numSteps);
-
-    for (size_t t = 0; t < numSteps; t++) {
-        m_pastStateSequence[t] = state;
+    for (size_t t = 0; t < m_numSteps; t++) {
+        m_pastStateSequence.push_back(m_state);
         if (async) { asyncUpdateState(getSize()); }
         else { syncUpdateState(); }
-        m_futureStateSequence[t] = state;
-        m_neighborsStateSequence[t] = getNeighborsState(state);
+        m_futureStateSequence.push_back(m_state);
+        m_neighborsStateSequence.push_back(getNeighborsState(m_state));
     }
 };
 
@@ -61,9 +59,8 @@ const NeighborsState Dynamics::getNeighborsState(const State& state) const {
 };
 
 const VertexNeighborhoodStateSequence Dynamics::getVertexNeighborsState ( const VertexIndex& vertex_idx ) const {
-    int numSteps = m_pastStateSequence.size();
-    VertexNeighborhoodStateSequence neighborState(numSteps);
-    for (auto t=0; t<numSteps; t++) {
+    VertexNeighborhoodStateSequence neighborState(m_numSteps);
+    for (auto t=0; t<m_numSteps; t++) {
         neighborState[t] = m_neighborsStateSequence[t][vertex_idx];
     }
     return neighborState;
@@ -138,29 +135,32 @@ const std::vector<double> Dynamics::getTransitionProbs(VertexState prevVertexSta
     return transProbs;
 };
 
-void Dynamics::updateNeighborStateMapFromEdgeMove(BaseGraph::Edge edge, int direction, map<VertexIndex, VertexNeighborhoodStateSequence>& prevNeighborMap, map<VertexIndex, VertexNeighborhoodStateSequence>& nextNeighborMap) const{
-    int numSteps = m_pastStateSequence.size();
+void Dynamics::updateNeighborStateMapFromEdgeMove(
+    BaseGraph::Edge edge,
+    int counter,
+    map<VertexIndex, VertexNeighborhoodStateSequence>& prevNeighborMap,
+    map<VertexIndex, VertexNeighborhoodStateSequence>& nextNeighborMap) const{
     VertexIndex v = edge.first, u = edge.second;
+
     if (prevNeighborMap.count(v) == 0){
-        prevNeighborMap[v] = getVertexNeighborsState(v) ;
-        nextNeighborMap[v] = getVertexNeighborsState(v) ;
+        prevNeighborMap.insert({v, getVertexNeighborsState(v)}) ;
+        nextNeighborMap.insert({v, getVertexNeighborsState(v)}) ;
     }
-    else if (prevNeighborMap.count(u) == 0){
-        prevNeighborMap[u] = getVertexNeighborsState(u);
-        nextNeighborMap[u] = getVertexNeighborsState(u) ;
+    if (prevNeighborMap.count(u) == 0){
+        prevNeighborMap.insert({u, getVertexNeighborsState(u)}) ;
+        nextNeighborMap.insert({u, getVertexNeighborsState(u)}) ;
     }
 
     VertexState vState, uState;
-    for (size_t t = 0; t < numSteps; t++) {
+    for (size_t t = 0; t < m_numSteps; t++) {
         uState = m_pastStateSequence[t][u];
         vState = m_pastStateSequence[t][v];
-        nextNeighborMap[u][t][vState] += direction;
-        nextNeighborMap[v][t][uState] += direction;
+        nextNeighborMap[u][t][vState] += counter;
+        nextNeighborMap[v][t][uState] += counter;
     }
 };
 
 double Dynamics::getLogLikelihoodRatio(const GraphMove& move) const{
-    int numSteps = m_pastStateSequence.size();
     double logLikelihoodRatio = 0;
     set<size_t> verticesAffected;
     map<VertexIndex,VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
@@ -178,11 +178,11 @@ double Dynamics::getLogLikelihoodRatio(const GraphMove& move) const{
         u = edge.second;
         verticesAffected.insert(v);
         verticesAffected.insert(u);
-        updateNeighborStateMapFromEdgeMove(edge, 1, prevNeighborMap, nextNeighborMap);
+        updateNeighborStateMapFromEdgeMove(edge, -1, prevNeighborMap, nextNeighborMap);
     }
 
     for (const auto& idx: verticesAffected){
-        for (size_t t = 0; t < numSteps; t++) {
+        for (size_t t = 0; t < m_numSteps; t++) {
             logLikelihoodRatio += log(getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], nextNeighborMap[idx][t]));
             logLikelihoodRatio -= log(getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], prevNeighborMap[idx][t]));
         }
@@ -201,11 +201,10 @@ double Dynamics::getLogJointRatio(const GraphMove& move){
 
 
 void Dynamics::applyMove(const GraphMove& move){
-    int numSteps = m_pastStateSequence.size();
     set<VertexIndex> verticesAffected;
     map<VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
 
-    VertexNeighborhoodStateSequence neighborState(numSteps);
+    VertexNeighborhoodStateSequence neighborState(m_numSteps);
     size_t v, u;
     for (const auto& edge : move.addedEdges){
         v = edge.first;
@@ -223,28 +222,11 @@ void Dynamics::applyMove(const GraphMove& move){
     }
 
     for (const auto& idx: verticesAffected){
-        for (size_t t = 0; t < numSteps; t++) {
+        for (size_t t = 0; t < m_numSteps; t++) {
             m_neighborsStateSequence[t][idx] = nextNeighborMap[idx][t];
         }
     }
     m_randomGraph.applyMove(move);
 };
-
-// void Dynamics::doMetropolisHastingsStep(double beta, double sample_graph_prior){
-//     uniform_real_distribution<double> uniform_01(0., 1.);
-//     double dS = 0;
-//     if ( sample_graph_prior < uniform_01(rng) ){
-//         m_randomGraph.doMetropolisHastingsStep();
-//     }
-//     else{
-//         GraphMove move = m_randomGraph.proposeMove();
-//         dS += beta * getLogJointRatio(move) + m_randomGraph.getLogJointRatio(move);
-//         if ( exp(dS) > uniform_01(rng) ){
-//             applyMove(move);
-//             m_randomGraph.applyMove(move);
-//         }
-//     }
-// };
-
 
 }

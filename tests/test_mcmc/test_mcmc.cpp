@@ -18,25 +18,26 @@ public:
         m_lastLogJointRatio = 0;
         m_lastLogAcceptance = -log(2);
         if (m_uniform(rng) < exp(m_lastLogAcceptance))
-            m_lastIsAccepted = true;
+            m_isLastAccepted = true;
         else
-            m_lastIsAccepted = false;
+            m_isLastAccepted = false;
 
     }
-    double getLogLikelihood() { return 1; }
+    double getLogLikelihood() const { return 1; }
     double getLogPrior() { return 2; }
     double getLogJoint() { return getLogLikelihood() + getLogPrior(); }
-    void sample() { }
+    void sample() { m_hasState = true; }
 };
 
 class TestMCMC: public::testing::Test{
 public:
     DummyMCMC mcmc = DummyMCMC();
-    void setUp(){
+    void SetUp(){
+        mcmc.sample();
         mcmc.setUp();
         setSeed(time(NULL));
     }
-    void tearDown(){
+    void TearDown(){
         mcmc.tearDown();
     }
 };

@@ -4,7 +4,7 @@
 #include <random>
 
 #include "FastMIDyNet/random_graph/sbm.h"
-#include "FastMIDyNet/proposer/blockproposer/blockproposer.h"
+#include "FastMIDyNet/proposer/block_proposer/blockproposer.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/mcmc/mcmc.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.h"
@@ -18,10 +18,11 @@ protected:
     double m_betaLikelihood, m_betaPrior;
     std::uniform_real_distribution<double> m_uniform;
 public:
-    RandomGraphMCMC(RandomGraph& randomGraph,
-    double betaLikelihood=1,
-    double betaPrior=1,
-    const CallBackList& callBacks={}):
+    RandomGraphMCMC(
+        RandomGraph& randomGraph,
+        double betaLikelihood=1,
+        double betaPrior=1,
+        const CallBackList& callBacks={}):
     MCMC(callBacks),
     m_randomGraph(randomGraph),
     m_betaLikelihood(betaLikelihood),
@@ -29,10 +30,10 @@ public:
     m_uniform(0., 1.) {}
 
 
-    double getLogLikelihood() { return m_randomGraph.getLogLikelihood(); }
+    double getLogLikelihood() const { return m_randomGraph.getLogLikelihood(); }
     double getLogPrior() { return m_randomGraph.getLogPrior(); }
     double getLogJoint() { return m_randomGraph.getLogJoint(); }
-    void sample() { m_randomGraph.sample(); }
+    void sample() { m_randomGraph.sample(); m_hasState=true; }
 
 };
 

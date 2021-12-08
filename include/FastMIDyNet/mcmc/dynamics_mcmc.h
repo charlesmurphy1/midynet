@@ -43,6 +43,11 @@ public:
     virtual double getLogLikelihood() const { return m_dynamics.getLogLikelihood(); }
     virtual double getLogPrior() { return m_dynamics.getLogPrior(); }
     virtual double getLogJoint() { return m_dynamics.getLogJoint(); }
+    void sample() {
+        m_dynamics.sample();
+        m_hasState=true;
+    }
+
 
     void doMetropolisHastingsStep();
 };
