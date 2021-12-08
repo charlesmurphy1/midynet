@@ -32,6 +32,7 @@ public:
     double getLogLikelihood() { return m_randomGraph.getLogLikelihood(); }
     double getLogPrior() { return m_randomGraph.getLogPrior(); }
     double getLogJoint() { return m_randomGraph.getLogJoint(); }
+    void sample() { m_randomGraph.sample(); }
 
 };
 

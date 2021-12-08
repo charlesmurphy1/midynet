@@ -15,21 +15,33 @@ protected:
     double m_lastLogJointRatio;
     double m_lastLogAcceptance;
     bool m_lastIsAccepted;
+    bool m_hasState;
 public:
     MCMC(std::vector<CallBack*> callbacks={}):
-        m_callBacks(callbacks), m_numSteps(0), m_numSweeps(0), m_lastLogJointRatio(0), m_lastIsAccepted(false) {}
+        m_callBacks(callbacks),
+        m_numSteps(0),
+        m_numSweeps(0),
+        m_lastLogJointRatio(0),
+        m_lastIsAccepted(false),
+        m_hasState(false) {}
     MCMC(const CallBackList& callbacks):
-        m_callBacks(callbacks), m_numSteps(0), m_numSweeps(0), m_lastLogJointRatio(0), m_lastIsAccepted(false) {}
+        m_callBacks(callbacks),
+        m_numSteps(0),
+        m_numSweeps(0),
+        m_lastLogJointRatio(0),
+        m_lastIsAccepted(false),
+        m_hasState(false) {}
 
     const double getLastLogJointRatio() const { return m_lastLogJointRatio; }
     const double getLastLogAcceptance() const { return m_lastLogAcceptance; }
     const bool getLastIsAccepted() const { return m_lastIsAccepted; }
-    const bool getNumSteps() const { return m_numSteps; }
-    const bool getNumSweeps() const { return m_numSweeps; }
+    const size_t getNumSteps() const { return m_numSteps; }
+    const size_t getNumSweeps() const { return m_numSweeps; }
 
     virtual double getLogLikelihood() = 0 ;
     virtual double getLogPrior() = 0 ;
     virtual double getLogJoint() = 0 ;
+    virtual void sample() = 0 ;
 
     void addCallBack(CallBack& callBack) { callBack.setUp(this); m_callBacks.pushBack(callBack); }
     void removeCallBack(size_t& idx) { m_callBacks.remove(idx); }

@@ -6,6 +6,6 @@ namespace FastMIDyNet {
 
 RNG rng;
 
-void setSeed(size_t seed){ }
+void setSeed(size_t seed){ rng.seed(seed); }
 
 }
