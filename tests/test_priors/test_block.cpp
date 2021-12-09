@@ -285,5 +285,51 @@ TEST_F(TestBlockHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_
     double logLikelihoodAfter = prior.getLogLikelihood();
 
     EXPECT_EQ(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore);
+}
 
+
+class TestBlockUniformHyperPrior: public::testing::Test{
+    public:
+        FastMIDyNet::BlockCountPoissonPrior blockCountPrior = FastMIDyNet::BlockCountPoissonPrior(POISSON_MEAN);
+        // FastMIDyNet::VertexCountUniformPrior vertexCountPrior = FastMIDyNet::VertexCountUniformPrior(GRAPH_SIZE, blockCountPrior);
+        FastMIDyNet::BlockUniformHyperPrior prior = FastMIDyNet::BlockUniformHyperPrior(GRAPH_SIZE, blockCountPrior);
+        void SetUp() {
+            prior.sample();
+            prior.computationFinished();
+        }
+        void TearDown(){
+            prior.computationFinished();
+        }
+        FastMIDyNet::BlockIndex findBlockMove(BaseGraph::VertexIndex idx){
+            FastMIDyNet::BlockIndex blockIdx = prior.getBlockOfIdx(idx);
+            if (blockIdx == prior.getBlockCount() - 1) return blockIdx - 1;
+            else return blockIdx + 1;
+        }
+};
+
+TEST_F(TestBlockUniformHyperPrior, sampleState_generateConsistentState){
+    prior.sampleState();
+    EXPECT_NO_THROW(prior.checkSelfConsistency());
+}
+
+TEST_F(TestBlockUniformHyperPrior, getLogLikelihood_returnCorrectLogLikehood){
+    std::list<size_t> nrList = FastMIDyNet::vecToList( prior.getVertexCountsInBlocks() );
+    EXPECT_LE( prior.getLogLikelihood(), 0 );
+    EXPECT_EQ( prior.getLogLikelihood(), -logMultinomialCoefficient( nrList ) );
+}
+
+TEST_F(TestBlockUniformHyperPrior, applyBlockMove_ForSomeBlockMove_getConsistentState){
+    FastMIDyNet::BlockMove move = {0, prior.getBlockOfIdx(0), findBlockMove(0), 0};
+    prior.applyBlockMove(move);
+    EXPECT_NO_THROW(prior.checkSelfConsistency());
+}
+
+TEST_F(TestBlockUniformHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_returnCorrectLogLikelihoodRatio){
+    FastMIDyNet::BlockMove move = {0, prior.getBlockOfIdx(0), findBlockMove(0), 0};
+    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
+    double logLikelihoodBefore = prior.getLogLikelihood();
+    prior.applyBlockMove(move);
+    double logLikelihoodAfter = prior.getLogLikelihood();
+
+    EXPECT_EQ(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore);
 }

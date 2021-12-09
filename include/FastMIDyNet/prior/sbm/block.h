@@ -6,6 +6,7 @@
 
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/prior/sbm/block_count.h"
+#include "FastMIDyNet/prior/sbm/layer_count.h"
 #include "FastMIDyNet/prior/sbm/vertex_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
@@ -17,21 +18,18 @@ private:
     void moveVertexCountsInBlocks(const BlockMove& move);
 protected:
     size_t m_size;
-    BlockCountPrior& m_blockCountPrior;
+    size_t m_blockCount;
     std::vector<size_t> m_vertexCountsInBlocks;
 public:
-    BlockPrior(size_t size, BlockCountPrior& blockCountPrior):
-        m_size(size), m_blockCountPrior(blockCountPrior) { }
+    BlockPrior(size_t size):
+        m_size(size){ }
 
     virtual void setState(const BlockSequence& blockSeq) override{
-        m_blockCountPrior.setState(*max_element(blockSeq.begin(), blockSeq.end()) + 1);
         m_vertexCountsInBlocks = computeVertexCountsInBlocks(blockSeq);
         m_state = blockSeq;
     }
-    void samplePriors() override {
-        m_blockCountPrior.sample();
-    }
-    const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
+
+    virtual const size_t getBlockCount() const { return *max_element(m_state.begin(), m_state.end()); }
     const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
     static std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&);
     virtual const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
@@ -58,7 +56,7 @@ public:
         ++m_vertexCountsInBlocks[move.nextBlockIdx];
     };
     virtual void applyBlockMove(const BlockMove&) = 0;
-    void computationFinished() override { m_isProcessed=false; m_blockCountPrior.computationFinished(); }
+    void computationFinished() override { m_isProcessed=false; }
 
     static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;
     static void checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, std::vector<size_t> expectedVertexCountsInBlocks) ;
@@ -67,14 +65,10 @@ public:
 
 class BlockDeltaPrior: public BlockPrior{
     BlockSequence m_blockSeq;
-    BlockCountDeltaPrior m_blockCountDeltaPrior;
 public:
     BlockDeltaPrior(const BlockSequence& blockSeq):
         m_blockSeq(blockSeq),
-        m_blockCountDeltaPrior(*max_element(blockSeq.begin(), blockSeq.end())),
-        BlockPrior(blockSeq.size(), m_blockCountDeltaPrior) {
-            setState(blockSeq);
-        }
+        BlockPrior(blockSeq.size()) { setState(blockSeq); }
 
     void sampleState() {  };
     void samplePriors() { };
@@ -102,10 +96,17 @@ public:
 };
 
 class BlockUniformPrior: public BlockPrior{
+private:
+    BlockCountPrior& m_blockCountPrior;
 public:
     BlockUniformPrior(size_t graphSize, BlockCountPrior& blockCountPrior):
-        BlockPrior(graphSize, blockCountPrior) { }
+        BlockPrior(graphSize), m_blockCountPrior(blockCountPrior) { }
 
+    const size_t getBlockCount() const { return m_blockCountPrior.getState();}
+    void setState(const BlockSequence& blockSeq) override{
+        m_state = blockSeq;
+        m_blockCountPrior.setState(BlockPrior::getBlockCount());
+    }
     void sampleState();
 
     double getLogLikelihood() const ;
@@ -124,6 +125,11 @@ public:
         });
     }
 
+    void computationFinished() override {
+        m_isProcessed=false;
+        m_blockCountPrior.computationFinished();
+    }
+
     void checkSelfConsistency() const {
         checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
@@ -133,12 +139,11 @@ public:
 
 class BlockHyperPrior: public BlockPrior{
 public:
-    BlockHyperPrior(VertexCountPrior& vertexCountPrior):
+    BlockHyperPrior(size_t size, VertexCountPrior& vertexCountPrior):
         m_vertexCountPrior(vertexCountPrior),
-        BlockPrior(vertexCountPrior.getSize(), vertexCountPrior.getBlockCountPrior()){ }
+        BlockPrior(size){ }
 
     void setState(const BlockSequence& blockSeq) override{
-        m_blockCountPrior.setState(*max_element(blockSeq.begin(), blockSeq.end()) + 1);
         m_vertexCountPrior.setState( computeVertexCountsInBlocks(blockSeq) );
         m_state = blockSeq;
     }
@@ -146,40 +151,51 @@ public:
     void sampleState();
 
     void samplePriors() override {
-        m_blockCountPrior.sample();
         m_vertexCountPrior.sample();
     }
 
     double getLogLikelihood() const ;
-    double getLogPrior() { return m_blockCountPrior.getLogJoint() + m_vertexCountPrior.getLogJoint(); }
+    double getLogPrior() { return m_vertexCountPrior.getLogJoint(); }
 
     double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
     double getLogPriorRatioFromBlockMove(const BlockMove& move) {
-        return m_blockCountPrior.getLogJointRatioFromBlockMove(move);
+        return m_vertexCountPrior.getLogJointRatioFromBlockMove(move);
     };
 
     void applyBlockMove(const BlockMove& move){
         processRecursiveFunction( [&]() {
-            m_blockCountPrior.applyBlockMove(move);
             m_vertexCountPrior.applyBlockMove(move);
             applyBlockMoveToState(move);
         });
     }
     void computationFinished() override {
         m_isProcessed=false;
-        m_blockCountPrior.computationFinished();
         m_vertexCountPrior.computationFinished();
     }
 
 
     void checkSelfConsistency() const {
-        m_blockCountPrior.checkSelfConsistency();
         m_vertexCountPrior.checkSelfConsistency();
-        checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
     };
 protected:
     VertexCountPrior& m_vertexCountPrior;
+
+};
+
+class BlockHierarchicalPrior: public BlockPrior{
+private:
+    LayerCountPrior& m_layerCountPrior;
+public:
+    BlockHierarchicalPrior(size_t size, LayerCountPrior& layerCountPrior):
+    BlockPrior(size), m_layerCountPrior(layerCountPrior){}
+};
+
+class BlockHierarchicalUniformPrior: public BlockHierarchicalPrior{
+
+};
+
+class BlockHierarchicalHyperPrior: public BlockHierarchicalPrior{
 
 };
 

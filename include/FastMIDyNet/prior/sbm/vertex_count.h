@@ -13,9 +13,8 @@ namespace FastMIDyNet{
 class VertexCountPrior: public Prior<std::vector<size_t>>{
 public:
     VertexCountPrior(size_t size, BlockCountPrior& blockCountPrior):
-    m_size(size), m_blockCountPrior(blockCountPrior) {
-        // std::cout << "In vertex count: " << size << " = " << getSize() << std::endl; 
-    }
+    m_size(size), m_blockCountPrior(blockCountPrior) { }
+
 
     void setState(const std::vector<size_t>& state) {
         m_state = state;
