@@ -11,9 +11,14 @@
 namespace FastMIDyNet{
 
 class VertexCountPrior: public Prior<std::vector<size_t>>{
+protected:
+    size_t m_size;
+    BlockCountPrior& m_blockCountPrior;
+    void createBlock(){ m_state.push_back(0); }
+    void destroyBlock(const BlockIndex& idx) { m_state.erase(m_state.begin() + idx); }
 public:
-    VertexCountPrior(size_t size, BlockCountPrior& blockCountPrior):
-    m_size(size), m_blockCountPrior(blockCountPrior) { }
+    VertexCountPrior(size_t size, BlockCountPrior& blockCountPrior): // constructor
+        m_size(size), m_blockCountPrior(blockCountPrior) { }
 
 
     void setState(const std::vector<size_t>& state) {
@@ -53,11 +58,6 @@ public:
         ++m_state[move.nextBlockIdx];
         if (move.addedBlocks == -1){ destroyBlock(move.prevBlockIdx); }
     }
-protected:
-    size_t m_size;
-    BlockCountPrior& m_blockCountPrior;
-    void createBlock(){ m_state.push_back(0); }
-    void destroyBlock(const BlockIndex& idx) { m_state.erase(m_state.begin() + idx); }
 };
 
 class VertexCountUniformPrior: public VertexCountPrior{

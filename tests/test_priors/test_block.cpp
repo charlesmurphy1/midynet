@@ -20,8 +20,8 @@ const BlockSequence BLOCK_SEQ={0,0,0,0,0,1,1,1,1,1};
 
 class DummyBlockPrior: public BlockPrior {
     public:
-        DummyBlockPrior(size_t graphSize, BlockCountPrior& blockCountPrior):
-        BlockPrior(graphSize, blockCountPrior) {};
+        DummyBlockPrior(size_t graphSize):
+        BlockPrior(graphSize) {};
         void sampleState() {
             BlockSequence blockSeq = BlockSequence(GRAPH_SIZE, 0);
             blockSeq[BLOCK_COUNT - 1];
@@ -52,8 +52,7 @@ class DummyBlockPrior: public BlockPrior {
 class TestBlockPrior: public ::testing::Test {
     public:
 
-        FastMIDyNet::BlockCountPoissonPrior blockMovePrior = FastMIDyNet::BlockCountPoissonPrior(POISSON_MEAN);
-        DummyBlockPrior prior = DummyBlockPrior(GRAPH_SIZE, blockMovePrior);
+        DummyBlockPrior prior = DummyBlockPrior(GRAPH_SIZE);
         void SetUp() {
             BlockSequence blockSeq;
             for (size_t idx = 0; idx < GRAPH_SIZE; idx++) {
@@ -291,7 +290,6 @@ TEST_F(TestBlockHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_
 class TestBlockUniformHyperPrior: public::testing::Test{
     public:
         FastMIDyNet::BlockCountPoissonPrior blockCountPrior = FastMIDyNet::BlockCountPoissonPrior(POISSON_MEAN);
-        // FastMIDyNet::VertexCountUniformPrior vertexCountPrior = FastMIDyNet::VertexCountUniformPrior(GRAPH_SIZE, blockCountPrior);
         FastMIDyNet::BlockUniformHyperPrior prior = FastMIDyNet::BlockUniformHyperPrior(GRAPH_SIZE, blockCountPrior);
         void SetUp() {
             prior.sample();

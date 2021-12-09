@@ -29,7 +29,7 @@ vector<size_t> BlockPrior::computeVertexCountsInBlocks(const BlockSequence& stat
 }
 
 void BlockPrior::checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) {
-    size_t actualBlockCount = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
+    size_t actualBlockCount = BlockPrior::computeBlockCount(blockSeq);
     if (actualBlockCount != expectedBlockCount)
         throw ConsistencyError("BlockPrior: blockSeq is inconsistent with expected block count.");
 

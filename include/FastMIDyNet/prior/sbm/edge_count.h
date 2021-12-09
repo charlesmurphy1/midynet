@@ -71,7 +71,10 @@ protected:
 public:
     using EdgeCountPrior::EdgeCountPrior;
     EdgeCountMultisetPrior(size_t maxEdgeCount, size_t iteration=100):
-    m_maxEdgeCount(maxEdgeCount), m_iteration(iteration), m_logZ(getLogNormalization()), m_maxWeightEdgeCount(maxEdgeCount) { }
+        m_maxEdgeCount(maxEdgeCount),
+        m_iteration(iteration),
+        m_logZ(getLogNormalization()),
+        m_maxWeightEdgeCount(maxEdgeCount) { }
 
     void sampleState() ;
     double getLogLikelihoodFromState(const size_t& E) const { return this->getWeight(E) - m_logZ; }
@@ -86,7 +89,7 @@ class EdgeCountBinomialPrior: public EdgeCountMultisetPrior{
 public:
     using EdgeCountMultisetPrior::EdgeCountMultisetPrior;
     EdgeCountBinomialPrior(size_t maxEdgeCount, size_t iteration=100):
-    EdgeCountMultisetPrior(maxEdgeCount, iteration){ m_maxWeightEdgeCount = maxEdgeCount / 2; }
+        EdgeCountMultisetPrior(maxEdgeCount, iteration){ m_maxWeightEdgeCount = maxEdgeCount / 2; }
     double getWeight(size_t E) const {
         return logBinomialCoefficient(m_maxEdgeCount, E);
     }

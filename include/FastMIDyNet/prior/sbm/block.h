@@ -24,15 +24,17 @@ public:
     BlockPrior(size_t size):
         m_size(size){ }
 
-    virtual void setState(const BlockSequence& blockSeq) override{
-        m_vertexCountsInBlocks = computeVertexCountsInBlocks(blockSeq);
-        m_state = blockSeq;
+    virtual void setState(const BlockSequence& blocks) override{
+        m_blockCount = computeBlockCount(blocks);
+        m_vertexCountsInBlocks = computeVertexCountsInBlocks(blocks);
+        m_state = blocks;
     }
 
-    virtual const size_t getBlockCount() const { return *max_element(m_state.begin(), m_state.end()); }
-    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
-    static std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&);
+    virtual const size_t& getBlockCount() const { return m_blockCount; }
     virtual const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
+    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
+    static size_t computeBlockCount(const BlockSequence& blocks) { return *max_element(blocks.begin(), blocks.end()) + 1; }
+    static std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&);
     const size_t& getSize() const { return m_size; }
 
     double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; };
@@ -102,12 +104,13 @@ public:
     BlockUniformPrior(size_t graphSize, BlockCountPrior& blockCountPrior):
         BlockPrior(graphSize), m_blockCountPrior(blockCountPrior) { }
 
-    const size_t getBlockCount() const { return m_blockCountPrior.getState();}
+    const size_t& getBlockCount() const { return m_blockCountPrior.getState();}
     void setState(const BlockSequence& blockSeq) override{
         m_state = blockSeq;
         m_blockCountPrior.setState(BlockPrior::getBlockCount());
     }
     void sampleState();
+    void samplePriors() { m_blockCountPrior.sample(); }
 
     double getLogLikelihood() const ;
     double getLogPrior() { return m_blockCountPrior.getLogJoint(); };
@@ -139,9 +142,9 @@ public:
 
 class BlockHyperPrior: public BlockPrior{
 public:
-    BlockHyperPrior(size_t size, VertexCountPrior& vertexCountPrior):
+    BlockHyperPrior(VertexCountPrior& vertexCountPrior):
         m_vertexCountPrior(vertexCountPrior),
-        BlockPrior(size){ }
+        BlockPrior(vertexCountPrior.getSize()){ }
 
     void setState(const BlockSequence& blockSeq) override{
         m_vertexCountPrior.setState( computeVertexCountsInBlocks(blockSeq) );
@@ -180,12 +183,23 @@ public:
     };
 protected:
     VertexCountPrior& m_vertexCountPrior;
+};
+
+class BlockUniformHyperPrior: public BlockHyperPrior{
+public:
+    BlockUniformHyperPrior(size_t size, BlockCountPrior& blockCountPrior):
+        BlockHyperPrior(*new VertexCountUniformPrior(size, blockCountPrior)){}
+    BlockUniformHyperPrior(const BlockUniformHyperPrior& other):
+        BlockHyperPrior(other.m_vertexCountPrior){ }
+    ~BlockUniformHyperPrior(){ delete & m_vertexCountPrior; }
+
 
 };
 
 class BlockHierarchicalPrior: public BlockPrior{
 private:
     LayerCountPrior& m_layerCountPrior;
+    std::vector<BlockSequence> m_hierarchicalState;
 public:
     BlockHierarchicalPrior(size_t size, LayerCountPrior& layerCountPrior):
     BlockPrior(size), m_layerCountPrior(layerCountPrior){}

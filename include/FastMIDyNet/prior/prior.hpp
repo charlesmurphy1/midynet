@@ -13,6 +13,14 @@ template <typename STATE>
 class Prior{
     public:
         Prior<STATE>(){}
+        Prior<STATE>(const Prior<STATE>& other):
+            m_state(other.m_state){}
+        ~Prior<STATE>(){}
+        const Prior<STATE>& operator=(const Prior<STATE>& other){
+            this->m_state = other.m_state;
+            return *this;
+        }
+
         const STATE& getState() const { return m_state; }
         virtual void setState(const STATE& state) { m_state = state; }
 

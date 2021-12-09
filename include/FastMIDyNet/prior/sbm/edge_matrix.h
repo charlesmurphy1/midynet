@@ -12,9 +12,19 @@
 namespace FastMIDyNet{
 
 class EdgeMatrixPrior: public Prior< EdgeMatrix >{
+    protected:
+        const MultiGraph* m_graph;
+        EdgeCountPrior& m_edgeCountPrior;
+        BlockPrior& m_blockPrior;
+        std::vector<size_t> m_edgeCountsInBlocks;
+
+        void createBlock();
+        void destroyBlock(const BlockIndex&);
+        void moveEdgeCountsInBlocks(const BlockMove& move);
     public:
         EdgeMatrixPrior(EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
             m_edgeCountPrior(edgeCountPrior), m_blockPrior(blockPrior) {}
+
 
         void setGraph(const MultiGraph& graph);
         const MultiGraph& getGraph() { return *m_graph; }
@@ -65,16 +75,6 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         }
         void checkSelfConsistencywithGraph() const;
         void checkSelfConsistency() const override;
-
-    protected:
-        const MultiGraph* m_graph;
-        EdgeCountPrior& m_edgeCountPrior;
-        BlockPrior& m_blockPrior;
-        std::vector<size_t> m_edgeCountsInBlocks;
-
-        void createBlock();
-        void destroyBlock(const BlockIndex&);
-        void moveEdgeCountsInBlocks(const BlockMove& move);
 };
 
 class EdgeMatrixUniformPrior: public EdgeMatrixPrior {
