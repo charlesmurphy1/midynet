@@ -280,7 +280,9 @@ TEST_F(TestBlockHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_
     FastMIDyNet::BlockMove move = {0, prior.getBlockOfIdx(0), findBlockMove(0), 0};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
+
     prior.applyBlockMove(move);
+
     double logLikelihoodAfter = prior.getLogLikelihood();
 
     EXPECT_EQ(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore);
@@ -326,8 +328,10 @@ TEST_F(TestBlockUniformHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlo
     FastMIDyNet::BlockMove move = {0, prior.getBlockOfIdx(0), findBlockMove(0), 0};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
+
     prior.applyBlockMove(move);
+
     double logLikelihoodAfter = prior.getLogLikelihood();
 
-    EXPECT_EQ(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore);
+    EXPECT_DOUBLE_EQ(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore);
 }

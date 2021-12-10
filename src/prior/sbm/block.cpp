@@ -83,19 +83,17 @@ void BlockHyperPrior::sampleState(){
 };
 
 double BlockHyperPrior::getLogLikelihood() const {
-    std::list<size_t> nrList;
-    for (auto nr : getVertexCountsInBlocks()) nrList.push_back(nr);
-    return -logMultinomialCoefficient(nrList);
+    return -logMultinomialCoefficient(getVertexCountsInBlocks());
 };
-double BlockHyperPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const{
-    auto nr = getVertexCountsInBlocks();
-    double logLikelihoodRatio = 0;
-    size_t prevNr = getVertexCountsInBlocks()[move.prevBlockIdx];
-    size_t nextNr;
-    if (move.addedBlocks == 1){ nextNr = 1; }
-    else nextNr = getVertexCountsInBlocks()[move.nextBlockIdx] + 1;
 
-    logLikelihoodRatio += log(prevNr) - log(nextNr);
+double BlockHyperPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const{
+    const auto& nr = getVertexCountsInBlocks();
+
+    double logLikelihoodRatio = 0;
+    logLikelihoodRatio -= log(nr[move.prevBlockIdx]);
+    if (move.addedBlocks == 0){
+        logLikelihoodRatio += log(nr[move.nextBlockIdx] + 1);
+    }
 
     return logLikelihoodRatio;
 };

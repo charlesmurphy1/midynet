@@ -52,7 +52,7 @@ public:
     void applyBlockMoveToState(const BlockMove& move) { m_state[move.vertexIdx] = move.nextBlockIdx; };
     void applyBlockMoveToVertexCounts(const BlockMove& move) {
         if (move.addedBlocks == 1) m_vertexCountsInBlocks.push_back(0);
-        else if (move.addedBlocks == -1) m_vertexCountsInBlocks.pop_back();
+        else if (move.addedBlocks == -1) m_vertexCountsInBlocks.erase(m_vertexCountsInBlocks.begin() + move.prevBlockIdx);
 
         --m_vertexCountsInBlocks[move.prevBlockIdx];
         ++m_vertexCountsInBlocks[move.nextBlockIdx];
@@ -102,12 +102,13 @@ private:
     BlockCountPrior& m_blockCountPrior;
 public:
     BlockUniformPrior(size_t graphSize, BlockCountPrior& blockCountPrior):
-        BlockPrior(graphSize), m_blockCountPrior(blockCountPrior) { }
+        BlockPrior(graphSize), m_blockCountPrior(blockCountPrior) {
+        }
 
     const size_t& getBlockCount() const { return m_blockCountPrior.getState();}
     void setState(const BlockSequence& blockSeq) override{
-        m_state = blockSeq;
-        m_blockCountPrior.setState(BlockPrior::getBlockCount());
+        BlockPrior::setState(blockSeq);
+        m_blockCountPrior.setState(m_blockCount);
     }
     void sampleState();
     void samplePriors() { m_blockCountPrior.sample(); }
@@ -147,10 +148,12 @@ public:
         BlockPrior(vertexCountPrior.getSize()){ }
 
     void setState(const BlockSequence& blockSeq) override{
-        m_vertexCountPrior.setState( computeVertexCountsInBlocks(blockSeq) );
-        m_state = blockSeq;
+        BlockPrior::setState(blockSeq);
+        m_vertexCountPrior.setState( m_vertexCountsInBlocks );
     }
-    const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCountPrior.getState(); };
+    const std::vector<size_t>& getVertexCountsInBlocks() const {
+        return m_vertexCountPrior.getState();
+    }
     void sampleState();
 
     void samplePriors() override {
@@ -176,7 +179,6 @@ public:
         m_vertexCountPrior.computationFinished();
     }
 
-
     void checkSelfConsistency() const {
         m_vertexCountPrior.checkSelfConsistency();
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
@@ -193,26 +195,10 @@ public:
         BlockHyperPrior(other.m_vertexCountPrior){ }
     ~BlockUniformHyperPrior(){ delete & m_vertexCountPrior; }
 
-
+    void setState(const BlockSequence& blockSeq) override{
+        BlockHyperPrior::setState(blockSeq);
+    }
 };
-
-class BlockHierarchicalPrior: public BlockPrior{
-private:
-    LayerCountPrior& m_layerCountPrior;
-    std::vector<BlockSequence> m_hierarchicalState;
-public:
-    BlockHierarchicalPrior(size_t size, LayerCountPrior& layerCountPrior):
-    BlockPrior(size), m_layerCountPrior(layerCountPrior){}
-};
-
-class BlockHierarchicalUniformPrior: public BlockHierarchicalPrior{
-
-};
-
-class BlockHierarchicalHyperPrior: public BlockHierarchicalPrior{
-
-};
-
 
 }
 

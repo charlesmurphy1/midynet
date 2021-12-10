@@ -22,6 +22,7 @@ class Prior{
         }
 
         const STATE& getState() const { return m_state; }
+        STATE& getStateRef() const { return m_state; }
         virtual void setState(const STATE& state) { m_state = state; }
 
         virtual void sampleState() = 0;

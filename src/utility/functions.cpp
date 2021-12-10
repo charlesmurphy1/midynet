@@ -38,14 +38,25 @@ double logBinomialCoefficient(size_t n, size_t k){
 
 
 double logMultinomialCoefficient(std::list<size_t> sequence) {
-    size_t sumSequence=0;
-    size_t sumLGammaSequencePlusOne=0;
+    size_t sumSequence = 0;
+    double sumLFactorialSequence = 0;
     for (size_t element: sequence) {
         sumSequence += element;
-        sumLGammaSequencePlusOne += lgamma(element + 1);
+        sumLFactorialSequence += logFactorial(element);
     }
-    return lgamma(sumSequence + 1) - sumLGammaSequencePlusOne;
+    return logFactorial(sumSequence) - sumLFactorialSequence;
 }
+
+double logMultinomialCoefficient(std::vector<size_t> sequence) {
+    size_t sumSequence = 0;
+    double sumLFactorialSequence = 0;
+    for (size_t element: sequence) {
+        sumSequence += element;
+        sumLFactorialSequence += logFactorial(element);
+    }
+    return logFactorial(sumSequence) - sumLFactorialSequence;
+}
+
 double logMultisetCoefficient(size_t n, size_t k){
     if (n == 0){
         return 0;

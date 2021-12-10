@@ -46,6 +46,10 @@ std::vector<size_t> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k
 std::list<size_t> sampleRandomComposition(size_t n, size_t k) {
     // sample the composition of n into exactly k parts
     std::list<size_t> composition;
+    if (k == 1){
+        composition.push_back(n);
+        return composition;
+    }
     std::vector<size_t> uniformRandomSequence(k-1);
 
     uniformRandomSequence = sampleUniformlySequenceWithoutReplacement(n-1, k-1);
