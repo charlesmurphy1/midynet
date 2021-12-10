@@ -46,6 +46,22 @@ struct BlockMove{
     }
 };
 
+struct NestedBlockMove{
+    NestedBlockMove(std::vector<BlockMove> blockMoves, int addedLayers=0):
+        blockMoves(blockMoves), addedLayers(addedLayers){ }
+    std::vector<BlockMove> blockMoves;
+    int addedLayers;
+
+    std::vector<BlockMove>::iterator begin() { return blockMoves.begin(); }
+    std::vector<BlockMove>::iterator end() { return blockMoves.end(); }
+    const BlockMove& operator[](size_t layerIdx) const { return blockMoves[layerIdx]; }
+
+    size_t size() const { return blockMoves.size(); }
+    void display(){
+        for(auto m : blockMoves) m.display();
+    }
+};
+
 }
 
 #endif
