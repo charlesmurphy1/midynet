@@ -4,7 +4,7 @@
 #include <random>
 
 #include "FastMIDyNet/random_graph/sbm.h"
-#include "FastMIDyNet/proposer/block_proposer/blockproposer.h"
+#include "FastMIDyNet/proposer/block_proposer/block_proposer.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/mcmc/mcmc.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.h"

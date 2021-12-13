@@ -12,7 +12,6 @@ namespace FastMIDyNet {
 class BlockProposer: public Proposer<BlockMove> {
 public:
     virtual void setUp(const StochasticBlockModelFamily& sbmGraph) = 0;
-
 };
 
 } // namespace FastMIDyNet

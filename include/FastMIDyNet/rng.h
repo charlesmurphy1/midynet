@@ -11,6 +11,7 @@ namespace FastMIDyNet {
 extern RNG rng;
 
 void setSeed(size_t seed);
+void setSeedWithTime();
 
 } // namespace FastMIDyNet
 

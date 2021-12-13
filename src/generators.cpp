@@ -15,10 +15,10 @@
 namespace FastMIDyNet {
 
 
-int generateCategorical(const std::vector<double>& probs){
-    std::discrete_distribution<int> dist(probs.begin(), probs.end());
-    return dist(rng);
-}
+// int generateCategorical(const std::vector<double>& probs){
+//     std::discrete_distribution<int> dist(probs.begin(), probs.end());
+//     return dist(rng);
+// }
 
 
 std::vector<size_t> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k) {

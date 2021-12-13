@@ -7,8 +7,8 @@ namespace FastMIDyNet {
 
 
 GraphMove HingeFlip::proposeMove() {
-    auto edge = m_edgeSamplableSet.sample().first;
-    auto node = m_nodeSamplableSet.sample().first;
+    auto edge = m_edgeSamplableSet.sample_ext_RNG(rng).first;
+    auto node = m_nodeSamplableSet.sample_ext_RNG(rng).first;
 
     if (edge.first == node or edge.second == node)
         return GraphMove();

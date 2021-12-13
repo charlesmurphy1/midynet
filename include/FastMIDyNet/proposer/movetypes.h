@@ -17,7 +17,7 @@ struct GraphMove{
     std::vector<BaseGraph::Edge> removedEdges;
     std::vector<BaseGraph::Edge> addedEdges;
 
-    void display(){
+    void display() const{
 
         std::cout << "edges added : { ";
         for (auto e : addedEdges){
@@ -41,7 +41,7 @@ struct BlockMove{
     BlockIndex nextBlockIdx;
     int addedBlocks;
 
-    void display(){
+    void display()const{
         std::cout << "vertex " << vertexIdx << ": " << prevBlockIdx << " -> " << nextBlockIdx << std::endl;
     }
 };
@@ -57,7 +57,7 @@ struct NestedBlockMove{
     const BlockMove& operator[](size_t layerIdx) const { return blockMoves[layerIdx]; }
 
     size_t size() const { return blockMoves.size(); }
-    void display(){
+    void display()const{
         for(auto m : blockMoves) m.display();
     }
 };

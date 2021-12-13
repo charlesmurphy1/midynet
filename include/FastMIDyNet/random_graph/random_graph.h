@@ -18,7 +18,7 @@ class RandomGraph{
 
         const MultiGraph& getState() const { return m_state; }
         void setState(const MultiGraph& state) { m_state = state; }
-        const int getSize() { return m_size; }
+        const int getSize() const { return m_size; }
 
         void sample() {
             samplePriors();

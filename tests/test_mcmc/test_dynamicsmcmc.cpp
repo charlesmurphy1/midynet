@@ -3,7 +3,7 @@
 #include <random>
 #include <time.h>
 
-#include "FastMIDyNet/proposer/block_proposer/uniform_blocks.h"
+#include "FastMIDyNet/proposer/block_proposer/uniform_proposer.h"
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/prior/sbm/edge_count.h"
@@ -27,7 +27,7 @@ namespace FastMIDyNet{
 
 class TestDynamicsMCMC: public::testing::Test{
 public:
-    UniformBlockProposer blockProposer = UniformBlockProposer(GRAPH_SIZE, 0.);
+    UniformBlockProposer blockProposer = UniformBlockProposer(0.);
     BlockCountDeltaPrior blockCount = BlockCountDeltaPrior(BLOCK_COUNT);
     VertexCountUniformPrior vertexCount = VertexCountUniformPrior(GRAPH_SIZE, blockCount);
     BlockHyperPrior blocks = BlockHyperPrior(vertexCount);

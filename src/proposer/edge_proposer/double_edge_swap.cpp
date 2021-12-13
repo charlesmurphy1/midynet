@@ -7,8 +7,8 @@ namespace FastMIDyNet {
 
 
 GraphMove DoubleEdgeSwap::proposeMove() {
-    auto edge1 = m_edgeSamplableSet.sample().first;
-    auto edge2 = m_edgeSamplableSet.sample().first;
+    auto edge1 = m_edgeSamplableSet.sample_ext_RNG(rng).first;
+    auto edge2 = m_edgeSamplableSet.sample_ext_RNG(rng).first;
 
     if (edge1 == edge2)
         return GraphMove();

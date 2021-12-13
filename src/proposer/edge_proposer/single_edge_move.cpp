@@ -7,8 +7,8 @@ namespace FastMIDyNet {
 
 
 GraphMove SingleEdgeMove::proposeMove() {
-    auto vertex1 = m_vertexDistribution.sample().first;
-    auto vertex2 = m_vertexDistribution.sample().first;
+    auto vertex1 = m_vertexDistribution.sample_ext_RNG(rng).first;
+    auto vertex2 = m_vertexDistribution.sample_ext_RNG(rng).first;
     BaseGraph::Edge proposedEdge = {vertex1, vertex2};
 
     if (m_graphPtr->getEdgeMultiplicityIdx(vertex1, vertex2) == 0)

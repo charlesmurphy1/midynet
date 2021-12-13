@@ -3,7 +3,7 @@
 #include <random>
 #include <time.h>
 
-#include "FastMIDyNet/proposer/block_proposer/uniform_blocks.h"
+#include "FastMIDyNet/proposer/block_proposer/uniform_proposer.h"
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/prior/sbm/edge_count.h"
@@ -22,7 +22,7 @@ size_t EDGE_COUNT = 250;
 
 class TestStochasticBlockGraphMCMC: public::testing::Test{
 public:
-    UniformBlockProposer blockProposer = UniformBlockProposer(GRAPH_SIZE, 0.);
+    UniformBlockProposer blockProposer = UniformBlockProposer(0.);
     BlockCountDeltaPrior blockCount = BlockCountDeltaPrior(BLOCK_COUNT);
     BlockUniformPrior blockPrior = BlockUniformPrior(GRAPH_SIZE, blockCount);
     EdgeCountDeltaPrior edgeCount = EdgeCountDeltaPrior(EDGE_COUNT);

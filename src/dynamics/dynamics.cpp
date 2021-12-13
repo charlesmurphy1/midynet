@@ -87,7 +87,7 @@ void Dynamics::syncUpdateState(){
 
     for (auto idx: getGraph()){
         transProbs = getTransitionProbs(m_state[idx], neighborState[idx]);
-        future_state[idx] = generateCategorical(transProbs);
+        future_state[idx] = generateCategorical<double, size_t>(transProbs);
     }
 };
 
@@ -102,7 +102,7 @@ void Dynamics::asyncUpdateState(int numUpdates){
     for (auto i=0; i < numUpdates; i++){
         VertexIndex idx = idxGenerator(rng);
         transProbs = getTransitionProbs(currentState[idx], neighborState[idx]);
-        newVertexState = generateCategorical(transProbs);
+        newVertexState = generateCategorical<double, size_t>(transProbs);
         updateNeighborStateInPlace(idx, currentState[idx], newVertexState, neighborState);
         currentState[idx] = newVertexState;
     }

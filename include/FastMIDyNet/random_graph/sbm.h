@@ -33,7 +33,7 @@ public:
     const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
     const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPrior.getVertexCountsInBlocks(); }
     const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPrior.getState(); }
-    std::vector<size_t> getEdgeCountsInBlocks() const { return m_edgeMatrixPrior.getEdgeCountsInBlocks(); } // à changer lorsque EdgeMatrixPrior sera fait
+    const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPrior.getEdgeCountsInBlocks(); }
     const size_t& getEdgeCount() const { return m_edgeMatrixPrior.getEdgeCount(); }
 
     void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BlockIndex, BlockIndex>>&);
