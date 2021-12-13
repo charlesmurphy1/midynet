@@ -61,9 +61,12 @@ void PeixotoBlockProposer::setUp(const StochasticBlockModelFamily& sbmGraph) {
 }
 
 double PeixotoBlockProposer::getLogProposalProb(const BlockMove& move) const {
+    // std::cout << " in getLogProposalProb" << std::endl;
+    // move.display();
     if ( move.addedBlocks == 1){
          return log(m_blockCreationProbability);
     } else if (m_graphPtr->getDegreeOfIdx(move.vertexIdx) == 0){
+        // std::cout << "log(" << 1 - m_blockCreationProbability << ") - log(" << *m_blockCountPtr << ")" << std::endl;
         return log(1 - m_blockCreationProbability) - log(*m_blockCountPtr);
     } else {
         size_t degree = 0;
@@ -71,8 +74,18 @@ double PeixotoBlockProposer::getLogProposalProb(const BlockMove& move) const {
         auto r = move.prevBlockIdx, s = move.nextBlockIdx;
         for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
             auto t = (*m_blocksPtr) [ neighbor.vertexIndex];
-            degree += neighbor.label;
-            weight += neighbor.label * ( (*m_edgeMatrixPtr)[t][s] + m_shift ) / ((*m_edgeCountsPtr)[t] + m_shift * (*m_blockCountPtr)) ;
+            auto label = neighbor.label;
+            if (move.vertexIdx == neighbor.label) label *= 2;
+            t = (*m_blocksPtr) [ neighbor.vertexIndex ];
+
+            degree += label;
+            weight += label * ( (*m_edgeMatrixPtr)[t][s] + m_shift ) / ((*m_edgeCountsPtr)[t] + m_shift * (*m_blockCountPtr)) ;
+
+            // std::cout << "Neighbor " << neighbor.vertexIndex << " (" << t  << "): " << label << std::endl;
+            // std::cout << "\t Ert: " <<  (*m_edgeMatrixPtr)[t][s] << std::endl;
+            // std::cout << "\t Et: " <<  (*m_edgeCountsPtr)[t] << std::endl;
+            // std::cout << "\t Weight: " << label << " * (" << (*m_edgeMatrixPtr)[t][s] << " + " << m_shift << ") / (" << (*m_edgeCountsPtr)[t] << " + " << m_shift << " * " << (*m_blockCountPtr)  << ") = ";
+            // std::cout << label * ( (*m_edgeMatrixPtr)[t][s] + m_shift ) / ((*m_edgeCountsPtr)[t]  + m_shift * (*m_blockCountPtr)) << std::endl;
         }
         double logProposal = log(1 - m_blockCreationProbability) + log(weight) - log(degree);
 
@@ -86,8 +99,14 @@ IntMap<std::pair<BlockIndex, BlockIndex>> PeixotoBlockProposer::getEdgeMatrixDif
     BlockIndex r = move.prevBlockIdx, s = move.nextBlockIdx;
     for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
         BlockIndex t = (*m_blocksPtr)[neighbor.vertexIndex];
-        edgeMatDiff.decrement(getOrderedEdge({r, t}), neighbor.label);
-        edgeMatDiff.increment(getOrderedEdge({s, t}), neighbor.label);
+        if (r == t)
+            edgeMatDiff.decrement(getOrderedEdge({r, t}), 2 * neighbor.label);
+        else
+            edgeMatDiff.decrement(getOrderedEdge({r, t}), neighbor.label);
+        if (s == t)
+            edgeMatDiff.increment(getOrderedEdge({s, t}), 2 * neighbor.label);
+        else
+            edgeMatDiff.increment(getOrderedEdge({s, t}), neighbor.label);
     }
      return edgeMatDiff;
 }
@@ -97,17 +116,24 @@ IntMap<BlockIndex> PeixotoBlockProposer::getEdgeCountsDiff(const BlockMove& move
     BlockIndex r = move.prevBlockIdx, s = move.nextBlockIdx;
     for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
         BlockIndex t = (*m_blocksPtr)[neighbor.vertexIndex];
-        edgeCountsDiff.decrement(r, neighbor.label);
-        edgeCountsDiff.increment(s, neighbor.label);
+        auto label = neighbor.label;
+        if (move.vertexIdx == neighbor.vertexIndex) label *= 2;
+        edgeCountsDiff.decrement(r, label);
+        edgeCountsDiff.increment(s, label);
     }
      return edgeCountsDiff;
 }
 
 double PeixotoBlockProposer::getReverseLogProposalProb(const BlockMove& move) const {
+    // std::cout << " in getReverseLogProposalProb" << std::endl;
+    // move.display();
+    // std::cout << "addedBlocks: " << move.addedBlocks << std::endl;
+    // std::cout << "vertex degree: " << m_graphPtr->getDegreeOfIdx(move.vertexIdx) << std::endl;
     if ( move.addedBlocks == -1){
          return log(m_blockCreationProbability);
     } else if (m_graphPtr->getDegreeOfIdx(move.vertexIdx) == 0){
-        return -log(*m_blockCountPtr);
+        // std::cout << "log(" << 1 - m_blockCreationProbability << ") - log(" << *m_blockCountPtr + move.addedBlocks << ")" << std::endl;
+        return log(1 - m_blockCreationProbability) - log(*m_blockCountPtr + move.addedBlocks);
     } else {
         auto edgeMatDiff = getEdgeMatrixDiff(move);
         auto edgeCountsDiff = getEdgeCountsDiff(move);
@@ -115,15 +141,23 @@ double PeixotoBlockProposer::getReverseLogProposalProb(const BlockMove& move) co
         double weight = 0;
         auto r = move.prevBlockIdx, s = move.nextBlockIdx;
         for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
+            auto label = neighbor.label;
+            if (neighbor.vertexIndex == move.vertexIdx) label *= 2;
             BlockIndex t;
-            if (neighbor.vertexIndex == move.vertexIdx)
-                t = r;
-            else
-                t = (*m_blocksPtr) [ neighbor.vertexIndex ];
+
+            if (move.vertexIdx == neighbor.label) label *= 2;
+            t = (*m_blocksPtr) [ neighbor.vertexIndex ];
             size_t nextErt = (*m_edgeMatrixPtr)[t][r] + edgeMatDiff.get(getOrderedEdge({r, t}));
             size_t nextEt = (*m_edgeCountsPtr)[t] + edgeCountsDiff.get(t);
+
             degree += neighbor.label;
             weight += neighbor.label * ( nextErt + m_shift ) / (nextEt + m_shift * (*m_blockCountPtr + move.addedBlocks)) ;
+            // std::cout << "Neighbor " << neighbor.vertexIndex << " (" << t  << "): " << neighbor.label << std::endl;
+            // std::cout << "\t Ert: " <<  (*m_edgeMatrixPtr)[t][r] << " -> " << nextErt << std::endl;
+            // std::cout << "\t Et: " <<  (*m_edgeCountsPtr)[t] << " -> " << nextEt << std::endl;
+            // std::cout << "\t Weight: " << neighbor.label << " * (" << nextErt << " + " << m_shift << ") / (" << nextEt << " + " << m_shift << " * " << (*m_blockCountPtr + move.addedBlocks)  << ") = ";
+            // std::cout << neighbor.label * ( nextErt + m_shift ) / (nextEt  + m_shift * (*m_blockCountPtr + move.addedBlocks)) << std::endl;
+
         }
         return log(1 - m_blockCreationProbability) + log ( weight ) - log( degree );
     }

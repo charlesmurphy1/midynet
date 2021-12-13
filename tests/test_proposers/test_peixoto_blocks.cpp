@@ -13,9 +13,9 @@
 namespace FastMIDyNet{
 
 const double NEW_BLOCK_PROBABILITY = .1;
-const double SHIFT = 2.;
-const size_t BLOCK_COUNT = 5;
-const size_t GRAPH_SIZE = 100, EDGE_COUNT=250;
+const double SHIFT = 1.;
+const size_t BLOCK_COUNT = 3;
+const size_t GRAPH_SIZE = 100, EDGE_COUNT=100;
 
 class TestPeixotoBlockProposer: public::testing::Test {
     public:
@@ -30,11 +30,12 @@ class TestPeixotoBlockProposer: public::testing::Test {
         void SetUp() {
             setSeedWithTime();
             randomGraph.sample();
+            while (randomGraph.getBlockCount() ==1) randomGraph.sample();
+
             blockProposer.setUp(randomGraph);
         }
 
         FastMIDyNet::BlockIndex findBlockMove(BaseGraph::VertexIndex idx){
-            while (randomGraph.getBlockCount() ==1) randomGraph.sample();
             FastMIDyNet::BlockIndex blockIdx = randomGraph.getBlockOfIdx(idx);
             if (blockIdx == randomGraph.getBlockCount() - 1) return blockIdx - 1;
             else return blockIdx + 1;

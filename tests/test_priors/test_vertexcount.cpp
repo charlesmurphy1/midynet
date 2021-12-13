@@ -6,6 +6,7 @@
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/exceptions.h"
+#include "FastMIDyNet/rng.h"
 
 
 const size_t SIZE=25;
@@ -40,6 +41,7 @@ class TestVertexCountPrior: public ::testing::Test {
         BlockCountPoissonPrior blockCountPrior = {POISSON_MEAN};
         DummyVertexCountPrior prior = {SIZE, blockCountPrior};
         void SetUp() {
+            setSeedWithTime();
             prior.sample();
             prior.computationFinished();
 
