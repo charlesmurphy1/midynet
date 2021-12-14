@@ -23,7 +23,8 @@ void SingleEdgeMove::setUp(const MultiGraph& graph) {
     m_graphPtr = &graph;
     m_vertexDistribution.clear();
     for (auto vertex: graph)
-        m_vertexDistribution.insert(vertex, 1);
+        if (m_withIsolatedVertices or graph.getDegreeOfIdx(vertex) > 0)
+            m_vertexDistribution.insert(vertex, 1);
 }
 
 double SingleEdgeMove::getLogProposalProbRatio(const GraphMove& move) const {

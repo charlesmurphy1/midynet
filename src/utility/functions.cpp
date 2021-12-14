@@ -92,4 +92,17 @@ std::pair<size_t, size_t> getUndirectedPairFromIndex(size_t index, size_t n) {
     return {i, j};
 }
 
+MultiGraph getSubGraphByBlocks(const MultiGraph& graph, const BlockSequence& blocks, BlockIndex r, BlockIndex s){
+    MultiGraph subGraph(graph.getSize());
+
+    for (auto vertex : graph){
+        for (auto neighbor : graph.getNeighboursOfIdx(vertex)){
+            if ((vertex < neighbor.vertexIndex) && (blocks[vertex] == r && blocks[neighbor.vertexIndex] == s))
+                subGraph.setEdgeMultiplicityIdx(vertex, neighbor.vertexIndex, neighbor.label);
+        }
+    }
+
+    return subGraph;
+}
+
 } // namespace FastMIDyNet
