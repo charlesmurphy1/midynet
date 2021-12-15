@@ -11,7 +11,6 @@
 
 namespace FastMIDyNet{
 
-
 class RandomGraph{
     public:
         RandomGraph(size_t size): m_size(size), m_state(size) { }

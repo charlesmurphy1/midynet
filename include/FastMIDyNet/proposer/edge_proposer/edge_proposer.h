@@ -16,7 +16,7 @@ protected:
 public:
     virtual void setUp(const RandomGraph& randomGraph) = 0;
     const bool& acceptIsolated() const { return m_withIsolatedVertices; }
-    virtual void acceptIsolated(bool accept) { m_withIsolatedVertices = accept; }
+    virtual void acceptIsolated(bool accept) { m_withIsolatedVertices = accept;}
 
 };
 

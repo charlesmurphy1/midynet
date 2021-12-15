@@ -43,14 +43,17 @@ static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
 }
 
 class DummyRandomGraph: public RandomGraph{
+    std::vector<size_t> m_labels;
 public:
     using RandomGraph::RandomGraph;
+    DummyRandomGraph(size_t size): m_labels(size, 0), RandomGraph(size){}
     void sampleState() { };
     virtual void samplePriors() { };
     double getLogLikelihood() const { return 0; }
     double getLogPrior() { return 0; }
     double getLogLikelihoodRatio(const GraphMove& move) { return 0; }
     double getLogPriorRatio(const GraphMove& move) { return 0; }
+    const std::vector<size_t>& getVertexLabels() const { return m_labels; }
 
 };
 
