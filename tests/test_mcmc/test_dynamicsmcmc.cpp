@@ -36,7 +36,7 @@ public:
     StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(blocks, edgeMatrix);
     StochasticBlockGraphMCMC graphmcmc = StochasticBlockGraphMCMC(randomGraph, blockProposer);
 
-    HingeFlip edgeProposer = HingeFlip();
+    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
     SISDynamics dynamics = SISDynamics(randomGraph, NUM_STEPS, 0.5);
     DynamicsMCMC mcmc = DynamicsMCMC(dynamics, graphmcmc, edgeProposer, 1., 1., 0.);
     void SetUp(){

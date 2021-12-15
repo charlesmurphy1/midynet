@@ -10,13 +10,12 @@
 
 namespace FastMIDyNet {
 
-class HingeFlip: public EdgeProposer {
-protected:
+class HingeFlipProposer: public EdgeProposer {
+private:
     sset::SamplableSet<BaseGraph::Edge> m_edgeSamplableSet = sset::SamplableSet<BaseGraph::Edge> (1, 100);
-    // sset::SamplableSet<BaseGraph::VertexIndex> m_nodeSamplableSet = sset::SamplableSet<BaseGraph::VertexIndex> (1, 100);
-    VertexSampler* m_vertexSamplerPtr = NULL;
     std::bernoulli_distribution m_flipOrientationDistribution = std::bernoulli_distribution(.5);
-
+protected:
+    VertexSampler* m_vertexSamplerPtr = NULL;
 public:
     using EdgeProposer::EdgeProposer;
     void acceptIsolated(bool accept);
@@ -24,6 +23,7 @@ public:
     GraphMove proposeMove();
     void setUp(const RandomGraph& randomGraph) { setUp(randomGraph.getState()); }
     void setUp(const MultiGraph& graph);
+    void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
 
     double getLogProposalProbRatio(const GraphMove&) const { return 0; }
     void updateProbabilities(const GraphMove& move);
@@ -33,20 +33,20 @@ public:
     // const sset::SamplableSet<BaseGraph::VertexIndex>& getNodeSamplableSet() { return m_nodeSamplableSet; }
 };
 
-class UniformHingeFlip: public HingeFlip{
+class HingeFlipUniformProposer: public HingeFlipProposer{
 private:
     VertexUniformSampler m_vertexUniformSampler = VertexUniformSampler();
 public:
-    UniformHingeFlip(){
+    HingeFlipUniformProposer(){
         m_vertexSamplerPtr = &m_vertexUniformSampler;
     }
 };
 
-class DegreeHingeFlip: public HingeFlip{
+class HingeFlipDegreeProposer: public HingeFlipProposer{
 private:
     VertexDegreeSampler m_vertexDegreeSampler;
 public:
-    DegreeHingeFlip(double shift=1):
+    HingeFlipDegreeProposer(double shift=1):
         m_vertexDegreeSampler(shift){ m_vertexSamplerPtr = &m_vertexDegreeSampler; }
 };
 

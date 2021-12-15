@@ -6,7 +6,7 @@
 namespace FastMIDyNet {
 
 
-GraphMove DoubleEdgeSwap::proposeMove() {
+GraphMove DoubleEdgeSwapProposer::proposeMove() {
     auto edge1 = m_edgeSamplableSet.sample_ext_RNG(rng).first;
     auto edge2 = m_edgeSamplableSet.sample_ext_RNG(rng).first;
 
@@ -25,7 +25,7 @@ GraphMove DoubleEdgeSwap::proposeMove() {
     return {{edge1, edge2}, {newEdge1, newEdge2}};
 }
 
-void DoubleEdgeSwap::setUp(const MultiGraph& graph) {
+void DoubleEdgeSwapProposer::setUp(const MultiGraph& graph) {
     m_edgeSamplableSet.clear();
     for (auto vertex: graph)
         for (auto neighbor: graph.getNeighboursOfIdx(vertex))
@@ -33,7 +33,7 @@ void DoubleEdgeSwap::setUp(const MultiGraph& graph) {
                 m_edgeSamplableSet.insert({vertex, neighbor.vertexIndex}, neighbor.label);
 }
 
-void DoubleEdgeSwap::updateProbabilities(const GraphMove& move) {
+void DoubleEdgeSwapProposer::updateProbabilities(const GraphMove& move) {
     size_t edgeWeight;
     BaseGraph::Edge edge;
     for (auto removedEdge: move.removedEdges) {

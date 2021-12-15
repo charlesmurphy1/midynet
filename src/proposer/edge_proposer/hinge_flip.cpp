@@ -6,7 +6,7 @@
 namespace FastMIDyNet {
 
 
-GraphMove HingeFlip::proposeMove() {
+GraphMove HingeFlipProposer::proposeMove() {
     auto edge = m_edgeSamplableSet.sample_ext_RNG(rng).first;
     BaseGraph::VertexIndex node = m_vertexSamplerPtr->sample();
 
@@ -23,12 +23,12 @@ GraphMove HingeFlip::proposeMove() {
     return {{edge}, {newEdge}};
 };
 
-void HingeFlip::acceptIsolated(bool accept){
+void HingeFlipProposer::acceptIsolated(bool accept){
     m_withIsolatedVertices = accept;
     m_vertexSamplerPtr->acceptIsolated(accept);
 }
 
-void HingeFlip::setUp(const MultiGraph& graph){
+void HingeFlipProposer::setUp(const MultiGraph& graph){
     m_vertexSamplerPtr->setUp(graph);
     for (auto vertex: graph) {
         for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {
@@ -38,7 +38,7 @@ void HingeFlip::setUp(const MultiGraph& graph){
     }
 }
 
-void HingeFlip::updateProbabilities(const GraphMove& move) {
+void HingeFlipProposer::updateProbabilities(const GraphMove& move) {
     m_vertexSamplerPtr->update(move);
 
     for (auto edge: move.removedEdges) {

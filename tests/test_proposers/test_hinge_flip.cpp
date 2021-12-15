@@ -4,23 +4,25 @@
 #include "fixtures.hpp"
 
 
-class TestHingeFlip: public::testing::Test {
+class TestHingeFlipProposer: public::testing::Test {
     public:
         FastMIDyNet::MultiGraph graph = getUndirectedHouseMultiGraph();
-        FastMIDyNet::HingeFlip proposer;
+        FastMIDyNet::HingeFlipProposer proposer;
+        FastMIDyNet::VertexUniformSampler vertexSampler = FastMIDyNet::VertexUniformSampler();
         void SetUp() {
+            proposer.setVertexSampler(vertexSampler);
             proposer.setUp(graph);
         }
 };
 
 
-TEST_F(TestHingeFlip, setup_anyGraph_edgeSamplableSetContainsAllEdges) {
+TEST_F(TestHingeFlipProposer, setup_anyGraph_edgeSamplableSetContainsAllEdges) {
     EXPECT_EQ(graph.getTotalEdgeNumber(), proposer.getEdgeSamplableSet().total_weight());
     EXPECT_EQ(graph.getDistinctEdgeNumber(), proposer.getEdgeSamplableSet().size());
 }
 
 
-TEST_F(TestHingeFlip, setup_anyGraph_samplableSetHasOnlyOrderedEdges) {
+TEST_F(TestHingeFlipProposer, setup_anyGraph_samplableSetHasOnlyOrderedEdges) {
     for (auto vertex: graph)
         for (auto neighbor: graph.getNeighboursOfIdx(vertex))
             if (vertex <= neighbor.vertexIndex)
@@ -30,7 +32,7 @@ TEST_F(TestHingeFlip, setup_anyGraph_samplableSetHasOnlyOrderedEdges) {
 }
 
 
-TEST_F(TestHingeFlip, updateProbabilities_addExistentEdge_edgeWeightIncreased) {
+TEST_F(TestHingeFlipProposer, updateProbabilities_addExistentEdge_edgeWeightIncreased) {
     BaseGraph::Edge edge = {0, 2};
     FastMIDyNet::GraphMove move = {{}, {edge}};
     proposer.updateProbabilities(move);
@@ -38,7 +40,7 @@ TEST_F(TestHingeFlip, updateProbabilities_addExistentEdge_edgeWeightIncreased) {
 }
 
 
-TEST_F(TestHingeFlip, updateProbabilities_addMultiEdge_edgeWeightIncreased) {
+TEST_F(TestHingeFlipProposer, updateProbabilities_addMultiEdge_edgeWeightIncreased) {
     BaseGraph::Edge edge = {0, 1};
     FastMIDyNet::GraphMove move = {{}, {edge, edge}};
     proposer.updateProbabilities(move);
@@ -46,7 +48,7 @@ TEST_F(TestHingeFlip, updateProbabilities_addMultiEdge_edgeWeightIncreased) {
 }
 
 
-TEST_F(TestHingeFlip, updateProbabilities_addInexistentEdge_edgeWeightIncreased) {
+TEST_F(TestHingeFlipProposer, updateProbabilities_addInexistentEdge_edgeWeightIncreased) {
     BaseGraph::Edge edge = {0, 1};
     BaseGraph::Edge reversedEdge = {1, 0};
     FastMIDyNet::GraphMove move = {{}, {edge}};
@@ -56,7 +58,7 @@ TEST_F(TestHingeFlip, updateProbabilities_addInexistentEdge_edgeWeightIncreased)
 }
 
 
-TEST_F(TestHingeFlip, updateProbabilities_removeEdge_edgeWeightDecreased) {
+TEST_F(TestHingeFlipProposer, updateProbabilities_removeEdge_edgeWeightDecreased) {
     BaseGraph::Edge edge = {0, 2};
     FastMIDyNet::GraphMove move = {{edge}, {}};
     proposer.updateProbabilities(move);
@@ -64,7 +66,7 @@ TEST_F(TestHingeFlip, updateProbabilities_removeEdge_edgeWeightDecreased) {
 }
 
 
-TEST_F(TestHingeFlip, updateProbabilities_removeMultiEdge_edgeWeightDecreased) {
+TEST_F(TestHingeFlipProposer, updateProbabilities_removeMultiEdge_edgeWeightDecreased) {
     BaseGraph::Edge edge = {0, 2};
     FastMIDyNet::GraphMove move = {{edge, edge}, {}};
     proposer.updateProbabilities(move);
@@ -72,7 +74,7 @@ TEST_F(TestHingeFlip, updateProbabilities_removeMultiEdge_edgeWeightDecreased) {
 }
 
 
-TEST_F(TestHingeFlip, updateProbabilities_removeAllEdges_edgeRemovedFromSamplableSet) {
+TEST_F(TestHingeFlipProposer, updateProbabilities_removeAllEdges_edgeRemovedFromSamplableSet) {
     BaseGraph::Edge edge = {0, 2};
     FastMIDyNet::GraphMove move = {{edge, edge, edge}, {}};
     proposer.updateProbabilities(move);
