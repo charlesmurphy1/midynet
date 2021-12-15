@@ -12,9 +12,9 @@ namespace FastMIDyNet {
 
 class HingeFlipProposer: public EdgeProposer {
 private:
-    sset::SamplableSet<BaseGraph::Edge> m_edgeSamplableSet = sset::SamplableSet<BaseGraph::Edge> (1, 100);
     std::bernoulli_distribution m_flipOrientationDistribution = std::bernoulli_distribution(.5);
 protected:
+    sset::SamplableSet<BaseGraph::Edge> m_edgeSamplableSet = sset::SamplableSet<BaseGraph::Edge> (1, 100);
     VertexSampler* m_vertexSamplerPtr = NULL;
 public:
     using EdgeProposer::EdgeProposer;
@@ -27,10 +27,6 @@ public:
 
     double getLogProposalProbRatio(const GraphMove&) const { return 0; }
     void updateProbabilities(const GraphMove& move);
-
-    // For tests
-    const sset::SamplableSet<BaseGraph::Edge>& getEdgeSamplableSet() { return m_edgeSamplableSet; }
-    // const sset::SamplableSet<BaseGraph::VertexIndex>& getNodeSamplableSet() { return m_nodeSamplableSet; }
 };
 
 class HingeFlipUniformProposer: public HingeFlipProposer{

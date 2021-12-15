@@ -3,16 +3,22 @@
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "fixtures.hpp"
 
+namespace FastMIDyNet{
+
+class DummySingleEdgeProposer: public SingleEdgeProposer{
+private:
+    VertexUniformSampler m_vertexSampler = VertexUniformSampler();
+public:
+    DummySingleEdgeProposer(){ setVertexSampler(m_vertexSampler); }
+};
 
 class TestSingleEdgeProposer: public::testing::Test {
-    public:
-        FastMIDyNet::MultiGraph graph = getUndirectedHouseMultiGraph();
-        FastMIDyNet::SingleEdgeProposer proposer;
-        FastMIDyNet::VertexUniformSampler vertexSampler = FastMIDyNet::VertexUniformSampler();
-        void SetUp() {
-            proposer.setVertexSampler(vertexSampler);
-            proposer.setUp(graph);
-        }
+public:
+    FastMIDyNet::MultiGraph graph = getUndirectedHouseMultiGraph();
+    FastMIDyNet::DummySingleEdgeProposer proposer;
+    void SetUp() {
+        proposer.setUp(graph);
+    }
 };
 
 TEST_F(TestSingleEdgeProposer, getLogProposalProbRatio_addEdge_return0) {
@@ -34,4 +40,6 @@ TEST_F(TestSingleEdgeProposer, getLogProposalProbRatio_removeEdgeWithMultiplicit
     FastMIDyNet::GraphMove move = {{edge}, {}};
     proposer.updateProbabilities(move);
     EXPECT_EQ(proposer.getLogProposalProbRatio(move), -log(.5));
+}
+
 }
