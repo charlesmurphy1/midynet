@@ -39,17 +39,23 @@ def find_compiled_basegraph(build_path):
 
 ext_modules = [
     Extension(
-        'pybind_crash',
+        'fast_midynet',
         include_dirs=[
             get_pybind_include(),
             get_pybind_include(user=True),
-            "include"
+            "include",
+            "./base_graph/include",
+            "./SamplableSet/src",
         ],
         sources=[
-                "pybind_wrapper/pybind_main.cpp"
+                "pybind_wrapper/pybind_main.cpp",
+                "src/generators.cpp",
+                "src/utility/functions.cpp",
+                "src/rng.cpp"
             ],
         language='c++',
-        extra_objects=[find_compiled_basegraph("./base_graph/build")]
+        extra_objects=[find_compiled_basegraph("./base_graph/build"),
+                        os.path.join(os.getcwd(), "SamplableSet/src/build/libsamplableset.a")]
     ),
 ]
 
