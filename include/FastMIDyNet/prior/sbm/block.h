@@ -23,6 +23,7 @@ protected:
 public:
     BlockPrior(size_t size):
         m_size(size){ }
+    virtual ~BlockPrior(){}
 
     virtual void setState(const BlockSequence& blocks) override{
         m_blockCount = computeBlockCount(blocks);
@@ -193,7 +194,7 @@ public:
         BlockHyperPrior(*new VertexCountUniformPrior(size, blockCountPrior)){}
     BlockUniformHyperPrior(const BlockUniformHyperPrior& other):
         BlockHyperPrior(other.m_vertexCountPrior){ }
-    ~BlockUniformHyperPrior(){ delete & m_vertexCountPrior; }
+    virtual ~BlockUniformHyperPrior(){ delete & m_vertexCountPrior; }
 
     void setState(const BlockSequence& blockSeq) override{
         BlockHyperPrior::setState(blockSeq);

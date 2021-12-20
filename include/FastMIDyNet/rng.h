@@ -10,8 +10,8 @@ namespace FastMIDyNet {
 
 extern RNG rng;
 
-void setSeed(size_t seed);
-void setSeedWithTime();
+void seed(size_t n);
+void seedWithTime();
 
 } // namespace FastMIDyNet
 

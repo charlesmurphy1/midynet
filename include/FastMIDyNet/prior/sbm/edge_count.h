@@ -33,7 +33,7 @@ class EdgeCountPrior: public Prior<size_t> {
             #endif
         }
         void applyBlockMove(const BlockMove& move) { }
-        size_t getStateAfterGraphMove(const GraphMove&) const;
+        size_t getStateAfterGraphMove(const GraphMove& move) const;
 };
 
 class EdgeCountDeltaPrior: public EdgeCountPrior{
@@ -45,6 +45,7 @@ public:
     double getLogLikelihoodFromState(const size_t& state) const { if (state == m_state) return 0.; else return -INFINITY; };
     double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) { if (move.addedEdges.size() == move.removedEdges.size()) return 0; else return -INFINITY;}
     void checkSelfConsistency() const { };
+
 };
 
 class EdgeCountPoissonPrior: public EdgeCountPrior{
@@ -54,11 +55,10 @@ class EdgeCountPoissonPrior: public EdgeCountPrior{
     public:
         using EdgeCountPrior::EdgeCountPrior;
         EdgeCountPoissonPrior(double mean): m_mean(mean), m_poissonDistribution(mean) { }
-
         void sampleState();
         double getLogLikelihoodFromState(const size_t& state) const;
-
         void checkSelfConsistency() const;
+
 };
 
 class EdgeCountMultisetPrior: public EdgeCountPrior{

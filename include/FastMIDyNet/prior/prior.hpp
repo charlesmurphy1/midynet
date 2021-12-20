@@ -9,21 +9,21 @@
 
 namespace FastMIDyNet{
 
-template <typename STATE>
+template <typename StateType>
 class Prior{
     public:
-        Prior<STATE>(){}
-        Prior<STATE>(const Prior<STATE>& other):
+        Prior<StateType>(){}
+        Prior<StateType>(const Prior<StateType>& other):
             m_state(other.m_state){}
-        ~Prior<STATE>(){}
-        const Prior<STATE>& operator=(const Prior<STATE>& other){
+        virtual ~Prior<StateType>(){}
+        const Prior<StateType>& operator=(const Prior<StateType>& other){
             this->m_state = other.m_state;
             return *this;
         }
 
-        const STATE& getState() const { return m_state; }
-        STATE& getStateRef() const { return m_state; }
-        virtual void setState(const STATE& state) { m_state = state; }
+        const StateType& getState() const { return m_state; }
+        StateType& getStateRef() const { return m_state; }
+        virtual void setState(const StateType& state) { m_state = state; }
 
         virtual void sampleState() = 0;
         virtual void samplePriors() = 0;
@@ -59,7 +59,7 @@ class Prior{
         }
 
     protected:
-        STATE m_state;
+        StateType m_state;
         bool m_isProcessed = false;
 };
 

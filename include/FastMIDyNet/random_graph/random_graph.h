@@ -38,8 +38,7 @@ class RandomGraph{
             return getLogPriorRatio(move) + getLogLikelihoodRatio(move);
         }
         void applyMove(const GraphMove& move);
-        void enumerateAllGraphs() const;
-        void doMetropolisHastingsStep(double beta=1.0) { };
+        // void enumerateAllGraphs() const;
         void checkSelfConsistency() { };
 
     protected:
