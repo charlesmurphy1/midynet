@@ -1,51 +1,39 @@
-#ifndef FAST_MIDYNET_PYWRAPPER_INIT_EDGECOUNT_SBMPRIOR_H
-#define FAST_MIDYNET_PYWRAPPER_INIT_EDGECOUNT_SBMPRIOR_H
+#ifndef FAST_MIDYNET_PYWRAPPER_INIT_SBMPRIOR_EDGECOUNT_H
+#define FAST_MIDYNET_PYWRAPPER_INIT_SBMPRIOR_EDGECOUNT_H
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/prior/sbm/edge_count.h"
+#include "FastMIDyNet/prior/sbm/python/edgecount.hpp"
 
-class PyEdgeCountPrior: public FastMIDyNet::EdgeCountPrior {
-    public:
-        virtual double getLogLikelihoodFromState(const size_t& state) const {
-            PYBIND11_OVERLOAD_PURE(double, FastMIDyNet::EdgeCountPrior, getLogLikelihoodFromState, state);
-        };
-};
+namespace py = pybind11;
+namespace FastMIDyNet{
 
+void initEdgeCountPrior(py::module& m){
+    py::class_<EdgeCountPrior, Prior<size_t>, PyEdgeCountPrior<>>(m, "EdgeCountPrior")
+        .def(py::init<>())
+        .def("get_log_likelihood_ratio_from_graphmove", &EdgeCountPrior::getLogLikelihoodRatioFromGraphMove,
+            py::arg("move"))
+        .def("get_log_likelihood_ratio_from_blockmove", &EdgeCountPrior::getLogLikelihoodRatioFromBlockMove,
+            py::arg("move"))
+        .def("get_log_joint_ratio_from_graphmove", &EdgeCountPrior::getLogJointRatioFromGraphMove,
+            py::arg("move"))
+        .def("get_log_joint_ratio_from_blockmove", &EdgeCountPrior::getLogJointRatioFromBlockMove,
+            py::arg("move"))
+        .def("apply_graphmove", &EdgeCountPrior::applyGraphMove,
+            py::arg("move"))
+        .def("apply_blockmove", &EdgeCountPrior::applyBlockMove,
+            py::arg("move"));
 
-template <typename EdgeCountPriorType>
-pybind11::class_<EdgeCountPriorType> defineEdgeCountPrior(pybind11::module& m, std::string pyName){
-    return pybind11::class_<EdgeCountPriorType>(m, pyName.c_str())
-        .def("get_state", &EdgeCountPriorType::getState)
-        .def("set_state", &EdgeCountPriorType::setState, pybind11::arg("state"))
-        .def("sample", &EdgeCountPriorType::sample)
-        .def("sample_state", &EdgeCountPriorType::sampleState)
-        .def("sample_priors", &EdgeCountPriorType::samplePriors)
-        .def("get_logLikelihood", &EdgeCountPriorType::getLogLikelihood)
-        .def("get_logPrior", &EdgeCountPriorType::getLogPrior)
-        .def("get_logJoint", &EdgeCountPriorType::getLogJoint)
-        .def("get_logLikelihood_ratio_from_graphmove", &EdgeCountPriorType::getLogLikelihoodRatioFromGraphMove,
-            pybind11::arg("move"))
-        .def("get_logJoint_ratio_from_graphmove", &EdgeCountPriorType::getLogJointRatioFromGraphMove,
-            pybind11::arg("move"))
-        .def("get_logJoint_ratio_from_blockmove", &EdgeCountPriorType::getLogJointRatioFromBlockMove,
-            pybind11::arg("move"))
-        .def("apply_graph_move", &EdgeCountPriorType::applyGraphMove,
-            pybind11::arg("move"))
-        .def("apply_block_move", &EdgeCountPriorType::applyBlockMove,
-            pybind11::arg("move"))
-        ;
+    py::class_<EdgeCountDeltaPrior, EdgeCountPrior>(m, "EdgeCountDeltaPrior")
+        .def(py::init<size_t>(), py::arg("edge_count"));
+
+    py::class_<EdgeCountPoissonPrior, EdgeCountPrior>(m, "EdgeCountPoissonPrior")
+        .def(py::init<double>(), py::arg("mean"));
 }
 
-void initEdgeCountPrior(pybind11::module& m){
-    defineEdgeCountPrior<PyEdgeCountPrior>(m, "EdgeCountPrior");
-
-    defineEdgeCountPrior<FastMIDyNet::EdgeCountDeltaPrior>(m, "EdgeCountDeltaPrior")
-        .def(pybind11::init<size_t>(), pybind11::arg("edge_count"));
-
-    defineEdgeCountPrior<FastMIDyNet::EdgeCountPoissonPrior>(m, "EdgeCountPoissonPrior")
-        .def(pybind11::init<double>(), pybind11::arg("mean"));
 }
 
 #endif

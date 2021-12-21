@@ -4,7 +4,13 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-void initMCMC(pybind11::module& m){
+
+namespace py = pybind11;
+namespace FastMIDyNet{
+
+void initMCMC(py::module& m){
+
+}
 
 }
 

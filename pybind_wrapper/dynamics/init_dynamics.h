@@ -4,7 +4,12 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-void initDynamics(pybind11::module& m){
+namespace py = pybind11;
+namespace FastMIDyNet{
+
+void initDynamics(py::module& m){
+
+}
 
 }
 

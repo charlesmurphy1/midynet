@@ -16,21 +16,21 @@ class EdgeCountPrior: public Prior<size_t> {
         void samplePriors() {}
         virtual double getLogLikelihoodFromState(const size_t&) const = 0;
         virtual double getLogLikelihood() const { return getLogLikelihoodFromState(m_state); }
-        // double getLogLikelihood() const { return getLogLikelihood(m_state); }
         double getLogPrior() { return 0; }
         double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
              return getLogLikelihoodFromState(getStateAfterGraphMove(move)) - getLogLikelihood();
         }
+        double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+             return 0;
+        }
         double getLogJointRatioFromGraphMove(const GraphMove& move) {
-            return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move); }, 0);
+            double ratio = processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move); }, 0);
+            return ratio;
         }
         double getLogJointRatioFromBlockMove(const BlockMove& move) { return 0; }
 
         void applyGraphMove(const GraphMove& move) {
             processRecursiveFunction( [&](){ setState(getStateAfterGraphMove(move)); } );
-            #if DEBUG
-            checkSelfConsistency();
-            #endif
         }
         void applyBlockMove(const BlockMove& move) { }
         size_t getStateAfterGraphMove(const GraphMove& move) const;
@@ -61,39 +61,39 @@ class EdgeCountPoissonPrior: public EdgeCountPrior{
 
 };
 
-class EdgeCountMultisetPrior: public EdgeCountPrior{
-protected:
-    size_t m_maxWeightEdgeCount;
-    size_t m_maxEdgeCount;
-    size_t m_iteration;
-    double m_logZ;
-
-public:
-    using EdgeCountPrior::EdgeCountPrior;
-    EdgeCountMultisetPrior(size_t maxEdgeCount, size_t iteration=100):
-        m_maxEdgeCount(maxEdgeCount),
-        m_iteration(iteration),
-        m_logZ(getLogNormalization()),
-        m_maxWeightEdgeCount(maxEdgeCount) { }
-
-    void sampleState() ;
-    double getLogLikelihoodFromState(const size_t& E) const { return this->getWeight(E) - m_logZ; }
-    double getLogNormalization() const ;
-    virtual double getWeight(size_t E) const {
-        return logMultisetCoefficient(m_maxEdgeCount, E);
-    }
-    void checkSelfConsistency() const {};
-};
-
-class EdgeCountBinomialPrior: public EdgeCountMultisetPrior{
-public:
-    using EdgeCountMultisetPrior::EdgeCountMultisetPrior;
-    EdgeCountBinomialPrior(size_t maxEdgeCount, size_t iteration=100):
-        EdgeCountMultisetPrior(maxEdgeCount, iteration){ m_maxWeightEdgeCount = maxEdgeCount / 2; }
-    double getWeight(size_t E) const {
-        return logBinomialCoefficient(m_maxEdgeCount, E);
-    }
-};
+// class EdgeCountMultisetPrior: public EdgeCountPrior{
+// protected:
+//     size_t m_maxWeightEdgeCount;
+//     size_t m_maxEdgeCount;
+//     size_t m_iteration;
+//     double m_logZ;
+//
+// public:
+//     using EdgeCountPrior::EdgeCountPrior;
+//     EdgeCountMultisetPrior(size_t maxEdgeCount, size_t iteration=100):
+//         m_maxEdgeCount(maxEdgeCount),
+//         m_iteration(iteration),
+//         m_logZ(getLogNormalization()),
+//         m_maxWeightEdgeCount(maxEdgeCount) { }
+//
+//     void sampleState() ;
+//     double getLogLikelihoodFromState(const size_t& E) const { return this->getWeight(E) - m_logZ; }
+//     double getLogNormalization() const ;
+//     virtual double getWeight(size_t E) const {
+//         return logMultisetCoefficient(m_maxEdgeCount, E);
+//     }
+//     void checkSelfConsistency() const {};
+// };
+//
+// class EdgeCountBinomialPrior: public EdgeCountMultisetPrior{
+// public:
+//     using EdgeCountMultisetPrior::EdgeCountMultisetPrior;
+//     EdgeCountBinomialPrior(size_t maxEdgeCount, size_t iteration=100):
+//         EdgeCountMultisetPrior(maxEdgeCount, iteration){ m_maxWeightEdgeCount = maxEdgeCount / 2; }
+//     double getWeight(size_t E) const {
+//         return logBinomialCoefficient(m_maxEdgeCount, E);
+//     }
+// };
 
 }
 

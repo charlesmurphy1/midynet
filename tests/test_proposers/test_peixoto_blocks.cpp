@@ -28,7 +28,7 @@ class TestPeixotoBlockProposer: public::testing::Test {
         PeixotoBlockProposer blockProposer = FastMIDyNet::PeixotoBlockProposer(NEW_BLOCK_PROBABILITY, SHIFT);
 
         void SetUp() {
-            setSeedWithTime();
+            seedWithTime();
             randomGraph.sample();
             while (randomGraph.getBlockCount() ==1) randomGraph.sample();
 

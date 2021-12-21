@@ -6,9 +6,14 @@
 
 #include "FastMIDyNet/rng.h"
 
-void initRNG(pybind11::module& m){
-    m.def("seed", &FastMIDyNet::seed, pybind11::arg("n"));
-    m.def("seedWithTime", &FastMIDyNet::seedWithTime);
+namespace py = pybind11;
+namespace FastMIDyNet{
+
+void initRNG(py::module& m){
+    m.def("seed", &seed, py::arg("n"));
+    m.def("seedWithTime", &seedWithTime);
+}
+
 }
 
 #endif

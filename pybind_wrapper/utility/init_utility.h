@@ -4,7 +4,16 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-void initUtility(pybind11::module& m){
+#include "FastMIDyNet/utility/maps.hpp"
+#include "init_maps.h"
+
+namespace py = pybind11;
+namespace FastMIDyNet{
+
+
+void initUtility(py::module& m){
+    initMaps(m);
+}
 
 }
 

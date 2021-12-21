@@ -165,36 +165,36 @@ TEST_F(TestEdgeCountPoissonPrior, checkSelfConsistency_nonPositiveMean_throwCons
 }
 
 
-class TestEdgeCountMultisetPrior: public::testing::Test{
-public:
-    size_t maxE = 10;
-    FastMIDyNet::EdgeCountMultisetPrior prior = {maxE};
-    void SetUp(){ prior.sample(); }
-};
-
-TEST_F(TestEdgeCountMultisetPrior, sample_returnASample){
-    prior.sample();
-}
-
-TEST_F(TestEdgeCountMultisetPrior, getWeight_forSomeEdgeCount_returnMultisetCoefficient){
-    EXPECT_EQ(prior.getWeight(5), FastMIDyNet::logMultisetCoefficient(10, 5));
-}
-
-class TestEdgeCountBinomialPrior: public::testing::Test{
-public:
-    size_t maxE = 10;
-    FastMIDyNet::EdgeCountBinomialPrior prior = {maxE};
-    void SetUp(){ prior.sample(); }
-};
-
-TEST_F(TestEdgeCountBinomialPrior, sample_returnASample){
-    prior.sample();
-}
-
-TEST_F(TestEdgeCountBinomialPrior, getWeight_forSomeEdgeCount_returnBinomialCoefficient){
-    EXPECT_EQ(prior.getWeight(5), FastMIDyNet::logBinomialCoefficient(maxE, 5));
-}
-
-TEST_F(TestEdgeCountBinomialPrior, getLogNormalization){
-    EXPECT_TRUE( prior.getLogNormalization() > 0 );
-}
+// class TestEdgeCountMultisetPrior: public::testing::Test{
+// public:
+//     size_t maxE = 10;
+//     FastMIDyNet::EdgeCountMultisetPrior prior = {maxE};
+//     void SetUp(){ prior.sample(); }
+// };
+//
+// TEST_F(TestEdgeCountMultisetPrior, sample_returnASample){
+//     prior.sample();
+// }
+//
+// TEST_F(TestEdgeCountMultisetPrior, getWeight_forSomeEdgeCount_returnMultisetCoefficient){
+//     EXPECT_EQ(prior.getWeight(5), FastMIDyNet::logMultisetCoefficient(10, 5));
+// }
+//
+// class TestEdgeCountBinomialPrior: public::testing::Test{
+// public:
+//     size_t maxE = 10;
+//     FastMIDyNet::EdgeCountBinomialPrior prior = {maxE};
+//     void SetUp(){ prior.sample(); }
+// };
+//
+// TEST_F(TestEdgeCountBinomialPrior, sample_returnASample){
+//     prior.sample();
+// }
+//
+// TEST_F(TestEdgeCountBinomialPrior, getWeight_forSomeEdgeCount_returnBinomialCoefficient){
+//     EXPECT_EQ(prior.getWeight(5), FastMIDyNet::logBinomialCoefficient(maxE, 5));
+// }
+//
+// TEST_F(TestEdgeCountBinomialPrior, getLogNormalization){
+//     EXPECT_TRUE( prior.getLogNormalization() > 0 );
+// }

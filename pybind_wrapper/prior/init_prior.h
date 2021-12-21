@@ -3,42 +3,43 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <vector>
 
 #include "FastMIDyNet/prior/prior.hpp"
-#include "FastMIDyNet/prior/sbm/edge_count.h"
-#include "sbm/init_sbmpriors.h"
+#include "FastMIDyNet/prior/python/prior.hpp"
+#include "sbm/init.h"
 
 
-// template <typename StateType>
-// class PyPrior: public FastMIDyNet::Prior<StateType>{
-//     public:
-//         virtual void sampleState() { PYBIND11_OVERLOAD_PURE(void, FastMIDyNet::Prior<StateType>, sampleState); }
-//         virtual void samplePriors()  { PYBIND11_OVERLOAD_PURE(void, FastMIDyNet::Prior<StateType>, samplePriors); }
-//         virtual double getLogLikelihood() const { PYBIND11_OVERLOAD_PURE(double, FastMIDyNet::Prior<StateType>, getLogLikelihood); }
-//         virtual double getLogPrior() { PYBIND11_OVERLOAD_PURE(double, FastMIDyNet::Prior<StateType>, getLogPrior); }
-//         virtual void checkSelfConsistency() const { PYBIND11_OVERLOAD_PURE(void, FastMIDyNet::Prior<StateType>, checkSelfConsistency); };
-// };
+namespace py = pybind11;
+namespace FastMIDyNet{
 
-// template<typename StateType>
-// void definePriorBaseClass(pybind11::module& m, std::string pyName){
-//     pybind11::class_<FastMIDyNet::Prior<StateType>>(m, pyName.c_str())
-//         .def(pybind11::init<>())
-//         .def("get_state", &FastMIDyNet::Prior<StateType>::getState)
-//         .def("set_state", &FastMIDyNet::Prior<StateType>::setState)
-//         .def("sample", &FastMIDyNet::Prior<StateType>::sample)
-//         // .def("sample_state", &FastMIDyNet::Prior<StateType>::sampleState)
-//         // .def("sample_priors", &FastMIDyNet::Prior<StateType>::samplePriors)
-//         // .def("get_logLikelihood", &FastMIDyNet::Prior<StateType>::getLogLikelihood)
-//         // .def("get_logPrior", &FastMIDyNet::Prior<StateType>::getLogPrior)
-//         .def("get_logJoint", &FastMIDyNet::Prior<StateType>::getLogJoint);
-// }
+
+template <typename StateType>
+py::class_<Prior<StateType>, PyPrior<StateType>> declarePriorBaseClass(py::module& m, std::string pyName){
+    return py::class_<Prior<StateType>, PyPrior<StateType>>(m, pyName.c_str())
+        .def(py::init<>())
+        .def("get_state", &Prior<StateType>::getState)
+        .def("set_state", &Prior<StateType>::setState, py::arg("state"))
+        .def("is_root", py::overload_cast<>(&Prior<StateType>::isRoot, py::const_))
+        .def("is_root", py::overload_cast<bool>(&Prior<StateType>::isRoot), py::arg("condition"))
+        .def("sample_state", &Prior<StateType>::sampleState)
+        .def("sample_priors", &Prior<StateType>::samplePriors)
+        .def("sample", &Prior<StateType>::sample)
+        .def("get_log_likelihood", &Prior<StateType>::getLogLikelihood)
+        .def("get_log_prior", &Prior<StateType>::getLogPrior)
+        .def("get_log_joint", &Prior<StateType>::getLogJoint)
+        .def("computation_finished", &Prior<StateType>::computationFinished)
+        .def("check_self_consistency", &Prior<StateType>::checkSelfConsistency);
+}
 
 void initPrior(pybind11::module& m){
-    // pybind11::module mBase = m.def_submodule("_base");
-    // definePriorBaseClass<size_t>(mBase, "PriorUnsignedInt");
-
-    pybind11::module mSBM = m.def_submodule("_sbm");
+    declarePriorBaseClass<size_t>(m, "UnIntPrior");
+    declarePriorBaseClass<std::vector<size_t>>(m, "UnIntVectorPrior");
+    declarePriorBaseClass<std::vector<std::vector<size_t>>>(m, "UnIntMatrixPrior");
+    pybind11::module mSBM = m.def_submodule("sbm");
     initSBMPrior(mSBM);
+}
+
 }
 
 #endif

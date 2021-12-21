@@ -6,7 +6,7 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/random_graph/dcsbm.h"
 #include "FastMIDyNet/utility/functions.h"
-#include "FastMIDyNet/utility/maps.h"
+#include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/types.h"
@@ -25,7 +25,7 @@ void DegreeCorrectedStochasticBlockModelFamily::samplePriors(){
 void DegreeCorrectedStochasticBlockModelFamily::sampleState(){
     const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
-    const DegreeSequence& degreeSeq = getDegreeSequence();
+    const DegreeSequence& degreeSeq = getDegrees();
     setState( generateDCSBM(blockSeq, edgeMat, degreeSeq) );
 }
 
@@ -43,7 +43,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{
         }
     }
 
-    const DegreeSequence& degreeSeq = getDegreeSequence();
+    const DegreeSequence& degreeSeq = getDegrees();
     const MultiGraph& graph = getState();
     size_t neighborIdx, edgeMult;
     for (auto idx : graph){
@@ -133,7 +133,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (
         }
     }
 
-    const DegreeSequence& degreeSeq = getDegreeSequence();
+    const DegreeSequence& degreeSeq = getDegrees();
     for (auto diff : diffDegreeMap){
         logLikelihoodRatioTerm += logFactorial(degreeSeq[diff.first] + diff.second) - logFactorial(degreeSeq[diff.first]);
     }
@@ -214,7 +214,7 @@ void DegreeCorrectedStochasticBlockModelFamily::applyMove (const BlockMove& move
     #endif
 };
 
-DegreeSequence DegreeCorrectedStochasticBlockModelFamily::getDegreeSequenceFromGraph(const MultiGraph& graph){
+DegreeSequence DegreeCorrectedStochasticBlockModelFamily::getDegreesFromGraph(const MultiGraph& graph){
     DegreeSequence degreeSeq(graph.getSize(), 0);
 
     for (auto idx : graph){
@@ -228,7 +228,7 @@ DegreeSequence DegreeCorrectedStochasticBlockModelFamily::getDegreeSequenceFromG
 }
 
 void DegreeCorrectedStochasticBlockModelFamily::checkGraphConsistencyWithDegreeSequence(const MultiGraph& graph, const DegreeSequence& expectedDegreeSeq){
-    DegreeSequence actualDegreeSeq = getDegreeSequenceFromGraph(graph);
+    DegreeSequence actualDegreeSeq = getDegreesFromGraph(graph);
 
     for (auto idx : graph){
         if (expectedDegreeSeq[idx] != actualDegreeSeq[idx])
@@ -243,5 +243,5 @@ void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency(){
     m_degreePrior.checkSelfConsistency();
 
     checkGraphConsistencyWithEdgeMatrix(m_state, getBlocks(), getEdgeMatrix());
-    checkGraphConsistencyWithDegreeSequence(m_state, getDegreeSequence());
+    checkGraphConsistencyWithDegreeSequence(m_state, getDegrees());
 }

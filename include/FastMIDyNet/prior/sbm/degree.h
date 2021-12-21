@@ -5,7 +5,7 @@
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/prior/sbm/degree_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/utility/maps.h"
+#include "FastMIDyNet/utility/maps.hpp"
 
 
 namespace FastMIDyNet{
@@ -15,7 +15,10 @@ class DegreePrior: public Prior< DegreeSequence >{
         using Prior::Prior;
         typedef std::vector<CounterMap<size_t>> DegreeCountsMap;
         DegreePrior(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
-            m_blockPrior(blockPrior), m_edgeMatrixPrior(edgeMatrixPrior) {}
+            m_blockPrior(blockPrior), m_edgeMatrixPrior(edgeMatrixPrior) {
+                m_blockPrior.isRoot(false);
+                m_edgeMatrixPrior.isRoot(false);
+            }
 
         void setGraph(const MultiGraph&);
         const MultiGraph& getGraph() const { return *m_graph; }
@@ -31,7 +34,10 @@ class DegreePrior: public Prior< DegreeSequence >{
         const BlockSequence& getBlocks() const { return m_blockPrior.getState(); }
         const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPrior.getVertexCountsInBlocks(); }
         static DegreeCountsMap computeDegreeCountsInBlocks(const DegreeSequence& degreeSeq, const BlockSequence& blockSeq);
-        const DegreeCountsMap& getDegreeCountsInBlocks() const { return m_degreeCountsInBlocks; }
+        virtual const DegreeCountsMap& getDegreeCountsInBlocks() const { return m_degreeCountsInBlocks; }
+
+        BlockPrior& getBlockPrior() const { return m_blockPrior; }
+        EdgeMatrixPrior& getEdgeMatrixPrior() const { return m_edgeMatrixPrior; }
 
         void samplePriors() override { m_blockPrior.sample(); m_edgeMatrixPrior.sample(); }
 
@@ -85,6 +91,10 @@ public:
     double getLogLikelihood() const;
     double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const;
     double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
+};
+
+class DegreeHyperPrior: public DegreePrior{
+
 };
 
 

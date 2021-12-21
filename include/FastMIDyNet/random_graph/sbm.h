@@ -9,7 +9,7 @@
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/random_graph/random_graph.h"
-#include "FastMIDyNet/utility/maps.h"
+#include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 
@@ -21,7 +21,10 @@ protected:
     BlockPrior& m_blockPrior;
 public:
     StochasticBlockModelFamily(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
-    m_blockPrior(blockPrior), m_edgeMatrixPrior(edgeMatrixPrior), RandomGraph(blockPrior.getSize()) { }
+    m_blockPrior(blockPrior), m_edgeMatrixPrior(edgeMatrixPrior), RandomGraph(blockPrior.getSize()) {
+        m_blockPrior.isRoot(false);
+        m_edgeMatrixPrior.isRoot(false);
+    }
 
     void sampleState () ;
     void samplePriors () ;
@@ -40,32 +43,32 @@ public:
     void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>>&);
     void getDiffEdgeMatMapFromBlockMove(const BlockMove&, IntMap<std::pair<BlockIndex, BlockIndex>>&);
 
-    double getLogLikelihood() const;
-    double getLogPrior() ;
+    virtual double getLogLikelihood() const;
+    virtual double getLogPrior() ;
     double getLogJoint() { return getLogLikelihood() + getLogPrior(); }
 
-    double getLogLikelihoodRatioEdgeTerm (const GraphMove&) ;
-    double getLogLikelihoodRatioAdjTerm (const GraphMove&) ;
-    double getLogLikelihoodRatio (const GraphMove&) ;
-    double getLogLikelihoodRatio (const BlockMove&) ;
+    virtual double getLogLikelihoodRatioEdgeTerm (const GraphMove&) ;
+    virtual double getLogLikelihoodRatioAdjTerm (const GraphMove&) ;
 
-    double getLogPriorRatio (const GraphMove&) ;
-    double getLogPriorRatio (const BlockMove&) ;
+    virtual double getLogLikelihoodRatio (const GraphMove&) ;
+    virtual double getLogLikelihoodRatio (const BlockMove&) ;
+
+    virtual double getLogPriorRatio (const GraphMove&) ;
+    virtual double getLogPriorRatio (const BlockMove&) ;
 
     double getLogJointRatio (const BlockMove& move) { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }
 
-    void applyMove (const GraphMove&);
-    void applyMove (const BlockMove&);
+    virtual void applyMove (const GraphMove&);
+    virtual void applyMove (const BlockMove&);
 
-    void computationFinished(){
+    virtual void computationFinished(){
         m_blockPrior.computationFinished();
         m_edgeMatrixPrior.computationFinished();
     }
 
     static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
     static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
-    void checkSelfConsistency() ;
-
+    virtual void checkSelfConsistency() ;
 };
 
 }// end FastMIDyNet

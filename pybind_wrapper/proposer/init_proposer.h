@@ -6,8 +6,13 @@
 
 #include "init_movetypes.h"
 
-void initProposer(pybind11::module& m){
+namespace py = pybind11;
+namespace FastMIDyNet{
+
+void initProposer(py::module& m){
     initMoveTypes(m);
+}
+
 }
 
 #endif

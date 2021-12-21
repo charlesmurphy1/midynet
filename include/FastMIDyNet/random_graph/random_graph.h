@@ -16,7 +16,7 @@ class RandomGraph{
         RandomGraph(size_t size): m_size(size), m_state(size) { }
 
         const MultiGraph& getState() const { return m_state; }
-        void setState(const MultiGraph& state) { m_state = state; }
+        virtual void setState(const MultiGraph& state) { m_state = state; }
         const int getSize() const { return m_size; }
 
         void sample() {
@@ -37,9 +37,9 @@ class RandomGraph{
         double getLogJointRatio (const GraphMove& move){
             return getLogPriorRatio(move) + getLogLikelihoodRatio(move);
         }
-        void applyMove(const GraphMove& move);
+        virtual void applyMove(const GraphMove& move);
         // void enumerateAllGraphs() const;
-        void checkSelfConsistency() { };
+        virtual void checkSelfConsistency() { };
 
     protected:
         size_t m_size;

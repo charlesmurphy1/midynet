@@ -35,7 +35,7 @@ public:
     void SetUp(){
         mcmc.sample();
         mcmc.setUp();
-        setSeed(time(NULL));
+        seed(time(NULL));
     }
     void TearDown(){
         mcmc.tearDown();

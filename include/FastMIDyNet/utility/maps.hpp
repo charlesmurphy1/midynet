@@ -69,6 +69,9 @@ template < typename KeyType>
 class IntMap: public Map<KeyType, int>{
 public:
     IntMap(int defaultValue=0): Map<KeyType, int>(defaultValue) {}
+    IntMap(const IntMap<KeyType>& other): Map<KeyType, int>(other) {}
+    IntMap(const std::vector<KeyType>& keys, const std::vector<int>& values, int defaultValue=0):
+        Map<KeyType, int>(keys, values, defaultValue){}
     void increment(KeyType key, int inc=1){ this->set(key, this->get(key) + inc); }
     void decrement(KeyType key, int dec=1){ increment(key, -dec); }
 };
@@ -77,6 +80,9 @@ template < typename KeyType>
 class CounterMap: public Map<KeyType, size_t>{
 public:
     CounterMap(size_t defaultValue=0): Map<KeyType, size_t>(defaultValue) {}
+    CounterMap(const CounterMap<KeyType>& other): Map<KeyType, size_t>(other) {}
+    CounterMap(const std::vector<KeyType>& keys, const std::vector<size_t>& values, size_t defaultValue=0):
+        Map<KeyType, size_t>(keys, values, defaultValue){}
     void increment(KeyType key, int inc=1){
         if (static_cast<int>(this->get(key)) + inc <= 0) this->erase(key);
         else this->set(key, this->get(key) + inc);

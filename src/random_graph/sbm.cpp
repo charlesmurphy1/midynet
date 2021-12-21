@@ -8,7 +8,7 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/utility/functions.h"
-#include "FastMIDyNet/utility/maps.h"
+#include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/rng.h"

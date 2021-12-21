@@ -24,20 +24,26 @@ class Prior{
         const StateType& getState() const { return m_state; }
         StateType& getStateRef() const { return m_state; }
         virtual void setState(const StateType& state) { m_state = state; }
+        const bool isRoot() const { return m_isRoot; }
+        virtual void isRoot(bool condition) { m_isRoot = condition; }
+
 
         virtual void sampleState() = 0;
         virtual void samplePriors() = 0;
         void sample() {
-            processRecursiveFunction([&]() {
-                    samplePriors();
-                    sampleState();
-                });
+            auto _func = [&]() {
+                samplePriors();
+                sampleState();
+            };
+            processRecursiveFunction(_func);
         }
         virtual double getLogLikelihood() const = 0;
         virtual double getLogPrior() = 0;
 
         double getLogJoint() {
-            return processRecursiveFunction<double>( [&]() { return getLogPrior()+getLogLikelihood(); }, 0);
+            auto _func = [&]() { return getLogPrior() + getLogLikelihood(); };
+            double logJoint = processRecursiveFunction<double>(_func , 0);
+            return logJoint;
         }
 
         virtual void checkSelfConsistency() const = 0;
@@ -49,17 +55,22 @@ class Prior{
             RETURN_TYPE ret = init;
             if (!m_isProcessed)
                 ret = func();
-            m_isProcessed=true;
+
+            if ( m_isRoot ) computationFinished();
+            else m_isProcessed=true;
             return ret;
         }
         void processRecursiveFunction(const std::function<void()>& func) {
             if (!m_isProcessed)
                 func();
             m_isProcessed=true;
+            if ( m_isRoot ) computationFinished();
+            else m_isProcessed=true;
         }
 
     protected:
         StateType m_state;
+        bool m_isRoot = true;
         bool m_isProcessed = false;
 };
 

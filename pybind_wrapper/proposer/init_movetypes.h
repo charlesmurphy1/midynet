@@ -7,19 +7,25 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 
+namespace py = pybind11;
+namespace FastMIDyNet{
 
-void initMoveTypes(pybind11::module& m){
-    pybind11::class_<FastMIDyNet::GraphMove>(m, "GraphMove")
-        .def(pybind11::init<std::vector<BaseGraph::Edge>, std::vector<BaseGraph::Edge>>(), pybind11::arg("removed_edges"), pybind11::arg("added_edges"))
-        .def_readonly("removed_edges", &FastMIDyNet::GraphMove::removedEdges)
-        .def_readonly("added_edges", &FastMIDyNet::GraphMove::addedEdges);
+void initMoveTypes(py::module& m){
+    py::class_<GraphMove>(m, "GraphMove")
+        .def(py::init<std::vector<BaseGraph::Edge>, std::vector<BaseGraph::Edge>>(),
+            py::arg("removed_edges"), py::arg("added_edges"))
+        .def_readonly("removed_edges", &GraphMove::removedEdges)
+        .def_readonly("added_edges", &GraphMove::addedEdges);
 
-    pybind11::class_<FastMIDyNet::BlockMove>(m, "BlockMove")
-        .def(pybind11::init<BaseGraph::VertexIndex, FastMIDyNet::BlockIndex, FastMIDyNet::BlockIndex, int>(), pybind11::arg("vertex_id"), pybind11::arg("prev_block_id"), pybind11::arg("next_block_id"), pybind11::arg("added_blocks")=0)
-        .def_readonly("vertex_id", &FastMIDyNet::BlockMove::vertexIdx)
-        .def_readonly("prev_block_id", &FastMIDyNet::BlockMove::prevBlockIdx)
-        .def_readonly("next_block_id", &FastMIDyNet::BlockMove::nextBlockIdx)
-        .def_readonly("added_blocks", &FastMIDyNet::BlockMove::addedBlocks);
+    py::class_<BlockMove>(m, "BlockMove")
+        .def(py::init<BaseGraph::VertexIndex, BlockIndex, BlockIndex, int>(),
+            py::arg("vertex_id"), py::arg("prev_block_id"), py::arg("next_block_id"), py::arg("added_blocks")=0)
+        .def_readonly("vertex_id", &BlockMove::vertexIdx)
+        .def_readonly("prev_block_id", &BlockMove::prevBlockIdx)
+        .def_readonly("next_block_id", &BlockMove::nextBlockIdx)
+        .def_readonly("added_blocks", &BlockMove::addedBlocks);
+
+}
 
 }
 

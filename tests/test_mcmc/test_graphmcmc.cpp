@@ -30,7 +30,7 @@ public:
     StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(blockPrior, edgeMatrix);
     StochasticBlockGraphMCMC mcmc = StochasticBlockGraphMCMC(randomGraph, blockProposer);
     void SetUp(){
-        setSeed(time(NULL));
+        seed(time(NULL));
         mcmc.sample();
         mcmc.setUp();
 

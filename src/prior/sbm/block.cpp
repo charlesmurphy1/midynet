@@ -5,7 +5,7 @@
 
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/utility/functions.h"
-#include "FastMIDyNet/utility/maps.h"
+#include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/generators.h"

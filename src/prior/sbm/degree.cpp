@@ -5,7 +5,7 @@
 #include "FastMIDyNet/prior/sbm/degree.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/utility/functions.h"
-#include "FastMIDyNet/utility/maps.h"
+#include "FastMIDyNet/utility/maps.hpp"
 
 using namespace std;
 

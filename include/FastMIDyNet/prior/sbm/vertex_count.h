@@ -18,7 +18,7 @@ protected:
     void destroyBlock(const BlockIndex& idx) { m_state.erase(m_state.begin() + idx); }
 public:
     VertexCountPrior(size_t size, BlockCountPrior& blockCountPrior): // constructor
-        m_size(size), m_blockCountPrior(blockCountPrior) { }
+        m_size(size), m_blockCountPrior(blockCountPrior) { m_blockCountPrior.isRoot(false); }
 
 
     void setState(const std::vector<size_t>& state) {
@@ -30,12 +30,13 @@ public:
     const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
     BlockCountPrior& getBlockCountPrior() const { return m_blockCountPrior; }
 
+    void samplePriors(){ m_blockCountPrior.sample(); }
     double getLogPrior() {
         return m_blockCountPrior.getLogJoint();
     }
 
     double getLogLikelihoodRatioFromGraphMove(const GraphMove& ) { return 0; }
-    virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove& )  = 0;
+    virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove& ) const = 0;
 
     double getLogPriorRatioFromGraphMove(const GraphMove& move) { return 0; }
     double getLogPriorRatioFromBlockMove(const BlockMove& move) { return m_blockCountPrior.getLogJointRatioFromBlockMove(move); }
@@ -58,17 +59,19 @@ public:
         ++m_state[move.nextBlockIdx];
         if (move.addedBlocks == -1){ destroyBlock(move.prevBlockIdx); }
     }
+    virtual void computationFinished() { m_isProcessed = false; m_blockCountPrior.computationFinished(); }
+
 };
 
 class VertexCountUniformPrior: public VertexCountPrior{
 public:
     using VertexCountPrior::VertexCountPrior;
     void sampleState();
-    void samplePriors();
+
     double getLogLikelihood() const { return getLogLikelihoodFromState(getSize(), getBlockCount()); }
     void checkSelfConsistency() const;
 
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove&);
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
     static size_t getSizeFromState(const std::vector<size_t> state){
         size_t sum = 0;
         for(auto nr : state) sum += nr;

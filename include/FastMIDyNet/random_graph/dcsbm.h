@@ -10,7 +10,7 @@
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/prior/sbm/degree.h"
 #include "FastMIDyNet/random_graph/sbm.h"
-#include "FastMIDyNet/utility/maps.h"
+#include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 
@@ -21,7 +21,7 @@ protected:
     DegreePrior& m_degreePrior;
 public:
     DegreeCorrectedStochasticBlockModelFamily(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior, DegreePrior& degreePrior):
-    StochasticBlockModelFamily(blockPrior, edgeMatrixPrior), m_degreePrior(degreePrior) { }
+    StochasticBlockModelFamily(blockPrior, edgeMatrixPrior), m_degreePrior(degreePrior) { m_degreePrior.isRoot(false); }
 
     void sampleState () ;
     void samplePriors () ;
@@ -29,7 +29,7 @@ public:
     void setState(const MultiGraph& state) { m_state = state; m_degreePrior.setGraph(m_state); }
 
     const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_degreePrior.getDegreeOfIdx(idx); }
-    const DegreeSequence& getDegreeSequence() const { return m_degreePrior.getState(); }
+    const DegreeSequence& getDegrees() const { return m_degreePrior.getState(); }
     const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const  { return m_degreePrior.getDegreeCountsInBlocks(); }
 
     double getLogLikelihood() const;
@@ -37,6 +37,7 @@ public:
 
     double getLogLikelihoodRatioEdgeTerm (const GraphMove&) ;
     double getLogLikelihoodRatioAdjTerm (const GraphMove&) ;
+
     double getLogLikelihoodRatio (const GraphMove&) ;
     double getLogLikelihoodRatio (const BlockMove&) ;
 
@@ -52,7 +53,7 @@ public:
         m_degreePrior.computationFinished();
     }
 
-    static DegreeSequence getDegreeSequenceFromGraph(const MultiGraph&) ;
+    static DegreeSequence getDegreesFromGraph(const MultiGraph&) ;
     static void checkGraphConsistencyWithDegreeSequence(const MultiGraph&, const DegreeSequence&) ;
 
 

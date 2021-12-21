@@ -23,7 +23,10 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         void moveEdgeCountsInBlocks(const BlockMove& move);
     public:
         EdgeMatrixPrior(EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
-            m_edgeCountPrior(edgeCountPrior), m_blockPrior(blockPrior) {}
+            m_edgeCountPrior(edgeCountPrior), m_blockPrior(blockPrior) {
+                m_edgeCountPrior.isRoot(false);
+                m_blockPrior.isRoot(false);
+            }
 
 
         void setGraph(const MultiGraph& graph);
@@ -34,6 +37,9 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         const size_t& getEdgeCount() const { return m_edgeCountPrior.getState(); }
         const std::vector<size_t>& getEdgeCountsInBlocks() { return m_edgeCountsInBlocks; }
         const BlockSequence& getBlocks() { return m_blockPrior.getState(); }
+
+        EdgeCountPrior& getEdgeCountPrior() const{ return m_edgeCountPrior; }
+        BlockPrior& getBlockPrior() const{ return m_blockPrior; }
 
         void samplePriors() override { m_edgeCountPrior.sample(); m_blockPrior.sample(); }
 

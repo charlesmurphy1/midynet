@@ -20,11 +20,7 @@ namespace FastMIDyNet{
         setState( vertexCount );
     }
 
-    void VertexCountUniformPrior::samplePriors(){
-        m_blockCountPrior.sample();
-    }
-
-    double VertexCountUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move){
+    double VertexCountUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
         return getLogLikelihoodFromState(getSize(), getBlockCount() + move.addedBlocks) - getLogLikelihood();
     }
 

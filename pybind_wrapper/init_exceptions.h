@@ -8,10 +8,15 @@
 
 #include "FastMIDyNet/exceptions.h"
 
-void initExceptions(pybind11::module& m){
-    m.def("assert_valid_probability", &FastMIDyNet::assertValidProbability);
-    pybind11::class_<FastMIDyNet::ConsistencyError>(m, "ConsistencyError")
-        .def(pybind11::init<std::string>(), pybind11::arg("message")="");
+namespace py = pybind11;
+namespace FastMIDyNet{
+
+void initExceptions(py::module& m){
+    m.def("assert_valid_probability", &assertValidProbability);
+    py::class_<ConsistencyError>(m, "ConsistencyError")
+        .def(py::init<std::string>(), py::arg("message")="");
+}
+
 }
 
 #endif

@@ -40,7 +40,7 @@ public:
     SISDynamics dynamics = SISDynamics(randomGraph, NUM_STEPS, 0.5);
     DynamicsMCMC mcmc = DynamicsMCMC(dynamics, graphmcmc, edgeProposer, 1., 1., 0.);
     void SetUp(){
-        setSeed(time(NULL));
+        seed(time(NULL));
         mcmc.sample();
         mcmc.setUp();
 

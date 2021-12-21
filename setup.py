@@ -61,7 +61,7 @@ def find_files_recursively(path, ext=[]):
 
 ext_modules = [
     Extension(
-        "fast_midynet",
+        "_midynet",
         include_dirs=[
             get_pybind_include(),
             get_pybind_include(user=True),
@@ -69,8 +69,22 @@ ext_modules = [
             "./base_graph/include",
             "./SamplableSet/src",
         ],
-        sources=["pybind_wrapper/pybind_main.cpp"]
-        + find_files_recursively("src/", "cpp"),
+        sources=[
+            "src/rng.cpp",
+            "src/exceptions.cpp",
+            "src/generators.cpp",
+            "src/utility/functions.cpp",
+            "src/prior/sbm/block_count.cpp",
+            "src/prior/sbm/vertex_count.cpp",
+            "src/prior/sbm/block.cpp",
+            "src/prior/sbm/edge_count.cpp",
+            "src/prior/sbm/edge_matrix.cpp",
+            "src/prior/sbm/degree.cpp",
+            "src/random_graph/random_graph.cpp",
+            "src/random_graph/sbm.cpp",
+            "src/random_graph/dcsbm.cpp",
+            "pybind_wrapper/pybind_main.cpp",
+        ],
         language="c++",
         extra_objects=[
             find_compiled_basegraph("./base_graph/build"),

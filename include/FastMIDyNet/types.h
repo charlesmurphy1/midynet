@@ -24,8 +24,6 @@ typedef BaseGraph::UndirectedMultigraph MultiGraph;
 typedef size_t BlockIndex;
 typedef std::vector<size_t> DegreeSequence;
 typedef std::vector<BlockIndex> BlockSequence;
-typedef std::vector<std::vector<BlockIndex>> NestedBlockSequence;
-typedef Matrix<size_t> EdgeMatrix;
 typedef Matrix<size_t> EdgeMatrix;
 
 } // namespace FastMIDyNet

@@ -41,7 +41,7 @@ class TestVertexCountPrior: public ::testing::Test {
         BlockCountPoissonPrior blockCountPrior = {POISSON_MEAN};
         DummyVertexCountPrior prior = {SIZE, blockCountPrior};
         void SetUp() {
-            setSeedWithTime();
+            seedWithTime();
             prior.sample();
             prior.computationFinished();
 

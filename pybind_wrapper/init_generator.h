@@ -6,22 +6,27 @@
 
 #include "FastMIDyNet/generators.h"
 
-void initGenerators(pybind11::module& m){
+namespace py = pybind11;
+namespace FastMIDyNet{
+
+void initGenerators(py::module& m){
 
     /* Random variable generators */
-    m.def("generateCategorical", &FastMIDyNet::generateCategorical<double, int>, pybind11::arg("weights"));
-    m.def("generateCategorical", &FastMIDyNet::generateCategorical<int, int>, pybind11::arg("weights"));
-    m.def("sampleSequenceWithoutReplacement", &FastMIDyNet::sampleUniformlySequenceWithoutReplacement, pybind11::arg("n"), pybind11::arg("k"));
-    m.def("sampleRandomComposition", &FastMIDyNet::sampleRandomComposition, pybind11::arg("n"), pybind11::arg("k"));
-    m.def("sampleRandomWeakComposition", &FastMIDyNet::sampleRandomWeakComposition, pybind11::arg("n"), pybind11::arg("k"));
-    m.def("sampleRandomRestrictedPartition", &FastMIDyNet::sampleRandomRestrictedPartition, pybind11::arg("n"), pybind11::arg("k"), pybind11::arg("numSteps")=0);
-    m.def("sampleRandomPermutation", &FastMIDyNet::sampleRandomPermutation, pybind11::arg("nk"));
+    m.def("generateCategorical", &generateCategorical<double, int>, py::arg("weights"));
+    m.def("generateCategorical", &generateCategorical<int, int>, py::arg("weights"));
+    m.def("sampleSequenceWithoutReplacement", &sampleUniformlySequenceWithoutReplacement, py::arg("n"), py::arg("k"));
+    m.def("sampleRandomComposition", &sampleRandomComposition, py::arg("n"), py::arg("k"));
+    m.def("sampleRandomWeakComposition", &sampleRandomWeakComposition, py::arg("n"), py::arg("k"));
+    m.def("sampleRandomRestrictedPartition", &sampleRandomRestrictedPartition, py::arg("n"), py::arg("k"), py::arg("numSteps")=0);
+    m.def("sampleRandomPermutation", &sampleRandomPermutation, py::arg("nk"));
 
     /* Random graph generators */
-    m.def("generateDCSBM", &FastMIDyNet::generateDCSBM, pybind11::arg("blocks"), pybind11::arg("edgeMatrix"), pybind11::arg("degrees"));
-    m.def("generateSBM", &FastMIDyNet::generateSBM, pybind11::arg("blocks"), pybind11::arg("edgeMatrix"));
-    m.def("generateCM", &FastMIDyNet::generateCM, pybind11::arg("degrees"));
+    m.def("generateDCSBM", &generateDCSBM, py::arg("blocks"), py::arg("edgeMatrix"), py::arg("degrees"));
+    m.def("generateSBM", &generateSBM, py::arg("blocks"), py::arg("edgeMatrix"));
+    m.def("generateCM", &generateCM, py::arg("degrees"));
 
+
+}
 
 }
 

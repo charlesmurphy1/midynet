@@ -59,7 +59,7 @@ public:
         ++m_vertexCountsInBlocks[move.nextBlockIdx];
     };
     virtual void applyBlockMove(const BlockMove&) = 0;
-    void computationFinished() override { m_isProcessed=false; }
+    virtual void computationFinished() override { m_isProcessed=false; }
 
     static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;
     static void checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, std::vector<size_t> expectedVertexCountsInBlocks) ;
@@ -103,8 +103,7 @@ private:
     BlockCountPrior& m_blockCountPrior;
 public:
     BlockUniformPrior(size_t graphSize, BlockCountPrior& blockCountPrior):
-        BlockPrior(graphSize), m_blockCountPrior(blockCountPrior) {
-        }
+        BlockPrior(graphSize), m_blockCountPrior(blockCountPrior) { m_blockCountPrior.isRoot(false); }
 
     const size_t& getBlockCount() const { return m_blockCountPrior.getState();}
     void setState(const BlockSequence& blockSeq) override{
@@ -146,7 +145,7 @@ class BlockHyperPrior: public BlockPrior{
 public:
     BlockHyperPrior(VertexCountPrior& vertexCountPrior):
         m_vertexCountPrior(vertexCountPrior),
-        BlockPrior(vertexCountPrior.getSize()){ }
+        BlockPrior(vertexCountPrior.getSize()){ m_vertexCountPrior.isRoot(false); }
 
     void setState(const BlockSequence& blockSeq) override{
         BlockPrior::setState(blockSeq);
