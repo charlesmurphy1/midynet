@@ -20,7 +20,10 @@ public:
         m_blockSeq(graphSize, 0),
         m_blockDeltaPrior(m_blockSeq),
         m_edgeMatrixUniformPrior(edgeCountPrior, m_blockDeltaPrior),
-        StochasticBlockModelFamily(m_blockDeltaPrior, m_edgeMatrixUniformPrior){ }
+        StochasticBlockModelFamily(){
+            setBlockPrior(m_blockDeltaPrior);
+            setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
+        }
 };
 
 }// end FastMIDyNet

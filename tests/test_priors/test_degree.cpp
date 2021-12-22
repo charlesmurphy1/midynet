@@ -165,6 +165,7 @@ TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrec
 
 TEST_F(TestDegreePrior, applyBlockMoveToDegreeCounts_forNonEmptyBlockMove_returnCorrectDegreeCounts){
     FastMIDyNet::BlockMove move = {0, 0, 1, 0};
+    while(prior.getBlockPrior().getBlockCount() == 1) prior.sample();
     size_t E = prior.getEdgeMatrixPrior().getEdgeCount();
     auto expected = prior.getDegreeCountsInBlocks();
     expected[0].decrement(E);;

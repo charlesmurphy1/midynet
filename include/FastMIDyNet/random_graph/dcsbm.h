@@ -18,19 +18,45 @@ namespace FastMIDyNet{
 
 class DegreeCorrectedStochasticBlockModelFamily: public StochasticBlockModelFamily{
 protected:
-    DegreePrior& m_degreePrior;
+    DegreePrior* m_degreePriorPtr = NULL;
 public:
+    DegreeCorrectedStochasticBlockModelFamily(){ }
     DegreeCorrectedStochasticBlockModelFamily(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior, DegreePrior& degreePrior):
-    StochasticBlockModelFamily(blockPrior, edgeMatrixPrior), m_degreePrior(degreePrior) { m_degreePrior.isRoot(false); }
+        StochasticBlockModelFamily(blockPrior, edgeMatrixPrior) {
+            setDegreePrior(degreePrior);
+        }
 
     void sampleState () ;
     void samplePriors () ;
 
-    void setState(const MultiGraph& state) { m_state = state; m_degreePrior.setGraph(m_state); }
+    void setState(const MultiGraph& state) { m_state = state; m_degreePriorPtr->setGraph(m_state); }
 
-    const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_degreePrior.getDegreeOfIdx(idx); }
-    const DegreeSequence& getDegrees() const { return m_degreePrior.getState(); }
-    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const  { return m_degreePrior.getDegreeCountsInBlocks(); }
+    const DegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
+    DegreePrior& getDegreePriorRef() const { return *m_degreePriorPtr; }
+    virtual void setBlockPrior(BlockPrior& blockPrior) {
+        StochasticBlockModelFamily::setBlockPrior(blockPrior);
+        if (m_degreePriorPtr){
+            m_degreePriorPtr->setBlockPrior(*m_blockPriorPtr);
+        }
+    }
+    virtual void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) {
+        StochasticBlockModelFamily::setEdgeMatrixPrior(edgeMatrixPrior);
+        if (m_degreePriorPtr){
+            m_degreePriorPtr->setBlockPrior(*m_blockPriorPtr);
+            m_degreePriorPtr->setEdgeMatrixPrior(*m_edgeMatrixPriorPtr);
+        }
+    }
+    virtual void setDegreePrior(DegreePrior& degreePrior) {
+        m_degreePriorPtr = &degreePrior;
+        m_degreePriorPtr->isRoot(false);
+        m_degreePriorPtr->setBlockPrior(*m_blockPriorPtr);
+        m_degreePriorPtr->setEdgeMatrixPrior(*m_edgeMatrixPriorPtr);
+    }
+
+
+    const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_degreePriorPtr->getDegreeOfIdx(idx); }
+    const DegreeSequence& getDegrees() const { return m_degreePriorPtr->getState(); }
+    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const  { return m_degreePriorPtr->getDegreeCountsInBlocks(); }
 
     double getLogLikelihood() const;
     double getLogPrior() ;
@@ -48,9 +74,9 @@ public:
     void applyMove (const BlockMove&) ;
 
     void computationFinished(){
-        m_blockPrior.computationFinished();
-        m_edgeMatrixPrior.computationFinished();
-        m_degreePrior.computationFinished();
+        m_blockPriorPtr->computationFinished();
+        m_edgeMatrixPriorPtr->computationFinished();
+        m_degreePriorPtr->computationFinished();
     }
 
     static DegreeSequence getDegreesFromGraph(const MultiGraph&) ;

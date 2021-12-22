@@ -48,10 +48,12 @@ class TestStochasticBlockModelFamily: public::testing::Test{
 
         BaseGraph::VertexIndex vertexIdx = 4;
 
-        StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(blockPrior, edgeMatrixPrior);
+        StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily();
         void SetUp() {
+            randomGraph.setBlockPrior(blockPrior);
+            randomGraph.setEdgeMatrixPrior(edgeMatrixPrior);
             randomGraph.sample();
-            while (randomGraph.getBlockCount() == 1)randomGraph.sample();
+            while (randomGraph.getBlockCount() == 1) randomGraph.sample();
 
         }
 };
@@ -264,9 +266,3 @@ TEST_F(TestStochasticBlockModelFamily, getLogLikelihoodRatio_forBlockMoveWithBlo
     double logLikelihoodAfter = randomGraph.getLogLikelihood();
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
-
-
-// static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
-// static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
-// static void checkGraphConsistencyWithDegreeSequence(const MultiGraph& graph, const DegreeSequence& degreeSeq) ;
-// void checkSelfConsistency() ;

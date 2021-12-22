@@ -12,38 +12,39 @@
 namespace FastMIDyNet{
 
 class RandomGraph{
-    public:
-        RandomGraph(size_t size): m_size(size), m_state(size) { }
+protected:
+    size_t m_size;
+    MultiGraph m_state;
+public:
 
-        const MultiGraph& getState() const { return m_state; }
-        virtual void setState(const MultiGraph& state) { m_state = state; }
-        const int getSize() const { return m_size; }
+    RandomGraph(size_t size=0): m_size(size), m_state(size) { }
 
-        void sample() {
-            samplePriors();
-            sampleState();
-            #if DEBUG
-            checkSelfConsistency();
-            #endif
-        };
-        virtual void sampleState() = 0;
-        virtual void samplePriors() = 0;
-        virtual double getLogLikelihood() const = 0;
-        virtual double getLogPrior() = 0;
-        double getLogJoint() { return getLogLikelihood() + getLogPrior(); }
+    const MultiGraph& getState() const { return m_state; }
+    virtual void setState(const MultiGraph& state) { m_state = state; }
+    const int getSize() const { return m_size; }
+    virtual void setSize(size_t size) { m_size = size; m_state.resize(size);}
 
-        virtual double getLogLikelihoodRatio (const GraphMove& move) = 0;
-        virtual double getLogPriorRatio (const GraphMove& move) = 0;
-        double getLogJointRatio (const GraphMove& move){
-            return getLogPriorRatio(move) + getLogLikelihoodRatio(move);
-        }
-        virtual void applyMove(const GraphMove& move);
-        // void enumerateAllGraphs() const;
-        virtual void checkSelfConsistency() { };
+    void sample() {
+        samplePriors();
+        sampleState();
+        #if DEBUG
+        checkSelfConsistency();
+        #endif
+    };
+    virtual void sampleState() = 0;
+    virtual void samplePriors() = 0;
+    virtual double getLogLikelihood() const = 0;
+    virtual double getLogPrior() = 0;
+    double getLogJoint() { return getLogLikelihood() + getLogPrior(); }
 
-    protected:
-        size_t m_size;
-        MultiGraph m_state;
+    virtual double getLogLikelihoodRatio (const GraphMove& move) = 0;
+    virtual double getLogPriorRatio (const GraphMove& move) = 0;
+    double getLogJointRatio (const GraphMove& move){
+        return getLogPriorRatio(move) + getLogLikelihoodRatio(move);
+    }
+    virtual void applyMove(const GraphMove& move);
+    // void enumerateAllGraphs() const;
+    virtual void checkSelfConsistency() { };
 
 };
 

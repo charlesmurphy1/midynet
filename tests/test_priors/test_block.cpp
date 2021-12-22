@@ -210,7 +210,7 @@ TEST_F(TestBlockUniformPrior, getLogLikelihood_fromSomeRandomBlockSeq_returnCorr
         prior.sample();
         double logLikelihood = prior.getLogLikelihood();
         double expectedLogLikelihood = -logMultisetCoefficient(GRAPH_SIZE, prior.getBlockCount());
-        EXPECT_EQ(expectedLogLikelihood, logLikelihood);
+        EXPECT_FLOAT_EQ(expectedLogLikelihood, logLikelihood);
     }
 }
 
@@ -221,7 +221,7 @@ TEST_F(TestBlockUniformPrior, getLogLikelihoodRatio_fromSomeBlockMove_returnCorr
     double expectedLogLikelihoodRatio = -prior.getLogLikelihood();
     prior.applyBlockMove(move);
     expectedLogLikelihoodRatio += prior.getLogLikelihood();
-    EXPECT_EQ(expectedLogLikelihoodRatio, actualLogLikelihoodRatio);
+    EXPECT_FLOAT_EQ(expectedLogLikelihoodRatio, actualLogLikelihoodRatio);
 }
 
 TEST_F(TestBlockUniformPrior, applyMove_forSomeBlockMove_changeBlockOfNode2From0To1){
@@ -267,7 +267,7 @@ TEST_F(TestBlockHyperPrior, sampleState_generateConsistentState){
 TEST_F(TestBlockHyperPrior, getLogLikelihood_returnCorrectLogLikehood){
     std::list<size_t> nrList = vecToList( prior.getVertexCountsInBlocks() );
     EXPECT_LE( prior.getLogLikelihood(), 0 );
-    EXPECT_EQ( prior.getLogLikelihood(), -logMultinomialCoefficient( nrList ) );
+    EXPECT_FLOAT_EQ( prior.getLogLikelihood(), -logMultinomialCoefficient( nrList ) );
 }
 
 TEST_F(TestBlockHyperPrior, applyBlockMove_ForSomeBlockMove_getConsistentState){
@@ -285,7 +285,7 @@ TEST_F(TestBlockHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_
 
     double logLikelihoodAfter = prior.getLogLikelihood();
 
-    EXPECT_EQ(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore);
+    EXPECT_FLOAT_EQ(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore);
 }
 
 
@@ -315,7 +315,7 @@ TEST_F(TestBlockUniformHyperPrior, sampleState_generateConsistentState){
 TEST_F(TestBlockUniformHyperPrior, getLogLikelihood_returnCorrectLogLikehood){
     std::list<size_t> nrList = vecToList( prior.getVertexCountsInBlocks() );
     EXPECT_LE( prior.getLogLikelihood(), 0 );
-    EXPECT_EQ( prior.getLogLikelihood(), -logMultinomialCoefficient( nrList ) );
+    EXPECT_FLOAT_EQ( prior.getLogLikelihood(), -logMultinomialCoefficient( nrList ) );
 }
 
 TEST_F(TestBlockUniformHyperPrior, applyBlockMove_ForSomeBlockMove_getConsistentState){
@@ -333,5 +333,5 @@ TEST_F(TestBlockUniformHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlo
 
     double logLikelihoodAfter = prior.getLogLikelihood();
 
-    EXPECT_DOUBLE_EQ(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore);
+    EXPECT_FLOAT_EQ(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore);
 }

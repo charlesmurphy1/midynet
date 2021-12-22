@@ -67,15 +67,6 @@ TEST_F(TestEdgeCountPrior, getLogJointRatio_graphMove_returnLogLikelihoodRatio) 
     EXPECT_EQ(prior.getLogJointRatioFromGraphMove(move), prior.getLogLikelihoodRatioFromGraphMove(move));
 }
 
-TEST_F(TestEdgeCountPrior, getLogJointRatio_calledTwice_return0) {
-    prior.setState(5);
-    std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
-    FastMIDyNet::GraphMove move = {edgeMove, {}};
-    prior.getLogJointRatioFromGraphMove(move);
-
-    EXPECT_EQ(prior.getLogJointRatioFromGraphMove(move), 0);
-}
-
 TEST_F(TestEdgeCountPrior, getLogJointRatio_blockMove_return0) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
@@ -96,15 +87,6 @@ TEST_F(TestEdgeCountPrior, applyMove_removeEdges_edgeNumberDecrements) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
 
-    prior.applyGraphMove({edgeMove, {}});
-    EXPECT_EQ(prior.getState(), 3);
-}
-
-TEST_F(TestEdgeCountPrior, applyMove_calledTwice_edgeNumberDecrementsOnce) {
-    prior.setState(5);
-    std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
-
-    prior.applyGraphMove({edgeMove, {}});
     prior.applyGraphMove({edgeMove, {}});
     EXPECT_EQ(prior.getState(), 3);
 }

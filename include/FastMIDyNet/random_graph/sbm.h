@@ -17,27 +17,48 @@ namespace FastMIDyNet{
 
 class StochasticBlockModelFamily: public RandomGraph{
 protected:
-    EdgeMatrixPrior& m_edgeMatrixPrior;
-    BlockPrior& m_blockPrior;
+    BlockPrior* m_blockPriorPtr = NULL;
+    EdgeMatrixPrior* m_edgeMatrixPriorPtr = NULL;
 public:
+    StochasticBlockModelFamily() { }
     StochasticBlockModelFamily(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
-    m_blockPrior(blockPrior), m_edgeMatrixPrior(edgeMatrixPrior), RandomGraph(blockPrior.getSize()) {
-        m_blockPrior.isRoot(false);
-        m_edgeMatrixPrior.isRoot(false);
-    }
+        RandomGraph(blockPrior.getSize()){
+            setBlockPrior(blockPrior);
+            setEdgeMatrixPrior(edgeMatrixPrior);
+        }
 
     void sampleState () ;
     void samplePriors () ;
 
-    void setState(const MultiGraph& state) { m_state = state; m_edgeMatrixPrior.setGraph(m_state); }
 
-    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_blockPrior.getBlockOfIdx(idx); }
-    const BlockSequence& getBlocks() const { return m_blockPrior.getState(); }
-    const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
-    const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPrior.getVertexCountsInBlocks(); }
-    const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPrior.getState(); }
-    const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPrior.getEdgeCountsInBlocks(); }
-    const size_t& getEdgeCount() const { return m_edgeMatrixPrior.getEdgeCount(); }
+    void setState(const MultiGraph& state) { m_state = state; m_edgeMatrixPriorPtr->setGraph(m_state); }
+
+    const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }
+    BlockPrior& getBlockPriorRef() const { return *m_blockPriorPtr; }
+    virtual void setBlockPrior(BlockPrior& blockPrior) {
+        m_blockPriorPtr = &blockPrior;
+        m_blockPriorPtr->isRoot(false);
+        if (m_edgeMatrixPriorPtr)
+            m_edgeMatrixPriorPtr->setBlockPrior(*m_blockPriorPtr);
+    }
+
+    const EdgeMatrixPrior& getEdgeMatrixPrior() const { return *m_edgeMatrixPriorPtr; }
+    EdgeMatrixPrior& getEdgeMatrixPriorRef() const { return *m_edgeMatrixPriorPtr; }
+    virtual void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) {
+        m_edgeMatrixPriorPtr = &edgeMatrixPrior;
+        m_edgeMatrixPriorPtr->isRoot(false);
+        m_edgeMatrixPriorPtr->setBlockPrior(*m_blockPriorPtr);
+    }
+
+    virtual void setSize(size_t size) { RandomGraph::setSize(size); m_blockPriorPtr->setSize(size); }
+
+    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_blockPriorPtr->getBlockOfIdx(idx); }
+    const BlockSequence& getBlocks() const { return m_blockPriorPtr->getState(); }
+    const size_t& getBlockCount() const { return m_blockPriorPtr->getBlockCount(); }
+    const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPriorPtr->getVertexCountsInBlocks(); }
+    const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPriorPtr->getState(); }
+    const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPriorPtr->getEdgeCountsInBlocks(); }
+    const size_t& getEdgeCount() const { return m_edgeMatrixPriorPtr->getEdgeCount(); }
 
     void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BlockIndex, BlockIndex>>&);
     void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>>&);
@@ -62,8 +83,8 @@ public:
     virtual void applyMove (const BlockMove&);
 
     virtual void computationFinished(){
-        m_blockPrior.computationFinished();
-        m_edgeMatrixPrior.computationFinished();
+        m_blockPriorPtr->computationFinished();
+        m_edgeMatrixPriorPtr->computationFinished();
     }
 
     static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;

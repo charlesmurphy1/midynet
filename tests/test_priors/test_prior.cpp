@@ -27,7 +27,14 @@ class TestPrior: public ::testing::Test {
         void SetUp() { prior.setState(3); }
 };
 
-TEST_F(TestPrior, IsProcessed_afterLogJointComputation_returnIsProcessedIsTrue){
+TEST_F(TestPrior, IsProcessedWhileNotRoot_afterLogJointComputation_returnIsProcessedIsTrue){
+    prior.isRoot(false);
     prior.getLogJoint();
     EXPECT_TRUE(prior.getIsProcessed());
+}
+
+TEST_F(TestPrior, IsProcessedWhileRoot_afterLogJointComputation_returnIsProcessedIsFalse){
+    prior.isRoot(true);
+    prior.getLogJoint();
+    EXPECT_FALSE(prior.getIsProcessed());
 }

@@ -26,8 +26,8 @@ void StochasticBlockModelFamily::sampleState(){
 }
 
 void StochasticBlockModelFamily::samplePriors(){
-    m_blockPrior.sample();
-    m_edgeMatrixPrior.sample();
+    m_blockPriorPtr->sample();
+    m_edgeMatrixPriorPtr->sample();
     computationFinished();
 }
 
@@ -67,7 +67,7 @@ double StochasticBlockModelFamily::getLogLikelihood() const{
 };
 
 double StochasticBlockModelFamily::getLogPrior() {
-    double logPrior = m_blockPrior.getLogJoint() + m_edgeMatrixPrior.getLogJoint();
+    double logPrior = m_blockPriorPtr->getLogJoint() + m_edgeMatrixPriorPtr->getLogJoint();
     computationFinished();
     return logPrior;
 };
@@ -214,20 +214,20 @@ double StochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
 };
 
 double StochasticBlockModelFamily::getLogPriorRatio (const GraphMove& move) {
-    double logPriorRatio = m_blockPrior.getLogPriorRatioFromGraphMove(move) + m_edgeMatrixPrior.getLogPriorRatioFromGraphMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromGraphMove(move);
     computationFinished();
     return logPriorRatio;
 };
 
 double StochasticBlockModelFamily::getLogPriorRatio (const BlockMove& move) {
-    double logPriorRatio = m_blockPrior.getLogPriorRatioFromBlockMove(move) + m_edgeMatrixPrior.getLogPriorRatioFromBlockMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromBlockMove(move);
     computationFinished();
     return logPriorRatio;
 };
 
 void StochasticBlockModelFamily::applyMove (const GraphMove& move){
-    m_blockPrior.applyGraphMove(move);
-    m_edgeMatrixPrior.applyGraphMove(move);
+    m_blockPriorPtr->applyGraphMove(move);
+    m_edgeMatrixPriorPtr->applyGraphMove(move);
     RandomGraph::applyMove(move);
     computationFinished();
     #if DEBUG
@@ -235,8 +235,8 @@ void StochasticBlockModelFamily::applyMove (const GraphMove& move){
     #endif
 };
 void StochasticBlockModelFamily::applyMove (const BlockMove& move){
-    m_blockPrior.applyBlockMove(move);
-    m_edgeMatrixPrior.applyBlockMove(move);
+    m_blockPriorPtr->applyBlockMove(move);
+    m_edgeMatrixPriorPtr->applyBlockMove(move);
     computationFinished();
     #if DEBUG
     checkSelfConsistency();
@@ -290,8 +290,8 @@ void StochasticBlockModelFamily::checkGraphConsistencyWithEdgeMatrix(
 };
 
 void StochasticBlockModelFamily::checkSelfConsistency(){
-    m_blockPrior.checkSelfConsistency();
-    m_edgeMatrixPrior.checkSelfConsistency();
+    m_blockPriorPtr->checkSelfConsistency();
+    m_edgeMatrixPriorPtr->checkSelfConsistency();
 
     checkGraphConsistencyWithEdgeMatrix(m_state, getBlocks(), getEdgeMatrix());
 }

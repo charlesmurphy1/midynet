@@ -12,15 +12,19 @@ namespace FastMIDyNet{
 
 class ConfigurationModelFamily: public DegreeCorrectedStochasticBlockModelFamily{
 protected:
-    EdgeMatrixUniformPrior m_edgeMatrixUniformPrior;
     BlockSequence m_blockSeq;
     BlockDeltaPrior m_blockDeltaPrior;
+    EdgeMatrixUniformPrior m_edgeMatrixUniformPrior;
 public:
     ConfigurationModelFamily(DegreePrior& degreePrior):
-        m_blockSeq(degreePrior.getSize(), 0),
+        m_blockSeq(degreePrior.getBlockPrior().getSize(), 0),
         m_blockDeltaPrior(m_blockSeq),
-        m_edgeMatrixUniformPrior(degreePrior.getEdgeMatrixPrior().getEdgeCountPrior(), m_blockDeltaPrior),
-        DegreeCorrectedStochasticBlockModelFamily(m_blockDeltaPrior, m_edgeMatrixUniformPrior, degreePrior){ }
+        m_edgeMatrixUniformPrior(degreePrior.getEdgeMatrixPrior().getEdgeCountPriorRef(), m_blockDeltaPrior),
+        DegreeCorrectedStochasticBlockModelFamily(){
+            setBlockPrior(m_blockDeltaPrior);
+            setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
+            setDegreePrior(degreePrior);
+        }
 };
 
 }// end FastMIDyNet

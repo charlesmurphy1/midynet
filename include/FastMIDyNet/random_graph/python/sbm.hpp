@@ -13,13 +13,15 @@
 namespace FastMIDyNet{
 //
 template<typename BaseClass = StochasticBlockModelFamily>
-class PyStochasticBlockModelFamily: public PyRandomGraph<StochasticBlockModelFamily>{
+class PyStochasticBlockModelFamily: public PyRandomGraph<BaseClass>{
 public:
     using PyRandomGraph<StochasticBlockModelFamily>::PyRandomGraph;
-    
+
     /* Pure abstract methods */
 
     /* Abstract methods */
+    void setBlockPrior(BlockPrior& blockPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setBlockPrior, blockPrior); }
+    void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setEdgeMatrixPrior, edgeMatrixPrior); }
     double getLogLikelihood() const override { PYBIND11_OVERRIDE(double, BaseClass, getLogLikelihood, ); }
     double getLogPrior()  override { PYBIND11_OVERRIDE(double, BaseClass, getLogPrior, ); }
     double getLogLikelihoodRatioEdgeTerm (const GraphMove& move)  override { PYBIND11_OVERRIDE(double, BaseClass, getLogLikelihoodRatioEdgeTerm, move); }
@@ -32,6 +34,19 @@ public:
     void applyMove (const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyMove, move); }
     void computationFinished()  override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
     void checkSelfConsistency()  override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
+};
+
+template<typename BaseClass = DegreeCorrectedStochasticBlockModelFamily>
+class PyDegreeCorrectedStochasticBlockModelFamily: public PyStochasticBlockModelFamily<BaseClass>{
+public:
+    using PyStochasticBlockModelFamily<BaseClass>::PyStochasticBlockModelFamily;
+
+    /* Pure abstract methods */
+
+    /* Abstract methods */
+    void setBlockPrior(BlockPrior& blockPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setBlockPrior, blockPrior); }
+    void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setEdgeMatrixPrior, edgeMatrixPrior); }
+    void setDegreePrior(DegreePrior& DegreePrior) override { PYBIND11_OVERRIDE(void, BaseClass, setDegreePrior, DegreePrior); }
 };
 
 }

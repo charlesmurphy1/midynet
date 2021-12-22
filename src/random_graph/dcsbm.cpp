@@ -16,9 +16,9 @@ using namespace FastMIDyNet;
 using namespace BaseGraph;
 
 void DegreeCorrectedStochasticBlockModelFamily::samplePriors(){
-    m_blockPrior.sample();
-    m_edgeMatrixPrior.sample();
-    m_degreePrior.sample();
+    m_blockPriorPtr->sample();
+    m_edgeMatrixPriorPtr->sample();
+    m_degreePriorPtr->sample();
     computationFinished();
 };
 
@@ -65,7 +65,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{
 };
 
 double DegreeCorrectedStochasticBlockModelFamily::getLogPrior() {
-    double logPrior =  m_blockPrior.getLogJoint() + m_edgeMatrixPrior.getLogJoint() + m_degreePrior.getLogJoint();
+    double logPrior =  m_blockPriorPtr->getLogJoint() + m_edgeMatrixPriorPtr->getLogJoint() + m_degreePriorPtr->getLogJoint();
     computationFinished();
     return logPrior;
 };
@@ -183,21 +183,21 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio(const Bl
 };
 
 double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatio(const GraphMove& move){
-    double logPriorRatio = m_blockPrior.getLogPriorRatioFromGraphMove(move) + m_edgeMatrixPrior.getLogPriorRatioFromGraphMove(move) + m_degreePrior.getLogPriorRatioFromGraphMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromGraphMove(move) + m_degreePriorPtr->getLogPriorRatioFromGraphMove(move);
     computationFinished();
     return logPriorRatio;
 }
 
 double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatio(const BlockMove& move){
-    double logPriorRatio = m_blockPrior.getLogPriorRatioFromBlockMove(move) + m_edgeMatrixPrior.getLogPriorRatioFromBlockMove(move) + m_degreePrior.getLogPriorRatioFromBlockMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromBlockMove(move) + m_degreePriorPtr->getLogPriorRatioFromBlockMove(move);
     computationFinished();
     return logPriorRatio;
 }
 
 void DegreeCorrectedStochasticBlockModelFamily::applyMove (const GraphMove& move){
-    m_blockPrior.applyGraphMove(move);
-    m_edgeMatrixPrior.applyGraphMove(move);
-    m_degreePrior.applyGraphMove(move);
+    m_blockPriorPtr->applyGraphMove(move);
+    m_edgeMatrixPriorPtr->applyGraphMove(move);
+    m_degreePriorPtr->applyGraphMove(move);
     RandomGraph::applyMove(move);
     computationFinished();
     #if DEBUG
@@ -205,9 +205,9 @@ void DegreeCorrectedStochasticBlockModelFamily::applyMove (const GraphMove& move
     #endif
 };
 void DegreeCorrectedStochasticBlockModelFamily::applyMove (const BlockMove& move){
-    m_blockPrior.applyBlockMove(move);
-    m_edgeMatrixPrior.applyBlockMove(move);
-    m_degreePrior.applyBlockMove(move);
+    m_blockPriorPtr->applyBlockMove(move);
+    m_edgeMatrixPriorPtr->applyBlockMove(move);
+    m_degreePriorPtr->applyBlockMove(move);
     computationFinished();
     #if DEBUG
     checkSelfConsistency();
@@ -238,9 +238,9 @@ void DegreeCorrectedStochasticBlockModelFamily::checkGraphConsistencyWithDegreeS
 }
 
 void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency(){
-    m_blockPrior.checkSelfConsistency();
-    m_edgeMatrixPrior.checkSelfConsistency();
-    m_degreePrior.checkSelfConsistency();
+    m_blockPriorPtr->checkSelfConsistency();
+    m_edgeMatrixPriorPtr->checkSelfConsistency();
+    m_degreePriorPtr->checkSelfConsistency();
 
     checkGraphConsistencyWithEdgeMatrix(m_state, getBlocks(), getEdgeMatrix());
     checkGraphConsistencyWithDegreeSequence(m_state, getDegrees());
