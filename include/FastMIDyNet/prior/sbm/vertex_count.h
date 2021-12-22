@@ -13,33 +13,47 @@ namespace FastMIDyNet{
 class VertexCountPrior: public Prior<std::vector<size_t>>{
 protected:
     size_t m_size;
-    BlockCountPrior& m_blockCountPrior;
+    BlockCountPrior* m_blockCountPriorPtr= NULL;
     void createBlock(){ m_state.push_back(0); }
     void destroyBlock(const BlockIndex& idx) { m_state.erase(m_state.begin() + idx); }
 public:
-    VertexCountPrior(size_t size, BlockCountPrior& blockCountPrior): // constructor
-        m_size(size), m_blockCountPrior(blockCountPrior) { m_blockCountPrior.isRoot(false); }
+    VertexCountPrior(){}
+    VertexCountPrior(size_t size, BlockCountPrior& blockCountPrior):
+        m_size(size) { setBlockCountPrior(blockCountPrior); }
+    VertexCountPrior(const VertexCountPrior& other):
+        m_size(other.m_size) { setBlockCountPrior(*other.m_blockCountPriorPtr); }
+    virtual ~VertexCountPrior(){}
+    const VertexCountPrior& operator=(const VertexCountPrior& other){
+        this->m_size = other.m_size;
+        this->setBlockCountPrior(*other.m_blockCountPriorPtr);
+        return *this;
+    }
 
 
     void setState(const std::vector<size_t>& state) {
         m_state = state;
-        m_blockCountPrior.setState(state.size());
+        m_blockCountPriorPtr->setState(state.size());
+    }
+
+    const BlockCountPrior& getBlockCountPrior() const { return *m_blockCountPriorPtr; }
+    BlockCountPrior& getBlockCountPriorRef() const { return *m_blockCountPriorPtr; }
+    void setBlockCountPrior(BlockCountPrior& blockCountPrior) {
+        m_blockCountPriorPtr = &blockCountPrior; m_blockCountPriorPtr->isRoot(false);
     }
 
     const size_t& getSize() const { return m_size; }
-    const size_t& getBlockCount() const { return m_blockCountPrior.getState(); }
-    BlockCountPrior& getBlockCountPrior() const { return m_blockCountPrior; }
+    const size_t& getBlockCount() const { return m_blockCountPriorPtr->getState(); }
 
-    void samplePriors(){ m_blockCountPrior.sample(); }
+    void samplePriors(){ m_blockCountPriorPtr->sample(); }
     double getLogPrior() {
-        return m_blockCountPrior.getLogJoint();
+        return m_blockCountPriorPtr->getLogJoint();
     }
 
     double getLogLikelihoodRatioFromGraphMove(const GraphMove& ) { return 0; }
     virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove& ) const = 0;
 
     double getLogPriorRatioFromGraphMove(const GraphMove& move) { return 0; }
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) { return m_blockCountPrior.getLogJointRatioFromBlockMove(move); }
+    double getLogPriorRatioFromBlockMove(const BlockMove& move) { return m_blockCountPriorPtr->getLogJointRatioFromBlockMove(move); }
 
     double getLogJointRatioFromGraphMove(const GraphMove& move) { return 0; }
 
@@ -50,7 +64,7 @@ public:
     void applyBlockMove(const BlockMove& move) {
         processRecursiveFunction( [&]() {
             applyBlockMoveToState(move);
-            m_blockCountPrior.applyBlockMove(move);
+            m_blockCountPriorPtr->applyBlockMove(move);
         });
     }
     void applyBlockMoveToState(const BlockMove& move) {
@@ -59,7 +73,7 @@ public:
         ++m_state[move.nextBlockIdx];
         if (move.addedBlocks == -1){ destroyBlock(move.prevBlockIdx); }
     }
-    virtual void computationFinished() { m_isProcessed = false; m_blockCountPrior.computationFinished(); }
+    virtual void computationFinished() { m_isProcessed = false; m_blockCountPriorPtr->computationFinished(); }
 
 };
 

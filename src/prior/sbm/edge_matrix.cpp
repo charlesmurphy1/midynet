@@ -13,8 +13,8 @@ namespace FastMIDyNet {
 
 void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
     m_graph = &graph;
-    const auto& blockSeq = m_blockPrior.getState();
-    const auto& blockCount = m_blockPrior.getBlockCount();
+    const auto& blockSeq = m_blockPriorPtr->getState();
+    const auto& blockCount = m_blockPriorPtr->getBlockCount();
 
     m_state = Matrix<size_t>(blockCount, std::vector<size_t>(blockCount, 0));
     m_edgeCountsInBlocks = std::vector<size_t>(blockCount, 0);
@@ -37,7 +37,7 @@ void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
 void EdgeMatrixPrior::setState(const Matrix<size_t>& edgeMatrix) {
     m_state = edgeMatrix;
 
-    const auto& blockCount = m_blockPrior.getBlockCount();
+    const auto& blockCount = m_blockPriorPtr->getBlockCount();
     m_edgeCountsInBlocks = std::vector<size_t>(blockCount, 0);
     for (size_t i=0; i<blockCount; i++)
         for (size_t j=0; j<blockCount; j++)
@@ -64,7 +64,7 @@ void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {
     if (move.prevBlockIdx == move.nextBlockIdx)
         return;
 
-    const auto& blockSeq = m_blockPrior.getState();
+    const auto& blockSeq = m_blockPriorPtr->getState();
 
     for (auto neighbor: m_graph->getNeighboursOfIdx(move.vertexIdx)) {
         if (neighbor.vertexIndex == move.vertexIdx) {
@@ -88,7 +88,7 @@ void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {
 }
 
 void EdgeMatrixPrior::applyGraphMoveToState(const GraphMove& move){
-    const auto& blockSeq = m_blockPrior.getState();
+    const auto& blockSeq = m_blockPriorPtr->getState();
 
     for (auto removedEdge: move.removedEdges) {
         const BlockIndex& r(blockSeq[removedEdge.first]), s(blockSeq[removedEdge.second]);
@@ -122,10 +122,10 @@ void EdgeMatrixPrior::applyBlockMoveToState(const BlockMove& move) {
 }
 
 void EdgeMatrixPrior::checkSelfConsistency() const {
-    m_blockPrior.checkSelfConsistency();
-    m_edgeCountPrior.checkSelfConsistency();
+    m_blockPriorPtr->checkSelfConsistency();
+    m_edgeCountPriorPtr->checkSelfConsistency();
 
-    const size_t& blockCount = m_blockPrior.getBlockCount();
+    const size_t& blockCount = m_blockPriorPtr->getBlockCount();
     verifyVectorHasSize(m_edgeCountsInBlocks, blockCount, "m_edgeCountInBlocks", "blocks");
     verifyVectorHasSize(m_state, blockCount, "Edge matrix", "blocks");
 
@@ -143,14 +143,14 @@ void EdgeMatrixPrior::checkSelfConsistency() const {
             throw ConsistencyError("EdgeMatrixPrior: Edge matrix row doesn't sum to edgeCountsInBlocks.");
         sumEdges += actualEdgeCountsInBlocks;
     }
-    if (sumEdges != 2*m_edgeCountPrior.getState())
+    if (sumEdges != 2*m_edgeCountPriorPtr->getState())
         throw ConsistencyError("EdgeMatrixPrior: Sum of edge matrix isn't equal to twice the number of edges.");
 }
 
 void EdgeMatrixUniformPrior::sampleState() {
-    auto blockCount = m_blockPrior.getBlockCount();
+    auto blockCount = m_blockPriorPtr->getBlockCount();
     auto flattenedEdgeMatrix = sampleRandomWeakComposition(
-            m_edgeCountPrior.getState(),
+            m_edgeCountPriorPtr->getState(),
             blockCount*(blockCount+1)/2
             );
 
@@ -169,19 +169,19 @@ void EdgeMatrixUniformPrior::sampleState() {
 }
 
 double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
-    double currentLogLikelihood =  getLogLikelihood(m_blockPrior.getBlockCount(), m_edgeCountPrior.getState());
-    double newLogLikelihood =  getLogLikelihood(m_blockPrior.getBlockCount(), m_edgeCountPrior.getState() + move.addedEdges.size() - move.removedEdges.size());
+    double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
+    double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState() + move.addedEdges.size() - move.removedEdges.size());
     return newLogLikelihood - currentLogLikelihood;
 }
 
 double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
-    auto vertexCountsInBlocks = m_blockPrior.getVertexCountsInBlocks();
+    auto vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
 
-    bool creatingBlock = move.nextBlockIdx == m_blockPrior.getBlockCount();
+    bool creatingBlock = move.nextBlockIdx == m_blockPriorPtr->getBlockCount();
     bool destroyingBlock = move.nextBlockIdx != move.prevBlockIdx &&
                         vertexCountsInBlocks[move.prevBlockIdx] == 1;
-    double currentLogLikelihood =  getLogLikelihood(m_blockPrior.getBlockCount(), m_edgeCountPrior.getState());
-    double newLogLikelihood =  getLogLikelihood(m_blockPrior.getBlockCount() + creatingBlock - destroyingBlock, m_edgeCountPrior.getState());
+    double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
+    double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount() + creatingBlock - destroyingBlock, m_edgeCountPriorPtr->getState());
     return newLogLikelihood - currentLogLikelihood;
 }
 

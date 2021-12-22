@@ -9,6 +9,7 @@ namespace FastMIDyNet{
 
 class BlockCountPrior: public Prior<size_t> {
     public:
+        using Prior<size_t>::Prior;
         void samplePriors() { }
         virtual double getLogLikelihoodFromState(const size_t&) const = 0;
         double getLogLikelihood() const { return getLogLikelihoodFromState(m_state); }
@@ -33,7 +34,15 @@ class BlockCountPrior: public Prior<size_t> {
 class BlockCountDeltaPrior: public BlockCountPrior{
     size_t m_blockCount;
 public:
+    BlockCountDeltaPrior() {}
     BlockCountDeltaPrior(size_t blockCount): m_blockCount(blockCount){ setState(m_blockCount); }
+    BlockCountDeltaPrior(const BlockCountDeltaPrior& other):m_blockCount(other.m_blockCount){ setState(m_blockCount); }
+    virtual ~BlockCountDeltaPrior() {};
+    const BlockCountDeltaPrior& operator=(const BlockCountDeltaPrior&other){
+        m_blockCount = other.m_blockCount;
+        setState(other.m_state);
+        return *this;
+    }
 
     void sampleState() { }
 
@@ -52,8 +61,21 @@ class BlockCountPoissonPrior: public BlockCountPrior{
     std::poisson_distribution<size_t> m_poissonDistribution;
 
     public:
-        BlockCountPoissonPrior(double mean): m_mean(mean), m_poissonDistribution(mean) { }
+        BlockCountPoissonPrior() {}
+        BlockCountPoissonPrior(double mean) { setMean(mean); }
+        BlockCountPoissonPrior(const BlockCountPoissonPrior& other) { setMean(other.m_mean); setState(other.m_state); }
+        virtual ~BlockCountPoissonPrior() {};
+        const BlockCountPoissonPrior& operator=(const BlockCountPoissonPrior& other) {
+            setMean(other.m_mean);
+            setState(other.m_state);
+            return *this;
+        }
 
+        double getMean() const { return m_mean; }
+        void setMean(double mean){
+            m_mean = mean;
+            m_poissonDistribution = std::poisson_distribution<size_t>(mean);
+        }
         void sampleState();
         double getLogLikelihoodFromState(const size_t& state) const;
 

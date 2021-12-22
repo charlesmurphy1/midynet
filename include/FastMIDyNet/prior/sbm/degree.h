@@ -10,77 +10,90 @@
 
 namespace FastMIDyNet{
 
+typedef std::vector<CounterMap<size_t>> DegreeCountsMap;
+
 class DegreePrior: public Prior< DegreeSequence >{
-    public:
-        using Prior::Prior;
-        typedef std::vector<CounterMap<size_t>> DegreeCountsMap;
-        DegreePrior(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
-            m_blockPrior(blockPrior), m_edgeMatrixPrior(edgeMatrixPrior) {
-                m_blockPrior.isRoot(false);
-                m_edgeMatrixPrior.isRoot(false);
-            }
+protected:
+    BlockPrior* m_blockPriorPtr = NULL;
+    EdgeMatrixPrior* m_edgeMatrixPriorPtr = NULL;
+    DegreeCountsMap m_degreeCountsInBlocks;
+    const MultiGraph* m_graph;
 
-        void setGraph(const MultiGraph&);
-        const MultiGraph& getGraph() const { return *m_graph; }
-        void setState(const DegreeSequence&) override;
-
-        const size_t& getSize() const { return m_blockPrior.getSize(); }
-        const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_blockPrior.getBlockOfIdx(idx); }
-        const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
-        const size_t& getEdgeCount() const { return m_edgeMatrixPrior.getEdgeCount(); }
-        const size_t& getBlockCount() const { return m_blockPrior.getBlockCount(); }
-        const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPrior.getEdgeCountsInBlocks(); }
-        const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPrior.getState(); }
-        const BlockSequence& getBlocks() const { return m_blockPrior.getState(); }
-        const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPrior.getVertexCountsInBlocks(); }
-        static DegreeCountsMap computeDegreeCountsInBlocks(const DegreeSequence& degreeSeq, const BlockSequence& blockSeq);
-        virtual const DegreeCountsMap& getDegreeCountsInBlocks() const { return m_degreeCountsInBlocks; }
-
-        BlockPrior& getBlockPrior() const { return m_blockPrior; }
-        EdgeMatrixPrior& getEdgeMatrixPrior() const { return m_edgeMatrixPrior; }
-
-        void samplePriors() override { m_blockPrior.sample(); m_edgeMatrixPrior.sample(); }
-
-        double getLogPrior() override { return m_blockPrior.getLogJoint() + m_edgeMatrixPrior.getLogJoint(); }
-
-        virtual double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
-        virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const = 0;
-
-        double getLogPriorRatioFromGraphMove(const GraphMove& move) { return m_blockPrior.getLogJointRatioFromGraphMove(move) + m_edgeMatrixPrior.getLogJointRatioFromGraphMove(move); }
-        double getLogPriorRatioFromBlockMove(const BlockMove& move) { return m_blockPrior.getLogJointRatioFromBlockMove(move) + m_edgeMatrixPrior.getLogJointRatioFromBlockMove(move); }
-
-        double getLogJointRatioFromGraphMove(const GraphMove& move) {
-            return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move); }, 0);
+    void createBlock();
+    void destroyBlock(const BlockIndex&);
+public:
+    using Prior<DegreeSequence>::Prior;
+    /* Constructors */
+    DegreePrior(){}
+    DegreePrior(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior){
+            setBlockPrior(blockPrior);
+            setEdgeMatrixPrior(edgeMatrixPrior);
         }
+    DegreePrior(const DegreePrior& other){
+        setBlockPrior(*other.m_blockPriorPtr);
+        setEdgeMatrixPrior(*other.m_edgeMatrixPriorPtr);
+    }
+    virtual ~DegreePrior(){}
+    const DegreePrior& operator=(const DegreePrior& other){
+        setBlockPrior(*other.m_blockPriorPtr);
+        setEdgeMatrixPrior(*other.m_edgeMatrixPriorPtr);
+        return *this;
+    }
 
-        double getLogJointRatioFromBlockMove(const BlockMove& move) {
-            return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
-        }
+    void setGraph(const MultiGraph&);
+    const MultiGraph& getGraph() const { return *m_graph; }
+    void setState(const DegreeSequence&) override;
 
-        void applyGraphMoveToState(const GraphMove&);
-        void applyBlockMoveToState(const BlockMove&){};
-        void applyGraphMoveToDegreeCounts(const GraphMove&);
-        void applyBlockMoveToDegreeCounts(const BlockMove&);
-        void applyGraphMove(const GraphMove& move);
-        void applyBlockMove(const BlockMove& move);
+    const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }
+    BlockPrior& getBlockPriorRef() const { return *m_blockPriorPtr; }
+    void setBlockPrior(BlockPrior& blockPrior) { m_blockPriorPtr = &blockPrior; m_blockPriorPtr->isRoot(false);}
 
-        void computationFinished() override {
-            m_isProcessed = false;
-            m_blockPrior.computationFinished();
-            m_edgeMatrixPrior.computationFinished();
-        }
-        static void checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence&, size_t);
-        static void checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(const DegreeSequence&, const BlockSequence&, const std::vector<CounterMap<size_t>>&);
-        void checkSelfConsistency() const override;
+    const EdgeMatrixPrior& getEdgeMatrixPrior() const { return *m_edgeMatrixPriorPtr; }
+    EdgeMatrixPrior& getEdgeMatrixPriorRef() const { return *m_edgeMatrixPriorPtr; }
+    void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) {
+        m_edgeMatrixPriorPtr = &edgeMatrixPrior; m_edgeMatrixPriorPtr->isRoot(false);
+    }
 
-    protected:
-        EdgeMatrixPrior& m_edgeMatrixPrior;
-        BlockPrior& m_blockPrior;
-        DegreeCountsMap m_degreeCountsInBlocks;
-        const MultiGraph* m_graph;
+    const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
+    static DegreeCountsMap computeDegreeCountsInBlocks(const DegreeSequence& degreeSeq, const BlockSequence& blockSeq);
+    virtual const DegreeCountsMap& getDegreeCountsInBlocks() const { return m_degreeCountsInBlocks; }
 
-        void createBlock();
-        void destroyBlock(const BlockIndex&);
+
+    void samplePriors() override { m_blockPriorPtr->sample(); m_edgeMatrixPriorPtr->sample(); }
+
+    double getLogPrior() override { return m_blockPriorPtr->getLogJoint() + m_edgeMatrixPriorPtr->getLogJoint(); }
+
+    virtual double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
+    virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const = 0;
+
+    double getLogPriorRatioFromGraphMove(const GraphMove& move) { return m_blockPriorPtr->getLogJointRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move); }
+    double getLogPriorRatioFromBlockMove(const BlockMove& move) { return m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move); }
+
+    double getLogJointRatioFromGraphMove(const GraphMove& move) {
+        return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move); }, 0);
+    }
+
+    double getLogJointRatioFromBlockMove(const BlockMove& move) {
+        return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
+    }
+
+    void applyGraphMoveToState(const GraphMove&);
+    void applyBlockMoveToState(const BlockMove&){};
+    void applyGraphMoveToDegreeCounts(const GraphMove&);
+    void applyBlockMoveToDegreeCounts(const BlockMove&);
+    void applyGraphMove(const GraphMove& move);
+    void applyBlockMove(const BlockMove& move);
+
+    void computationFinished() override {
+        m_isProcessed = false;
+        m_blockPriorPtr->computationFinished();
+        m_edgeMatrixPriorPtr->computationFinished();
+    }
+    static void checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence&, size_t);
+    static void checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(const DegreeSequence&, const BlockSequence&, const std::vector<CounterMap<size_t>>&);
+    void checkSelfConsistency() const override;
+
+
 };
 
 class DegreeUniformPrior: public DegreePrior{

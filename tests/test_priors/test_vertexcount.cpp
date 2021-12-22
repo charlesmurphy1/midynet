@@ -18,7 +18,7 @@ using namespace FastMIDyNet;
 class DummyVertexCountPrior: public VertexCountPrior {
     public:
         using VertexCountPrior::VertexCountPrior;
-        void samplePriors() { m_blockCountPrior.sample(); }
+        void samplePriors() { m_blockCountPriorPtr->sample(); }
         double getLogLikelihood() const { return 0.; }
 
         void sampleState() {
@@ -31,7 +31,7 @@ class DummyVertexCountPrior: public VertexCountPrior {
 
         void checkSelfConsistency() const {}
         bool getIsProcessed() { return m_isProcessed; }
-        double getLogLikelihoodRatioFromBlockMove(const BlockMove& ) { return 0.; }
+        double getLogLikelihoodRatioFromBlockMove(const BlockMove& ) const { return 0.; }
         void _createBlock(){ createBlock(); }
         void _destroyBlock(const BlockIndex& idx){ destroyBlock(idx); }
 };

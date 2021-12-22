@@ -11,7 +11,6 @@ namespace FastMIDyNet{
 
 class EdgeCountPrior: public Prior<size_t> {
     public:
-
         using Prior::Prior;
         void samplePriors() {}
         virtual double getLogLikelihoodFromState(const size_t&) const = 0;
@@ -39,8 +38,16 @@ class EdgeCountPrior: public Prior<size_t> {
 class EdgeCountDeltaPrior: public EdgeCountPrior{
     size_t m_edgeCount;
 public:
-    using EdgeCountPrior::EdgeCountPrior;
+    EdgeCountDeltaPrior(){}
     EdgeCountDeltaPrior(const size_t& edgeCount): m_edgeCount(edgeCount){ setState(m_edgeCount); }
+    EdgeCountDeltaPrior(const EdgeCountDeltaPrior& other): m_edgeCount(other.m_edgeCount){ setState(m_edgeCount); }
+    virtual ~EdgeCountDeltaPrior(){}
+    const EdgeCountDeltaPrior& operator=(const EdgeCountDeltaPrior& other) {
+        m_edgeCount = other.m_edgeCount;
+        setState(m_edgeCount);
+        return *this;
+    }
+
     void sampleState() { };
     double getLogLikelihoodFromState(const size_t& state) const { if (state == m_state) return 0.; else return -INFINITY; };
     double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) { if (move.addedEdges.size() == move.removedEdges.size()) return 0; else return -INFINITY;}
@@ -53,8 +60,21 @@ class EdgeCountPoissonPrior: public EdgeCountPrior{
     std::poisson_distribution<size_t> m_poissonDistribution;
 
     public:
-        using EdgeCountPrior::EdgeCountPrior;
-        EdgeCountPoissonPrior(double mean): m_mean(mean), m_poissonDistribution(mean) { }
+        EdgeCountPoissonPrior() {}
+        EdgeCountPoissonPrior(double mean) { setMean(mean); }
+        EdgeCountPoissonPrior(const EdgeCountPoissonPrior& other) { setMean(other.m_mean); setState(other.m_state); }
+        virtual ~EdgeCountPoissonPrior() {};
+        const EdgeCountPoissonPrior& operator=(const EdgeCountPoissonPrior& other) {
+            setMean(other.m_mean);
+            setState(other.m_state);
+            return *this;
+        }
+
+        double getMean() const { return m_mean; }
+        void setMean(double mean){
+            m_mean = mean;
+            m_poissonDistribution = std::poisson_distribution<size_t>(mean);
+        }
         void sampleState();
         double getLogLikelihoodFromState(const size_t& state) const;
         void checkSelfConsistency() const;

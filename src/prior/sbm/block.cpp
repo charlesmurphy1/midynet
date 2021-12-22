@@ -67,8 +67,8 @@ double BlockUniformPrior::getLogLikelihood() const {
 }
 
 double BlockUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
-    size_t prevNumBlocks = m_blockCountPrior.getState();
-    size_t newNumBlocks = m_blockCountPrior.getStateAfterBlockMove(move);
+    size_t prevNumBlocks = m_blockCountPriorPtr->getState();
+    size_t newNumBlocks = m_blockCountPriorPtr->getStateAfterBlockMove(move);
     double logLikelihoodRatio = 0;
     logLikelihoodRatio += -logMultisetCoefficient(getSize(), newNumBlocks);
     logLikelihoodRatio -= -logMultisetCoefficient(getSize(), prevNumBlocks);

@@ -152,11 +152,11 @@ class TestEdgeMatrixUniformPrior: public ::testing::Test {
 TEST_F(TestEdgeMatrixUniformPrior, sample_returnEdgeMatrixWithCorrectShape){
     prior.sample();
     auto blockSeq = prior.getState();
-    EXPECT_EQ(prior.getState().size(), prior.getBlockCount());
+    EXPECT_EQ(prior.getState().size(), prior.getBlockPrior().getBlockCount());
 
     auto sum = 0;
     for (auto er : prior.getState()){
-        EXPECT_EQ(er.size(), prior.getBlockCount());
+        EXPECT_EQ(er.size(), prior.getBlockPrior().getBlockCount());
         for (auto ers : er){
             EXPECT_TRUE(ers >= 0);
             sum += ers;
@@ -167,7 +167,7 @@ TEST_F(TestEdgeMatrixUniformPrior, sample_returnEdgeMatrixWithCorrectShape){
 
 TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihood_forSomeSampledMatrix_returnCorrectLogLikelihood){
     prior.sample();
-    auto E = prior.getEdgeCount(), B = prior.getBlockCount();
+    auto E = prior.getEdgeCount(), B = prior.getBlockPrior().getBlockCount();
     double actualLogLikelihood = prior.getLogLikelihood();
     double expectedLogLikelihood = -FastMIDyNet::logMultisetCoefficient( B * (B + 1) / 2, E);
 

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <vector>
 
-#include "FastMIDyNet/utility/maps.h"
+#include "FastMIDyNet/utility/maps.hpp"
 
 namespace FastMIDyNet{
 
@@ -15,7 +15,6 @@ TEST(MapBaseClass, copyconstructor_forIntKeysIntValues_returnMap){
     std::vector<int> keys = {0,1,2,3,4,5};
     std::vector<int> values = {0,1,2,3,4,5};
     Map<int, int> map(keys, values, 0);
-    // EXPECT_EQ(keys.size(), map.size());
     Map<int, int> otherMap(map);
     EXPECT_EQ(otherMap.size(), map.size());
 }
