@@ -1,7 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "dynamics/init_dynamics.h"
+#include "dynamics/init.h"
 #include "mcmc/init_mcmc.h"
 #include "prior/init_prior.h"
 #include "proposer/init_proposer.h"
