@@ -4,6 +4,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "declare.h"
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/prior/sbm/python/blockcount.hpp"
@@ -11,27 +12,18 @@
 namespace py = pybind11;
 namespace FastMIDyNet{
 
+
 void initBlockCountPrior(py::module& m){
-    py::class_<BlockCountPrior, Prior<size_t>, PyBlockCountPrior<>>(m, "BlockCountPrior")
-        .def(py::init<>())
-        .def("get_log_likelihood_ratio_from_graphmove", &BlockCountPrior::getLogLikelihoodRatioFromGraphMove,
-            py::arg("move"))
-        .def("get_log_likelihood_ratio_from_blockmove", &BlockCountPrior::getLogLikelihoodRatioFromBlockMove,
-            py::arg("move"))
-        .def("get_log_joint_ratio_from_graphmove", &BlockCountPrior::getLogJointRatioFromGraphMove,
-            py::arg("move"))
-        .def("get_log_joint_ratio_from_blockmove", &BlockCountPrior::getLogJointRatioFromBlockMove,
-            py::arg("move"))
-        .def("apply_graphmove", &BlockCountPrior::applyGraphMove,
-            py::arg("move"))
-        .def("apply_blockmove", &BlockCountPrior::applyBlockMove,
-            py::arg("move"));
+    declareSBMPrior<BlockCountPrior, Prior<size_t>, PyBlockCountPrior<>>(m, "BlockCountPrior");
 
     py::class_<BlockCountDeltaPrior, BlockCountPrior>(m, "BlockCountDeltaPrior")
         .def(py::init<size_t>(), py::arg("block_count"));
 
     py::class_<BlockCountPoissonPrior, BlockCountPrior>(m, "BlockCountPoissonPrior")
-        .def(py::init<double>(), py::arg("mean"));
+        .def(py::init<double>(), py::arg("mean"))
+        .def("get_mean", &BlockCountPoissonPrior::getMean)
+        .def("set_mean", &BlockCountPoissonPrior::setMean, py::arg("mean"))
+        ;
 }
 
 }

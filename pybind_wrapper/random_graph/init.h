@@ -16,6 +16,7 @@ void initRandomGraph(py::module& m){
     initStochasticBlockModelFamily(m);
     initErdosRenyiFamily(m);
     initDegreeCorrectedStochasticBlockModelFamily(m);
+    initConfigurationModelFamily(m);
 }
 
 }

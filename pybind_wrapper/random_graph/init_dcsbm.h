@@ -9,6 +9,7 @@
 #include "FastMIDyNet/prior/sbm/degree.h"
 #include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/random_graph/dcsbm.h"
+#include "FastMIDyNet/random_graph/python/sbm.hpp"
 #include "FastMIDyNet/random_graph/configuration.h"
 
 namespace py = pybind11;

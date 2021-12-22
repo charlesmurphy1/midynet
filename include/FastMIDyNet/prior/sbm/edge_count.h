@@ -19,9 +19,12 @@ class EdgeCountPrior: public Prior<size_t> {
         double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
              return getLogLikelihoodFromState(getStateAfterGraphMove(move)) - getLogLikelihood();
         }
-        double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
-             return 0;
-        }
+        double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0; }
+
+
+        double getLogPriorRatioFromGraphMove(const GraphMove& move) { return 0; }
+        double getLogPriorRatioFromBlockMove(const BlockMove& move) { return 0; }
+
         double getLogJointRatioFromGraphMove(const GraphMove& move) {
             double ratio = processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move); }, 0);
             return ratio;

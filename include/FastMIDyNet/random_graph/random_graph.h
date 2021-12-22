@@ -24,12 +24,13 @@ public:
     const int getSize() const { return m_size; }
     virtual void setSize(size_t size) { m_size = size; m_state.resize(size);}
 
-    void sample() {
+    const MultiGraph& sample() {
         samplePriors();
         sampleState();
         #if DEBUG
         checkSelfConsistency();
         #endif
+        return getState();
     };
     virtual void sampleState() = 0;
     virtual void samplePriors() = 0;

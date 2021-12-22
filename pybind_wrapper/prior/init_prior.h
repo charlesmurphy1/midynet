@@ -36,8 +36,8 @@ void initPrior(pybind11::module& m){
     declarePriorBaseClass<size_t>(m, "UnIntPrior");
     declarePriorBaseClass<std::vector<size_t>>(m, "UnIntVectorPrior");
     declarePriorBaseClass<std::vector<std::vector<size_t>>>(m, "UnIntMatrixPrior");
-    pybind11::module mSBM = m.def_submodule("sbm");
-    initSBMPrior(mSBM);
+    pybind11::module sbm = m.def_submodule("sbm");
+    initSBMPriors(sbm);
 }
 
 }

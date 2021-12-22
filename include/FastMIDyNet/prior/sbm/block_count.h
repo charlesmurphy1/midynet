@@ -18,6 +18,10 @@ class BlockCountPrior: public Prior<size_t> {
         double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
             return getLogLikelihoodFromState(getStateAfterBlockMove(move)) - getLogLikelihood();
         }
+
+        double getLogPriorRatioFromGraphMove(const GraphMove& move) { return 0; }
+        double getLogPriorRatioFromBlockMove(const BlockMove& move) { return 0; }
+
         double getLogJointRatioFromGraphMove(const GraphMove& move) { return 0; }
         double getLogJointRatioFromBlockMove(const BlockMove& move) {
             auto ratio = processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move); }, 0);

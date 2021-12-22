@@ -6,6 +6,7 @@
 
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/random_graph/sbm.h"
+#include "FastMIDyNet/random_graph/dcsbm.h"
 #include "FastMIDyNet/random_graph/python/randomgraph.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"
 

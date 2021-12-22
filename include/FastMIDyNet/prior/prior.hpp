@@ -30,12 +30,13 @@ class Prior{
 
         virtual void sampleState() = 0;
         virtual void samplePriors() = 0;
-        void sample() {
+        const StateType& sample() {
             auto _func = [&]() {
                 samplePriors();
                 sampleState();
             };
             processRecursiveFunction(_func);
+            return getState();
         }
         virtual double getLogLikelihood() const = 0;
         virtual double getLogPrior() = 0;

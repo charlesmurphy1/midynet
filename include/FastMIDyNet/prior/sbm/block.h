@@ -144,6 +144,7 @@ public:
     void setBlockCountPrior(BlockCountPrior& blockCountPrior) {
         m_blockCountPriorPtr = &blockCountPrior; m_blockCountPriorPtr->isRoot(false);
     }
+
     const size_t& getBlockCount() const { return m_blockCountPriorPtr->getState();}
     void setState(const BlockSequence& blockSeq) override{
         BlockPrior::setState(blockSeq);
@@ -256,6 +257,10 @@ public:
         this->setVertexCountPrior(*other.m_vertexCountPriorPtr);
         return *this;
     }
+
+    const BlockCountPrior& getBlockCountPrior() const { return m_vertexCountPriorPtr->getBlockCountPrior(); }
+    BlockCountPrior& getBlockCountPriorRef() const { return m_vertexCountPriorPtr->getBlockCountPriorRef(); }
+    void setBlockCountPrior(BlockCountPrior& blockCountPrior) { m_vertexCountPriorPtr->setBlockCountPrior(blockCountPrior); }
 };
 
 }

@@ -41,10 +41,10 @@ class Dynamics{
         const int getSize() const { return m_randomGraph.getSize(); }
         const int getNumStates() const { return m_numStates; }
 
-        void sample(const State& initialState, bool async=true){
-
+        const State& sample(const State& initialState, bool async=true){
             m_randomGraph.sample();
             sampleState(initialState, async);
+            return getState();
         }
         void sample(bool async=true){ sample(getRandomState(), async); }
         void sampleState(const State& initialState, bool async=true);

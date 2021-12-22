@@ -14,7 +14,8 @@
 namespace py = pybind11;
 namespace FastMIDyNet{
 
-void initSBMPrior(py::module& m){
+
+void initSBMPriors(py::module& m){
     initBlockCountPrior(m);
     initVertexCountPrior(m);
     initBlockPrior(m);

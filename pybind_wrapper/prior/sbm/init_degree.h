@@ -5,6 +5,7 @@
 #include <pybind11/stl.h>
 #include <vector>
 
+#include "declare.h"
 #include "FastMIDyNet/prior/python/prior.hpp"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
@@ -16,34 +17,15 @@ namespace py = pybind11;
 namespace FastMIDyNet{
 
 void initDegreePrior(py::module& m){
-    py::class_<DegreePrior, Prior<std::vector<size_t>>, PyDegreePrior<>>(m, "DegreePrior")
+    declareSBMPrior<DegreePrior, Prior<std::vector<size_t>>, PyDegreePrior<>>(m, "DegreePrior")
         .def(py::init<BlockPrior&, EdgeMatrixPrior&>(), py::arg("block_prior"), py::arg("edge_matrix"))
-        .def("get_log_likelihood_ratio_from_graphmove", &DegreePrior::getLogLikelihoodRatioFromGraphMove,
-            py::arg("move"))
-        .def("get_log_likelihood_ratio_from_blockmove", &DegreePrior::getLogLikelihoodRatioFromBlockMove,
-            py::arg("move"))
-        .def("get_log_prior_ratio_from_graphmove", &DegreePrior::getLogPriorRatioFromGraphMove,
-            py::arg("move"))
-        .def("get_log_prior_ratio_from_blockmove", &DegreePrior::getLogPriorRatioFromBlockMove,
-            py::arg("move"))
-        .def("get_log_joint_ratio_from_graphmove", &DegreePrior::getLogJointRatioFromGraphMove,
-            py::arg("move"))
-        .def("get_log_joint_ratio_from_blockmove", &DegreePrior::getLogJointRatioFromBlockMove,
-            py::arg("move"))
-        .def("apply_graphmove", &DegreePrior::applyGraphMove,
-            py::arg("move"))
-        .def("apply_blockmove", &DegreePrior::applyBlockMove,
-            py::arg("move"))
-        .def("get_size", &DegreePrior::getSize)
-        .def("get_block_of_idx", &DegreePrior::getBlockOfIdx)
-        .def("get_blocks", &DegreePrior::getBlocks)
         .def("get_degree_of_idx", &DegreePrior::getDegreeOfIdx)
-        .def("get_block_count", &DegreePrior::getBlockCount)
-        .def("get_edge_count", &DegreePrior::getEdgeCount)
-        .def("get_edge_count_in_blocks", &DegreePrior::getEdgeCountsInBlocks)
-        .def("get_vertex_count_in_blocks", &DegreePrior::getVertexCountsInBlocks)
         .def("get_degree_count_in_blocks", &DegreePrior::getDegreeCountsInBlocks)
         .def("get_graph", &DegreePrior::getGraph)
+        .def("get_block_prior", &DegreePrior::getBlockPrior)
+        .def("set_block_prior", &DegreePrior::setBlockPrior, py::arg("block_prior"))
+        .def("get_edge_matrix_prior", &DegreePrior::getEdgeMatrixPrior)
+        .def("set_edge_matrix_prior", &DegreePrior::setEdgeMatrixPrior, py::arg("edge_matrix_prior"))
         ;
 
     py::class_<DegreeUniformPrior, DegreePrior>(m, "DegreeUniformPrior")
