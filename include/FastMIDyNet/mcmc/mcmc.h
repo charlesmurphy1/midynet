@@ -2,6 +2,7 @@
 #define FAST_MIDYNET_MCMC_H
 
 #include <sstream>
+#include "FastMIDyNet/types.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.h"
 
 
@@ -39,6 +40,8 @@ public:
     const size_t getNumSteps() const { return m_numSteps; }
     const size_t getNumSweeps() const { return m_numSweeps; }
 
+    virtual const MultiGraph& getGraph() const = 0 ;
+    size_t getSize() const { return getGraph().getSize(); }
     virtual double getLogLikelihood() const = 0 ;
     virtual double getLogPrior() = 0 ;
     virtual double getLogJoint() = 0 ;

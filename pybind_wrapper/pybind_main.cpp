@@ -2,7 +2,7 @@
 #include <pybind11/stl.h>
 
 #include "dynamics/init.h"
-#include "mcmc/init_mcmc.h"
+#include "mcmc/init.h"
 #include "prior/init_prior.h"
 #include "proposer/init_proposer.h"
 #include "random_graph/init.h"

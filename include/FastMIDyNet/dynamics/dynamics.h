@@ -49,7 +49,7 @@ class Dynamics{
         void sample(bool async=true){ sample(getRandomState(), async); }
         void sampleState(const State& initialState, bool async=true);
         void sampleState(bool async=true){ return sampleState(getRandomState(), async); }
-        const State getRandomState();
+        virtual const State getRandomState();
         const NeighborsState getNeighborsState(const State& state) const;
         const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const;
 

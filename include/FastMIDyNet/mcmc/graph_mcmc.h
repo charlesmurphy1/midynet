@@ -30,6 +30,7 @@ public:
     m_uniform(0., 1.) {}
 
 
+    const MultiGraph& getGraph() const { return m_randomGraph.getState(); }
     double getLogLikelihood() const { return m_randomGraph.getLogLikelihood(); }
     double getLogPrior() { return m_randomGraph.getLogPrior(); }
     double getLogJoint() { return m_randomGraph.getLogJoint(); }

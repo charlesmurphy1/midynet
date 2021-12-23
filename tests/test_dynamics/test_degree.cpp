@@ -1,11 +1,11 @@
 #include "gtest/gtest.h"
 #include <list>
 
-#include "FastMIDyNet/dynamics/degree_dynamics.h"
+#include "FastMIDyNet/dynamics/degree.h"
 #include "fixtures.hpp"
 
 namespace FastMIDyNet{
-    
+
     const double C = 1.;
     const std::list<std::vector<int>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}, {2, 0}};
 

@@ -1,4 +1,4 @@
-#include "FastMIDyNet/dynamics/degree_dynamics.h"
+#include "FastMIDyNet/dynamics/degree.h"
 
 
 namespace FastMIDyNet{

@@ -12,7 +12,7 @@ class DegreeDynamics: public BinaryDynamics {
     double m_C;
 
     public:
-        DegreeDynamics(RandomGraph& random_graph, double C, size_t numSteps):
+        DegreeDynamics(RandomGraph& random_graph, size_t numSteps, double C):
                 BinaryDynamics(random_graph, numSteps), m_C(C) {}
 
         double getActivationProb(const VertexNeighborhoodState& neighborhood_state) const;

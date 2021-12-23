@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <list>
 
-#include "FastMIDyNet/dynamics/wilson_cowan.h"
+#include "FastMIDyNet/dynamics/cowan.h"
 #include "fixtures.hpp"
 
 
@@ -17,7 +17,7 @@ namespace FastMIDyNet {
     class TestWilsonCowan: public::testing::Test{
     public:
         FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7);
-        FastMIDyNet::WilsonCowanDynamics dynamic = FastMIDyNet::WilsonCowanDynamics(graph, NUM_STEPS, A, NU, MU, ETA);
+        FastMIDyNet::CowanDynamics dynamic = FastMIDyNet::CowanDynamics(graph, NUM_STEPS, NU, A, MU, ETA);
     };
 
 
@@ -32,5 +32,5 @@ namespace FastMIDyNet {
         EXPECT_EQ(ETA,
             dynamic.getDeactivationProb(neighbor_state));
         }
-        
+
 } /* FastMIDyNet */

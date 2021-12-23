@@ -23,8 +23,8 @@ class BinaryDynamics: public Dynamics{
                             VertexNeighborhoodState neighborhoodState
                         ) const;
 
-        virtual double getActivationProb(const VertexNeighborhoodState& neighboohState) const = 0;
-        virtual double getDeactivationProb(const VertexNeighborhoodState& neighboohState) const = 0;
+        virtual double getActivationProb(const VertexNeighborhoodState& neighborState) const = 0;
+        virtual double getDeactivationProb(const VertexNeighborhoodState& neighborState) const = 0;
 };
 
 } // namespace FastMIDyNet

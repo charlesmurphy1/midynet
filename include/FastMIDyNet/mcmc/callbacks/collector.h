@@ -27,38 +27,29 @@ public:
     virtual void onStepEnd() { collect(); }
 };
 
-class DynamicsCollector: public Collector{
-
-protected:
-    DynamicsMCMC* m_dynamicsMCMCPtr;
-public:
-    virtual void setUp(DynamicsMCMC* mcmcPtr) {
-        m_mcmcPtr = mcmcPtr;
-        m_dynamicsMCMCPtr = m_dynamicsMCMCPtr;
-    }
-};
-
-class CollectGraphOnSweep: public SweepCollector, public DynamicsCollector{
+class CollectGraphOnSweep: public SweepCollector{
 private:
     std::vector<MultiGraph> m_collectedGraphs;
 public:
-    void collect() { m_collectedGraphs.push_back( m_dynamicsMCMCPtr->getGraph() ); }
+    void collect() { m_collectedGraphs.push_back( m_mcmcPtr->getGraph() ); }
     void clear() { m_collectedGraphs.clear(); }
+    const std::vector<MultiGraph>& getGraphs() const { return m_collectedGraphs; }
 };
 
-class CollectEdgeMultiplicityOnSweep: public SweepCollector, public DynamicsCollector{
+class CollectEdgeMultiplicityOnSweep: public SweepCollector{
 private:
     MultiGraph m_edgeMultiplicity;
 public:
-    void setUp(DynamicsMCMC* mcmcPtr) {
-        DynamicsCollector::setUp(mcmcPtr);
-        m_edgeMultiplicity = MultiGraph(m_dynamicsMCMCPtr->getSize());
+    void setUp(MCMC* mcmcPtr) {
+        Collector::setUp(mcmcPtr);
+        m_edgeMultiplicity = MultiGraph(m_mcmcPtr->getSize());
     }
     void collect() ;
     void clear() { m_edgeMultiplicity.clearEdges(); }
+    const MultiGraph& getEdgeMultiplicity() const { return m_edgeMultiplicity; }
 };
 
-class WriteGraphToFileOnSweep: public SweepCollector, public DynamicsCollector{
+class WriteGraphToFileOnSweep: public SweepCollector{
 private:
     std::string m_filename;
     std::string m_ext;
@@ -69,28 +60,32 @@ public:
     void clear() { };
 };
 
-class CollectLikelihoodOnSweep: public SweepCollector, public DynamicsCollector{
+class CollectLikelihoodOnSweep: public SweepCollector{
 private:
     std::vector<double> m_collectedLikelihoods;
 public:
-    void collect() { m_collectedLikelihoods.push_back( m_dynamicsMCMCPtr->getLogLikelihood() ); }
+    void collect() { m_collectedLikelihoods.push_back( m_mcmcPtr->getLogLikelihood() ); }
     void clear() { m_collectedLikelihoods.clear(); }
+    const std::vector<double>& getLogLikelihoods() const { return m_collectedLikelihoods; }
 };
 
-class CollectPriorOnSweep: public SweepCollector, public DynamicsCollector{
+class CollectPriorOnSweep: public SweepCollector{
 private:
     std::vector<double> m_collectedPriors;
 public:
-    void collect() { m_collectedPriors.push_back( m_dynamicsMCMCPtr->getLogPrior() ); }
+    void collect() { m_collectedPriors.push_back( m_mcmcPtr->getLogPrior() ); }
     void clear() { m_collectedPriors.clear(); }
+    const std::vector<double>& getLogPriors() const { return m_collectedPriors; }
 };
 
-class CollectJointOnSweep: public SweepCollector, public DynamicsCollector{
+class CollectJointOnSweep: public SweepCollector{
 private:
     std::vector<double> m_collectedJoints;
 public:
-    void collect() { m_collectedJoints.push_back( m_dynamicsMCMCPtr->getLogJoint() ); }
+    void collect() { m_collectedJoints.push_back( m_mcmcPtr->getLogJoint() ); }
     void clear() { m_collectedJoints.clear(); }
+    const std::vector<double>& getLogJoints() const { return m_collectedJoints; }
+
 };
 
 }

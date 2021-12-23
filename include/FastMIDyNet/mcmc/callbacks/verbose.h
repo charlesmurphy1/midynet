@@ -11,24 +11,6 @@
 
 namespace FastMIDyNet{
 
-// class Verbose: public CallBack{
-// private:
-//     MCMC* m_mcmcPtr;
-// public:
-//     void setUp(MCMC* mcmcPtr){ m_mcmcPtr = mcmcPtr; }
-//     virtual std::string getMessage() = 0;
-//     virtual std::string update() = 0;
-// };
-//
-// class StepVerbose: public Verbose{
-// private:
-//     size_t m_numberOfSuccess, m_numberOfFailure;
-//     size_t m_totalNumberOfSuccess, m_totalNumberOfFailure;
-// public:
-//
-//
-// };
-
 class Verbose: public CallBack{
 protected:
     std::string name;
@@ -158,6 +140,7 @@ public:
 
 class VerboseToConsole: public VerboseDisplay{
 public:
+    using VerboseDisplay::VerboseDisplay;
     void writeMessage(std::string message) { std::cout << getMessage() << std::endl; }
 };
 
