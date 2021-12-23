@@ -61,7 +61,7 @@ def find_files_recursively(path, ext=[]):
 
 ext_modules = [
     Extension(
-        "_midynet",
+        "fast_midynet",
         include_dirs=[
             get_pybind_include(),
             get_pybind_include(user=True),
@@ -89,6 +89,12 @@ ext_modules = [
             "src/dynamics/degree.cpp",
             "src/dynamics/ising-glauber.cpp",
             "src/dynamics/sis.cpp",
+            "src/proposer/edge_proposer/vertex_sampler.cpp",
+            "src/proposer/edge_proposer/double_edge_swap.cpp",
+            "src/proposer/edge_proposer/hinge_flip.cpp",
+            "src/proposer/edge_proposer/single_edge.cpp",
+            "src/proposer/block_proposer/uniform.cpp",
+            "src/proposer/block_proposer/peixoto.cpp",
             "src/mcmc/mcmc.cpp",
             "src/mcmc/callbacks/callback.cpp",
             "src/mcmc/callbacks/verbose.cpp",
@@ -171,7 +177,7 @@ class BuildExt(build_ext):
 
 
 setup(
-    name="fast-midynet",
+    name="fast_midynet",
     version=__version__,
     ext_modules=ext_modules,
     install_requires=["pybind11>=2.3"],

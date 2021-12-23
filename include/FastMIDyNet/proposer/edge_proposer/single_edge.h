@@ -25,14 +25,14 @@ public:
     void updateProbabilities(const GraphMove&) { }
 };
 
-class SingleEdgeUniformProposer: SingleEdgeProposer{
+class SingleEdgeUniformProposer: public SingleEdgeProposer{
 private:
     VertexUniformSampler m_vertexUniformSampler;
 public:
     SingleEdgeUniformProposer(){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
 };
 
-class SingleEdgeDegreeProposer: SingleEdgeProposer{
+class SingleEdgeDegreeProposer: public SingleEdgeProposer{
 private:
     VertexDegreeSampler m_vertexDegreeSampler;
 public:

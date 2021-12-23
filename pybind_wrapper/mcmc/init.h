@@ -11,7 +11,8 @@ namespace py = pybind11;
 namespace FastMIDyNet{
 
 void initMCMC(py::module& m){
-    initCallBacks(m);
+    py::module callbacks = m.def_submodule("callbacks");
+    initCallBacks(callbacks);
     initMCMCBaseClass(m);
 }
 

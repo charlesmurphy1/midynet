@@ -1,5 +1,5 @@
 #include "FastMIDyNet/rng.h"
-#include "FastMIDyNet/proposer/block_proposer/uniform_proposer.h"
+#include "FastMIDyNet/proposer/block_proposer/uniform.h"
 #include <random>
 
 

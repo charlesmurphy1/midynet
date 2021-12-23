@@ -31,7 +31,7 @@ class Dynamics{
         const MultiGraph& getGraph() const { return m_randomGraph.getState(); }
         void setGraph(MultiGraph& graph) {
             m_randomGraph.setState(graph);
-            for (auto t = 0 ; t < m_pastStateSequence.size() ; t++){
+            for (size_t t = 0 ; t < m_pastStateSequence.size() ; t++){
                 m_neighborsStateSequence[t] = getNeighborsState(m_pastStateSequence[t]);
             }
         }

@@ -1,6 +1,6 @@
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/generators.h"
-#include "FastMIDyNet/proposer/block_proposer/peixoto_proposer.h"
+#include "FastMIDyNet/proposer/block_proposer/peixoto.h"
 #include <random>
 
 

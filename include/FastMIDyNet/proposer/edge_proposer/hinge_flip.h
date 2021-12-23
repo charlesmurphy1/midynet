@@ -18,7 +18,7 @@ protected:
     VertexSampler* m_vertexSamplerPtr = NULL;
 public:
     using EdgeProposer::EdgeProposer;
-    void acceptIsolated(bool accept);
+    bool setAcceptIsolated(bool accept);
 
     GraphMove proposeMove();
     void setUp(const RandomGraph& randomGraph) { setUp(randomGraph.getState()); }

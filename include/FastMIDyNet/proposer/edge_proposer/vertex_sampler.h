@@ -23,8 +23,8 @@ public:
     virtual void update(const GraphMove&) = 0;
     virtual double getLogProposalProbRatio(const GraphMove&) const = 0;
 
-    const bool& acceptIsolated() const { return m_withIsolatedVertices; }
-    void acceptIsolated(bool accept) { m_withIsolatedVertices = accept; }
+    bool setAcceptIsolated(bool accept) { return m_withIsolatedVertices = accept; }
+    bool getAcceptIsolated() const { return m_withIsolatedVertices; }
 };
 
 class VertexUniformSampler: public VertexSampler{
@@ -34,10 +34,11 @@ public:
     VertexUniformSampler(){}
     VertexUniformSampler(const VertexUniformSampler& other):
         m_vertexSampler(other.m_vertexSampler){ m_withIsolatedVertices = other.m_withIsolatedVertices; }
-    ~VertexUniformSampler() {}
+    virtual ~VertexUniformSampler() {}
     const VertexUniformSampler& operator=(const VertexUniformSampler& other){
         m_vertexSampler = other.m_vertexSampler;
         m_withIsolatedVertices = other.m_withIsolatedVertices;
+        return *this;
     }
     const BaseGraph::VertexIndex sample() { return m_vertexSampler.sample_ext_RNG(rng).first; }
     void setUp(const MultiGraph& graph);
@@ -53,12 +54,18 @@ private:
     double m_shift;
 public:
     VertexDegreeSampler(double shift=1):m_shift(shift){};
+    VertexDegreeSampler(const VertexDegreeSampler& other):
+        m_edgeSampler(other.m_edgeSampler){ m_withIsolatedVertices = other.m_withIsolatedVertices; }
+    ~VertexDegreeSampler() {}
+    const VertexDegreeSampler& operator=(const VertexDegreeSampler& other){
+        this->m_edgeSampler = other.m_edgeSampler;
+        this->m_withIsolatedVertices = other.m_withIsolatedVertices;
+        return *this;
+    }
     const BaseGraph::VertexIndex sample();
     void setUp(const MultiGraph& graph);
     void update(const GraphMove& move);
     double getLogProposalProbRatio(const GraphMove&) const { return 0.; }
-
-
 };
 
 }/* FastMIDyNet */

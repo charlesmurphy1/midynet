@@ -23,9 +23,9 @@ GraphMove HingeFlipProposer::proposeMove() {
     return {{edge}, {newEdge}};
 };
 
-void HingeFlipProposer::acceptIsolated(bool accept){
-    m_withIsolatedVertices = accept;
-    m_vertexSamplerPtr->acceptIsolated(accept);
+bool HingeFlipProposer::setAcceptIsolated(bool accept){
+    m_vertexSamplerPtr->setAcceptIsolated(accept);
+    return m_withIsolatedVertices = accept;
 }
 
 void HingeFlipProposer::setUp(const MultiGraph& graph){
