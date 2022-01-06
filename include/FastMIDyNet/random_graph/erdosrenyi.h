@@ -17,10 +17,11 @@ protected:
     EdgeMatrixUniformPrior m_edgeMatrixUniformPrior;
 public:
     ErdosRenyiFamily(size_t graphSize, EdgeCountPrior& edgeCountPrior):
+        StochasticBlockModelFamily(),
         m_blockSeq(graphSize, 0),
         m_blockDeltaPrior(m_blockSeq),
-        m_edgeMatrixUniformPrior(edgeCountPrior, m_blockDeltaPrior),
-        StochasticBlockModelFamily(){
+        m_edgeMatrixUniformPrior(edgeCountPrior, m_blockDeltaPrior)
+        {
             setBlockPrior(m_blockDeltaPrior);
             setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
         }

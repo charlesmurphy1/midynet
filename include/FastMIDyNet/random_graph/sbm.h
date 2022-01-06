@@ -38,6 +38,7 @@ public:
     virtual void setBlockPrior(BlockPrior& blockPrior) {
         m_blockPriorPtr = &blockPrior;
         m_blockPriorPtr->isRoot(false);
+        setSize(m_blockPriorPtr->getSize());
         if (m_edgeMatrixPriorPtr)
             m_edgeMatrixPriorPtr->setBlockPrior(*m_blockPriorPtr);
     }
