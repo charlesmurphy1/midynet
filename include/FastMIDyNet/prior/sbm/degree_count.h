@@ -20,7 +20,7 @@ public:
     void samplePriors() override { m_edgeCountPrior.sample(); }
     double getLogLikelihood() const { return getLogLikelihoodFromState(m_state); }
     virtual double getLogLikelihoodFromState(const DegreeSequence&) const = 0;
-    double getLogPrior() override { return m_edgeCountPrior.getLogJoint(); }
+    double getLogPrior() const override { return m_edgeCountPrior.getLogJoint(); }
     virtual double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const = 0;
     double getLogJointRatio(const GraphMove& move) {
         return processRecursiveFunction<double>( [&]() {
@@ -32,7 +32,7 @@ public:
 
     double getLogLikelihoodRatio(const BlockMove&) const { return 0; }
     void applyMove(const BlockMove&) { }
-    void computationFinished() override { m_isProcessed = false; m_edgeCountPrior.computationFinished(); }
+    void computationFinished() const override { m_isProcessed = false; m_edgeCountPrior.computationFinished(); }
 };
 
 

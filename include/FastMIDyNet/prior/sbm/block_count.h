@@ -10,21 +10,21 @@ namespace FastMIDyNet{
 class BlockCountPrior: public Prior<size_t> {
     public:
         using Prior<size_t>::Prior;
-        void samplePriors() { }
+        void samplePriors() override { }
         virtual double getLogLikelihoodFromState(const size_t&) const = 0;
-        double getLogLikelihood() const { return getLogLikelihoodFromState(m_state); }
-        double getLogPrior() { return 0; }
+        double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
+        double getLogPrior() const override { return 0; }
         double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
         double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
             return getLogLikelihoodFromState(getStateAfterBlockMove(move)) - getLogLikelihood();
         }
 
-        double getLogPriorRatioFromGraphMove(const GraphMove& move) { return 0; }
-        double getLogPriorRatioFromBlockMove(const BlockMove& move) { return 0; }
+        double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
+        double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
-        double getLogJointRatioFromGraphMove(const GraphMove& move) { return 0; }
-        double getLogJointRatioFromBlockMove(const BlockMove& move) {
-            auto ratio = processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move); }, 0);
+        double getLogJointRatioFromGraphMove(const GraphMove& move) const { return 0; }
+        double getLogJointRatioFromBlockMove(const BlockMove& move) const {
+            auto ratio = processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move); }, 0);
             return ratio;
         }
         void applyGraphMove(const GraphMove& move) { }
@@ -48,15 +48,15 @@ public:
         return *this;
     }
 
-    void sampleState() { }
+    void sampleState() override { }
 
-    double getLogLikelihoodFromState(const size_t& blockCount) const{
+    double getLogLikelihoodFromState(const size_t& blockCount) const override{
         if (blockCount != m_state) return -INFINITY;
         else return 0;
     }
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) { if (move.addedBlocks == 0) return 0; else return -INFINITY; }
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { if (move.addedBlocks == 0) return 0; else return -INFINITY; }
 
-    void checkSelfConsistency() const{ };
+    void checkSelfConsistency() const override { };
 
 };
 
@@ -80,10 +80,10 @@ class BlockCountPoissonPrior: public BlockCountPrior{
             m_mean = mean;
             m_poissonDistribution = std::poisson_distribution<size_t>(mean);
         }
-        void sampleState();
-        double getLogLikelihoodFromState(const size_t& state) const;
+        void sampleState() override;
+        double getLogLikelihoodFromState(const size_t& state) const override;
 
-        void checkSelfConsistency() const;
+        void checkSelfConsistency() const override;
 };
 
 }

@@ -43,18 +43,21 @@ void initVerbose(py::module& m){
 
     /* VerboseDisplay classes */
     py::class_<VerboseDisplay, CallBack, PyVerboseDisplay<>>(m, "VerboseDisplay")
-        .def(py::init<std::vector<Verbose*>>(), py::arg("verboses")={})
+        .def(py::init<>())
+        .def(py::init<std::vector<Verbose*>>(), py::arg("verboses"))
         .def("get_message", &VerboseDisplay::getMessage)
         .def("write_message", py::overload_cast<std::string>(&VerboseDisplay::writeMessage),
             py::arg("message"))
         .def("write_message", py::overload_cast<>(&VerboseDisplay::writeMessage));
 
     py::class_<VerboseToConsole, VerboseDisplay>(m, "VerboseToConsole")
-        .def(py::init<std::vector<Verbose*>>(), py::arg("verboses")={}) ;
+        .def(py::init<>())
+        .def(py::init<std::vector<Verbose*>>(), py::arg("verboses")) ;
 
     py::class_<VerboseToFile, VerboseDisplay>(m, "VerboseToFile")
         .def(py::init<std::string, std::vector<Verbose*>>(),
-            py::arg("filename")="verbose", py::arg("verboses") = {}) ;
+            py::arg("filename")="verbose", py::arg("verboses"))
+        .def(py::init<std::string>(), py::arg("filename")="verbose") ;
 }
 
 }

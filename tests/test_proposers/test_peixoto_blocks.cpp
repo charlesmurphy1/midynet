@@ -4,7 +4,7 @@
 #include "FastMIDyNet/prior/sbm/edge_count.h"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/random_graph/sbm.h"
-#include "FastMIDyNet/proposer/block_proposer/peixoto_proposer.h"
+#include "FastMIDyNet/proposer/block_proposer/peixoto.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/rng.h"
 #include "fixtures.hpp"

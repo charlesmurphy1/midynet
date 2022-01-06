@@ -22,7 +22,7 @@ public:
     /* Overloaded abstract methods */
     void samplePriors() override { PYBIND11_OVERRIDE(void, EdgeCountPriorBaseClass, samplePriors, ); }
     double getLogLikelihood() const override { PYBIND11_OVERRIDE(double, EdgeCountPriorBaseClass, getLogLikelihood, ); }
-    double getLogPrior() override { PYBIND11_OVERRIDE(double, EdgeCountPriorBaseClass, getLogPrior, ); }
+    double getLogPrior() const override { PYBIND11_OVERRIDE(double, EdgeCountPriorBaseClass, getLogPrior, ); }
 };
 
 }

@@ -7,16 +7,16 @@ namespace FastMIDyNet{
 
 void WriteGraphToFileOnSweep::collect(){
     std::ofstream file;
-    file.open(m_filename + "_" + std::to_string(m_dynamicsMCMCPtr->getNumSweeps()) + m_ext);
+    file.open(m_filename + "_" + std::to_string(m_mcmcPtr->getNumSweeps()) + m_ext);
 
-    // BaseGraph::writeEdgeListIdxInBinaryFile(m_dynamicsMCMCPtr->getGraph(), file);
-    // BaseGraph::writeEdgeListInBinaryFile(m_dynamicsMCMCPtr->getGraph(), file);
+    // BaseGraph::writeEdgeListIdxInBinaryFile(m_mcmcPtr->getGraph(), file);
+    // BaseGraph::writeEdgeListInBinaryFile(m_mcmcPtr->getGraph(), file);
 
     file.close();
 }
 
 void CollectEdgeMultiplicityOnSweep::collect(){
-    const MultiGraph& graph = m_dynamicsMCMCPtr->getGraph();
+    const MultiGraph& graph = m_mcmcPtr->getGraph();
 
     for ( auto idx : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){

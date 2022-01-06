@@ -31,8 +31,8 @@ class CollectGraphOnSweep: public SweepCollector{
 private:
     std::vector<MultiGraph> m_collectedGraphs;
 public:
-    void collect() { m_collectedGraphs.push_back( m_mcmcPtr->getGraph() ); }
-    void clear() { m_collectedGraphs.clear(); }
+    void collect() override { m_collectedGraphs.push_back( m_mcmcPtr->getGraph() ); }
+    void clear() override { m_collectedGraphs.clear(); }
     const std::vector<MultiGraph>& getGraphs() const { return m_collectedGraphs; }
 };
 
@@ -44,8 +44,8 @@ public:
         Collector::setUp(mcmcPtr);
         m_edgeMultiplicity = MultiGraph(m_mcmcPtr->getSize());
     }
-    void collect() ;
-    void clear() { m_edgeMultiplicity.clearEdges(); }
+    void collect() override ;
+    void clear() override { m_edgeMultiplicity.clearEdges(); }
     const MultiGraph& getEdgeMultiplicity() const { return m_edgeMultiplicity; }
 };
 
@@ -56,16 +56,16 @@ private:
 public:
     WriteGraphToFileOnSweep(std::string filename, std::string ext=".b"):
     m_filename(filename), m_ext(ext) {}
-    void collect() ;
-    void clear() { };
+    void collect() override ;
+    void clear() override { };
 };
 
 class CollectLikelihoodOnSweep: public SweepCollector{
 private:
     std::vector<double> m_collectedLikelihoods;
 public:
-    void collect() { m_collectedLikelihoods.push_back( m_mcmcPtr->getLogLikelihood() ); }
-    void clear() { m_collectedLikelihoods.clear(); }
+    void collect() override { m_collectedLikelihoods.push_back( m_mcmcPtr->getLogLikelihood() ); }
+    void clear() override { m_collectedLikelihoods.clear(); }
     const std::vector<double>& getLogLikelihoods() const { return m_collectedLikelihoods; }
 };
 
@@ -73,8 +73,8 @@ class CollectPriorOnSweep: public SweepCollector{
 private:
     std::vector<double> m_collectedPriors;
 public:
-    void collect() { m_collectedPriors.push_back( m_mcmcPtr->getLogPrior() ); }
-    void clear() { m_collectedPriors.clear(); }
+    void collect() override { m_collectedPriors.push_back( m_mcmcPtr->getLogPrior() ); }
+    void clear() override { m_collectedPriors.clear(); }
     const std::vector<double>& getLogPriors() const { return m_collectedPriors; }
 };
 
@@ -82,8 +82,8 @@ class CollectJointOnSweep: public SweepCollector{
 private:
     std::vector<double> m_collectedJoints;
 public:
-    void collect() { m_collectedJoints.push_back( m_mcmcPtr->getLogJoint() ); }
-    void clear() { m_collectedJoints.clear(); }
+    void collect() override { m_collectedJoints.push_back( m_mcmcPtr->getLogJoint() ); }
+    void clear() override { m_collectedJoints.clear(); }
     const std::vector<double>& getLogJoints() const { return m_collectedJoints; }
 
 };

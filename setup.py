@@ -98,6 +98,7 @@ ext_modules = [
             "src/mcmc/mcmc.cpp",
             "src/mcmc/callbacks/callback.cpp",
             "src/mcmc/callbacks/verbose.cpp",
+            "src/mcmc/callbacks/collector.cpp",
             "src/mcmc/graph_mcmc.cpp",
             "src/mcmc/dynamics_mcmc.cpp",
             "pybind_wrapper/pybind_main.cpp",

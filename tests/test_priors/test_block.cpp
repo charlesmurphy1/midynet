@@ -27,25 +27,19 @@ class DummyBlockPrior: public BlockPrior {
             blockSeq[BLOCK_COUNT - 1];
             setState( blockSeq );
         }
-        void samplePriors() {};
-        double getLogLikelihood() const { return 0.5; }
-        double getLogPrior() { return 0.1; }
-        void applyGraphMove(const GraphMove& move) { }
-        void applyBlockMove(const BlockMove& move) {
+        void samplePriors() override {};
+        double getLogLikelihood() const override { return 0.5; }
+        double getLogPrior() const override { return 0.1; }
+        void applyBlockMove(const BlockMove& move) override {
             processRecursiveFunction( [&](){ m_state[move.vertexIdx] = move.nextBlockIdx; } );
         }
 
         double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
         double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
-        double getLogPriorRatioFromGraphMove(const GraphMove& move) { return 0; }
-        double getLogPriorRatioFromBlockMove(const BlockMove& move) { return 0; }
+        double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { return 0; }
 
-        double getLogJointRatioFromGraphMove(const GraphMove& move) { return 0; }
-        double getLogJointRatioFromBlockMove(const BlockMove& move) { return 0; }
-
-
-        void checkSelfConsistency() const { }
+        void checkSelfConsistency() const override { }
         bool getIsProcessed() { return m_isProcessed; }
 };
 

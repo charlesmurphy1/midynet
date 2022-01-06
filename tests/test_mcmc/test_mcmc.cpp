@@ -12,6 +12,7 @@ namespace FastMIDyNet{
 
 class DummyMCMC: public MCMC{
 private:
+    MultiGraph graph = MultiGraph(0);
     std::uniform_real_distribution<double> m_uniform = std::uniform_real_distribution<double>(0, 1);
 public:
     void doMetropolisHastingsStep(){
@@ -27,6 +28,7 @@ public:
     double getLogPrior() { return 2; }
     double getLogJoint() { return getLogLikelihood() + getLogPrior(); }
     void sample() { m_hasState = true; }
+    const MultiGraph& getGraph() const override { return graph; }
 };
 
 class TestMCMC: public::testing::Test{
@@ -40,6 +42,7 @@ public:
     void TearDown(){
         mcmc.tearDown();
     }
+
 };
 
 TEST_F(TestMCMC, doMHSweep_for42Burn_mcmcStateIsUpdated){

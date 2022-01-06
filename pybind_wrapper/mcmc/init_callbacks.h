@@ -24,7 +24,8 @@ void initCallBacks(py::module& m){
         .def("on_sweep_end", &CallBack::onSweepEnd) ;
 
     py::class_<CallBackList>(m, "CallBackList")
-        .def(py::init<std::vector<CallBack*>>(), py::arg("callbacks")={})
+        .def(py::init<>())
+        .def(py::init<std::vector<CallBack*>>(), py::arg("callbacks"))
         .def(py::init<const CallBackList&>(), py::arg("callbackList"))
         .def("set_up", &CallBackList::setUp, py::arg("mcmc"))
         .def("tear_down", &CallBackList::tearDown)

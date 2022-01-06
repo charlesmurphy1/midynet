@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+#include <memory>
 
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/prior/sbm/block_count.h"
@@ -50,11 +51,11 @@ public:
     virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const = 0;
 
     double getLogPriorRatioFromGraphMove(const GraphMove& move) { return 0; };
-    virtual double getLogPriorRatioFromBlockMove(const BlockMove& move) = 0;
+    virtual double getLogPriorRatioFromBlockMove(const BlockMove& move) const = 0;
 
-    double getLogJointRatioFromGraphMove(const GraphMove& move) { return 0; };
-    double getLogJointRatioFromBlockMove(const BlockMove& move) {
-        return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
+    double getLogJointRatioFromGraphMove(const GraphMove& move) const { return 0; };
+    double getLogJointRatioFromBlockMove(const BlockMove& move) const {
+        return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
     };
 
     void applyGraphMove(const GraphMove&) { };
@@ -67,7 +68,6 @@ public:
         ++m_vertexCountsInBlocks[move.nextBlockIdx];
     };
     virtual void applyBlockMove(const BlockMove&) = 0;
-    virtual void computationFinished() override { m_isProcessed=false; }
 
     /* Consistency methods */
     static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;
@@ -95,19 +95,19 @@ public:
         m_blockSeq = blocks;
         setState(blocks);
     }
-    void sampleState() {  };
-    void samplePriors() { };
+    void sampleState() override { };
+    void samplePriors() override { };
 
-    double getLogLikelihood() const { return 0.; }
-    double getLogPrior() { return 0.; };
+    double getLogLikelihood() const override { return 0.; }
+    double getLogPrior() const override { return 0.; };
 
     double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
         if (move.prevBlockIdx != move.nextBlockIdx) return -INFINITY;
         else return 0.;
     }
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) { return 0; }
-    double getLogJointRatioFromBlockMove(const BlockMove& move) {
-        return processRecursiveFunction<double>( [&](){ return getLogLikelihoodRatioFromBlockMove(move); }, 0);
+    double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { return 0; }
+    double getLogJointRatioFromBlockMove(const BlockMove& move) const {
+        return processRecursiveConstFunction<double>( [&](){ return getLogLikelihoodRatioFromBlockMove(move); }, 0);
     }
 
 
@@ -115,19 +115,19 @@ public:
         processRecursiveFunction( [&]() { applyBlockMoveToState(move); });
     }
 
-    void checkSelfConsistency() const { };
+    void checkSelfConsistency() const override { };
 
 
 };
 
 class BlockUniformPrior: public BlockPrior{
 private:
-    BlockCountPrior* m_blockCountPriorPtr = NULL;
+    BlockCountPrior* m_blockCountPriorPtr;
 public:
 
     BlockUniformPrior(){}
     BlockUniformPrior(size_t graphSize, BlockCountPrior& blockCountPrior):
-        BlockPrior(graphSize), m_blockCountPriorPtr(&blockCountPrior) { m_blockCountPriorPtr->isRoot(false); }
+        BlockPrior(graphSize) { setBlockCountPrior(blockCountPrior); }
     BlockUniformPrior(const BlockUniformPrior& other){
         this->setState(other.m_state);
         this->setBlockCountPrior(*other.m_blockCountPriorPtr);
@@ -142,7 +142,8 @@ public:
     const BlockCountPrior& getBlockCountPrior() const { return *m_blockCountPriorPtr; }
     BlockCountPrior& getBlockCountPriorRef() const { return *m_blockCountPriorPtr; }
     void setBlockCountPrior(BlockCountPrior& blockCountPrior) {
-        m_blockCountPriorPtr = &blockCountPrior; m_blockCountPriorPtr->isRoot(false);
+        m_blockCountPriorPtr = &blockCountPrior;
+        m_blockCountPriorPtr->isRoot(false);
     }
 
     const size_t& getBlockCount() const { return m_blockCountPriorPtr->getState();}
@@ -150,14 +151,14 @@ public:
         BlockPrior::setState(blockSeq);
         m_blockCountPriorPtr->setState(m_blockCount);
     }
-    void sampleState();
-    void samplePriors() { m_blockCountPriorPtr->sample(); }
+    void sampleState() override ;
+    void samplePriors() override { m_blockCountPriorPtr->sample(); }
 
-    double getLogLikelihood() const ;
-    double getLogPrior() { return m_blockCountPriorPtr->getLogJoint(); };
+    double getLogLikelihood() const override ;
+    double getLogPrior() const override { return m_blockCountPriorPtr->getLogJoint(); };
 
     double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) {
+    double getLogPriorRatioFromBlockMove(const BlockMove& move) const {
         return m_blockCountPriorPtr->getLogJointRatioFromBlockMove(move);
     };
 
@@ -169,12 +170,12 @@ public:
         });
     }
 
-    void computationFinished() override {
+    void computationFinished() const override {
         m_isProcessed=false;
         m_blockCountPriorPtr->computationFinished();
     }
 
-    void checkSelfConsistency() const {
+    void checkSelfConsistency() const override {
         checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
     };
@@ -183,12 +184,11 @@ public:
 
 class BlockHyperPrior: public BlockPrior{
 protected:
-    VertexCountPrior* m_vertexCountPriorPtr = NULL;
+    VertexCountPrior* m_vertexCountPriorPtr;
 public:
     BlockHyperPrior() {}
     BlockHyperPrior(VertexCountPrior& vertexCountPrior):
-        m_vertexCountPriorPtr(&vertexCountPrior),
-        BlockPrior(vertexCountPrior.getSize()){ m_vertexCountPriorPtr->isRoot(false); }
+        BlockPrior(vertexCountPrior.getSize()){ setVertexCountPrior(vertexCountPrior); }
     BlockHyperPrior(const BlockHyperPrior& other){
         this->setState(other.m_state);
         this->setVertexCountPrior(*other.m_vertexCountPriorPtr);
@@ -200,30 +200,30 @@ public:
         return *this;
     }
 
-    const VertexCountPrior& getVertexCountPrior() const{ return *m_vertexCountPriorPtr; }
-    VertexCountPrior& getVertexCountPriorRef() const{ return *m_vertexCountPriorPtr; }
+    const VertexCountPrior& getVertexCountPrior() const { return *m_vertexCountPriorPtr; }
+    VertexCountPrior& getVertexCountPriorRef() const { return *m_vertexCountPriorPtr; }
     void setVertexCountPrior(VertexCountPrior& vertexCountPrior){
-        m_vertexCountPriorPtr = &vertexCountPrior;
+        m_vertexCountPriorPtr = &vertexCountPrior ;
     }
 
-    void setState(const BlockSequence& blockSeq) override{
+    void setState(const BlockSequence& blockSeq) override {
         BlockPrior::setState(blockSeq);
         m_vertexCountPriorPtr->setState( m_vertexCountsInBlocks );
     }
     const std::vector<size_t>& getVertexCountsInBlocks() const {
         return m_vertexCountPriorPtr->getState();
     }
-    void sampleState();
+    void sampleState() override ;
 
     void samplePriors() override {
         m_vertexCountPriorPtr->sample();
     }
 
-    double getLogLikelihood() const ;
-    double getLogPrior() { return m_vertexCountPriorPtr->getLogJoint(); }
+    double getLogLikelihood() const override ;
+    double getLogPrior() const override { return m_vertexCountPriorPtr->getLogJoint(); }
 
     double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) {
+    double getLogPriorRatioFromBlockMove(const BlockMove& move) const {
         return m_vertexCountPriorPtr->getLogJointRatioFromBlockMove(move);
     };
 
@@ -233,12 +233,12 @@ public:
             applyBlockMoveToState(move);
         });
     }
-    void computationFinished() override {
+    void computationFinished() const override {
         m_isProcessed=false;
         m_vertexCountPriorPtr->computationFinished();
     }
 
-    void checkSelfConsistency() const {
+    void checkSelfConsistency() const override {
         m_vertexCountPriorPtr->checkSelfConsistency();
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
     };
@@ -248,7 +248,7 @@ class BlockUniformHyperPrior: public BlockHyperPrior{
 public:
     BlockUniformHyperPrior(){}
     BlockUniformHyperPrior(size_t size, BlockCountPrior& blockCountPrior):
-        BlockHyperPrior(*new VertexCountUniformPrior(size, blockCountPrior)){}
+        BlockHyperPrior(){ setVertexCountPrior(*new VertexCountUniformPrior(size, blockCountPrior)); }
     BlockUniformHyperPrior(const BlockUniformHyperPrior& other):
         BlockHyperPrior(*other.m_vertexCountPriorPtr){ }
     virtual ~BlockUniformHyperPrior(){ delete m_vertexCountPriorPtr; }

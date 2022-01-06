@@ -38,27 +38,28 @@ public:
     const BlockCountPrior& getBlockCountPrior() const { return *m_blockCountPriorPtr; }
     BlockCountPrior& getBlockCountPriorRef() const { return *m_blockCountPriorPtr; }
     void setBlockCountPrior(BlockCountPrior& blockCountPrior) {
-        m_blockCountPriorPtr = &blockCountPrior; m_blockCountPriorPtr->isRoot(false);
+        m_blockCountPriorPtr = &blockCountPrior;
+        m_blockCountPriorPtr->isRoot(false);
     }
 
     const size_t& getSize() const { return m_size; }
     const size_t& getBlockCount() const { return m_blockCountPriorPtr->getState(); }
 
-    void samplePriors(){ m_blockCountPriorPtr->sample(); }
-    double getLogPrior() {
+    void samplePriors() override{ m_blockCountPriorPtr->sample(); }
+    double getLogPrior() const override{
         return m_blockCountPriorPtr->getLogJoint();
     }
 
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove& ) { return 0; }
+    double getLogLikelihoodRatioFromGraphMove(const GraphMove& ) const { return 0; }
     virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove& ) const = 0;
 
-    double getLogPriorRatioFromGraphMove(const GraphMove& move) { return 0; }
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) { return m_blockCountPriorPtr->getLogJointRatioFromBlockMove(move); }
+    double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
+    double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_blockCountPriorPtr->getLogJointRatioFromBlockMove(move); }
 
-    double getLogJointRatioFromGraphMove(const GraphMove& move) { return 0; }
+    double getLogJointRatioFromGraphMove(const GraphMove& move) const { return 0; }
 
-    double getLogJointRatioFromBlockMove(const BlockMove& move) {
-        return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0.);
+    double getLogJointRatioFromBlockMove(const BlockMove& move) const {
+        return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0.);
     }
     void applyGraphMove(const GraphMove&) { };
     void applyBlockMove(const BlockMove& move) {
@@ -73,19 +74,19 @@ public:
         ++m_state[move.nextBlockIdx];
         if (move.addedBlocks == -1){ destroyBlock(move.prevBlockIdx); }
     }
-    virtual void computationFinished() { m_isProcessed = false; m_blockCountPriorPtr->computationFinished(); }
+    virtual void computationFinished() const override { m_isProcessed = false; m_blockCountPriorPtr->computationFinished(); }
 
 };
 
 class VertexCountUniformPrior: public VertexCountPrior{
 public:
     using VertexCountPrior::VertexCountPrior;
-    void sampleState();
+    void sampleState() override;
 
-    double getLogLikelihood() const { return getLogLikelihoodFromState(getSize(), getBlockCount()); }
-    void checkSelfConsistency() const;
+    double getLogLikelihood() const override { return getLogLikelihoodFromState(getSize(), getBlockCount()); }
+    void checkSelfConsistency() const override;
 
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
     static size_t getSizeFromState(const std::vector<size_t> state){
         size_t sum = 0;
         for(auto nr : state) sum += nr;

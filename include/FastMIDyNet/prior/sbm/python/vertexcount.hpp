@@ -23,7 +23,7 @@ public:
 
     /* Overloaded abstract methods */
     void samplePriors() override { PYBIND11_OVERRIDE(void, VertexCountPriorBaseClass, samplePriors, ); }
-    double getLogPrior() override { PYBIND11_OVERRIDE(double, VertexCountPriorBaseClass, getLogPrior, ); }
+    double getLogPrior() const override { PYBIND11_OVERRIDE(double, VertexCountPriorBaseClass, getLogPrior, ); }
 };
 
 }

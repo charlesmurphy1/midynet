@@ -19,14 +19,14 @@ public:
     void sampleState() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleState, ); }
     void samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePriors, ); }
     double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogLikelihood, ); }
-    double getLogPrior() override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPrior, ); }
+    double getLogPrior() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPrior, ); }
     void checkSelfConsistency() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSelfConsistency, ); }
 
     /* Abstract methods */
     ~PyPrior() override = default;
     void setState(const StateType& state) override { PYBIND11_OVERRIDE(void, BaseClass, setState, state); }
     void isRoot(bool condition) override { PYBIND11_OVERRIDE(void, BaseClass, isRoot, condition); }
-    void computationFinished() override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
+    void computationFinished() const override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
 
 };
 

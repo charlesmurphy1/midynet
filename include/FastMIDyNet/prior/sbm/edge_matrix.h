@@ -51,25 +51,25 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         void setState(const EdgeMatrix&) override;
 
         const size_t& getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }
-        const std::vector<size_t>& getEdgeCountsInBlocks() { return m_edgeCountsInBlocks; }
+        const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeCountsInBlocks; }
 
 
         void samplePriors() override { m_edgeCountPriorPtr->sample(); m_blockPriorPtr->sample(); }
 
-        double getLogPrior() override { return m_edgeCountPriorPtr->getLogJoint() + m_blockPriorPtr->getLogJoint(); }
+        double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint() + m_blockPriorPtr->getLogJoint(); }
 
         virtual double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
         virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const = 0;
 
-        double getLogPriorRatioFromGraphMove(const GraphMove& move) { return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move); }
-        double getLogPriorRatioFromBlockMove(const BlockMove& move) { return m_edgeCountPriorPtr->getLogJointRatioFromBlockMove(move) + m_blockPriorPtr->getLogJointRatioFromBlockMove(move); }
+        double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move); }
+        double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromBlockMove(move) + m_blockPriorPtr->getLogJointRatioFromBlockMove(move); }
 
-        double getLogJointRatioFromGraphMove(const GraphMove& move) {
-            return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move); }, 0);
+        double getLogJointRatioFromGraphMove(const GraphMove& move) const {
+            return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move); }, 0);
         }
 
-        double getLogJointRatioFromBlockMove(const BlockMove& move) {
-            return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
+        double getLogJointRatioFromBlockMove(const BlockMove& move) const  {
+            return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
         }
 
         void applyGraphMoveToState(const GraphMove&);
@@ -87,7 +87,7 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
             #endif
         }
 
-        void computationFinished() override {
+        void computationFinished() const override {
             m_isProcessed = false;
             m_blockPriorPtr->computationFinished();
             m_edgeCountPriorPtr->computationFinished();
@@ -99,12 +99,12 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
 class EdgeMatrixUniformPrior: public EdgeMatrixPrior {
 public:
     using EdgeMatrixPrior::EdgeMatrixPrior;
-    void sampleState();
-    double getLogLikelihood() const {
+    void sampleState() override;
+    double getLogLikelihood() const override {
         return getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
     }
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const;
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
+    double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override;
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
 
 protected:
     double getLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {
@@ -117,6 +117,29 @@ protected:
                 edgeNumber);
     }
 };
+
+class EdgeMatrixExponentialPrior: public EdgeMatrixPrior {
+public:
+    using EdgeMatrixPrior::EdgeMatrixPrior;
+    void sampleState() override;
+    double getLogLikelihood() const override {
+        return getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
+    }
+    double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override;
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
+
+protected:
+    double getLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {
+        return getLogLikelihood(m_edgeCountPriorPtr->getState(), m_blockPriorPtr->getBlockCount())
+            - getLogLikelihood(blockCountAfter, edgeNumberAfter);
+    }
+    double getLogLikelihood(size_t blockNumber, size_t edgeNumber) const {
+        return -logMultisetCoefficient(
+                blockNumber*(blockNumber+1)/2,
+                edgeNumber);
+    }
+};
+
 
 } // namespace FastMIDyNet
 
