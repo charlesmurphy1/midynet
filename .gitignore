@@ -13,6 +13,7 @@ compile_commands.json
 *.pdf
 *.eggs
 *.egg
+*.so
 fast-midynet.sublime-project
 fast-midynet.sublime-workspace
 dist/
