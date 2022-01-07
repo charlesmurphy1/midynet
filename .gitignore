@@ -11,7 +11,6 @@ compile_commands.json
 
 *.json
 *.pdf
-_*
 *.eggs
 *.egg
 fast-midynet.sublime-project

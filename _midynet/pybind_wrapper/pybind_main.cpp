@@ -14,7 +14,7 @@
 namespace py = pybind11;
 namespace FastMIDyNet{
 
-PYBIND11_MODULE(fast_midynet, m) {
+PYBIND11_MODULE(_midynet, m) {
     py::module_::import("basegraph");
 
     py::module utility = m.def_submodule("utility");
