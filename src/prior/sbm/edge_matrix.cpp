@@ -10,6 +10,7 @@
 
 namespace FastMIDyNet {
 
+/* DEFINITION OF EDGE MATRIX PRIOR BASE CLASS */
 
 void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
     m_graph = &graph;
@@ -147,6 +148,8 @@ void EdgeMatrixPrior::checkSelfConsistency() const {
         throw ConsistencyError("EdgeMatrixPrior: Sum of edge matrix isn't equal to twice the number of edges.");
 }
 
+/* DEFINITION OF EDGE MATRIX UNIFORM PRIOR */
+
 void EdgeMatrixUniformPrior::sampleState() {
     auto blockCount = m_blockPriorPtr->getBlockCount();
     auto flattenedEdgeMatrix = sampleRandomWeakComposition(
@@ -184,5 +187,47 @@ double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMov
     double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount() + creatingBlock - destroyingBlock, m_edgeCountPriorPtr->getState());
     return newLogLikelihood - currentLogLikelihood;
 }
+
+// /* DEFINITION OF EDGE MATRIX EXPONENTIAL PRIOR */
+//
+// void EdgeMatrixExponentialPrior::sampleState() {
+//     auto blockCount = m_blockPriorPtr->getBlockCount();
+//     auto flattenedEdgeMatrix = sampleRandomWeakComposition(
+//             m_edgeCountPriorPtr->getState(),
+//             blockCount*(blockCount+1)/2
+//             );
+//
+//     m_state = EdgeMatrix(blockCount, std::vector<size_t>(blockCount, 0));
+//     std::pair<BlockIndex, BlockIndex> rs;
+//     m_edgeCountsInBlocks = std::vector<size_t>(blockCount, 0);
+//     size_t index = 0, correctedEdgeCount;
+//     for (auto edgeCountBetweenBlocks: flattenedEdgeMatrix) {
+//         rs = getUndirectedPairFromIndex(index, blockCount);
+//         m_edgeCountsInBlocks[rs.first] += edgeCountBetweenBlocks;
+//         m_edgeCountsInBlocks[rs.second] += edgeCountBetweenBlocks;
+//         m_state[rs.first][rs.second] += edgeCountBetweenBlocks;
+//         m_state[rs.second][rs.first] += edgeCountBetweenBlocks;
+//         index++;
+//     }
+// }
+//
+// double EdgeMatrixExponentialPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+//     double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
+//     double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState() + move.addedEdges.size() - move.removedEdges.size());
+//     return newLogLikelihood - currentLogLikelihood;
+// }
+//
+// double EdgeMatrixExponentialPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+//     auto vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
+//
+//     bool creatingBlock = move.nextBlockIdx == m_blockPriorPtr->getBlockCount();
+//     bool destroyingBlock = move.nextBlockIdx != move.prevBlockIdx &&
+//                         vertexCountsInBlocks[move.prevBlockIdx] == 1;
+//     double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
+//     double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount() + creatingBlock - destroyingBlock, m_edgeCountPriorPtr->getState());
+//     return newLogLikelihood - currentLogLikelihood;
+// }
+
+
 
 } // namespace FastMIDyNet

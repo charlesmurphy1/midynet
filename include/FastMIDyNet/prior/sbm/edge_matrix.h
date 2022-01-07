@@ -37,8 +37,6 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
             return *this;
         }
 
-
-
         const EdgeCountPrior& getEdgeCountPrior() const{ return *m_edgeCountPriorPtr; }
         EdgeCountPrior& getEdgeCountPriorRef() const{ return *m_edgeCountPriorPtr; }
         void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior) { m_edgeCountPriorPtr = &edgeCountPrior; m_edgeCountPriorPtr->isRoot(false);}
@@ -106,39 +104,56 @@ public:
     double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override;
     double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
 
-protected:
+private:
     double getLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {
         return getLogLikelihood(m_edgeCountPriorPtr->getState(), m_blockPriorPtr->getBlockCount())
             - getLogLikelihood(blockCountAfter, edgeNumberAfter);
     }
-    double getLogLikelihood(size_t blockNumber, size_t edgeNumber) const {
-        return -logMultisetCoefficient(
-                blockNumber*(blockNumber+1)/2,
-                edgeNumber);
+    double getLogLikelihood(size_t blockCount, size_t edgeCount) const {
+        return -logMultisetCoefficient( blockCount*(blockCount+1)/2, edgeCount );
     }
 };
 
-class EdgeMatrixExponentialPrior: public EdgeMatrixPrior {
-public:
-    using EdgeMatrixPrior::EdgeMatrixPrior;
-    void sampleState() override;
-    double getLogLikelihood() const override {
-        return getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
-    }
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override;
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
-
-protected:
-    double getLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {
-        return getLogLikelihood(m_edgeCountPriorPtr->getState(), m_blockPriorPtr->getBlockCount())
-            - getLogLikelihood(blockCountAfter, edgeNumberAfter);
-    }
-    double getLogLikelihood(size_t blockNumber, size_t edgeNumber) const {
-        return -logMultisetCoefficient(
-                blockNumber*(blockNumber+1)/2,
-                edgeNumber);
-    }
-};
+// class EdgeMatrixExponentialPrior: public EdgeMatrixPrior {
+// public:
+//
+//     EdgeMatrixExponentialPrior() {}
+//     EdgeMatrixExponentialPrior(double edgeCountMean, BlockPrior& blockPrior):
+//         EdgeMatrixPrior(), m_edgeCountMean(edgeCountMean){
+//         setEdgeCountPrior(*new EdgeCountDeltaPrior(0));
+//         setBlockPrior(blockPrior);
+//     }
+//     EdgeMatrixExponentialPrior(const EdgeMatrixExponentialPrior& other){
+//         setEdgeCountPrior(*other.m_edgeCountPriorPtr);
+//         setBlockPrior(*other.m_blockPriorPtr);
+//     }
+//     const EdgeMatrixExponentialPrior& operator=(const EdgeMatrixExponentialPrior& other){
+//         setEdgeCountPrior(*other.m_edgeCountPriorPtr);
+//         setBlockPrior(*other.m_blockPriorPtr);
+//         return *this;
+//     }
+//     virtual ~EdgeMatrixExponentialPrior(){
+//         delete m_edgeCountPriorPtr;
+//     }
+//     void sampleState() override;
+//     double getLogLikelihood() const override {
+//         return getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
+//     }
+//     double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override;
+//     double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
+//
+// private:
+//     double m_edgeCountMean;
+//     size_t m_edgeCount;
+//     double getLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {
+//         return getLogLikelihood(m_edgeCountPriorPtr->getState(), m_blockPriorPtr->getBlockCount())
+//             - getLogLikelihood(blockCountAfter, edgeNumberAfter);
+//     }
+//     double getLogLikelihood(size_t blockCount, size_t edgeCount) const {
+//         return edgeCount * log(m_edgeCountMean / (m_edgeCountMean + 1))
+//              - blockCount * (blockCount + 1) / 2 * log(m_edgeCountMean + 1);
+//     }
+// };
 
 
 } // namespace FastMIDyNet

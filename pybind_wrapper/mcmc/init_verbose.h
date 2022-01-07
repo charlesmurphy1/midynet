@@ -55,9 +55,9 @@ void initVerbose(py::module& m){
         .def(py::init<std::vector<Verbose*>>(), py::arg("verboses")) ;
 
     py::class_<VerboseToFile, VerboseDisplay>(m, "VerboseToFile")
+        .def(py::init<std::string>(), py::arg("filename")="verbose")
         .def(py::init<std::string, std::vector<Verbose*>>(),
-            py::arg("filename")="verbose", py::arg("verboses"))
-        .def(py::init<std::string>(), py::arg("filename")="verbose") ;
+            py::arg("filename")="verbose", py::arg("verboses")) ;
 }
 
 }
