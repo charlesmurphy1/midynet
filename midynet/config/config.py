@@ -1,6 +1,5 @@
-import numpy as np
+import itertools
 import typing
-from itertools import product
 
 from .parameter import Parameter
 
@@ -10,26 +9,61 @@ class Config:
     separator: str = "/"
 
     def __init__(self, **kwargs):
-        self.__parameters: dict = {}
+        self.__parameters = {}
         for k, v in kwargs.items():
             self.insert(k, v)
 
     def keys(self, recursively=False):
         if recursively:
-            return self.recursive_copy().keys()
+            return self.dict_copy(recursively=True).keys()
         return self.__parameters.keys()
 
     def values(self, recursively=False):
         if recursively:
-            return self.recursive_copy().keys()
+            return self.dict_copy(recursively=True).values()
         return self.__parameters.values()
 
     def items(self, recursively=False):
+        if recursively:
+            return self.dict_copy(recursively=True).items()
         return self.__parameters.items()
 
     def insert(self, key: str, value: typing.Any):
+        value = value.value if issubclass(type(value), Parameter) else value
         self.__parameters[key] = Parameter(name=key, value=value)
         self.__parameters[key].isConfig = issubclass(type(value), Config)
+
+    def erase(self, key: str):
+        self.__parameters.pop(key)
+
+    def has_sequence(self):
+        for v in self.values():
+            if v.is_sequenced():
+                return True
+        return False
+
+    def is_equivalent(self, other):
+        for k, p in self.dict_copy(recursively=True).items():
+            pp = other.get(k)
+            if p.isConfig and not p.is_equivalent(pp):
+                return False
+            elif p.is_unique() and p.value != pp.value:
+                return False
+        return True
+
+    def is_subconfig(self, other):
+        for k, p in self.dict_copy(recursively=True).items():
+            pp = other.get(k)
+            if p.isConfig and not p.value.is_subconfig(pp.value):
+                return False
+            elif not p.isConfig and not p.is_unique() and p.is_sequenced():
+                if not pp.is_sequenced() and pp.value not in p.value:
+                    return False
+                elif pp.is_sequenced() and not set(p.value).issubset(set(pp.value)):
+                    return False
+            elif not p.isConfig and not p.is_sequenced() and p.value != pp.value:
+                return False
+        return True
 
     def __str__(self) -> str:
         s = self.name
@@ -38,7 +72,7 @@ class Config:
             if v.isConfig:
                 s += f"{k}={v.value.name}, "
             else:
-                s += f"{k}={v.value}"
+                s += f"{k}={v.value}, "
         s = s[:-2]
         s += ")"
         return s
@@ -69,128 +103,71 @@ class Config:
     def get(self, key: str) -> Parameter:
         path = key.split(self.separator)
         key = path[0]
-        if self[key].isConfig and len(path) > 1:
-            return self[key].value.get(self.separator.join(path[1:]))
+        if self.__parameters[key].isConfig and len(path) > 1:
+            return self.__parameters[key].value.get(self.separator.join(path[1:]))
         else:
-            return self[key]
+            return self.__parameters[key]
 
     def set(self, key: str, value: typing.Any) -> None:
         path = key.split(self.separator)
         key = path[0]
-
-        if self[key].isConfig:
-            self[key].set(self.separator.join(path[1:]), value, self.separator)
+        if self.__parameters[key].isConfig and len(path) > 1:
+            self.__parameters[key].set(self.separator.join(path[1:]), value)
         else:
-            self[key] = value
+            self.__parameters[key].set(value)
 
-    def copy(self, recursively=False, prefix="") -> typing.Dict[str, Parameter]:
+    def dict_copy(self, recursively=False, prefix="") -> typing.Dict[str, Parameter]:
         copy = {}
 
         for k, v in self.items():
+            copy[prefix + k] = v
             if v.isConfig and recursively:
                 copy.update(
-                    v.value.copy(
+                    v.value.dict_copy(
                         recursively=recursively,
                         prefix=prefix + k + self.separator,
                     )
                 )
-            else:
-                copy[prefix + k] = v
-
         return copy
+
+    def copy(self):
+        return Config(**self.dict_copy())
+
+    def format(self, prefix=""):
+        s = prefix + self.name + ": \n"
+        for k, v in self.items():
+            if v.isConfig:
+                v_format = v.value.format(prefix=prefix + "|\t ")
+                v_format = v_format.split(":")[1:]
+                v_string = "".join(v_format)
+                s += f"{prefix}|\t {v.name}({v.value.name}):{v_string}\n"
+            else:
+                s += f"{prefix}|\t {v.name}={v.value}\n"
+        s += f"{prefix}end"
+        return s
+
+    def generate_sequence(self):
+        keys_to_scan = []
+        values_to_scan = []
+        for k, v in self.items():
+            if v.isConfig and v.value.has_sequence():
+                keys_to_scan.append(k)
+                values_to_scan.append(v.value.generate_sequence())
+            elif v.is_sequenced():
+                keys_to_scan.append(k)
+                values_to_scan.append(v.generate_sequence())
+        for values in itertools.product(*values_to_scan):
+            config = self.copy()
+            for k, v in zip(keys_to_scan, values):
+                config.set(k, v)
+            yield config
+
+    def merge(self) -> None:
+        return
 
 
 if __name__ == "__main__":
     pass
-    # def generate_sequence(self) -> typing.Iterator[Config]:
-    #     return
-
-    # def get_recursive_config(self):
-
-    # def __gt__(self, other):
-    #     for k, v in self.state_dict.items():
-    #         vv = other[k]
-    #         if (isinstance(v, list) and vv in v) or k == "seed" or k == "path_to_data":
-    #             pass
-    #         elif isinstance(v, list) and vv not in v:
-    #             return False
-    #         elif isinstance(v, list) and isinstance(vv, list):
-    #             s, ss = set(v), set(vv)
-    #             if len(s.difference(ss)) > 0:
-    #                 return False
-    #         elif not isinstance(v, list) and isinstance(vv, list):
-    #             return False
-    #         elif not isinstance(v, list) and not isinstance(vv, list) and v != vv:
-    #             return False
-    #     return True
-    #
-    # def __eq__(self, other):
-    #     for k, v in self.items():
-    #         if k == "seed" or k == "path_to_data":
-    #             pass
-    #         elif k not in other:
-    #             return False
-    #         else:
-    #             is_equal = other[k] == v
-    #             if isinstance(is_equal, bool) and not all(is_equal):
-    #                 return False
-    #             elif isinstance(is_equal, np.ndarray) and not np.all(is_equal):
-    #                 return False
-    #     return True
-    #
-    # def __setitem__(self, key, val):
-    #     key = key.split("/")
-    #     if len(key) == 1:
-    #         setattr(self, key[0], val)
-    #     else:
-    #         config = getattr(self, key[0])
-    #         key = "/".join(key[1:])
-    #         config[key] = val
-    #
-    # def __getitem__(self, key):
-    #     key = key.split("/")
-    #     if len(key) == 1:
-    #         return getattr(self, key[0])
-    #     else:
-    #         config = getattr(self, key[0])
-    #         key = "/".join(key[1:])
-    #         return config[key]
-    #
-    # def get(self, key, default=None):
-    #     return default if key not in self else self[key]
-    #
-    # def to_string(self, prefix=""):
-    #     string = ""
-    #     for k, v in self.__dict__.items():
-    #         if issubclass(v.__class__, Config):
-    #             string += prefix + f"{k}:\n"
-    #             string += "{0}\n".format(v.to_string(prefix=prefix + "\t"))
-    #         else:
-    #             string += prefix + f"{k}: {v.__str__()}\n"
-    #     return string
-    #
-    # def get_state_dict(self):
-    #     state_dict = {}
-    #     for k, v in self.__dict__.items():
-    #         if k != "_state_dict":
-    #             if issubclass(v.__class__, Config):
-    #                 v_dict = v.state_dict
-    #                 for kk, vv in v_dict.items():
-    #                     state_dict[k + "/" + kk] = vv
-    #             else:
-    #                 state_dict[k] = v
-    #     return state_dict
-    #
-    # @property
-    # def state_dict(self):
-    #     return self.get_state_dict()
-    #
-    # def has_list(self):
-    #     for k, v in self.state_dict.items():
-    #         if isinstance(v, list):
-    #             return True
-    #     return False
-    #
     # def merge(self, config):
     #     for k, v in config.__dict__.items():
     #         self.__dict__[k] = v
@@ -208,50 +185,6 @@ if __name__ == "__main__":
 
 
 # class ConfigArray:
-#     def __init__(self, config):
-#         self.config = config
-#
-#     @property
-#     def config(self):
-#         return self._config
-#
-#     @config.setter
-#     def config(self, config):
-#         self._config = config
-#         self.reset()
-#
-#     def __str__(self):
-#         return self.config.to_string()
-#
-#     def keys(self):
-#         return self.config.keys()
-#
-#     def values(self):
-#         return self.config.values()
-#
-#     def items(self):
-#         return self.config.items()
-#
-#     def to_string(self, prefix=""):
-#         string = self.config.to_string()
-#         for k, v in self.__dict__.items():
-#             if k == "config":
-#                 pass
-#             elif issubclass(v.__class__, Config):
-#                 string += prefix + f"{k}:\n"
-#                 string += "{0}\n".format(v.to_string(prefix=prefix + "\t"))
-#             else:
-#                 string += prefix + f"{k}: {v.__str__()}\n"
-#         return string
-#
-#     def reset(self):
-#         self.labels_to_scan = []
-#         self.values_to_scan = []
-#
-#         for k, v in self._config.state_dict.items():
-#             if isinstance(v, list):
-#                 self.labels_to_scan.append(k)
-#                 self.values_to_scan.append(v)
 #
 #     def merge(self, config):
 #         assert issubclass(

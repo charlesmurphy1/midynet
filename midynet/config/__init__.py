@@ -1,2 +1,2 @@
-from .config import *
 from .parameter import *
+from .config import *
