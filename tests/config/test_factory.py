@@ -12,6 +12,7 @@ class TestFactory:
     good_configs: list[Config] = []
     missing_configs: list[Config] = []
     unavailable_configs: list[Config] = []
+    run_sample: bool = False
 
     def setUp_object(self, obj):
         return obj
@@ -19,7 +20,8 @@ class TestFactory:
     def test_build_good_config(self):
         for c in self.good_configs:
             obj = self.factory.build(c)
-            self.setUp_object(obj).sample()
+            if self.run_sample:
+                self.setUp_object(obj).sample()
 
     def test_build_missing_config(self):
         for c in self.missing_configs:
@@ -39,6 +41,7 @@ class TestEdgeCountPriorFactory(unittest.TestCase, TestFactory):
         EdgeCountPriorConfig.poisson(5),
     ]
     missing_configs = [Config(name="missing")]
+    run_sample: bool = False
 
 
 class TestBlockCountPriorFactory(unittest.TestCase, TestFactory):
@@ -98,6 +101,48 @@ class TestStochasticBlockModelFamilyFactory(unittest.TestCase, TestFactory):
         StochasticBlockModelFamilyConfig.hyperuniform(100, 250, 10),
     }
     missing_configs = [Config(name="missing")]
+
+
+class TestErdosRenyiFamilyFactory(unittest.TestCase, TestFactory):
+    factory = ErdosRenyiFamilyFactory
+    good_configs = {
+        ErdosRenyiFamilyConfig.fixed(100, 250),
+        ErdosRenyiFamilyConfig.poisson(100, 250.0),
+    }
+    missing_configs = [Config(name="missing")]
+
+
+class TestDegreeCorrectedStochasticBlockModelFamilyFactory(
+    unittest.TestCase, TestFactory
+):
+    factory = DegreeCorrectedStochasticBlockModelFamilyFactory
+    good_configs = {
+        DegreeCorrectedStochasticBlockModelFamilyConfig.uniform(100, 250, 10),
+    }
+    missing_configs = [Config(name="missing")]
+    unavailable_configs = [
+        DegreeCorrectedStochasticBlockModelFamilyConfig.hyperuniform(100, 250, 10),
+    ]
+
+
+class TestIsingGlauberDynamicsFactory(unittest.TestCase, TestFactory):
+    factory = IsingGlauberDynamicsFactory
+    good_configs = {IsingGlauberDynamicsConfig.default()}
+
+
+class TestSISDynamicsFactory(unittest.TestCase, TestFactory):
+    factory = SISDynamicsFactory
+    good_configs = {SISDynamicsConfig.default()}
+
+
+class TestSISDynamicsFactory(unittest.TestCase, TestFactory):
+    factory = CowanDynamicsFactory
+    good_configs = {CowanDynamicsConfig.default()}
+
+
+class TestSISDynamicsFactory(unittest.TestCase, TestFactory):
+    factory = DegreeDynamicsFactory
+    good_configs = {DegreeDynamicsConfig.default()}
 
 
 if __name__ == "__main__":

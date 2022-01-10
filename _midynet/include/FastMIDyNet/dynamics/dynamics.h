@@ -18,8 +18,12 @@ namespace FastMIDyNet{
 class Dynamics{
 
     public:
+        explicit Dynamics(size_t numStates, size_t numSteps):
+            m_numStates(numStates),
+            m_numSteps(numSteps)
+            { }
         explicit Dynamics(RandomGraph& randomGraph, size_t numStates, size_t numSteps):
-            m_randomGraph(randomGraph),
+            m_randomGraphPtr(&randomGraph),
             m_numStates(numStates),
             m_numSteps(numSteps)
             { }
@@ -28,21 +32,22 @@ class Dynamics{
         const StateSequence& getPastStates() const { return m_pastStateSequence; }
         const StateSequence& getFutureStates() const { return m_futureStateSequence; }
         void setState(State& state) {m_state = state; }
-        const MultiGraph& getGraph() const { return m_randomGraph.getState(); }
+        const MultiGraph& getGraph() const { return m_randomGraphPtr->getState(); }
         void setGraph(MultiGraph& graph) {
-            m_randomGraph.setState(graph);
+            m_randomGraphPtr->setState(graph);
             for (size_t t = 0 ; t < m_pastStateSequence.size() ; t++){
                 m_neighborsStateSequence[t] = getNeighborsState(m_pastStateSequence[t]);
             }
         }
 
-        const RandomGraph& getRandomGraph() const { return m_randomGraph; }
+        const RandomGraph& getRandomGraph() const { return *m_randomGraphPtr; }
+        void setRandomGraph(RandomGraph& randomGraph) { m_randomGraphPtr = &randomGraph; }
 
-        const int getSize() const { return m_randomGraph.getSize(); }
+        const int getSize() const { return m_randomGraphPtr->getSize(); }
         const int getNumStates() const { return m_numStates; }
 
         const State& sample(const State& initialState, bool async=true){
-            m_randomGraph.sample();
+            m_randomGraphPtr->sample();
             sampleState(initialState, async);
             return getState();
         }
@@ -57,7 +62,7 @@ class Dynamics{
         void asyncUpdateState(int num_updates);
 
         double getLogLikelihood() const;
-        double getLogPrior() const { return m_randomGraph.getLogJoint(); }
+        double getLogPrior() const { return m_randomGraphPtr->getLogJoint(); }
         double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
         virtual double getTransitionProb(
             VertexState prevVertexState,
@@ -80,7 +85,7 @@ class Dynamics{
         State m_state;
         StateSequence m_pastStateSequence;
         StateSequence m_futureStateSequence;
-        RandomGraph& m_randomGraph;
+        RandomGraph* m_randomGraphPtr;
         NeighborsStateSequence m_neighborsStateSequence;
 
         void updateNeighborStateInPlace(

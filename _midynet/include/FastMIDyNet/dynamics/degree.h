@@ -12,6 +12,8 @@ class DegreeDynamics: public BinaryDynamics {
     double m_C;
 
     public:
+        DegreeDynamics(size_t numSteps, double C):
+                BinaryDynamics(numSteps), m_C(C) {}
         DegreeDynamics(RandomGraph& random_graph, size_t numSteps, double C):
                 BinaryDynamics(random_graph, numSteps), m_C(C) {}
 

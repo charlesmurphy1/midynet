@@ -19,6 +19,7 @@ void initDegreeCorrectedStochasticBlockModelFamily(py::module& m){
     py::class_<DegreeCorrectedStochasticBlockModelFamily, StochasticBlockModelFamily>(m, "DegreeCorrectedStochasticBlockModelFamily")
         .def(py::init<size_t>(), py::arg("size"))
         .def(py::init<size_t, BlockPrior&, EdgeMatrixPrior&, DegreePrior&>(), py::arg("size"), py::arg("block_prior"), py::arg("edge_matrix_prior"), py::arg("degree_prior"))
+        .def("set_degree_prior", &DegreeCorrectedStochasticBlockModelFamily::setDegreePrior)
         .def("get_degree_of_idx", &DegreeCorrectedStochasticBlockModelFamily::getDegreeOfIdx,
             py::arg("idx"))
         .def("get_degrees", &DegreeCorrectedStochasticBlockModelFamily::getDegrees)

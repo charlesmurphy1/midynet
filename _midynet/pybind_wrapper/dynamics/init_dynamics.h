@@ -21,6 +21,7 @@ void initDynamicsBaseClass(py::module& m){
         .def("set_state", &Dynamics::setState, py::arg("state"))
         .def("get_graph", &Dynamics::getGraph)
         .def("set_graph", &Dynamics::setGraph, py::arg("graph"))
+        .def("set_random_graph", &Dynamics::setRandomGraph)
         .def("get_random_graph", &Dynamics::getRandomGraph)
         .def("get_size", &Dynamics::getSize)
         .def("get_num_states", &Dynamics::getNumStates)

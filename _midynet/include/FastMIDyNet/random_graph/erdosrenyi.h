@@ -33,6 +33,10 @@ public:
             setBlockPrior(m_blockDeltaPrior);
             setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
         }
+
+    void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){
+        m_edgeMatrixUniformPrior.setEdgeCountPrior(edgeCountPrior);
+    }
 };
 
 }// end FastMIDyNet

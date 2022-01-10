@@ -32,7 +32,7 @@ void Dynamics::sampleState(const State& x0, bool async){
 };
 
 const State Dynamics::getRandomState() {
-    size_t N = m_randomGraph.getSize();
+    size_t N = m_randomGraphPtr->getSize();
     State rnd_state(N);
     uniform_int_distribution<int> dist(0, m_numStates - 1);
 
@@ -43,7 +43,7 @@ const State Dynamics::getRandomState() {
 };
 
 const NeighborsState Dynamics::getNeighborsState(const State& state) const {
-    size_t N = m_randomGraph.getSize();
+    size_t N = m_randomGraphPtr->getSize();
     NeighborsState neighborSates(N);
     int neighborIdx, edgeMultiplicity;
 
@@ -92,7 +92,7 @@ void Dynamics::syncUpdateState(){
 };
 
 void Dynamics::asyncUpdateState(int numUpdates){
-    size_t N = m_randomGraph.getSize();
+    size_t N = m_randomGraphPtr->getSize();
     VertexState newVertexState;
     State currentState(m_state);
     NeighborsState neighborState = getNeighborsState(m_state);
@@ -192,7 +192,7 @@ double Dynamics::getLogLikelihoodRatio(const GraphMove& move) const{
 }
 
 double Dynamics::getLogPriorRatio(const GraphMove& move){
-    return m_randomGraph.getLogJointRatio(move);
+    return m_randomGraphPtr->getLogJointRatio(move);
 }
 
 double Dynamics::getLogJointRatio(const GraphMove& move){
@@ -226,7 +226,7 @@ void Dynamics::applyMove(const GraphMove& move){
             m_neighborsStateSequence[t][idx] = nextNeighborMap[idx][t];
         }
     }
-    m_randomGraph.applyMove(move);
+    m_randomGraphPtr->applyMove(move);
 };
 
 }

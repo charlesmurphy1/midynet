@@ -16,6 +16,8 @@ private:
     double m_eta;
 
 public:
+    CowanDynamics(size_t numSteps, double nu, double a=1, double mu=1, double eta=0.5):
+        BinaryDynamics(numSteps), m_a(a), m_nu(nu), m_mu(mu), m_eta(eta) {}
     CowanDynamics(RandomGraph& randomGraph, size_t numSteps, double nu, double a=1, double mu=1, double eta=0.5):
         BinaryDynamics(randomGraph, numSteps), m_a(a), m_nu(nu), m_mu(mu), m_eta(eta) {}
 

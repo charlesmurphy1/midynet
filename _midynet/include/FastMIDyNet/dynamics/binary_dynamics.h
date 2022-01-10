@@ -16,12 +16,14 @@ namespace FastMIDyNet{
 class BinaryDynamics: public Dynamics{
 
     public:
+        explicit BinaryDynamics(size_t numSteps):
+            Dynamics(2, numSteps) { }
         explicit BinaryDynamics(RandomGraph& randomGraph, size_t numSteps):
             Dynamics(randomGraph, 2, numSteps) { }
         double getTransitionProb(VertexState prevVertexState,
                             VertexState nextVertexState,
                             VertexNeighborhoodState neighborhoodState
-                        ) const;
+                        ) const override;
 
         virtual double getActivationProb(const VertexNeighborhoodState& neighborState) const = 0;
         virtual double getDeactivationProb(const VertexNeighborhoodState& neighborState) const = 0;
