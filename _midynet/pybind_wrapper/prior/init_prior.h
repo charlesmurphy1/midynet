@@ -29,7 +29,8 @@ py::class_<Prior<StateType>, PyPrior<StateType>> declarePriorBaseClass(py::modul
         .def("get_log_prior", &Prior<StateType>::getLogPrior)
         .def("get_log_joint", &Prior<StateType>::getLogJoint)
         .def("computation_finished", &Prior<StateType>::computationFinished)
-        .def("check_self_consistency", &Prior<StateType>::checkSelfConsistency);
+        .def("check_self_consistency", &Prior<StateType>::checkSelfConsistency)
+        .def("check_safety", &Prior<StateType>::checkSafety);
 }
 
 void initPrior(pybind11::module& m){

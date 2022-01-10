@@ -5,6 +5,7 @@
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/prior/prior.hpp"
+#include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/utility/functions.h"
 
@@ -13,7 +14,7 @@ namespace FastMIDyNet{
 class VertexCountPrior: public Prior<std::vector<size_t>>{
 protected:
     size_t m_size;
-    BlockCountPrior* m_blockCountPriorPtr= NULL;
+    BlockCountPrior* m_blockCountPriorPtr= nullptr;
     void createBlock(){ m_state.push_back(0); }
     void destroyBlock(const BlockIndex& idx) { m_state.erase(m_state.begin() + idx); }
 public:
@@ -75,6 +76,14 @@ public:
         if (move.addedBlocks == -1){ destroyBlock(move.prevBlockIdx); }
     }
     virtual void computationFinished() const override { m_isProcessed = false; m_blockCountPriorPtr->computationFinished(); }
+    virtual void checkSafety() const override{
+        if (m_size < 0)
+            throw SafetyError("BlockPrior: unsafe prior since `size` < 0: " + std::to_string(m_size) + ".");
+
+        if (m_blockCountPriorPtr == nullptr)
+            throw SafetyError("BlockUniformPrior: unsafe prior since `m_blockCountPriorPtr` is empty.");
+
+    }
 
 };
 

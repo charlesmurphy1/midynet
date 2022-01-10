@@ -289,9 +289,19 @@ void StochasticBlockModelFamily::checkGraphConsistencyWithEdgeMatrix(
 
 };
 
-void StochasticBlockModelFamily::checkSelfConsistency(){
+void StochasticBlockModelFamily::checkSelfConsistency() const{
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeMatrixPriorPtr->checkSelfConsistency();
 
     checkGraphConsistencyWithEdgeMatrix(m_state, getBlocks(), getEdgeMatrix());
+}
+
+void StochasticBlockModelFamily::checkSafety()const{
+    if (m_blockPriorPtr == nullptr)
+        throw SafetyError("StochasticBlockModelFamily: unsafe family since `m_blockPriorPtr` is empty.");
+    m_blockPriorPtr->checkSafety();
+
+    if (m_edgeMatrixPriorPtr == nullptr)
+        throw SafetyError("StochasticBlockModelFamily: unsafe family since `m_edgeMatrixPriorPtr` is empty.");
+    m_edgeMatrixPriorPtr->checkSafety();
 }

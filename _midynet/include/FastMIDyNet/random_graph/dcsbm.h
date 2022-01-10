@@ -18,7 +18,7 @@ namespace FastMIDyNet{
 
 class DegreeCorrectedStochasticBlockModelFamily: public StochasticBlockModelFamily{
 protected:
-    DegreePrior* m_degreePriorPtr = NULL;
+    DegreePrior* m_degreePriorPtr = nullptr;
 public:
     DegreeCorrectedStochasticBlockModelFamily(size_t graphSize):
         StochasticBlockModelFamily(graphSize) { }
@@ -74,7 +74,7 @@ public:
     void applyMove (const GraphMove&) ;
     void applyMove (const BlockMove&) ;
 
-    void computationFinished(){
+    void computationFinished() const {
         m_blockPriorPtr->computationFinished();
         m_edgeMatrixPriorPtr->computationFinished();
         m_degreePriorPtr->computationFinished();
@@ -84,7 +84,8 @@ public:
     static void checkGraphConsistencyWithDegreeSequence(const MultiGraph&, const DegreeSequence&) ;
 
 
-    void checkSelfConsistency() ;
+    void checkSelfConsistency() const ;
+    virtual void checkSafety() const ;
 
 };
 

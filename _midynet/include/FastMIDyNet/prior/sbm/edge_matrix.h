@@ -6,6 +6,7 @@
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/utility/functions.h"
 
 
@@ -13,8 +14,8 @@ namespace FastMIDyNet{
 
 class EdgeMatrixPrior: public Prior< EdgeMatrix >{
     protected:
-        EdgeCountPrior* m_edgeCountPriorPtr = NULL;
-        BlockPrior* m_blockPriorPtr = NULL;
+        EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
+        BlockPrior* m_blockPriorPtr = nullptr;
         std::vector<size_t> m_edgeCountsInBlocks;
         const MultiGraph* m_graph;
 
@@ -92,6 +93,13 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         }
         void checkSelfConsistencywithGraph() const;
         void checkSelfConsistency() const override;
+
+        void checkSafety()const override{
+            if (m_blockPriorPtr == nullptr)
+                throw SafetyError("EdgeMatrixPrior: unsafe prior since `m_blockPriorPtr` is empty.");
+            if (m_edgeCountPriorPtr == nullptr)
+                throw SafetyError("EdgeMatrixPrior: unsafe prior since `m_edgeCountPriorPtr` is empty.");
+        }
 };
 
 class EdgeMatrixUniformPrior: public EdgeMatrixPrior {

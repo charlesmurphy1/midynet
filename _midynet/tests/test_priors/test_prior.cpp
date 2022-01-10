@@ -19,6 +19,7 @@ class DummyPrior: public FastMIDyNet::Prior<size_t> {
         void checkSelfConsistency() const override {}
         const bool getIsProcessed() const { return m_isProcessed; }
         void computationFinished() const override{ m_isProcessed = false; }
+        void checkSafety() const override{ }
 };
 
 class TestPrior: public ::testing::Test {

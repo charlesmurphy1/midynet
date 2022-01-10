@@ -48,6 +48,7 @@ class Prior{
         }
 
         virtual void checkSelfConsistency() const = 0;
+        virtual void checkSafety() const = 0;
         virtual void computationFinished() const { m_isProcessed = false; }
 
 

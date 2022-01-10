@@ -14,8 +14,8 @@ typedef std::vector<CounterMap<size_t>> DegreeCountsMap;
 
 class DegreePrior: public Prior< DegreeSequence >{
 protected:
-    BlockPrior* m_blockPriorPtr = NULL;
-    EdgeMatrixPrior* m_edgeMatrixPriorPtr = NULL;
+    BlockPrior* m_blockPriorPtr = nullptr;
+    EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
     DegreeCountsMap m_degreeCountsInBlocks;
     const MultiGraph* m_graph;
 
@@ -92,6 +92,13 @@ public:
     static void checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence&, size_t);
     static void checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(const DegreeSequence&, const BlockSequence&, const std::vector<CounterMap<size_t>>&);
     void checkSelfConsistency() const override;
+    virtual void checkSafety() const override{
+        if (m_blockPriorPtr == nullptr)
+            throw SafetyError("DegreePrior: unsafe prior since `m_blockPriorPtr` is empty.");
+
+        if (m_edgeMatrixPriorPtr == nullptr)
+            throw SafetyError("DegreePrior: unsafe prior since `m_edgeMatrixPriorPtr` is empty.");
+    }
 
 
 };

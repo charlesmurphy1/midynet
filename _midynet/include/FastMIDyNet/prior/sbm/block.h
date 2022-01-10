@@ -72,16 +72,20 @@ public:
     /* Consistency methods */
     static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;
     static void checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, std::vector<size_t> expectedVertexCountsInBlocks) ;
+    virtual void checkSafety() const {
+        if (m_size < 0)
+            throw SafetyError("BlockPrior: unsafe prior since `size` < 0: " + std::to_string(m_size) + ".");
+    }
 
 };
 
 class BlockDeltaPrior: public BlockPrior{
     BlockSequence m_blockSeq;
 public:
+    BlockDeltaPrior(){}
     BlockDeltaPrior(const BlockSequence& blockSeq):
         BlockPrior(blockSeq.size()) { setState(blockSeq); }
 
-    BlockDeltaPrior(){}
     BlockDeltaPrior(const BlockDeltaPrior& blockDeltaPrior):
         BlockPrior(blockDeltaPrior.getSize()) { setState(blockDeltaPrior.getState()); }
     virtual ~BlockDeltaPrior(){}
@@ -116,6 +120,10 @@ public:
     }
 
     void checkSelfConsistency() const override { };
+    void checkSafety() const override {
+        if (m_blockSeq.size() == 0)
+            throw SafetyError("BlockDeltaPrior: unsafe prior since `m_blockSeq` is empty.");
+    }
 
 
 };
@@ -180,6 +188,13 @@ public:
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
     };
 
+    void checkSafety() const override {
+        BlockPrior::checkSafety();
+        if (m_blockCountPriorPtr == nullptr)
+            throw SafetyError("BlockUniformPrior: unsafe prior since `m_blockCountPriorPtr` is empty.");
+
+    }
+
 };
 
 class BlockHyperPrior: public BlockPrior{
@@ -242,6 +257,12 @@ public:
         m_vertexCountPriorPtr->checkSelfConsistency();
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
     };
+
+    void checkSafety() const override {
+        BlockPrior::checkSafety();
+        if (m_vertexCountPriorPtr == nullptr)
+            throw SafetyError("BlockHyperPrior: unsafe prior since `m_vertexCountPriorPtr` is empty.");
+    }
 };
 
 class BlockUniformHyperPrior: public BlockHyperPrior{

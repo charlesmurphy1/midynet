@@ -36,6 +36,7 @@ class EdgeCountPrior: public Prior<size_t> {
         }
         void applyBlockMove(const BlockMove& move) { }
         size_t getStateAfterGraphMove(const GraphMove& move) const;
+        void checkSafety()const override {}
 };
 
 class EdgeCountDeltaPrior: public EdgeCountPrior{
@@ -81,6 +82,7 @@ class EdgeCountPoissonPrior: public EdgeCountPrior{
         void sampleState() override;
         double getLogLikelihoodFromState(const size_t& state) const override;
         void checkSelfConsistency() const;
+
 
 };
 

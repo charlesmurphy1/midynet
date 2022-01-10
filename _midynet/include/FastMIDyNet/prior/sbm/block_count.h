@@ -34,6 +34,7 @@ class BlockCountPrior: public Prior<size_t> {
             processRecursiveFunction( [&](){ setState(getStateAfterBlockMove(move)); } );
         }
         size_t getStateAfterBlockMove(const BlockMove&) const;
+        void checkSafety() const { }
 
 };
 
@@ -59,6 +60,11 @@ public:
     double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { if (move.addedBlocks == 0) return 0; else return -INFINITY; }
 
     void checkSelfConsistency() const override { };
+
+    void checkSafety() const override {
+        if (m_blockCount == 0)
+            throw SafetyError("BlockCountDeltaPrior: unsafe prior since `m_blockCount` is zero.");
+    }
 
 };
 

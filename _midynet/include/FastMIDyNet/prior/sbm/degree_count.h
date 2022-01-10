@@ -33,6 +33,7 @@ public:
     double getLogLikelihoodRatio(const BlockMove&) const { return 0; }
     void applyMove(const BlockMove&) { }
     void computationFinished() const override { m_isProcessed = false; m_edgeCountPrior.computationFinished(); }
+    virtual void checkSafety() const override{ }
 };
 
 

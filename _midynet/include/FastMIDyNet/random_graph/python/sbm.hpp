@@ -33,8 +33,8 @@ public:
     double getLogPriorRatio (const BlockMove& move)  override { PYBIND11_OVERRIDE(double, BaseClass, getLogPriorRatio, move); }
     void applyMove (const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyMove, move); }
     void applyMove (const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyMove, move); }
-    void computationFinished()  override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
-    void checkSelfConsistency()  override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
+    void computationFinished() const override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
+    void checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
 };
 
 template<typename BaseClass = DegreeCorrectedStochasticBlockModelFamily>

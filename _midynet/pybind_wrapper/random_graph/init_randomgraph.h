@@ -25,6 +25,7 @@ void initRandomGraphBaseClass(py::module& m){
         .def("apply_move", py::overload_cast<const GraphMove&>(&RandomGraph::applyMove), py::arg("move"))
         .def("sample", &RandomGraph::sample)
         .def("check_self_consistency", &RandomGraph::checkSelfConsistency)
+        .def("check_safety", &RandomGraph::checkSafety)
         ;
 }
 

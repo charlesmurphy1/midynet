@@ -26,7 +26,7 @@ public:
     /* Abstract methods */
     void setState(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setState, graph); }
     void applyMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyMove, move); }
-    void checkSelfConsistency() override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
+    void checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
 };
 
 }

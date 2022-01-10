@@ -20,6 +20,8 @@ void initStochasticBlockModelFamily(py::module& m){
         .def(py::init<size_t, BlockPrior&, EdgeMatrixPrior&>(), py::arg("size"), py::arg("blocks"), py::arg("edge_matrix"))
         .def("get_block_of_idx", &StochasticBlockModelFamily::getBlockOfIdx,
             py::arg("idx"))
+        .def("set_block_prior", &StochasticBlockModelFamily::setBlockPrior)
+        .def("set_edge_matrix_prior", &StochasticBlockModelFamily::setEdgeMatrixPrior)
         .def("get_blocks", &StochasticBlockModelFamily::getBlocks)
         .def("get_block_count", &StochasticBlockModelFamily::getBlockCount)
         .def("get_vertex_count_in_blocks", &StochasticBlockModelFamily::getVertexCountsInBlocks)

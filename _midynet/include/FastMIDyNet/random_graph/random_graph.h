@@ -44,7 +44,8 @@ public:
     }
     virtual void applyMove(const GraphMove& move);
     // void enumerateAllGraphs() const;
-    virtual void checkSelfConsistency() { };
+    virtual void checkSelfConsistency() const { };
+    virtual void checkSafety() const { };
 
 };
 

@@ -21,6 +21,7 @@ public:
     double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogLikelihood, ); }
     double getLogPrior() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPrior, ); }
     void checkSelfConsistency() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSelfConsistency, ); }
+    void checkSafety() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSafety, ); }
 
     /* Abstract methods */
     ~PyPrior() override = default;

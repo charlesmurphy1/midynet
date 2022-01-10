@@ -17,8 +17,8 @@ namespace FastMIDyNet{
 
 class StochasticBlockModelFamily: public RandomGraph{
 protected:
-    BlockPrior* m_blockPriorPtr = NULL;
-    EdgeMatrixPrior* m_edgeMatrixPriorPtr = NULL;
+    BlockPrior* m_blockPriorPtr = nullptr;
+    EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
 public:
     StochasticBlockModelFamily(size_t graphSize): RandomGraph(graphSize) { }
     StochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
@@ -81,14 +81,15 @@ public:
     virtual void applyMove (const GraphMove&);
     virtual void applyMove (const BlockMove&);
 
-    virtual void computationFinished(){
+    virtual void computationFinished() const {
         m_blockPriorPtr->computationFinished();
         m_edgeMatrixPriorPtr->computationFinished();
     }
 
     static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
     static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
-    virtual void checkSelfConsistency() ;
+    virtual void checkSelfConsistency() const ;
+    virtual void checkSafety() const ;
 };
 
 }// end FastMIDyNet

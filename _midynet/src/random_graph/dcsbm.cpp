@@ -237,11 +237,18 @@ void DegreeCorrectedStochasticBlockModelFamily::checkGraphConsistencyWithDegreeS
     }
 }
 
-void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency(){
+void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency() const{
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeMatrixPriorPtr->checkSelfConsistency();
     m_degreePriorPtr->checkSelfConsistency();
 
     checkGraphConsistencyWithEdgeMatrix(m_state, getBlocks(), getEdgeMatrix());
     checkGraphConsistencyWithDegreeSequence(m_state, getDegrees());
+}
+
+void DegreeCorrectedStochasticBlockModelFamily::checkSafety()const{
+    StochasticBlockModelFamily::checkSafety();
+    if (m_degreePriorPtr == nullptr)
+        throw SafetyError("StochasticBlockModelFamily: unsafe family since `m_degreePriorPtr` is empty.");
+    m_degreePriorPtr->checkSafety();
 }
