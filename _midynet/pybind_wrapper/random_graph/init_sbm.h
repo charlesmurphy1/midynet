@@ -16,7 +16,8 @@ namespace FastMIDyNet{
 
 void initStochasticBlockModelFamily(py::module& m){
     py::class_<StochasticBlockModelFamily, RandomGraph, PyStochasticBlockModelFamily<>>(m, "StochasticBlockModelFamily")
-        .def(py::init<BlockPrior&, EdgeMatrixPrior&>(), py::arg("blocks"), py::arg("edge_matrix"))
+        .def(py::init<size_t>(), py::arg("size"))
+        .def(py::init<size_t, BlockPrior&, EdgeMatrixPrior&>(), py::arg("size"), py::arg("blocks"), py::arg("edge_matrix"))
         .def("get_block_of_idx", &StochasticBlockModelFamily::getBlockOfIdx,
             py::arg("idx"))
         .def("get_blocks", &StochasticBlockModelFamily::getBlocks)
@@ -38,6 +39,7 @@ void initStochasticBlockModelFamily(py::module& m){
 
 void initErdosRenyiFamily(py::module& m){
     py::class_<ErdosRenyiFamily, StochasticBlockModelFamily>(m, "ErdosRenyiFamily")
+        .def(py::init<size_t>(), py::arg("size"))
         .def(py::init<size_t, EdgeCountPrior&>(), py::arg("size"), py::arg("edge_cout_prior"))
     ;
 }

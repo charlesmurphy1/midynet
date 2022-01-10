@@ -49,7 +49,7 @@ class TestDegreeCorrectedStochasticBlockModelFamily: public::testing::Test{
             else return blockIdx + 1;
         }
 
-        DegreeCorrectedStochasticBlockModelFamily randomGraph = DegreeCorrectedStochasticBlockModelFamily();
+        DegreeCorrectedStochasticBlockModelFamily randomGraph = DegreeCorrectedStochasticBlockModelFamily(NUM_VERTICES);
         void SetUp() {
             randomGraph.setBlockPrior(blockPrior);
             randomGraph.setEdgeMatrixPrior(edgeMatrixPrior);

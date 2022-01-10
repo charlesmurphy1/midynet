@@ -20,8 +20,8 @@ protected:
     BlockPrior* m_blockPriorPtr = NULL;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = NULL;
 public:
-    StochasticBlockModelFamily() { }
-    StochasticBlockModelFamily(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
+    StochasticBlockModelFamily(size_t graphSize): RandomGraph(graphSize) { }
+    StochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
         RandomGraph(blockPrior.getSize()){
             setBlockPrior(blockPrior);
             setEdgeMatrixPrior(edgeMatrixPrior);
@@ -38,7 +38,7 @@ public:
     virtual void setBlockPrior(BlockPrior& blockPrior) {
         m_blockPriorPtr = &blockPrior;
         m_blockPriorPtr->isRoot(false);
-        setSize(m_blockPriorPtr->getSize());
+        m_blockPriorPtr->setSize(m_size);
         if (m_edgeMatrixPriorPtr)
             m_edgeMatrixPriorPtr->setBlockPrior(*m_blockPriorPtr);
     }
@@ -50,8 +50,6 @@ public:
         m_edgeMatrixPriorPtr->isRoot(false);
         m_edgeMatrixPriorPtr->setBlockPrior(*m_blockPriorPtr);
     }
-
-    virtual void setSize(size_t size) { RandomGraph::setSize(size); m_blockPriorPtr->setSize(size); }
 
     const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_blockPriorPtr->getBlockOfIdx(idx); }
     const BlockSequence& getBlocks() const { return m_blockPriorPtr->getState(); }

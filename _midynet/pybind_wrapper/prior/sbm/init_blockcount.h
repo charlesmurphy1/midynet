@@ -24,6 +24,15 @@ void initBlockCountPrior(py::module& m){
         .def("get_mean", &BlockCountPoissonPrior::getMean)
         .def("set_mean", &BlockCountPoissonPrior::setMean, py::arg("mean"))
         ;
+    py::class_<BlockCountUniformPrior, BlockCountPrior>(m, "BlockCountUniformPrior")
+        .def(py::init<size_t>(), py::arg("min"))
+        .def(py::init<size_t, size_t>(), py::arg("min"), py::arg("max"))
+        .def("get_min", &BlockCountUniformPrior::getMin)
+        .def("get_max", &BlockCountUniformPrior::getMax)
+        .def("set_min", &BlockCountUniformPrior::setMin, py::arg("min"))
+        .def("set_max", &BlockCountUniformPrior::setMax, py::arg("max"))
+        .def("set_min_max", &BlockCountUniformPrior::setMinMax, py::arg("min"), py::arg("max"))
+        ;
 }
 
 }

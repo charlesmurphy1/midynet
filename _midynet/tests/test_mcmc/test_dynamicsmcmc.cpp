@@ -33,7 +33,7 @@ public:
     BlockHyperPrior blocks = BlockHyperPrior(vertexCount);
     EdgeCountDeltaPrior edgeCount = EdgeCountDeltaPrior(EDGE_COUNT);
     EdgeMatrixUniformPrior edgeMatrix = EdgeMatrixUniformPrior(edgeCount, blocks);
-    StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(blocks, edgeMatrix);
+    StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(GRAPH_SIZE,blocks, edgeMatrix);
     StochasticBlockGraphMCMC graphmcmc = StochasticBlockGraphMCMC(randomGraph, blockProposer);
 
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();

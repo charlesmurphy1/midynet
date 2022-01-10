@@ -20,9 +20,10 @@ class DegreeCorrectedStochasticBlockModelFamily: public StochasticBlockModelFami
 protected:
     DegreePrior* m_degreePriorPtr = NULL;
 public:
-    DegreeCorrectedStochasticBlockModelFamily(){ }
-    DegreeCorrectedStochasticBlockModelFamily(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior, DegreePrior& degreePrior):
-        StochasticBlockModelFamily(blockPrior, edgeMatrixPrior) {
+    DegreeCorrectedStochasticBlockModelFamily(size_t graphSize):
+        StochasticBlockModelFamily(graphSize) { }
+    DegreeCorrectedStochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior, DegreePrior& degreePrior):
+        StochasticBlockModelFamily(graphSize, blockPrior, edgeMatrixPrior) {
             setDegreePrior(degreePrior);
         }
 

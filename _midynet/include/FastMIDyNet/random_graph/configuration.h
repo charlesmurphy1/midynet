@@ -16,11 +16,13 @@ protected:
     BlockDeltaPrior m_blockDeltaPrior;
     EdgeMatrixUniformPrior m_edgeMatrixUniformPrior;
 public:
-    ConfigurationModelFamily(DegreePrior& degreePrior):
-        m_blockSeq(degreePrior.getBlockPrior().getSize(), 0),
+    ConfigurationModelFamily(size_t graphSize):
+        DegreeCorrectedStochasticBlockModelFamily(graphSize) {}
+    ConfigurationModelFamily(size_t graphSize, DegreePrior& degreePrior):
+        DegreeCorrectedStochasticBlockModelFamily(graphSize),
+        m_blockSeq(graphSize, 0),
         m_blockDeltaPrior(m_blockSeq),
-        m_edgeMatrixUniformPrior(degreePrior.getEdgeMatrixPrior().getEdgeCountPriorRef(), m_blockDeltaPrior),
-        DegreeCorrectedStochasticBlockModelFamily(){
+        m_edgeMatrixUniformPrior(degreePrior.getEdgeMatrixPrior().getEdgeCountPriorRef(), m_blockDeltaPrior){
             setBlockPrior(m_blockDeltaPrior);
             setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
             setDegreePrior(degreePrior);

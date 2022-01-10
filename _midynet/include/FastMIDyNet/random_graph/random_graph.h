@@ -22,7 +22,6 @@ public:
     const MultiGraph& getState() const { return m_state; }
     virtual void setState(const MultiGraph& state) { m_state = state; }
     const int getSize() const { return m_size; }
-    virtual void setSize(size_t size) { m_size = size; m_state.resize(size);}
 
     const MultiGraph& sample() {
         samplePriors();

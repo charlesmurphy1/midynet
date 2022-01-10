@@ -27,7 +27,7 @@ public:
     BlockUniformPrior blockPrior = BlockUniformPrior(GRAPH_SIZE, blockCount);
     EdgeCountDeltaPrior edgeCount = EdgeCountDeltaPrior(EDGE_COUNT);
     EdgeMatrixUniformPrior edgeMatrix = EdgeMatrixUniformPrior(edgeCount, blockPrior);
-    StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(blockPrior, edgeMatrix);
+    StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(GRAPH_SIZE, blockPrior, edgeMatrix);
     StochasticBlockGraphMCMC mcmc = StochasticBlockGraphMCMC(randomGraph, blockProposer);
     void SetUp(){
         seed(time(NULL));

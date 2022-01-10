@@ -22,7 +22,7 @@ class TestUniformBlockProposer: public::testing::Test {
         BlockUniformPrior blockPrior = {GRAPH_SIZE, blockCountPrior};
         EdgeCountPoissonPrior edgeCountPrior = {EDGE_COUNT};
         EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
-        StochasticBlockModelFamily randomGraph = {blockPrior, edgeMatrixPrior};
+        StochasticBlockModelFamily randomGraph = {GRAPH_SIZE, blockPrior, edgeMatrixPrior};
 
         UniformBlockProposer blockProposer = FastMIDyNet::UniformBlockProposer(NEW_BLOCK_PROBABILITY);
 

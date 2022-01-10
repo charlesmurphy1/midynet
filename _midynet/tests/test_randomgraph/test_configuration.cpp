@@ -23,7 +23,7 @@ class TestConfigurationModelFamily: public::testing::Test{
         EdgeCountPoissonPrior edgeCountPrior = {NUM_EDGES};
         EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
         DegreeUniformPrior degreePrior = {blockPrior, edgeMatrixPrior};
-        ConfigurationModelFamily randomGraph = ConfigurationModelFamily(degreePrior);
+        ConfigurationModelFamily randomGraph = ConfigurationModelFamily(NUM_VERTICES, degreePrior);
         void SetUp() {
             randomGraph.sample();
         }

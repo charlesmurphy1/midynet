@@ -33,4 +33,35 @@ void BlockCountPoissonPrior::checkSelfConsistency() const {
         throw ConsistencyError("BlockCountPoissonPrior: Non-positive state `" + std::to_string(m_state) + "`.");
 };
 
+// void BlockCountPoissonPrior::sampleState() {
+//     auto blockCount = 0;
+//     while (blockCount == 0) // zero-truncated Poisson sampling
+//         blockCount = m_poissonDistribution(rng);
+//     setState(blockCount);
+// };
+//
+// double BlockCountPoissonPrior::getLogLikelihoodFromState(const size_t& state) const {
+//     return logZeroTruncatedPoissonPMF(state, m_mean);
+// };
+//
+void BlockCountUniformPrior::checkMin() const {
+    if (m_min < 0)
+        throw ConsistencyError("BlockCountPoissonPrior: Negative mean `" + std::to_string(m_min) + "`.");
+}
+
+void BlockCountUniformPrior::checkMax() const {
+    if (m_max < m_min)
+        throw ConsistencyError("BlockCountUniformPrior: `max` must be greater than or equal to `min` :"
+            + std::to_string(m_min) + ">" + std::to_string(m_max) + ".");
+}
+void BlockCountUniformPrior::checkSelfConsistency() const {
+    checkMin();
+    checkMax();
+    if (m_state < m_min || m_state > m_max)
+        throw ConsistencyError("BlockCountUniformPrior: Inconsistent state " + std::to_string(m_state)
+            + ", must be within [" + std::to_string(m_min) + ", " + std::to_string(m_max) + "]." );
+
+
+};
+
 }

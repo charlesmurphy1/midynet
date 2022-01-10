@@ -23,7 +23,7 @@ class TestPeixotoBlockProposer: public::testing::Test {
         BlockUniformPrior blockPrior = {GRAPH_SIZE, blockCountPrior};
         EdgeCountPoissonPrior edgeCountPrior = {EDGE_COUNT};
         EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
-        StochasticBlockModelFamily randomGraph = {blockPrior, edgeMatrixPrior};
+        StochasticBlockModelFamily randomGraph = {GRAPH_SIZE, blockPrior, edgeMatrixPrior};
 
         PeixotoBlockProposer blockProposer = FastMIDyNet::PeixotoBlockProposer(NEW_BLOCK_PROBABILITY, SHIFT);
 

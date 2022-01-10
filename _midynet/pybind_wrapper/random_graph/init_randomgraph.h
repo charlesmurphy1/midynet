@@ -12,7 +12,7 @@ namespace FastMIDyNet{
 
 void initRandomGraphBaseClass(py::module& m){
     py::class_<RandomGraph, PyRandomGraph<>>(m, "RandomGraph")
-        .def(py::init<size_t>(), py::arg("size"))
+        .def(py::init<size_t>(), py::arg("size")=0)
         .def("get_state", &RandomGraph::getState)
         .def("set_state", &RandomGraph::setState, py::arg("state"))
         .def("get_size", &RandomGraph::getSize)
