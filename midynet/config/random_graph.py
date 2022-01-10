@@ -7,13 +7,14 @@ from .factory import Factory
 from .wrapper import Wrapper
 from .prior import *
 from _midynet import random_graph
+from _midynet.prior import sbm
 
 
-class StochasticBlockModelFamilyConfig(Config):
-    requirements: set[str] = {"name", "size", "blocks", "edge_matrix"}
+class RandomGraphConfig(Config):
+    requirements: set[str] = {"name", "size"}
 
     @classmethod
-    def custom(
+    def custom_sbm(
         cls,
         name: str,
         size: int,
@@ -26,20 +27,20 @@ class StochasticBlockModelFamilyConfig(Config):
         return obj
 
     @classmethod
-    def fixed(cls, blocks, edge_matrix):
+    def fixed_sbm(cls, blocks, edge_matrix):
         size = len(blocks)
-        return cls.custom("fixed", size, blocks, edge_matrix)
+        return cls.custom_sbm("fixed_sbm", size, blocks, edge_matrix)
 
     @classmethod
-    def uniform(
+    def uniform_sbm(
         cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
     ):
         blocks = BlockPriorConfig.uniform(size=size, block_count_max=block_count_max)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
-        return cls.custom("uniform", size, blocks, edge_matrix)
+        return cls.custom_sbm("uniform_sbm", size, blocks, edge_matrix)
 
     @classmethod
-    def hyperuniform(
+    def hyperuniform_sbm(
         cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
     ):
         blocks = BlockPriorConfig.hyperuniform(
@@ -47,34 +48,26 @@ class StochasticBlockModelFamilyConfig(Config):
         )
         blocks.block_count.set_value("max", size)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
-        return cls.custom("hyperuniform", size, blocks, edge_matrix)
-
-
-class ErdosRenyiFamilyConfig(Config):
-    requirements: set[str] = {"name", "size", "edge_count"}
+        return cls.custom_sbm("hyperuniform_sbm", size, blocks, edge_matrix)
 
     @classmethod
-    def custom(cls, name: str, size: int, edge_count: EdgeCountPriorConfig):
-        obj = cls(name="custom", size=size)
+    def custom_er(cls, name: str, size: int, edge_count: EdgeCountPriorConfig):
+        obj = cls(name=name, size=size)
         obj.insert("edge_count", EdgeCountPriorConfig.auto(edge_count))
         return obj
 
     @classmethod
-    def fixed(cls, size: int = 100, edge_count: int = 250):
+    def fixed_er(cls, size: int = 100, edge_count: int = 250):
         edge_count = EdgeCountPriorConfig.delta(edge_count)
-        return cls.custom(name="fixed", size=size, edge_count=edge_count)
+        return cls.custom_er(name="fixed_er", size=size, edge_count=edge_count)
 
     @classmethod
-    def poisson(cls, size: int = 100, mean: int = 250):
+    def poisson_er(cls, size: int = 100, mean: int = 250):
         edge_count = EdgeCountPriorConfig.poisson(mean)
-        return cls.custom(name="poisson", size=size, edge_count=edge_count)
-
-
-class DegreeCorrectedStochasticBlockModelFamilyConfig(Config):
-    requirements: set[str] = {"name", "size", "blocks", "edge_matrix", "degrees"}
+        return cls.custom_er(name="poisson_er", size=size, edge_count=edge_count)
 
     @classmethod
-    def custom(
+    def custom_dcsbm(
         cls,
         name: str,
         size: int,
@@ -89,21 +82,21 @@ class DegreeCorrectedStochasticBlockModelFamilyConfig(Config):
         return obj
 
     @classmethod
-    def fixed(cls, blocks, edge_matrix, degrees):
+    def fixed_dcsbm(cls, blocks, edge_matrix, degrees):
         size = len(blocks)
-        return cls.custom("fixed", size, blocks, edge_matrix, degrees)
+        return cls.custom_dcsbm("fixed_dcsbm", size, blocks, edge_matrix, degrees)
 
     @classmethod
-    def uniform(
+    def uniform_dcsbm(
         cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
     ):
         blocks = BlockPriorConfig.uniform(size=size, block_count_max=block_count_max)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         degrees = DegreePriorConfig.uniform()
-        return cls.custom("uniform", size, blocks, edge_matrix, degrees)
+        return cls.custom_dcsbm("uniform_dcsbm", size, blocks, edge_matrix, degrees)
 
     @classmethod
-    def hyperuniform(
+    def hyperuniform_dcsbm(
         cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
     ):
         blocks = BlockPriorConfig.hyperuniform(
@@ -111,22 +104,61 @@ class DegreeCorrectedStochasticBlockModelFamilyConfig(Config):
         )
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         degrees = DegreePriorConfig.hyperuniform()
-        return cls.custom("hyperuniform", size, blocks, edge_matrix, degrees)
+        return cls.custom_dcsbm(
+            "hyperuniform_dcsbm", size, blocks, edge_matrix, degrees
+        )
+
+    @classmethod
+    def custom_cm(
+        cls,
+        name: str,
+        size: int,
+        edge_count: Union[int, EdgeCountPriorConfig],
+        degrees: Union[np.array, DegreePriorConfig],
+    ):
+        obj = cls(name=name, size=size)
+        obj.insert("edge_count", EdgeCountPriorConfig.auto(edge_count))
+        obj.insert("degrees", DegreePriorConfig.auto(degrees))
+        return obj
+
+    @classmethod
+    def fixed_cm(cls, degrees):
+        size = len(blocks)
+        return cls.custom_cm("fixed_cm", size, degrees)
+
+    @classmethod
+    def uniform_cm(cls, size: int = 100, edge_count: int = 250):
+        blocks = BlockPriorConfig.uniform(size=size, block_count_max=block_count_max)
+        edge_count = EdgeMatrixPriorConfig.auto(edge_count)
+        degrees = DegreePriorConfig.uniform()
+        return cls.custom_cm("uniform_cm", size, edge_count, degrees)
 
 
-class ConfigurationModelFamilyConfig(Config):
-    pass
-
-
-class StochasticBlockModelFamilyFactory(Factory):
+class RandomGraphFactory(Factory):
     @staticmethod
     def setUpSBM(graph, blocks, edge_matrix):
         graph.set_block_prior(blocks)
         graph.set_edge_matrix_prior(edge_matrix)
 
     @staticmethod
-    def build_custom(
-        config: StochasticBlockModelFamilyConfig,
+    def setUpER(graph, edge_count):
+        graph.set_edge_count_prior(edge_count)
+
+    @staticmethod
+    def setUpDCSBM(graph, blocks, edge_matrix, degrees):
+        graph.set_block_prior(blocks)
+        graph.set_edge_matrix_prior(edge_matrix)
+        graph.set_degree_prior(degrees)
+
+    @staticmethod
+    def setUpCM(graph, blocks, edge_matrix, degrees):
+        graph.set_block_prior(blocks)
+        graph.set_edge_matrix_prior(edge_matrix)
+        graph.set_degree_prior(degrees)
+
+    @staticmethod
+    def build_custom_sbm(
+        config: RandomGraphConfig,
     ) -> random_graph.StochasticBlockModelFamily:
         block_wrapper = BlockPriorFactory.build(config.blocks)
         edge_matrix_wrapper = EdgeMatrixPriorFactory.build(config.edge_matrix)
@@ -134,7 +166,7 @@ class StochasticBlockModelFamilyFactory(Factory):
         g = random_graph.StochasticBlockModelFamily(config.size)
         return Wrapper(
             g,
-            setup_func=lambda wrap, others: StochasticBlockModelFamilyFactory.setUpSBM(
+            setup_func=lambda wrap, others: RandomGraphFactory.setUpSBM(
                 wrap,
                 others["blocks"].get_wrapped(),
                 others["edge_matrix"].get_wrapped(),
@@ -144,31 +176,25 @@ class StochasticBlockModelFamilyFactory(Factory):
         )
 
     @staticmethod
-    def build_fixed(config: StochasticBlockModelFamilyConfig):
-        return StochasticBlockModelFamilyFactory.build_custom(config)
+    def build_fixed_sbm(config: RandomGraphConfig):
+        return RandomGraphFactory.build_custom_sbm(config)
 
     @staticmethod
-    def build_uniform(config: StochasticBlockModelFamilyConfig):
-        return StochasticBlockModelFamilyFactory.build_custom(config)
+    def build_uniform_sbm(config: RandomGraphConfig):
+        return RandomGraphFactory.build_custom_sbm(config)
 
     @staticmethod
-    def build_hyperuniform(config: StochasticBlockModelFamilyConfig):
-        return StochasticBlockModelFamilyFactory.build_custom(config)
-
-
-class ErdosRenyiFamilyFactory(Factory):
-    @staticmethod
-    def setUpER(graph, edge_count):
-        graph.set_edge_count_prior(edge_count)
+    def build_hyperuniform_sbm(config: RandomGraphConfig):
+        return RandomGraphFactory.build_custom_sbm(config)
 
     @staticmethod
-    def build_custom(config: ErdosRenyiFamilyConfig):
+    def build_custom_er(config: RandomGraphConfig):
         edge_count = EdgeCountPriorFactory.build(config.edge_count)
         g = random_graph.ErdosRenyiFamily(config.size, edge_count)
 
         return Wrapper(
             g,
-            setup_func=lambda wrap, others: ErdosRenyiFamilyFactory.setUpER(
+            setup_func=lambda wrap, others: RandomGraphFactory.setUpER(
                 wrap,
                 others["edge_count"],
             ),
@@ -176,24 +202,16 @@ class ErdosRenyiFamilyFactory(Factory):
         )
 
     @staticmethod
-    def build_fixed(config: ErdosRenyiFamilyConfig):
-        return ErdosRenyiFamilyFactory.build_custom(config)
+    def build_fixed_er(config: RandomGraphConfig):
+        return RandomGraphFactory.build_custom_er(config)
 
     @staticmethod
-    def build_poisson(config: ErdosRenyiFamilyConfig):
-        return ErdosRenyiFamilyFactory.build_custom(config)
-
-
-class DegreeCorrectedStochasticBlockModelFamilyFactory(Factory):
-    @staticmethod
-    def setUpDCSBM(graph, blocks, edge_matrix, degrees):
-        graph.set_block_prior(blocks)
-        graph.set_edge_matrix_prior(edge_matrix)
-        graph.set_degree_prior(degrees)
+    def build_poisson_er(config: RandomGraphConfig):
+        return RandomGraphFactory.build_custom_er(config)
 
     @staticmethod
-    def build_custom(
-        config: DegreeCorrectedStochasticBlockModelFamilyConfig,
+    def build_custom_dcsbm(
+        config: RandomGraphConfig,
     ) -> random_graph.DegreeCorrectedStochasticBlockModelFamily:
         block_wrapper = BlockPriorFactory.build(config.blocks)
         edge_matrix_wrapper = EdgeMatrixPriorFactory.build(config.edge_matrix)
@@ -201,7 +219,7 @@ class DegreeCorrectedStochasticBlockModelFamilyFactory(Factory):
         g = random_graph.DegreeCorrectedStochasticBlockModelFamily(config.size)
         return Wrapper(
             g,
-            setup_func=lambda wrap, others: DegreeCorrectedStochasticBlockModelFamilyFactory.setUpDCSBM(
+            setup_func=lambda wrap, others: RandomGraphFactory.setUpDCSBM(
                 wrap,
                 others["blocks"].get_wrapped(),
                 others["edge_matrix"].get_wrapped(),
@@ -213,20 +231,43 @@ class DegreeCorrectedStochasticBlockModelFamilyFactory(Factory):
         )
 
     @staticmethod
-    def build_fixed(config: DegreeCorrectedStochasticBlockModelFamilyConfig):
-        return DegreeCorrectedStochasticBlockModelFamilyFactory.build_custom(config)
+    def build_fixed_dcsbm(config: RandomGraphConfig):
+        return RandomGraphFactory.build_custom_dcsbm(config)
 
     @staticmethod
-    def build_uniform(config: DegreeCorrectedStochasticBlockModelFamilyConfig):
-        return DegreeCorrectedStochasticBlockModelFamilyFactory.build_custom(config)
+    def build_uniform_dcsbm(config: RandomGraphConfig):
+        return RandomGraphFactory.build_custom_dcsbm(config)
 
     @staticmethod
-    def build_hyperuniform(config: DegreeCorrectedStochasticBlockModelFamilyConfig):
-        return DegreeCorrectedStochasticBlockModelFamilyFactory.build_custom(config)
+    def build_hyperuniform_dcsbm(config: RandomGraphConfig):
+        return RandomGraphFactory.build_custom_dcsbm(config)
 
+    @staticmethod
+    def build_custom_cm(
+        config: RandomGraphConfig,
+    ) -> random_graph.ConfigurationModelFamily:
+        edge_count = EdgeCountPriorFactory.build(config.edge_count)
+        degrees = DegreePriorFactory.build(config.degrees)
+        g = random_graph.ConfigurationModelFamily(config.size)
+        return Wrapper(
+            g,
+            setup_func=lambda wrap, others: RandomGraphFactory.setUpDCSBM(
+                wrap,
+                others["edge_count"],
+                others["degrees"],
+            ),
+            blocks=block_wrapper,
+            edge_matrix=edge_matrix_wrapper,
+            degrees=degrees,
+        )
 
-class ConfigurationModelFamilyFactory(Factory):
-    pass
+    @staticmethod
+    def build_fixed_cm(config: RandomGraphConfig):
+        return RandomGraphFactory.build_custom_cm(config)
+
+    @staticmethod
+    def build_uniform_cm(config: RandomGraphConfig):
+        return RandomGraphFactory.build_custom_cm(config)
 
 
 if __name__ == "__main__":

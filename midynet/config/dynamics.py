@@ -4,37 +4,29 @@ from .wrapper import Wrapper
 from _midynet import dynamics
 
 
-class IsingGlauberDynamicsConfig(Config):
-    requirements: set[str] = {"num_steps", "coupling"}
+class DynamicsConfig(Config):
+    requirements: set[str] = {"name", "num_steps"}
 
     @classmethod
-    def default(cls, num_steps: int = 100, coupling: float = 1.0):
-        return cls(name="default", num_steps=num_steps, coupling=coupling)
-
-
-class SISDynamicsConfig(Config):
-    requirements: set[str] = {"num_steps", "infection_prob", "recovery_prob"}
+    def ising(cls, num_steps: int = 100, coupling: float = 1.0):
+        return cls(name="ising", num_steps=num_steps, coupling=coupling)
 
     @classmethod
-    def default(
+    def sis(
         cls,
         num_steps: int = 100,
         infection_prob: float = 0.5,
         recovery_prob: float = 0.5,
     ):
         return cls(
-            name="default",
+            name="sis",
             num_steps=num_steps,
             infection_prob=infection_prob,
             recovery_prob=recovery_prob,
         )
 
-
-class CowanDynamicsConfig(Config):
-    requirements: set[str] = {"num_steps", "nu", "a", "mu", "eta"}
-
     @classmethod
-    def default(
+    def cowan(
         cls,
         num_steps: int = 100,
         nu: float = 7.0,
@@ -43,7 +35,7 @@ class CowanDynamicsConfig(Config):
         eta: float = 0.5,
     ):
         return cls(
-            name="default",
+            name="cowan",
             num_steps=num_steps,
             nu=nu,
             a=a,
@@ -51,40 +43,30 @@ class CowanDynamicsConfig(Config):
             eta=eta,
         )
 
-
-class DegreeDynamicsConfig(Config):
-    requirements: set[str] = {"num_steps", "C"}
-
     @classmethod
-    def default(cls, num_steps: int = 100, C: float = 1.0):
-        return cls(name="default", num_steps=num_steps, C=C)
+    def degree(cls, num_steps: int = 100, C: float = 1.0):
+        return cls(name="degree", num_steps=num_steps, C=C)
 
 
-class IsingGlauberDynamicsFactory(Factory):
+class DynamicsFactory(Factory):
     @staticmethod
-    def build_default(config: IsingGlauberDynamicsConfig):
+    def build_ising(config: DynamicsConfig):
         return dynamics.IsingGlauberDynamics(config.num_steps, config.coupling)
 
-
-class SISDynamicsFactory(Factory):
     @staticmethod
-    def build_default(config: SISDynamicsConfig):
+    def build_sis(config: DynamicsConfig):
         return dynamics.SISDynamics(
             config.num_steps, config.infection_prob, config.recovery_prob
         )
 
-
-class CowanDynamicsFactory(Factory):
     @staticmethod
-    def build_default(config: CowanDynamicsConfig):
+    def build_cowan(config: DynamicsConfig):
         return dynamics.CowanDynamics(
             config.num_steps, config.nu, config.a, config.mu, config.eta
         )
 
-
-class DegreeDynamicsFactory(Factory):
     @staticmethod
-    def build_default(config: DegreeDynamicsConfig):
+    def build_degree(config: DynamicsConfig):
         return dynamics.DegreeDynamics(config.num_steps, config.C)
 
 

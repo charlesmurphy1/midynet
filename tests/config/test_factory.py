@@ -94,55 +94,29 @@ class TestDegreePriorFactory(unittest.TestCase, TestFactory):
         return obj
 
 
-class TestStochasticBlockModelFamilyFactory(unittest.TestCase, TestFactory):
-    factory = StochasticBlockModelFamilyFactory
+class TestRandomGraphFactory(unittest.TestCase, TestFactory):
+    factory = RandomGraphFactory
     good_configs = {
-        StochasticBlockModelFamilyConfig.uniform(100, 250, 10),
-        StochasticBlockModelFamilyConfig.hyperuniform(100, 250, 10),
-    }
-    missing_configs = [Config(name="missing")]
-
-
-class TestErdosRenyiFamilyFactory(unittest.TestCase, TestFactory):
-    factory = ErdosRenyiFamilyFactory
-    good_configs = {
-        ErdosRenyiFamilyConfig.fixed(100, 250),
-        ErdosRenyiFamilyConfig.poisson(100, 250.0),
-    }
-    missing_configs = [Config(name="missing")]
-
-
-class TestDegreeCorrectedStochasticBlockModelFamilyFactory(
-    unittest.TestCase, TestFactory
-):
-    factory = DegreeCorrectedStochasticBlockModelFamilyFactory
-    good_configs = {
-        DegreeCorrectedStochasticBlockModelFamilyConfig.uniform(100, 250, 10),
+        RandomGraphConfig.uniform_sbm(100, 250, 10),
+        RandomGraphConfig.hyperuniform_sbm(100, 250, 10),
+        RandomGraphConfig.fixed_er(100, 250),
+        RandomGraphConfig.poisson_er(100, 250.0),
+        RandomGraphConfig.uniform_dcsbm(100, 250, 10),
     }
     missing_configs = [Config(name="missing")]
     unavailable_configs = [
-        DegreeCorrectedStochasticBlockModelFamilyConfig.hyperuniform(100, 250, 10),
+        RandomGraphConfig.hyperuniform_dcsbm(100, 250, 10),
     ]
 
 
-class TestIsingGlauberDynamicsFactory(unittest.TestCase, TestFactory):
-    factory = IsingGlauberDynamicsFactory
-    good_configs = {IsingGlauberDynamicsConfig.default()}
-
-
-class TestSISDynamicsFactory(unittest.TestCase, TestFactory):
-    factory = SISDynamicsFactory
-    good_configs = {SISDynamicsConfig.default()}
-
-
-class TestSISDynamicsFactory(unittest.TestCase, TestFactory):
-    factory = CowanDynamicsFactory
-    good_configs = {CowanDynamicsConfig.default()}
-
-
-class TestSISDynamicsFactory(unittest.TestCase, TestFactory):
-    factory = DegreeDynamicsFactory
-    good_configs = {DegreeDynamicsConfig.default()}
+class TestDynamicsFactory(unittest.TestCase, TestFactory):
+    factory = DynamicsFactory
+    good_configs = {
+        DynamicsConfig.ising(),
+        DynamicsConfig.sis(),
+        DynamicsConfig.cowan(),
+        DynamicsConfig.degree(),
+    }
 
 
 if __name__ == "__main__":
