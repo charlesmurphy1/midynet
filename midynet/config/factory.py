@@ -35,10 +35,10 @@ class Factory:
     options: Dict[str, Callable[[Config], Any]] = {}
 
     @classmethod
-    def build(cls, config: Config, subname: str = None) -> Any:
+    def build(cls, config: Config) -> Any:
         if config.unmet_requirements():
             raise MissingRequirementsError(config)
-        name = config.name if subname is None else config.get(subname).value.name
+        name = config.name
         if name in cls.options:
             return cls.options[name](config)
         else:

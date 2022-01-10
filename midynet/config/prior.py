@@ -16,13 +16,13 @@ class EdgeCountPriorConfig(Config):
             return super().auto(config)
 
     @classmethod
-    def delta(cls, edge_count: int):
+    def delta(cls, edge_count: int = 0):
         if edge_count < 0:
             raise ValueError(f"`edge_count` must be non-negative")
         return cls(name="delta", state=edge_count)
 
     @classmethod
-    def poisson(cls, mean: float):
+    def poisson(cls, mean: float = 0):
         if mean < 0:
             raise ValueError(f"`mean` must be non-negative")
         return cls(name="poisson", mean=mean)
@@ -48,15 +48,15 @@ class BlockCountPriorConfig(Config):
         return cls(name="delta", state=block_count)
 
     @classmethod
-    def poisson(cls, mean: float):
+    def poisson(cls, mean: float = 1):
         if mean < 0:
             raise ValueError(f"`mean` must be non-negative.")
         return cls(name="poisson", mean=mean)
 
     @classmethod
-    def uniform(cls, min: int, max: int = None):
-        if max is None:
-            max, min = min, 1
+    def uniform(cls, min: int = 1, max: int = None):
+        if min is not None and max is None:
+            min, max = 1, min
         if min < 1:
             raise ValueError(f"`min` must be greater than or equal to 1.")
         elif min > max:
@@ -71,8 +71,8 @@ class BlockPriorConfig(Config):
             return cls.delta(config)
         elif config == "uniform":
             return cls.uniform()
-        elif config == "uniform_hyperprior":
-            return cls.uniform_hyperprior()
+        elif config == "hyperuniform":
+            return cls.hyperuniform()
         else:
             return super().auto(config)
 
@@ -81,18 +81,18 @@ class BlockPriorConfig(Config):
         return cls(name="delta", state=blocks)
 
     @classmethod
-    def uniform(cls):
-        return cls(name="uniform")
+    def uniform(cls, size: int = 1):
+        return cls(name="uniform", block_count=BlockCountPriorConfig.uniform(size))
 
     @classmethod
-    def uniform_hyperprior(cls):
-        return cls(name="uniform_hyperprior")
+    def hyperuniform(cls, size: int = 1):
+        return cls(name="hyperuniform", block_count=BlockCountPriorConfig.uniform(size))
 
 
 class EdgeMatrixPriorConfig(Config):
     @classmethod
-    def uniform(cls):
-        return cls(name="uniform")
+    def uniform(cls, edge_count):
+        return cls(name="uniform", edge_count=EdgeCountPriorConfig.auto(edge_count))
 
 
 class DegreePriorConfig(Config):
@@ -102,8 +102,8 @@ class DegreePriorConfig(Config):
             return cls.delta(config)
         elif config == "uniform":
             return cls.uniform()
-        elif config == "uniform_hyperprior":
-            return cls.uniform_hyperprior()
+        elif config == "hyperuniform":
+            return cls.hyperuniform()
         else:
             return super().auto(config)
 
@@ -116,52 +116,44 @@ class DegreePriorConfig(Config):
         return cls(name="uniform")
 
     @classmethod
-    def uniform_hyperprior(cls):
-        return cls(name="uniform_hyperprior")
+    def hyperuniform(cls):
+        return cls(name="hyperuniform")
 
 
 class EdgeCountPriorFactory(Factory):
     options: Dict[str, Callable[[Config], prior.sbm.EdgeCountPrior]] = {
-        "delta": lambda c: prior.sbm.EdgeCountDeltaPrior(c.edge_count.state),
-        "poisson": lambda c: prior.sbm.EdgeCountPoissonPrior(c.edge_count.mean),
+        "delta": lambda c: prior.sbm.EdgeCountDeltaPrior(c.get_value("state", 0)),
+        "poisson": lambda c: prior.sbm.EdgeCountPoissonPrior(c.get_value("mean", 0)),
     }
 
 
 class BlockCountPriorFactory(Factory):
     options: Dict[str, Callable[[Config], prior.sbm.BlockCountPrior]] = {
-        "delta": lambda c: prior.sbm.BlockCountDeltaPrior(c.block_count.state),
-        "poisson": lambda c: prior.sbm.BlockCountPoissonPrior(c.block_count.mean),
-        "uniform": lambda c: UnavailableOption(c.block_count.name),
+        "delta": lambda c: prior.sbm.BlockCountDeltaPrior(c.get_value("state")),
+        "poisson": lambda c: prior.sbm.BlockCountPoissonPrior(c.get_value("mean")),
+        "uniform": lambda c: prior.sbm.BlockCountUniformPrior(
+            c.get_value("min", 1), c.get_value("max", 1)
+        ),
     }
 
 
 class BlockPriorFactory(Factory):
     options: Dict[str, Callable[[Config], prior.sbm.BlockPrior]] = {
-        "uniform": lambda c: prior.sbm.BlockUniformPrior(
-            c.size, BlockCountPriorFactory.build(c, "block_count")
-        ),
-        "uniform_hyperprior": lambda c: prior.sbm.BlockUniformHyperPrior(
-            c.size, BlockCountPriorFactory.build(c, "block_count")
-        ),
+        "uniform": lambda c: prior.sbm.BlockUniformPrior(),
+        "hyperuniform": lambda c: prior.sbm.BlockUniformHyperPrior(),
     }
 
 
 class EdgeMatrixPriorFactory(Factory):
     options: Dict[str, Callable[[Config], prior.sbm.EdgeMatrixPrior]] = {
-        "uniform": lambda c: prior.sbm.EdgeMatrixUniformPrior(
-            EdgeCountPriorFactory.build(c, "edge_count"),
-            BlocksPriorFactory.build(c, "blocks"),
-        ),
+        "uniform": lambda c: prior.sbm.EdgeMatrixUniformPrior(),
     }
 
 
 class DegreePriorFactory(Factory):
     options: Dict[str, Callable[[Config], prior.sbm.DegreePrior]] = {
-        "uniform": lambda c: prior.sbm.DegreeUniformPrior(
-            BlocksPriorFactory.build(c, "blocks"),
-            EdgeMatrixPriorFactory.build(c, "edge_matrix"),
-        ),
-        "uniform_hyperprior": lambda c: UnavailableOption(c.degrees.name),
+        "uniform": lambda c: prior.sbm.DegreeUniformPrior(),
+        "hyperuniform": lambda c: UnavailableOption(c.degrees.name),
     }
 
 

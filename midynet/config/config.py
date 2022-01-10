@@ -17,7 +17,9 @@ class Config:
 
     @classmethod
     def auto(cls, config):
-        if isinstance(config, cls):
+        if config in cls.__dict__ and isinstance(getattr(cls, config), Callable):
+            return getattr(cls, config)()
+        elif isinstance(config, cls):
             return config
         else:
             message = f"Invalid type `{type(config)}` for auto build of object `{cls.__name__}`."
@@ -99,49 +101,43 @@ class Config:
         if key in self.__dict__:
             return self.__dict__[key]
         elif key in self.__parameters__:
-            return self.__parameters__[key].value
+            return self.get_value(key)
         else:
             message = f"This config has no attribute `{key}`"
             raise AttributeError(message)
-
-    def __setattr__(self, key, value):
-        if "__parameters__" in self.__dict__ and key in self.__parameters__:
-            self.__parameters__[key].set(value)
-        else:
-            self.__dict__[key] = value
-
-    def __setitem__(self, key, value):
-
-        if not isinstance(value, self.__parameters__[key].datatype):
-            message = f"type `{type(value)}` of key `{key}` is invalid, expected type `{self.__parameters__[key].datatype}`."
-            raise TypeError(message)
-
-        if key in self:
-            self.__parameters__[key].value = value
-        else:
-            self.insert(key, value)
 
     def __getitem__(self, key: str) -> Parameter:
         if key not in self:
             message = f"key `{key}` has not been found."
             raise LookupError(message)
-        return self.__parameters__[key]
+        return self.get_param(key)
 
-    def get(self, key: str) -> Parameter:
+    def get_param(self, key: str, default: Any = None) -> Parameter:
         path = key.split(self.separator)
         key = path[0]
-        if self.__parameters__[key].isConfig and len(path) > 1:
-            return self.__parameters__[key].value.get(self.separator.join(path[1:]))
+        if key not in self.__parameters__:
+            if default is None:
+                default = Config()
+            return default
+        elif self.__parameters__[key].isConfig and len(path) > 1:
+            return self.__parameters__[key].value.get(
+                self.separator.join(path[1:]), default=default
+            )
         else:
             return self.__parameters__[key]
 
-    def set(self, key: str, value: Any):
+    def get_value(self, key: str, default: Any = None):
+        return self.get_param(key).value
+
+    def set_value(self, key: str, value: Any):
         path = key.split(self.separator)
         key = path[0]
         if self.__parameters__[key].isConfig and len(path) > 1:
-            self.__parameters__[key].value.set(self.separator.join(path[1:]), value)
+            self.__parameters__[key].value.set_value(
+                self.separator.join(path[1:]), value
+            )
         else:
-            self.__parameters__[key].set(value)
+            self.__parameters__[key].set_value(value)
 
     def dict_copy(self, recursively=False, prefix="") -> typing.Dict[str, Parameter]:
         copy = {}
@@ -186,7 +182,7 @@ class Config:
         for values in itertools.product(*values_to_scan):
             config = self.copy()
             for k, v in zip(keys_to_scan, values):
-                config.set(k, v)
+                config.set_value(k, v)
             yield config
 
     def merge(self, other):

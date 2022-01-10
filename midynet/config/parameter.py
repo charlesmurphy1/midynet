@@ -19,7 +19,7 @@ class Parameter:
             raise LookupError(message)
         return self.value[key]
 
-    def set(self, value):
+    def set_value(self, value):
         self.value = value.value if issubclass(type(value), Parameter) else value
 
     def is_sequenced(self):

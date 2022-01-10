@@ -9,27 +9,18 @@ from _midynet import random_graph
 
 
 class StochasticBlockModelConfig(Config):
-    requirements: set[str] = {
-        "name",
-        "block_count",
-        "blocks",
-        "edge_count",
-        "edge_matrix",
-    }
+    requirements: set[str] = {"name", "size", "blocks", "edge_matrix"}
 
     @classmethod
     def custom(
         cls,
+        name: str,
         size: int,
-        block_count: Union[int, float, tuple[int, int], BlockCountPriorConfig],
         blocks: Union[np.array, BlockPriorConfig],
-        edge_count: Union[int, float, EdgeCountPriorConfig],
         edge_matrix: Union[np.array, EdgeMatrixPriorConfig],
     ):
-        obj = cls(name="sbm", size=size)
-        obj.insert("block_count", BlockCountPriorConfig.auto(block_count))
+        obj = cls(name=name, size=size)
         obj.insert("blocks", BlockPriorConfig.auto(blocks))
-        obj.insert("edge_count", EdgeCountPriorConfig.auto(edge_count))
         obj.insert("edge_matrix", EdgeMatrixPriorConfig.auto(edge_matrix))
         return obj
 
@@ -44,27 +35,43 @@ class StochasticBlockModelConfig(Config):
                 + f"expected shape {(block_count, block_count)}"
             )
             raise ValueError(message)
-        return cls.custom(size, block_count, blocks, edge_count, edge_matrix)
+        return cls.custom("fixed", size, blocks, edge_matrix)
 
     @classmethod
-    def uniform(cls, size: int, edge_count):
-        block_count = BlockCountPriorConfig.uniform(size)
+    def uniform(cls, size: int = 100, edge_count: int = 250):
         blocks = BlockPriorConfig.uniform()
-        edge_matrix = EdgeMatrixPriorConfig.uniform()
-        return cls.custom(size, block_count, blocks, edge_count, edge_matrix)
+        blocks.block_count.set_value("max", size)
+        edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
+        return cls.custom("uniform", size, blocks, edge_matrix)
 
     @classmethod
-    def uniform_hyperprior(cls, size: int, edge_count):
-        block_count = BlockCountPriorConfig.uniform(size)
-        blocks = BlockPriorConfig.uniform_hyperprior()
-        edge_matrix = EdgeMatrixPriorConfig.uniform()
-        return cls.custom(size, block_count, blocks, edge_count, edge_matrix)
+    def hyperuniform(cls, size: int = 100, edge_count: int = 250):
+        blocks = BlockPriorConfig.hyperuniform()
+        blocks.block_count.set_value("max", size)
+        edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
+        return cls.custom("hyperuniform", size, blocks, edge_matrix)
 
 
 def sbm_builder(config: StochasticBlockModelConfig):
-    return random_graph.StochasticBlockModelFamily(
-        c.size, BlockPriorFactory.build(c), EdgeMatrixPriorFactory.build(c)
-    )
+    block_count = BlockCountPriorFactory.build(config.blocks.block_count)
+    blocks = BlockPriorFactory.build(config.blocks)
+    blocks.set_size(config.size)
+    blocks.set_block_count_prior(block_count)
+
+    edge_count = EdgeCountPriorFactory.build(config.edge_matrix.edge_count)
+    edge_matrix = EdgeMatrixPriorFactory.build(config.edge_matrix)
+    edge_matrix.set_edge_count_prior(edge_count)
+    edge_matrix.set_block_prior(blocks)
+
+    g = random_graph.StochasticBlockModelFamily(config.size, blocks, edge_matrix)
+
+    print("sampling block_count", block_count.sample())
+    print("sampling blocks", blocks.sample())
+    print("sampling edge_count", edge_count.sample())
+    print("sampling edge_matrix", edge_matrix.sample())
+    # print("sampling graph", g.sample())
+
+    return g
 
 
 class StochasticBlockModelFactory(Factory):
@@ -72,7 +79,7 @@ class StochasticBlockModelFactory(Factory):
         "custom": sbm_builder,
         "fixed": sbm_builder,
         "uniform": sbm_builder,
-        "uniform_hyperprior": sbm_builder,
+        "hyperuniform": sbm_builder,
     }
 
 
