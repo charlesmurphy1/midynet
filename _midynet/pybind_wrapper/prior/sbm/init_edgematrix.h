@@ -30,6 +30,7 @@ void initEdgeMatrixPrior(py::module& m){
 
 
     py::class_<EdgeMatrixUniformPrior, EdgeMatrixPrior>(m, "EdgeMatrixUniformPrior")
+        .def(py::init<>())
         .def(py::init<EdgeCountPrior&, BlockPrior&>(), py::arg("edge_count_prior"), py::arg("block_prior"));
 
 }

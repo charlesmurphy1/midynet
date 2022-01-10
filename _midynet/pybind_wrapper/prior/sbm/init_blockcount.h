@@ -17,14 +17,17 @@ void initBlockCountPrior(py::module& m){
     declareSBMPrior<BlockCountPrior, Prior<size_t>, PyBlockCountPrior<>>(m, "BlockCountPrior");
 
     py::class_<BlockCountDeltaPrior, BlockCountPrior>(m, "BlockCountDeltaPrior")
+        .def(py::init<>())
         .def(py::init<size_t>(), py::arg("block_count"));
 
     py::class_<BlockCountPoissonPrior, BlockCountPrior>(m, "BlockCountPoissonPrior")
+        .def(py::init<>())
         .def(py::init<double>(), py::arg("mean"))
         .def("get_mean", &BlockCountPoissonPrior::getMean)
         .def("set_mean", &BlockCountPoissonPrior::setMean, py::arg("mean"))
         ;
     py::class_<BlockCountUniformPrior, BlockCountPrior>(m, "BlockCountUniformPrior")
+        .def(py::init<>())
         .def(py::init<size_t>(), py::arg("min"))
         .def(py::init<size_t, size_t>(), py::arg("min"), py::arg("max"))
         .def("get_min", &BlockCountUniformPrior::getMin)

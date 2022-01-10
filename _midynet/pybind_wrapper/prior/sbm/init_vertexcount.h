@@ -22,6 +22,7 @@ void initVertexCountPrior(py::module& m){
         .def("set_block_count_prior", &VertexCountPrior::setBlockCountPrior);
 
     py::class_<VertexCountUniformPrior, VertexCountPrior>(m, "VertexCountUniformPrior")
+        .def(py::init<>())
         .def(py::init<size_t, BlockCountPrior&>(), py::arg("size"), py::arg("block_count_prior"));
 }
 
