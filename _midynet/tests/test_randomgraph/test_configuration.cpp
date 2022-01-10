@@ -19,11 +19,9 @@ static const int NUM_VERTICES = 50;
 class TestConfigurationModelFamily: public::testing::Test{
     public:
         BlockCountDeltaPrior blockCountPrior = {1};
-        BlockUniformPrior blockPrior = {NUM_VERTICES, blockCountPrior};
         EdgeCountPoissonPrior edgeCountPrior = {NUM_EDGES};
-        EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
-        DegreeUniformPrior degreePrior = {blockPrior, edgeMatrixPrior};
-        ConfigurationModelFamily randomGraph = ConfigurationModelFamily(NUM_VERTICES, degreePrior);
+        DegreeUniformPrior degreePrior = {};
+        ConfigurationModelFamily randomGraph = ConfigurationModelFamily(NUM_VERTICES, edgeCountPrior, degreePrior);
         void SetUp() {
             randomGraph.sample();
         }

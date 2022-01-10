@@ -15,18 +15,22 @@ protected:
     BlockSequence m_blockSeq;
     BlockDeltaPrior m_blockDeltaPrior;
     EdgeMatrixUniformPrior m_edgeMatrixUniformPrior;
+
 public:
     ConfigurationModelFamily(size_t graphSize):
         DegreeCorrectedStochasticBlockModelFamily(graphSize) {}
-    ConfigurationModelFamily(size_t graphSize, DegreePrior& degreePrior):
+    ConfigurationModelFamily(size_t graphSize, EdgeCountPrior& edgeCountPrior, DegreePrior& degreePrior):
         DegreeCorrectedStochasticBlockModelFamily(graphSize),
         m_blockSeq(graphSize, 0),
         m_blockDeltaPrior(m_blockSeq),
-        m_edgeMatrixUniformPrior(degreePrior.getEdgeMatrixPrior().getEdgeCountPriorRef(), m_blockDeltaPrior){
+        m_edgeMatrixUniformPrior(edgeCountPrior, m_blockDeltaPrior){
             setBlockPrior(m_blockDeltaPrior);
             setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
             setDegreePrior(degreePrior);
         }
+    void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){
+        m_edgeMatrixUniformPrior.setEdgeCountPrior(edgeCountPrior);
+    }
 };
 
 }// end FastMIDyNet

@@ -30,7 +30,8 @@ void initDegreeCorrectedStochasticBlockModelFamily(py::module& m){
 void initConfigurationModelFamily(py::module& m){
     py::class_<ConfigurationModelFamily, DegreeCorrectedStochasticBlockModelFamily>(m, "ConfigurationModelFamily")
         .def(py::init<size_t>(), py::arg("size"))
-        .def(py::init<size_t, DegreePrior&>(), py::arg("size"), py::arg("degree_prior"))
+        .def(py::init<size_t, EdgeCountPrior&, DegreePrior&>(), py::arg("size"), py::arg("edge_count_prior"), py::arg("degree_prior"))
+        .def("set_edge_count_prior", &ConfigurationModelFamily::setEdgeCountPrior)
     ;
 }
 
