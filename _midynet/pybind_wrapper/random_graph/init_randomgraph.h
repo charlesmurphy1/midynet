@@ -16,7 +16,7 @@ void initRandomGraphBaseClass(py::module& m){
         .def("get_state", &RandomGraph::getState)
         .def("set_state", &RandomGraph::setState, py::arg("state"))
         .def("get_size", &RandomGraph::getSize)
-        .def("get_log_likehood", &RandomGraph::getLogLikelihood)
+        .def("get_log_likelihood", &RandomGraph::getLogLikelihood)
         .def("get_log_prior", &RandomGraph::getLogPrior)
         .def("get_log_joint", &RandomGraph::getLogJoint)
         .def("get_log_likehood_ratio", py::overload_cast<const GraphMove&>(&RandomGraph::getLogLikelihoodRatio), py::arg("move"))
