@@ -32,17 +32,18 @@ class MissingRequirementsError(Exception):
 
 
 class Factory:
-    options: Dict[str, Callable[[Config], Any]] = {}
-
     @classmethod
     def build(cls, config: Config) -> Any:
         if config.unmet_requirements():
             raise MissingRequirementsError(config)
+        options = {
+            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
+        }
         name = config.name
-        if name in cls.options:
-            return cls.options[name](config)
+        if name in options:
+            return options[name](config)
         else:
-            raise OptionError(actual=name, expected=list(cls.options.keys()))
+            raise OptionError(actual=name, expected=list(options.keys()))
 
 
 if __name__ == "__main__":

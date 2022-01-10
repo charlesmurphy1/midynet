@@ -85,9 +85,9 @@ class Config:
         s += "("
         for k, v in self.items():
             if v.isConfig:
-                s += f"{k}={v.value.name}, "
+                s += f"{k} = `{v.value.name}`, "
             else:
-                s += f"{k}={v.value}, "
+                s += f"{k} = `{v.value}`, "
         s = s[:-2] + ")" if s[-2:] == ", " else s + ")"
         return s
 
@@ -157,15 +157,15 @@ class Config:
         return Config(**self.dict_copy())
 
     def format(self, prefix: str = "") -> str:
-        s = prefix + self.name + ": \n"
+        s = f"{prefix + self.__class__.__name__}(`{self.name}`): \n"
         for k, v in self.items():
             if v.isConfig:
                 v_format = v.value.format(prefix=prefix + "|\t ")
                 v_format = v_format.split(":")[1:]
                 v_string = "".join(v_format)
-                s += f"{prefix}|\t {v.name}({v.value.name}):{v_string}\n"
+                s += f"{prefix}|\t {v.name}(`{v.value.name}`):{v_string}\n"
             else:
-                s += f"{prefix}|\t {v.name}={v.value}\n"
+                s += f"{prefix}|\t {v.name} = `{v.value}`\n"
         s += f"{prefix}end"
         return s
 

@@ -2,7 +2,8 @@ from typing import Any, Callable, Dict
 
 from .config import Config
 from .factory import Factory, UnavailableOption
-from _midynet import prior
+from .wrapper import Wrapper
+from _midynet.prior import sbm
 
 
 class EdgeCountPriorConfig(Config):
@@ -81,12 +82,22 @@ class BlockPriorConfig(Config):
         return cls(name="delta", state=blocks)
 
     @classmethod
-    def uniform(cls, size: int = 1):
-        return cls(name="uniform", block_count=BlockCountPriorConfig.uniform(size))
+    def uniform(cls, size: int = 1, block_count_max: int = None):
+        block_count_max = size if block_count_max is None else block_count_max
+        return cls(
+            name="uniform",
+            size=size,
+            block_count=BlockCountPriorConfig.uniform(block_count_max),
+        )
 
     @classmethod
-    def hyperuniform(cls, size: int = 1):
-        return cls(name="hyperuniform", block_count=BlockCountPriorConfig.uniform(size))
+    def hyperuniform(cls, size: int = 1, block_count_max: int = None):
+        block_count_max = size if block_count_max is None else block_count_max
+        return cls(
+            name="hyperuniform",
+            size=size,
+            block_count=BlockCountPriorConfig.uniform(block_count_max),
+        )
 
 
 class EdgeMatrixPriorConfig(Config):
@@ -121,40 +132,95 @@ class DegreePriorConfig(Config):
 
 
 class EdgeCountPriorFactory(Factory):
-    options: Dict[str, Callable[[Config], prior.sbm.EdgeCountPrior]] = {
-        "delta": lambda c: prior.sbm.EdgeCountDeltaPrior(c.get_value("state", 0)),
-        "poisson": lambda c: prior.sbm.EdgeCountPoissonPrior(c.get_value("mean", 0)),
-    }
+    @staticmethod
+    def build_delta(config: EdgeCountPriorConfig) -> sbm.EdgeCountDeltaPrior:
+        return sbm.EdgeCountDeltaPrior(config.get_value("state", 0))
+
+    @staticmethod
+    def build_poisson(config: EdgeCountPriorConfig) -> sbm.EdgeCountPoissonPrior:
+        return sbm.EdgeCountPoissonPrior(config.get_value("mean", 0))
 
 
 class BlockCountPriorFactory(Factory):
-    options: Dict[str, Callable[[Config], prior.sbm.BlockCountPrior]] = {
-        "delta": lambda c: prior.sbm.BlockCountDeltaPrior(c.get_value("state")),
-        "poisson": lambda c: prior.sbm.BlockCountPoissonPrior(c.get_value("mean")),
-        "uniform": lambda c: prior.sbm.BlockCountUniformPrior(
-            c.get_value("min", 1), c.get_value("max", 1)
-        ),
-    }
+    @staticmethod
+    def build_delta(config: BlockCountPriorConfig) -> sbm.BlockCountDeltaPrior:
+        return sbm.BlockCountDeltaPrior(config.get_value("state", 1))
+
+    @staticmethod
+    def build_poisson(
+        config: BlockCountPriorConfig,
+    ) -> sbm.BlockCountPoissonPrior:
+        return sbm.BlockCountPoissonPrior(config.get_value("mean", 1))
+
+    @staticmethod
+    def build_uniform(
+        config: BlockCountPriorConfig,
+    ) -> sbm.BlockCountUniformPrior:
+        return sbm.BlockCountUniformPrior(
+            config.get_value("min", 1), config.get_value("max", 1)
+        )
 
 
 class BlockPriorFactory(Factory):
-    options: Dict[str, Callable[[Config], prior.sbm.BlockPrior]] = {
-        "uniform": lambda c: prior.sbm.BlockUniformPrior(),
-        "hyperuniform": lambda c: prior.sbm.BlockUniformHyperPrior(),
-    }
+    @staticmethod
+    def build_delta(config: BlockPriorConfig) -> sbm.BlockDeltaPrior:
+        state = config.get_value("state")
+        if state is None:
+            b = sbm.BlockDeltaPrior()
+        else:
+            b = sbm.BlockDeltaPrior(state)
+        return b
+
+    @staticmethod
+    def build_uniform(config: BlockPriorConfig) -> sbm.BlockUniformPrior:
+        B = BlockCountPriorFactory.build(config.get_value("block_count"))
+        b = sbm.BlockUniformPrior(config.size, B)
+        return Wrapper(
+            b,
+            setup_func=lambda wrap, others: wrap.set_block_count_prior(
+                others["block_count"]
+            ),
+            block_count=B,
+        )
+
+    @staticmethod
+    def build_hyperuniform(
+        config: BlockPriorConfig,
+    ) -> sbm.BlockUniformHyperPrior:
+        B = BlockCountPriorFactory.build(config.get_value("block_count"))
+        b = sbm.BlockUniformHyperPrior(config.size, B)
+        return Wrapper(
+            b,
+            setup_func=lambda wrap, others: wrap.set_block_count_prior(
+                others["block_count"]
+            ),
+            block_count=B,
+        )
 
 
 class EdgeMatrixPriorFactory(Factory):
-    options: Dict[str, Callable[[Config], prior.sbm.EdgeMatrixPrior]] = {
-        "uniform": lambda c: prior.sbm.EdgeMatrixUniformPrior(),
-    }
+    @staticmethod
+    def build_uniform(config) -> sbm.EdgeMatrixUniformPrior:
+        E = EdgeCountPriorFactory.build(config.edge_count)
+        e = sbm.EdgeMatrixUniformPrior()
+        e.set_edge_count_prior(E)
+        return Wrapper(
+            e,
+            setup_func=lambda wrap, others: wrap.set_edge_count_prior(
+                others["edge_count"]
+            ),
+            edge_count=E,
+        )
 
 
 class DegreePriorFactory(Factory):
-    options: Dict[str, Callable[[Config], prior.sbm.DegreePrior]] = {
-        "uniform": lambda c: prior.sbm.DegreeUniformPrior(),
-        "hyperuniform": lambda c: UnavailableOption(c.degrees.name),
-    }
+    @staticmethod
+    def build_uniform(config: DegreePriorConfig) -> sbm.DegreeUniformPrior:
+        return sbm.DegreeUniformPrior()
+
+    @staticmethod
+    def build_hyperuniform(config: DegreePriorConfig) -> sbm.DegreePrior:
+        UnavailableOption(config.name)
 
 
 if __name__ == "__main__":

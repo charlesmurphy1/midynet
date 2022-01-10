@@ -13,9 +13,13 @@ class TestFactory:
     missing_configs: list[Config] = []
     unavailable_configs: list[Config] = []
 
+    def setUp_object(self, obj):
+        return obj
+
     def test_build_good_config(self):
         for c in self.good_configs:
-            self.factory.build(c)
+            obj = self.factory.build(c)
+            self.setUp_object(obj).sample()
 
     def test_build_missing_config(self):
         for c in self.missing_configs:
@@ -42,9 +46,58 @@ class TestBlockCountPriorFactory(unittest.TestCase, TestFactory):
     good_configs = [
         BlockCountPriorConfig.delta(5),
         BlockCountPriorConfig.poisson(5),
+        BlockCountPriorConfig.uniform(5),
     ]
     missing_configs = [Config(name="missing")]
-    unavailable_configs = [BlockCountPriorConfig.uniform(5)]
+
+
+class TestBlockPriorFactory(unittest.TestCase, TestFactory):
+    factory = BlockPriorFactory
+    good_configs = [
+        BlockPriorConfig.delta([0, 0, 0, 0, 0, 1, 1, 1, 1, 1]),
+        BlockPriorConfig.uniform(10),
+        BlockPriorConfig.hyperuniform(10),
+    ]
+    missing_configs = [Config(name="missing")]
+
+
+class TestEdgeMatrixPriorFactory(unittest.TestCase, TestFactory):
+    factory = EdgeMatrixPriorFactory
+    good_configs = [
+        EdgeMatrixPriorConfig.uniform(10),
+    ]
+
+    def setUp_object(self, obj):
+        self.b = BlockPriorFactory.build(BlockPriorConfig.uniform(10))
+        obj.set_block_prior(self.b.get_wrapped())
+        return obj
+
+
+class TestDegreePriorFactory(unittest.TestCase, TestFactory):
+    factory = DegreePriorFactory
+    good_configs = [
+        DegreePriorConfig.uniform(),
+    ]
+    unavailable_configs = [DegreePriorConfig.hyperuniform()]
+
+    def setUp_object(self, obj):
+        self.b = BlockPriorFactory.build(BlockPriorConfig.uniform(100))
+
+        self.e = EdgeMatrixPriorFactory.build(EdgeMatrixPriorConfig.uniform(250))
+        self.e.set_block_prior(self.b.get_wrapped())
+
+        obj.set_block_prior(self.b.get_wrapped())
+        obj.set_edge_matrix_prior(self.e.get_wrapped())
+        return obj
+
+
+class TestStochasticBlockModelFamilyFactory(unittest.TestCase, TestFactory):
+    factory = StochasticBlockModelFamilyFactory
+    good_configs = {
+        StochasticBlockModelFamilyConfig.uniform(100, 250, 10),
+        StochasticBlockModelFamilyConfig.hyperuniform(100, 250, 10),
+    }
+    missing_configs = [Config(name="missing")]
 
 
 if __name__ == "__main__":

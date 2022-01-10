@@ -4,11 +4,12 @@ import typing
 from typing import Union
 from .config import Config
 from .factory import Factory
+from .wrapper import Wrapper
 from .prior import *
 from _midynet import random_graph
 
 
-class StochasticBlockModelConfig(Config):
+class StochasticBlockModelFamilyConfig(Config):
     requirements: set[str] = {"name", "size", "blocks", "edge_matrix"}
 
     @classmethod
@@ -38,49 +39,66 @@ class StochasticBlockModelConfig(Config):
         return cls.custom("fixed", size, blocks, edge_matrix)
 
     @classmethod
-    def uniform(cls, size: int = 100, edge_count: int = 250):
-        blocks = BlockPriorConfig.uniform()
-        blocks.block_count.set_value("max", size)
+    def uniform(
+        cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
+    ):
+        blocks = BlockPriorConfig.uniform(size=size, block_count_max=block_count_max)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         return cls.custom("uniform", size, blocks, edge_matrix)
 
     @classmethod
-    def hyperuniform(cls, size: int = 100, edge_count: int = 250):
-        blocks = BlockPriorConfig.hyperuniform()
+    def hyperuniform(
+        cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
+    ):
+        blocks = BlockPriorConfig.hyperuniform(
+            size=size, block_count_max=block_count_max
+        )
         blocks.block_count.set_value("max", size)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         return cls.custom("hyperuniform", size, blocks, edge_matrix)
 
 
-def sbm_builder(config: StochasticBlockModelConfig):
-    block_count = BlockCountPriorFactory.build(config.blocks.block_count)
-    blocks = BlockPriorFactory.build(config.blocks)
-    blocks.set_size(config.size)
-    blocks.set_block_count_prior(block_count)
+class StochasticBlockModelFamilyFactory(Factory):
+    @staticmethod
+    def setUpSBM(sbm_graph, blocks, edge_matrix):
+        sbm_graph.set_block_prior(blocks)
+        sbm_graph.set_edge_matrix_prior(edge_matrix)
 
-    edge_count = EdgeCountPriorFactory.build(config.edge_matrix.edge_count)
-    edge_matrix = EdgeMatrixPriorFactory.build(config.edge_matrix)
-    edge_matrix.set_edge_count_prior(edge_count)
-    edge_matrix.set_block_prior(blocks)
+    @staticmethod
+    def build_custom(
+        config: StochasticBlockModelFamilyConfig,
+    ) -> random_graph.StochasticBlockModelFamily:
+        block_wrapper = BlockPriorFactory.build(config.blocks)
+        block_wrapper.set_size(config.size)
 
-    g = random_graph.StochasticBlockModelFamily(config.size, blocks, edge_matrix)
+        edge_matrix_wrapper = EdgeMatrixPriorFactory.build(config.edge_matrix)
+        edge_matrix_wrapper.set_block_prior(block_wrapper.get_wrapped())
 
-    print("sampling block_count", block_count.sample())
-    print("sampling blocks", blocks.sample())
-    print("sampling edge_count", edge_count.sample())
-    print("sampling edge_matrix", edge_matrix.sample())
-    # print("sampling graph", g.sample())
+        g = random_graph.StochasticBlockModelFamily(config.size)
+        g.set_block_prior(block_wrapper.get_wrapped())
+        g.set_edge_matrix_prior(edge_matrix_wrapper.get_wrapped())
+        return Wrapper(
+            g,
+            setup_func=lambda wrap, others: StochasticBlockModelFamilyFactory.setUpSBM(
+                wrap,
+                others["blocks"].get_wrapped(),
+                others["edge_matrix"].get_wrapped(),
+            ),
+            blocks=block_wrapper,
+            edge_matrix=edge_matrix_wrapper,
+        )
 
-    return g
+    @staticmethod
+    def build_fixed(config: StochasticBlockModelFamilyConfig):
+        return StochasticBlockModelFamilyFactory.build_custom(config)
 
+    @staticmethod
+    def build_uniform(config: StochasticBlockModelFamilyConfig):
+        return StochasticBlockModelFamilyFactory.build_custom(config)
 
-class StochasticBlockModelFactory(Factory):
-    options: Dict[str, Callable[[Config], random_graph.StochasticBlockModelFamily]] = {
-        "custom": sbm_builder,
-        "fixed": sbm_builder,
-        "uniform": sbm_builder,
-        "hyperuniform": sbm_builder,
-    }
+    @staticmethod
+    def build_hyperuniform(config: StochasticBlockModelFamilyConfig):
+        return StochasticBlockModelFamilyFactory.build_custom(config)
 
 
 if __name__ == "__main__":
