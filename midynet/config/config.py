@@ -22,37 +22,22 @@ class Config:
         self.__names__ = None
         self.__scanned_keys__ = None
         self.__scanned_values__ = None
+        self.__sequence_size__ = None
         if "name" not in kwargs:
             kwargs["name"] = "config"
         for k, v in kwargs.items():
             self.insert(k, v, unique=k in self.unique_parameters)
 
-    @classmethod
-    def __auto__(cls, args):
-        """ Automatic construction method. """
-        if args in cls.__dict__ and isinstance(getattr(cls, args), Callable):
-            return getattr(cls, args)()
-        elif isinstance(args, cls):
-            return args
-        else:
-            message = f"Invalid type `{type(args)}` for auto build of object `{cls.__name__}`."
-            raise TypeError(message)
-
-    @classmethod
-    def auto(cls, args):
-        if not isinstance(args, typing.Iterable) or isinstance(args, str):
-            return cls.__auto__(args)
-        else:
-            return [cls.__auto__(a) for a in args]
-
     def __str__(self) -> str:
         s = self.__class__.__name__
         s += "("
         for k, v in self.items():
-            if v.is_config:
-                s += f"{k} = `{v.value.name}`, "
+            if v.is_config and v.is_sequenced():
+                s += f"{k}={[vv.name for vv in v.value]}, "
+            elif v.is_config:
+                s += f"{k}={v.value.name}, "
             else:
-                s += f"{k} = `{v.value}`, "
+                s += f"{k}={v.value}, "
         s = s[:-2] + ")" if s[-2:] == ", " else s + ")"
         return s
 
@@ -80,6 +65,24 @@ class Config:
             raise LookupError(message)
         return self.get_param(key)
 
+    @classmethod
+    def __auto__(cls, args):
+        if args in cls.__dict__ and isinstance(getattr(cls, args), Callable):
+            return getattr(cls, args)()
+        elif isinstance(args, cls):
+            return args
+        else:
+            message = f"Invalid type `{type(args)}` for auto build of object `{cls.__name__}`."
+            raise TypeError(message)
+
+    @classmethod
+    def auto(cls, args):
+        """ Automatic construction method. """
+        if not isinstance(args, typing.Iterable) or isinstance(args, str):
+            return cls.__auto__(args)
+        else:
+            return [cls.__auto__(a) for a in args]
+
     def keys(self, recursively: bool = False) -> typing.KeysView:
         """ Keys of the parameters. """
         if recursively:
@@ -102,6 +105,7 @@ class Config:
         self.__names__ = None
         self.__scanned_keys__ = None
         self.__scanned_values__ = None
+        self.__sequence_size__ = None
 
     def insert(
         self,
@@ -209,7 +213,7 @@ class Config:
     def format(
         self, prefix: str = "", endline="\n", suffix="end\n", forbid: list = None
     ) -> str:
-        s = f"{prefix + self.__class__.__name__}(name=`{self.name}`): \n"
+        s = f"{prefix + self.__class__.__name__}(name={self.name}): \n"
 
         forbid = ["name"] if forbid is None else forbid
         for k, v in self.items():
@@ -218,7 +222,7 @@ class Config:
             elif v.is_config and v.is_sequenced():
                 s += f"{prefix}|\t {v.name}(["
                 for i, c in enumerate(v.value):
-                    s += f"name=`{c.name}`, "
+                    s += f"name={c.name}, "
                 s = s[:-2] + f"]):{endline}"
 
                 for i, c in enumerate(v.value):
@@ -231,19 +235,19 @@ class Config:
                     ss = "".join(ss)[2:]
                     ss = ss.split(endline)[:-1]
                     for i, _ in enumerate(ss):
-                        ss[i] += f"\t (name=`{c.name}`)"
+                        ss[i] += f"\t (name={c.name})"
                     s += endline.join(ss) + endline
             elif v.is_config:
                 format = v.value.format(prefix=prefix + "|\t ")
                 format = format.split(":")[1:]
                 format = "".join(format)[:-1]
-                name = f"{v.name}(name=`{v.value.name}`)"
+                name = f"{v.name}(name={v.value.name})"
                 s += f"{prefix}|\t {name}:{format}{endline}"
             elif v.is_config and v.is_sequenced():
                 s += format_subconfig(v, v.value)
 
             else:
-                s += f"{prefix}|\t {v.name} = `{v.value}`{endline}"
+                s += f"{prefix}|\t {v.name} = {v.value}{endline}"
         if suffix is not None:
             s += f"{prefix}{suffix}"
         return s
@@ -261,7 +265,7 @@ class Config:
                 values_to_scan.append(v.value.generate_sequence())
 
         if len(values_to_scan) == 0:
-            yield self
+            return [self]
 
         for values in itertools.product(*values_to_scan):
             config = self.copy()
@@ -278,7 +282,6 @@ class Config:
             else:
                 config.set_value("name", name)
                 yield config
-        return
 
     @property
     def names(self):
@@ -309,12 +312,21 @@ class Config:
         if self.__scanned_values__ is None:
             values = defaultdict(lambda: defaultdict(lambda: list()))
             keys = self.scanned_keys
-            for c in self.generate_sequence():
-                for k in keys[c.name]:
-                    if c.get_value(k) not in values[c.name][k]:
-                        values[c.name][k].append(c.get_value(k))
-            self.__scanned_values__ = dict({k: dict(v) for k, v in values.items()})
+            if len(keys) == 0:
+                self.__scanned_values__ = {}
+            else:
+                for c in self.generate_sequence():
+                    for k in keys[c.name]:
+                        if c.get_value(k) not in values[c.name][k]:
+                            values[c.name][k].append(c.get_value(k))
+                self.__scanned_values__ = dict({k: dict(v) for k, v in values.items()})
         return self.__scanned_values__
+
+    @property
+    def sequence_size(self) -> int:
+        if self.__sequence_size__ is None:
+            self.__sequence_size__ = sum(1 for _ in self.generate_sequence())
+        return self.__sequence_size__
 
     def merge(self, other):
         for k, v in self.items():

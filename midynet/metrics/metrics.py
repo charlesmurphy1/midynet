@@ -14,7 +14,6 @@ class Metrics:
         self.data = {}
         self.names = []
         self.get_data = {}
-        self.num_updates = 0
         self.num_procs = config.get("num_procs", 1)
         self.statistics = MCStatistics(self.config.get("error_type", "confidence"))
 
