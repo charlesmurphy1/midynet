@@ -1,8 +1,8 @@
 from .config import Config
 from .factory import Factory
 from .wrapper import Wrapper
-from _midynet import mcmc
+from midynet.metrics import *
 
 
-class MCMCConfig(Config):
+class MetricsConfig(Config):
     pass

@@ -7,57 +7,82 @@ from typing import Any, Callable
 
 
 class Config:
-    separator: str = "/"
+    """
+    Base config class containing the parameters of an experiment set up.
+    """
+
+    separator: str = "."
     requirements: set[str] = {"name"}
 
     def __init__(self, **kwargs):
         self.__parameters__ = {}
+        if "name" not in kwargs:
+            kwargs["name"] = "config"
         for k, v in kwargs.items():
             self.insert(k, v)
 
     @classmethod
     def auto(cls, config):
+        """ Automatic construction method. """
         if config in cls.__dict__ and isinstance(getattr(cls, config), Callable):
             return getattr(cls, config)()
         elif isinstance(config, cls):
             return config
+        elif isinstance(config, typing.Iterable):
+            config_list = []
+            for c in config:
+                if isinstance(c, typing.Iterable):
+                    message = (
+                        "Elements of `config_list` must not be iterable themselves."
+                    )
+                    raise ValueError(message)
+                config_list.append(cls.auto(c))
+            return config_list
         else:
             message = f"Invalid type `{type(config)}` for auto build of object `{cls.__name__}`."
             raise TypeError(message)
 
     def keys(self, recursively: bool = False) -> typing.KeysView:
+        """ Keys of the parameters. """
         if recursively:
             return self.dict_copy(recursively=True).keys()
         return self.__parameters__.keys()
 
     def values(self, recursively: bool = False) -> typing.ValuesView:
+        """ Values of the parameters. """
         if recursively:
             return self.dict_copy(recursively=True).values()
         return self.__parameters__.values()
 
     def items(self, recursively=False) -> typing.ItemsView:
+        """ Items of the parameter dict. """
         if recursively:
             return self.dict_copy(recursively=True).items()
         return self.__parameters__.items()
 
     def insert(self, key: str, value: Any):
+        """ Insert new parameters. """
         value = value.value if issubclass(type(value), Parameter) else value
-        self.__parameters__[key] = Parameter(name=key, value=value)
-        self.__parameters__[key].isConfig = issubclass(type(value), Config)
+        p = Parameter(name=key, value=value)
+        self.__parameters__[key] = p
+        self.__parameters__[key].is_config = issubclass(p.datatype, Config)
 
     def erase(self, key: str):
+        """ Erase existing parameters. """
         self.__parameters__.pop(key)
 
     def is_sequenced(self) -> bool:
         for v in self.values():
             if v.is_sequenced():
                 return True
+            elif v.is_config:
+                return v.value.is_sequenced()
         return False
 
     def is_equivalent(self, other) -> bool:
         for k, p in self.dict_copy(recursively=True).items():
-            pp = other.get(k)
-            if p.isConfig and not p.is_equivalent(pp):
+            pp = other.get_param(k)
+            if p.is_config and not p.is_equivalent(pp):
                 return False
             elif p.is_unique() and p.value != pp.value:
                 return False
@@ -68,15 +93,15 @@ class Config:
 
     def is_subconfig(self, other) -> bool:
         for k, p in self.dict_copy(recursively=True).items():
-            pp = other.get(k)
-            if p.isConfig and not p.value.is_subconfig(pp.value):
+            pp = other.get_param(k)
+            if p.is_config and not p.value.is_subconfig(pp.value):
                 return False
-            elif not p.isConfig and not p.is_unique() and p.is_sequenced():
+            elif not p.is_config and not p.is_unique() and p.is_sequenced():
                 if not pp.is_sequenced() and pp.value not in p.value:
                     return False
                 elif pp.is_sequenced() and not set(p.value).issubset(set(pp.value)):
                     return False
-            elif not p.isConfig and not p.is_sequenced() and p.value != pp.value:
+            elif not p.is_config and not p.is_sequenced() and p.value != pp.value:
                 return False
         return True
 
@@ -84,7 +109,7 @@ class Config:
         s = self.__class__.__name__
         s += "("
         for k, v in self.items():
-            if v.isConfig:
+            if v.is_config:
                 s += f"{k} = `{v.value.name}`, "
             else:
                 s += f"{k} = `{v.value}`, "
@@ -119,8 +144,8 @@ class Config:
             if default is None:
                 default = Config()
             return default
-        elif self.__parameters__[key].isConfig and len(path) > 1:
-            return self.__parameters__[key].value.get(
+        elif self.__parameters__[key].is_config and len(path) > 1:
+            return self.__parameters__[key].value.get_param(
                 self.separator.join(path[1:]), default=default
             )
         else:
@@ -132,7 +157,7 @@ class Config:
     def set_value(self, key: str, value: Any):
         path = key.split(self.separator)
         key = path[0]
-        if self.__parameters__[key].isConfig and len(path) > 1:
+        if self.__parameters__[key].is_config and len(path) > 1:
             self.__parameters__[key].value.set_value(
                 self.separator.join(path[1:]), value
             )
@@ -144,7 +169,7 @@ class Config:
 
         for k, v in self.items():
             copy[prefix + k] = v
-            if v.isConfig and recursively:
+            if v.is_config and recursively:
                 copy.update(
                     v.value.dict_copy(
                         recursively=recursively,
@@ -156,34 +181,86 @@ class Config:
     def copy(self):
         return Config(**self.dict_copy())
 
-    def format(self, prefix: str = "") -> str:
-        s = f"{prefix + self.__class__.__name__}(`{self.name}`): \n"
+    def format(
+        self, prefix: str = "", endline="\n", suffix="end\n", forbid: list = None
+    ) -> str:
+        s = f"{prefix + self.__class__.__name__}(name=`{self.name}`): \n"
+
+        forbid = ["name"] if forbid is None else forbid
         for k, v in self.items():
-            if v.isConfig:
-                v_format = v.value.format(prefix=prefix + "|\t ")
-                v_format = v_format.split(":")[1:]
-                v_string = "".join(v_format)
-                s += f"{prefix}|\t {v.name}(`{v.value.name}`):{v_string}\n"
+            if k in forbid:
+                continue
+            elif v.is_config and v.is_sequenced():
+                s += f"{prefix}|\t {v.name}(["
+                for i, c in enumerate(v.value):
+                    s += f"name=`{c.name}`, "
+                s = s[:-2] + f"]):{endline}"
+
+                for i, c in enumerate(v.value):
+                    ss = c.format(
+                        prefix=prefix + f"|\t",
+                        endline=endline,
+                        suffix=None,
+                    )
+                    ss = ss.split(":")[1:]
+                    ss = "".join(ss)[2:]
+                    ss = ss.split(endline)[:-1]
+                    for i, _ in enumerate(ss):
+                        ss[i] += f"\t (name=`{c.name}`)"
+                    s += endline.join(ss) + endline
+            elif v.is_config:
+                format = v.value.format(prefix=prefix + "|\t ")
+                format = format.split(":")[1:]
+                format = "".join(format)[:-1]
+                name = f"{v.name}(name=`{v.value.name}`)"
+                s += f"{prefix}|\t {name}:{format}{endline}"
+            elif v.is_config and v.is_sequenced():
+                s += format_subconfig(v, v.value)
+
             else:
-                s += f"{prefix}|\t {v.name} = `{v.value}`\n"
-        s += f"{prefix}end"
+                s += f"{prefix}|\t {v.name} = `{v.value}`{endline}"
+        if suffix is not None:
+            s += f"{prefix}{suffix}"
         return s
 
     def generate_sequence(self) -> typing.Generator:
         keys_to_scan = []
         values_to_scan = []
+
         for k, v in self.items():
-            if v.isConfig and v.value.is_sequenced():
-                keys_to_scan.append(k)
-                values_to_scan.append(v.value.generate_sequence())
-            elif v.is_sequenced():
+            if v.is_sequenced():
                 keys_to_scan.append(k)
                 values_to_scan.append(v.generate_sequence())
+            elif v.is_config and v.value.is_sequenced():
+                keys_to_scan.append(k)
+                values_to_scan.append(v.value.generate_sequence())
+
+        if len(values_to_scan) == 0:
+            yield self
+
         for values in itertools.product(*values_to_scan):
             config = self.copy()
+
+            name = config.name
             for k, v in zip(keys_to_scan, values):
                 config.set_value(k, v)
-            yield config
+                if issubclass(type(v), Config):
+                    name += self.separator + v.name
+            if config.is_sequenced():
+                for c in config.generate_sequence():
+                    c.set_value("name", name)
+                    yield c
+            else:
+                config.set_value("name", name)
+                yield config
+        return
+
+    @property
+    def names(self):
+        names = set()
+        for c in self.generate_sequence():
+            names.add(c.name)
+        return names
 
     def merge(self, other):
         raise NotImplementedError()

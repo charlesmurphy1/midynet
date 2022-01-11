@@ -1,4 +1,5 @@
 import midynet as md
+import typing
 import unittest
 
 from midynet.config import *
@@ -16,17 +17,18 @@ class TestConfig(unittest.TestCase):
         self.r_config = md.config.Config(config=self.config, other=self.x)
 
     def test_keys(self):
-        self.assertEqual(list(self.config.keys()), ["x", "y", "z", "w"])
+        for k in self.config.keys():
+            self.assertIn(k, ["name", "x", "y", "z", "w"])
 
     def test_values(self):
         numberOfElements = 0
         for v in self.config.values():
             self.assertTrue(isinstance(v, Parameter))
             numberOfElements += 1
-        self.assertEqual(numberOfElements, 4)
+        self.assertEqual(numberOfElements, 5)
 
     def test_getitem(self):
-        for k in self.config.keys():
+        for k in ["x", "y", "z", "w"]:
             self.assertTrue(isinstance(self.config[k], Parameter))
             self.assertEqual(self.config[k].value, getattr(self, k))
 
@@ -35,21 +37,26 @@ class TestConfig(unittest.TestCase):
             self.assertIn(k, self.config)
 
     def test_get_recursively(self):
-        self.assertEqual(self.config.get("x"), self.r_config.get("config/x"))
+        self.assertEqual(
+            self.config.get_param("x"),
+            self.r_config.get_param(f"config{Config.separator}x"),
+        )
 
     def test_dictcopy_recursively(self):
-        self.assertEqual(len(self.r_config.dict_copy(recursively=True)), 6)
+        self.assertEqual(len(self.r_config.dict_copy(recursively=True)), 8)
         for expected in [
+            "name",
             "config",
-            "config/x",
-            "config/y",
-            "config/z",
-            "config/w",
+            f"config{Config.separator}name",
+            f"config{Config.separator}x",
+            f"config{Config.separator}y",
+            f"config{Config.separator}z",
+            f"config{Config.separator}w",
             "other",
         ]:
             self.assertIn(expected, self.r_config.dict_copy(recursively=True))
 
-    def test_show(self):
+    def test_format(self):
         if self.display:
             print()
             print(self.r_config.format())
@@ -58,7 +65,7 @@ class TestConfig(unittest.TestCase):
         counter = 0
         for c in self.config.generate_sequence():
             counter += 1
-            self.assertFalse(c.has_sequence())
+            self.assertFalse(c.is_sequenced())
             if self.display:
                 print()
                 print(c.format())
@@ -68,11 +75,32 @@ class TestConfig(unittest.TestCase):
         counter = 0
         for c in self.r_config.generate_sequence():
             counter += 1
-            self.assertFalse(c.has_sequence())
+            self.assertFalse(c.is_sequenced())
             if self.display:
                 print()
                 print(c.format())
         self.assertEqual(counter, len(self.z))
+
+    def test_generate_sequence_with_muliple_subconfigs(self):
+        c = config.Config(
+            name="test",
+            x=[
+                config.Config(name="x_a", a=[1, 2, 3]),
+                config.Config(name="x_b", b=2),
+            ],
+            y=[-1, 0, 1],
+        )
+        counter = 0
+        names = set()
+        for cc in c.generate_sequence():
+            counter += 1
+            names.add(cc.name)
+            if self.display:
+                print()
+                print(cc.format())
+
+        self.assertEqual(counter, 12)
+        self.assertEqual(names, c.names)
 
     def test_is_equivalent(self):
         self.assertTrue(self.config.is_equivalent(self.r_config["config"].value))

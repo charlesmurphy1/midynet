@@ -33,13 +33,13 @@ class Parameter:
         return self.unique
 
     def infer_type(self, value: typing.Any):
-        if self.force_non_sequence:
+        if self.force_non_sequence or isinstance(value, str):
             return type(value)
         if isinstance(value, dict):
             message = "invalid value type `dict`."
             raise TypeError(message)
         if issubclass(type(value), typing.Iterable):
-            return self.infer_type(next(value.__iter__()))
+            return self.infer_type(next(iter(value)))
         return type(value)
 
     def generate_sequence(self):
