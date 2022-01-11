@@ -65,13 +65,13 @@ class TestMetricsBaseClass(unittest.TestCase):
                 self.assertTrue(np.all(value == np.pi))
 
     def test_save(self):
-        pass
+        self.metrics.compute(self.experiment)
+        self.metrics.save()
 
     def test_load(self):
-        pass
-
-    def test_read_h5_recursively(self):
-        pass
+        self.metrics.compute(self.experiment)
+        self.metrics.save()
+        self.metrics.load("metrics.pickle")
 
 
 if __name__ == "__main__":

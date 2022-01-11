@@ -1,6 +1,8 @@
 import h5py
 import numpy as np
 import typing
+import pathlib
+import pickle
 from collections import defaultdict
 from dataclasses import dataclass, field
 
@@ -67,7 +69,9 @@ class Metrics:
                     formatted_data[name][key][tuple(index)] = value[i]
         return formatted_data
 
-    def unformat_data(self, data):
+    def unformat_data(
+        self, data: typing.Dict[str, typing.Dict[str, np.array]]
+    ) -> typing.Dict[str, typing.Dict[str, np.array]]:
         unformatted_data = {}
         for name, data_in_name in data.items():
             unformatted_data[name] = {}
@@ -86,43 +90,15 @@ class Metrics:
                     unformatted_data[name][key][i] = values[tuple(index)]
         return unformatted_data
 
-    def save(self, h5file, name=None):
-        if not isinstance(h5file, (h5py.File, h5py.Group)):
-            raise ValueError("Dataset file format must be HDF5.")
+    def save(self, path: pathlib.Path = "metrics.pickle"):
+        path = pathlib.Path(path) if isinstance(path, str) else path
+        with path.open("wb") as f:
+            pickle.dump(self.data, f)
 
-        for name, data in self.data.items():
-            for k, v in data.items():
-                path = name + "/" + str(k)
-                if path in h5file:
-                    del h5file[path]
-                h5file.create_dataset(path, data=v)
-
-    def load(self, h5file, name=None):
-        if not isinstance(h5file, (h5py.File, h5py.Group)):
-            raise ValueError("Dataset file format must be HDF5.")
-
-        name = name or self.__class__.__name__
-
-        if name in h5file:
-            self.data = self.read_h5_recursively(h5file[name])
-
-    def read_h5_recursively(self, h5file, prefix=""):
-        h5_dict = {}
-        for key in h5file:
-            item = h5file[key]
-            if prefix == "":
-                path = f"{key}"
-            else:
-                path = f"{prefix}/{key}"
-
-            if isinstance(item, h5py.Dataset):
-                h5_dict[path] = item[...]
-            elif isinstance(item, h5py.Group):
-                d = self.read_h5_recursively(item, path)
-                h5_dict.update(d)
-            else:
-                raise ValueError()
-        return h5_dict
+    def load(self, path: pathlib.Path):
+        path = pathlib.Path(path) if isinstance(path, str) else path
+        with path.open("rb") as f:
+            self.data = pickle.load(f)
 
 
 class CustomMetrics(Metrics):
