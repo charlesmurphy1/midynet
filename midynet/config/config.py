@@ -342,33 +342,3 @@ class Config:
 
 if __name__ == "__main__":
     pass
-
-
-# class ConfigArray:
-#
-#     def merge(self, config):
-#         assert issubclass(
-#             config.__class__, (Config, ConfigArray)
-#         ), f"Invalid object {config.__class__} for other."
-#         new_config = self.config.copy()
-#         for k, v in self.state_dict.items():
-#             if k not in config.state_dict:
-#                 continue
-#             vv = config.state_dict[k]
-#             if isinstance(v, (list, tuple)):
-#                 if not isinstance(vv, (list, tuple)):
-#                     vv = [vv]
-#                 new_config[k] = tuple(dict.fromkeys(list(v) + list(vv)))
-#             elif v != vv:
-#                 new_config[k] = (v, vv)
-#             if isinstance(new_config[k], tuple):
-#                 if k in self.labels_to_scan:
-#                     new_config[k] = list(sorted(new_config[k]))
-#                 else:
-#                     new_config[k] = tuple(sorted(new_config[k]))
-#         self.config = new_config
-#
-#     def batch(self, size):
-#         l = len(self)
-#         for i in range(0, l, size):
-#             yield self[i : min(i + size, l)]
