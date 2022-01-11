@@ -324,12 +324,17 @@ class Config:
                 else:
                     v.add_values(other.get_value(k))
 
-    def save(self, path: pathlib.Path):
+    def save(
+        self, path: typing.Union[str, pathlib.Path] = "config.pickle"
+    ) -> pathlib.Path:
+        path = pathlib.Path(path) if path is str else path
         with path.open(mode="wb") as f:
             pickle.dump(self, f)
+        return path
 
     @staticmethod
-    def load(path: pathlib.Path):
+    def load(path: typing.Union[str, pathlib.Path] = "config.pickle"):
+        path = pathlib.Path(path) if path is str else path
         with path.open(mode="rb") as f:
             config = pickle.load(f)
         return config
