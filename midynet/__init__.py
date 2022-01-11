@@ -3,6 +3,7 @@ import _midynet
 
 _midynet.utility.seedWithTime()
 
+import midynet.util
 import midynet.config
 import midynet.metrics
 import midynet.experiments

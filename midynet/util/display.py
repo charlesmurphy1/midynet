@@ -1,11 +1,10 @@
 import h5py
+
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 from palettable.palette import Palette
-from matplotlib.lines import Line2D
-from matplotlib.legend_handler import HandlerTuple
 from cycler import cycler
 
 
@@ -59,8 +58,8 @@ for i, k in enumerate(["light", "med", "dark"]):
         rgb_colors["blue"][i],
         rgb_colors["green"][i],
     ]
-    palettes[k] = Palette(k, "diverging", cm)
-    palettes[k] = Palette("inv_" + k, "diverging", cm[::-1])
+    # palettes[k] = Palette(k, "diverging", cm)
+    # palettes[k] = Palette("inv_" + k, "diverging", cm[::-1])
 
 markers = ["o", "s", "v", "^", "*", "d"]
 linestyles = [
@@ -86,7 +85,7 @@ plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
 plt.rc("axes", prop_cycle=cycle)
 
 
-def label_plot(ax, label, loc="center center", fontsize=large_fontsize, box=None):
+def label_plot(ax, label, loc="center center", fontsize=18, box=None):
     if isinstance(loc, tuple):
         h, v, va, ha = loc
     elif isinstance(loc, str):
@@ -107,7 +106,11 @@ def label_plot(ax, label, loc="center center", fontsize=large_fontsize, box=None
     )
 
 
-if __name__ == "__main__":
+def main():
     for k, p in palettes.items():
         p.save_discrete_image("discrete-palettes/" + p.name + ".png")
         p.save_continuous_image("continuous-palettes/" + p.name + ".png")
+
+
+if __name__ == "__main__":
+    main()

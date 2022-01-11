@@ -45,7 +45,7 @@ class Config:
         return str(self)
 
     def __contains__(self, key) -> bool:
-        return key in self.keys()
+        return key in self.keys(recursively=True)
 
     def __getattr__(self, key):
         if key == "__parameters__" and key not in self.__dict__:
@@ -56,7 +56,7 @@ class Config:
         elif key in self.__dict__:
             return getattr(self, key)
         else:
-            message = f"This config has no attribute `{key}`"
+            message = f"Config named `{self.name}` has no attribute `{key}`"
             raise AttributeError(message)
 
     def __getitem__(self, key: str) -> Parameter:
@@ -64,6 +64,9 @@ class Config:
             message = f"key `{key}` has not been found."
             raise LookupError(message)
         return self.get_param(key)
+
+    def __len__(self):
+        return self.sequence_size
 
     @classmethod
     def __auto__(cls, args):
@@ -180,7 +183,7 @@ class Config:
             return self.__parameters__[key]
 
     def get_value(self, key: str, default: Any = None):
-        return self.get_param(key).value
+        return self.get_param(key).value if key in self else default
 
     def set_value(self, key: str, value: Any):
         path = key.split(self.separator)
@@ -197,18 +200,29 @@ class Config:
         copy = {}
 
         for k, v in self.items():
-            copy[prefix + k] = v
+            copy[f"{prefix}{k}"] = v
             if v.is_config and recursively:
-                copy.update(
-                    v.value.dict_copy(
-                        recursively=recursively,
-                        prefix=prefix + k + self.separator,
+                if v.is_sequenced():
+                    for vv in v.value:
+                        copy[f"{prefix}{k}{self.separator}{vv.name}"] = vv
+                        copy.update(
+                            vv.dict_copy(
+                                recursively=recursively,
+                                prefix=f"{prefix}{k}{self.separator}{vv.name}{self.separator}",
+                            )
+                        )
+                else:
+                    copy.update(
+                        v.value.dict_copy(
+                            recursively=recursively,
+                            prefix=f"{prefix}{k}{self.separator}",
+                        )
                     )
-                )
+
         return copy
 
     def copy(self):
-        return Config(**self.dict_copy())
+        return self.__class__(**self.dict_copy())
 
     def format(
         self, prefix: str = "", endline="\n", suffix="end\n", forbid: list = None
@@ -252,8 +266,9 @@ class Config:
             s += f"{prefix}{suffix}"
         return s
 
-    def generate_sequence(self) -> typing.Generator:
+    def generate_sequence(self, only: str = None) -> typing.Generator:
         keys_to_scan = []
+        _keys_to_scan = []
         values_to_scan = []
 
         for k, v in self.items():
@@ -263,25 +278,25 @@ class Config:
             elif v.is_config and v.value.is_sequenced():
                 keys_to_scan.append(k)
                 values_to_scan.append(v.value.generate_sequence())
-
         if len(values_to_scan) == 0:
-            return [self]
-
-        for values in itertools.product(*values_to_scan):
-            config = self.copy()
-
-            name = config.name
-            for k, v in zip(keys_to_scan, values):
-                config.set_value(k, v)
-                if issubclass(type(v), Config):
-                    name += self.separator + v.name
-            if config.is_sequenced():
-                for c in config.generate_sequence():
-                    c.set_value("name", name)
-                    yield c
-            else:
-                config.set_value("name", name)
-                yield config
+            yield self
+        else:
+            for values in itertools.product(*values_to_scan):
+                config = self.copy()
+                name = config.name
+                for k, v in zip(keys_to_scan, values):
+                    config.set_value(k, v)
+                    if issubclass(type(v), Config) and self.get_param(k).is_sequenced():
+                        name += self.separator + v.name
+                if config.is_sequenced():
+                    for c in config.generate_sequence():
+                        if only is None or name == only:
+                            c.set_value("name", name)
+                            yield c
+                else:
+                    config.set_value("name", name)
+                    if only is None or name == only:
+                        yield config
 
     @property
     def names(self):
@@ -327,6 +342,17 @@ class Config:
         if self.__sequence_size__ is None:
             self.__sequence_size__ = sum(1 for _ in self.generate_sequence())
         return self.__sequence_size__
+
+    def regroup_by_name(self, name=None):
+        if name is None:
+            name = self.names
+        elif isinstance(name, str):
+            name = [name]
+
+        config = defaultdict(list)
+        for c in self.generate_sequence():
+            config[c.name].append(c)
+        return dict(config)
 
     def merge(self, other):
         for k, v in self.items():
