@@ -1,5 +1,6 @@
 import itertools
 import pathlib
+import pickle
 import typing
 
 from typing import Any, Callable
@@ -62,10 +63,13 @@ class Config:
         return key in self.keys()
 
     def __getattr__(self, key):
-        if key in self.__dict__:
-            return self.__dict__[key]
-        elif key in self.__parameters__:
+        if key == "__parameters__" and key not in self.__dict__:
+            self.__dict__[key] = {}
+
+        if key in getattr(self, "__parameters__"):
             return self.get_value(key)
+        elif key in self.__dict__:
+            return getattr(self, key)
         else:
             message = f"This config has no attribute `{key}`"
             raise AttributeError(message)
@@ -135,13 +139,8 @@ class Config:
     def is_equivalent(self, other) -> bool:
         if not issubclass(type(other), Config):
             return False
-        for k, p in self.dict_copy(recursively=True).items():
-            pp = other.get_param(k)
-            if p.is_config and not p.is_equivalent(pp):
-                return False
-            elif p.is_unique() and p.value != pp.value:
-                return False
-        return True
+
+        return self.format() == other.format()
 
     def unmet_requirements(self):
         return self.requirements.difference(set(self.keys()))
@@ -326,11 +325,14 @@ class Config:
                     v.add_values(other.get_value(k))
 
     def save(self, path: pathlib.Path):
-        raise NotImplementedError()
+        with path.open(mode="wb") as f:
+            pickle.dump(self, f)
 
     @staticmethod
     def load(path: pathlib.Path):
-        raise NotImplementedError()
+        with path.open(mode="rb") as f:
+            config = pickle.load(f)
+        return config
 
 
 if __name__ == "__main__":

@@ -150,16 +150,19 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(c2.x, {3, 4})
         self.assertEqual(c2.y, 5)
 
-        # with self.assertRaises(NotImplementedError):
-        #     self.config.merge(None)
-
     def test_save(self):
-        with self.assertRaises(NotImplementedError):
-            self.config.save(None)
+        path = pathlib.Path("./test_config.pickle")
+        self.config.save(path)
+        self.assertTrue(path.exists())
+        path.unlink()
+        self.assertFalse(path.exists())
 
     def test_load(self):
-        with self.assertRaises(NotImplementedError):
-            Config.load(None)
+        path = pathlib.Path("./test_config.pickle")
+        self.m_config.save(path)
+        c = Config.load(path)
+        self.assertTrue(self.m_config.is_equivalent(c))
+        path.unlink()
 
 
 if __name__ == "__main__":
