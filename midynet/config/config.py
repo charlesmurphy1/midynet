@@ -18,31 +18,63 @@ class Config:
 
     def __init__(self, **kwargs):
         self.__parameters__ = {}
+        self.__names__ = None
+        self.__scanned_keys__ = None
+        self.__scanned_values__ = None
         if "name" not in kwargs:
             kwargs["name"] = "config"
         for k, v in kwargs.items():
             self.insert(k, v, unique=k in self.unique_parameters)
 
     @classmethod
-    def auto(cls, config):
+    def __auto__(cls, args):
         """ Automatic construction method. """
-        if config in cls.__dict__ and isinstance(getattr(cls, config), Callable):
-            return getattr(cls, config)()
-        elif isinstance(config, cls):
-            return config
-        elif isinstance(config, typing.Iterable):
-            config_list = []
-            for c in config:
-                if isinstance(c, typing.Iterable):
-                    message = (
-                        "Elements of `config_list` must not be iterable themselves."
-                    )
-                    raise ValueError(message)
-                config_list.append(cls.auto(c))
-            return config_list
+        if args in cls.__dict__ and isinstance(getattr(cls, args), Callable):
+            return getattr(cls, args)()
+        elif isinstance(args, cls):
+            return args
         else:
-            message = f"Invalid type `{type(config)}` for auto build of object `{cls.__name__}`."
+            message = f"Invalid type `{type(args)}` for auto build of object `{cls.__name__}`."
             raise TypeError(message)
+
+    @classmethod
+    def auto(cls, args):
+        if not isinstance(args, typing.Iterable) or isinstance(args, str):
+            return cls.__auto__(args)
+        else:
+            return [cls.__auto__(a) for a in args]
+
+    def __str__(self) -> str:
+        s = self.__class__.__name__
+        s += "("
+        for k, v in self.items():
+            if v.is_config:
+                s += f"{k} = `{v.value.name}`, "
+            else:
+                s += f"{k} = `{v.value}`, "
+        s = s[:-2] + ")" if s[-2:] == ", " else s + ")"
+        return s
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __contains__(self, key) -> bool:
+        return key in self.keys()
+
+    def __getattr__(self, key):
+        if key in self.__dict__:
+            return self.__dict__[key]
+        elif key in self.__parameters__:
+            return self.get_value(key)
+        else:
+            message = f"This config has no attribute `{key}`"
+            raise AttributeError(message)
+
+    def __getitem__(self, key: str) -> Parameter:
+        if key not in self:
+            message = f"key `{key}` has not been found."
+            raise LookupError(message)
+        return self.get_param(key)
 
     def keys(self, recursively: bool = False) -> typing.KeysView:
         """ Keys of the parameters. """
@@ -62,6 +94,11 @@ class Config:
             return self.dict_copy(recursively=True).items()
         return self.__parameters__.items()
 
+    def reset_buffer(self):
+        self.__names__ = None
+        self.__scanned_keys__ = None
+        self.__scanned_values__ = None
+
     def insert(
         self,
         key: str,
@@ -76,10 +113,12 @@ class Config:
         )
         self.__parameters__[key] = p
         self.__parameters__[key].is_config = issubclass(p.datatype, Config)
+        self.reset_buffer()
 
     def erase(self, key: str):
         """ Erase existing parameters. """
         self.__parameters__.pop(key)
+        self.reset_buffer()
 
     def is_sequenced(self) -> bool:
         for v in self.values():
@@ -115,38 +154,6 @@ class Config:
                 return False
         return True
 
-    def __str__(self) -> str:
-        s = self.__class__.__name__
-        s += "("
-        for k, v in self.items():
-            if v.is_config:
-                s += f"{k} = `{v.value.name}`, "
-            else:
-                s += f"{k} = `{v.value}`, "
-        s = s[:-2] + ")" if s[-2:] == ", " else s + ")"
-        return s
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __contains__(self, key) -> bool:
-        return key in self.keys()
-
-    def __getattr__(self, key):
-        if key in self.__dict__:
-            return self.__dict__[key]
-        elif key in self.__parameters__:
-            return self.get_value(key)
-        else:
-            message = f"This config has no attribute `{key}`"
-            raise AttributeError(message)
-
-    def __getitem__(self, key: str) -> Parameter:
-        if key not in self:
-            message = f"key `{key}` has not been found."
-            raise LookupError(message)
-        return self.get_param(key)
-
     def get_param(self, key: str, default: Any = None) -> Parameter:
         path = key.split(self.separator)
         key = path[0]
@@ -173,6 +180,7 @@ class Config:
             )
         else:
             self.__parameters__[key].set_value(value)
+        self.reset_buffer()
 
     def dict_copy(self, recursively=False, prefix="") -> typing.Dict[str, Parameter]:
         copy = {}
@@ -267,34 +275,39 @@ class Config:
 
     @property
     def names(self):
-        names = set()
-        for c in self.generate_sequence():
-            names.add(c.name)
-        return names
+        if self.__names__ is None:
+            self.__names__ = set()
+            for c in self.generate_sequence():
+                self.__names__.add(c.name)
+        return self.__names__
 
     @property
-    def scanned_keys(self):
-        counter = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-        for c in self.generate_sequence():
-            for k, v in c.items(recursively=True):
-                if not v.unique and not v.is_config:
-                    counter[c.name][k][v.value] += 1
-        keys = defaultdict(lambda: list())
-        for name, counter_dict in counter.items():
-            for k, c in counter_dict.items():
-                if len(c) > 1:
-                    keys[name].append(k)
-        return dict(keys)
+    def scanned_keys(self) -> typing.Dict[str, list]:
+        if self.__scanned_keys__ is None:
+            counter = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+            for c in self.generate_sequence():
+                for k, v in c.items(recursively=True):
+                    if not v.unique and not v.is_config:
+                        counter[c.name][k][v.value] += 1
+            keys = defaultdict(lambda: list())
+            for name, counter_dict in counter.items():
+                for k, c in counter_dict.items():
+                    if len(c) > 1:
+                        keys[name].append(k)
+            self.__scanned_keys__ = dict(keys)
+        return self.__scanned_keys__
 
     @property
-    def scanned_values(self):
-        values = defaultdict(lambda: defaultdict(lambda: list()))
-        keys = self.scanned_keys
-        for c in self.generate_sequence():
-            for k in keys[c.name]:
-                if c.get_value(k) not in values[c.name][k]:
-                    values[c.name][k].append(c.get_value(k))
-        return dict({k: dict(v) for k, v in values.items()})
+    def scanned_values(self) -> typing.Dict[str, typing.Dict[str, list]]:
+        if self.__scanned_values__ is None:
+            values = defaultdict(lambda: defaultdict(lambda: list()))
+            keys = self.scanned_keys
+            for c in self.generate_sequence():
+                for k in keys[c.name]:
+                    if c.get_value(k) not in values[c.name][k]:
+                        values[c.name][k].append(c.get_value(k))
+            self.__scanned_values__ = dict({k: dict(v) for k, v in values.items()})
+        return self.__scanned_values__
 
     def merge(self, other):
         raise NotImplementedError()
