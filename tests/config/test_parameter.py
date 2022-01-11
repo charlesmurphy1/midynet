@@ -28,9 +28,9 @@ class TestParameter(unittest.TestCase):
         p = config.Parameter(name=self.name, value=self.list_int_value)
         self.assertEqual(p[0], self.list_int_value[0])
 
-    def test_set(self):
+    def test_set_value(self):
         p = config.Parameter(name=self.name, value=self.int_value)
-        p.set(2.5)
+        p.set_value(2.5)
         self.assertTrue(p.datatype, float)
         self.assertEqual(p.value, 2.5)
 
@@ -65,6 +65,39 @@ class TestParameter(unittest.TestCase):
         p = config.Parameter(name=self.name, value=self.list_int_value)
         for pp, x in zip(p.generate_sequence(), self.list_int_value):
             self.assertEqual(pp, x)
+
+    def test_add_value_to_nonsequenced_parameter(self):
+        p = config.Parameter(name="x", value=1)
+        self.assertFalse(p.is_sequenced())
+
+        p.add_value(2)
+        self.assertEqual(p.value, {1, 2})
+        self.assertTrue(p.is_sequenced())
+
+    def test_add_value_to_sequenced_parameter(self):
+        p = config.Parameter(name="x", value={1.1, 2})
+        self.assertTrue(p.is_sequenced())
+
+        p.add_value(2)
+        self.assertEqual(p.value, {1.1, 2})
+
+        p.add_value(3)
+        self.assertEqual(p.value, {1.1, 2, 3})
+
+    def test_add_values_to_nonsequenced_parameter(self):
+        p = config.Parameter(name="x", value=1.1)
+        self.assertFalse(p.is_sequenced())
+
+        p.add_values({2, 3})
+        self.assertEqual(p.value, {1.1, 2, 3})
+        self.assertTrue(p.is_sequenced())
+
+    def test_add_values_to_sequenced_parameter(self):
+        p = config.Parameter(name="x", value={1.1, 2})
+        self.assertTrue(p.is_sequenced())
+
+        p.add_values({2, 3})
+        self.assertEqual(p.value, {1.1, 2, 3})
 
     # def infer_type(self, value: typing.Any):
     #

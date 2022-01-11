@@ -104,14 +104,12 @@ class TestConfig(unittest.TestCase):
 
     def test_is_equivalent(self):
         self.assertTrue(self.config.is_equivalent(self.r_config["config"].value))
-        self.assertTrue(self.config == self.config)
 
     def test_is_subconfig(self):
         config = Config(x=self.x, y=self.y, z=self.z[0], w=self.w)
         r_config = Config(config=config, other=self.x)
         self.assertTrue(self.config.is_subconfig(config))
         self.assertTrue(self.r_config.is_subconfig(r_config))
-        self.assertTrue(self.r_config >= r_config)
 
         config = Config(x=self.x, y=self.y, z=-1, w=self.w)
         r_config = Config(config=config, other=self.x)
@@ -125,6 +123,43 @@ class TestConfig(unittest.TestCase):
     def test_scanned_values(self):
         if self.display:
             print(self.m_config.scanned_values)
+
+    def test_merge_nonsequence_configs(self):
+        c1 = Config(name="c1", x=1, y=4)
+        c2 = Config(name="c2", x=2, y=4)
+        c1.merge(c2)
+
+        self.assertEqual(c1.name, "c1")
+        self.assertEqual(c1.x, {1, 2})
+        self.assertEqual(c1.y, 4)
+
+        self.assertEqual(c2.name, "c2")
+        self.assertEqual(c2.x, 2)
+        self.assertEqual(c2.y, 4)
+
+    def test_merge_sequence_configs(self):
+        c1 = Config(name="c1", x={1, 2}, y=4)
+        c2 = Config(name="c2", x={3, 4}, y=5)
+        c1.merge(c2)
+
+        self.assertEqual(c1.name, "c1")
+        self.assertEqual(c1.x, {1, 2, 3, 4})
+        self.assertEqual(c1.y, {4, 5})
+
+        self.assertEqual(c2.name, "c2")
+        self.assertEqual(c2.x, {3, 4})
+        self.assertEqual(c2.y, 5)
+
+        # with self.assertRaises(NotImplementedError):
+        #     self.config.merge(None)
+
+    def test_save(self):
+        with self.assertRaises(NotImplementedError):
+            self.config.save(None)
+
+    def test_load(self):
+        with self.assertRaises(NotImplementedError):
+            Config.load(None)
 
 
 if __name__ == "__main__":

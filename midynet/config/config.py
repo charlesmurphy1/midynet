@@ -76,12 +76,6 @@ class Config:
             raise LookupError(message)
         return self.get_param(key)
 
-    def __eq__(self, other):
-        return self.is_equivalent(other)
-
-    def __ge__(self, other):
-        return self.is_subconfig(other)
-
     def keys(self, recursively: bool = False) -> typing.KeysView:
         """ Keys of the parameters. """
         if recursively:
@@ -110,6 +104,7 @@ class Config:
         key: str,
         value: Any,
         unique: bool = False,
+        with_repetition: bool = False,
         force_non_sequence: bool = False,
     ):
         """ Insert new parameters. """
@@ -119,6 +114,9 @@ class Config:
         )
         self.__parameters__[key] = p
         self.__parameters__[key].is_config = issubclass(p.datatype, Config)
+        self.__parameters__[key].with_repetition = (
+            self.__parameters__[key].is_config or with_repetition
+        )
         self.reset_buffer()
 
     def erase(self, key: str):
@@ -135,6 +133,8 @@ class Config:
         return False
 
     def is_equivalent(self, other) -> bool:
+        if not issubclass(type(other), Config):
+            return False
         for k, p in self.dict_copy(recursively=True).items():
             pp = other.get_param(k)
             if p.is_config and not p.is_equivalent(pp):
@@ -147,6 +147,8 @@ class Config:
         return self.requirements.difference(set(self.keys()))
 
     def is_subconfig(self, other) -> bool:
+        if not issubclass(type(other), Config):
+            return False
         for k, p in self.dict_copy(recursively=True).items():
             pp = other.get_param(k)
             if p.is_config and not p.value.is_subconfig(pp.value):
@@ -316,8 +318,12 @@ class Config:
         return self.__scanned_values__
 
     def merge(self, other):
-        for k, v in other.items():
-            pass
+        for k, v in self.items():
+            if not v.unique:
+                if v.is_config:
+                    v.merge(other.get_value(k))
+                else:
+                    v.add_values(other.get_value(k))
 
     def save(self, path: pathlib.Path):
         raise NotImplementedError()

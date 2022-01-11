@@ -5,13 +5,22 @@ from dataclasses import dataclass, field
 @dataclass(order=True)
 class Parameter:
     name: str
-    value: typing.Any = None
+    value: typing.Union[typing.Any, set] = None
     unique: bool = field(repr=False, default=False)
+    with_repetition: bool = field(repr=False, default=False)
     force_non_sequence: bool = field(repr=False, default=False)
 
     @property
     def datatype(self) -> typing.Any:
         return self.infer_type(self.value)
+
+    def get_sequence(self, values):
+        if not issubclass(type(values), typing.Iterable) or isinstance(values, str):
+            values = [values]
+        if self.with_repetition:
+            return list(values)
+        else:
+            return set(values)
 
     def __getitem__(self, key):
         if not self.is_sequenced():
@@ -21,6 +30,20 @@ class Parameter:
 
     def set_value(self, value):
         self.value = value.value if issubclass(type(value), Parameter) else value
+
+    def add_value(self, value):
+        if issubclass(type(self.value), typing.Iterable):
+            self.value = self.get_sequence(list(self.value) + [value])
+        else:
+            self.value = self.get_sequence([self.value, value])
+
+        if len(self.value) == 1:
+            self.value = next(iter(self.value))
+
+    def add_values(self, values):
+        values = self.get_sequence(values)
+        for v in values:
+            self.add_value(v)
 
     def is_sequenced(self):
         return (
