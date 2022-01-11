@@ -1,5 +1,6 @@
 import numpy as np
 import unittest
+import pathlib
 from dataclasses import dataclass, field
 
 import midynet
@@ -67,11 +68,13 @@ class TestMetricsBaseClass(unittest.TestCase):
     def test_save(self):
         self.metrics.compute(self.experiment)
         self.metrics.save()
+        pathlib.Path("metrics.pickle").unlink()
 
     def test_load(self):
         self.metrics.compute(self.experiment)
         self.metrics.save()
         self.metrics.load("metrics.pickle")
+        pathlib.Path("metrics.pickle").unlink()
 
 
 if __name__ == "__main__":
