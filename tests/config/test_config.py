@@ -104,12 +104,14 @@ class TestConfig(unittest.TestCase):
 
     def test_is_equivalent(self):
         self.assertTrue(self.config.is_equivalent(self.r_config["config"].value))
+        self.assertTrue(self.config == self.config)
 
     def test_is_subconfig(self):
         config = Config(x=self.x, y=self.y, z=self.z[0], w=self.w)
         r_config = Config(config=config, other=self.x)
         self.assertTrue(self.config.is_subconfig(config))
         self.assertTrue(self.r_config.is_subconfig(r_config))
+        self.assertTrue(self.r_config >= r_config)
 
         config = Config(x=self.x, y=self.y, z=-1, w=self.w)
         r_config = Config(config=config, other=self.x)

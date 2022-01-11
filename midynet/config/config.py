@@ -76,6 +76,12 @@ class Config:
             raise LookupError(message)
         return self.get_param(key)
 
+    def __eq__(self, other):
+        return self.is_equivalent(other)
+
+    def __ge__(self, other):
+        return self.is_subconfig(other)
+
     def keys(self, recursively: bool = False) -> typing.KeysView:
         """ Keys of the parameters. """
         if recursively:
@@ -310,7 +316,8 @@ class Config:
         return self.__scanned_values__
 
     def merge(self, other):
-        raise NotImplementedError()
+        for k, v in other.items():
+            pass
 
     def save(self, path: pathlib.Path):
         raise NotImplementedError()
