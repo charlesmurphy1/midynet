@@ -119,6 +119,9 @@ class TestConfig(unittest.TestCase):
     def test_scanned_keys(self):
         if self.display:
             print(self.m_config.scanned_keys)
+
+    def test_scanned_values(self):
+        if self.display:
             print(self.m_config.scanned_values)
 
 
