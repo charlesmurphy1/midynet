@@ -2,8 +2,9 @@ import itertools
 import pathlib
 import typing
 
-from .parameter import Parameter
 from typing import Any, Callable
+from collections import defaultdict
+from .parameter import Parameter
 
 
 class Config:
@@ -13,13 +14,14 @@ class Config:
 
     separator: str = "."
     requirements: set[str] = {"name"}
+    unique_parameters: set[str] = {"name"}
 
     def __init__(self, **kwargs):
         self.__parameters__ = {}
         if "name" not in kwargs:
             kwargs["name"] = "config"
         for k, v in kwargs.items():
-            self.insert(k, v)
+            self.insert(k, v, unique=k in self.unique_parameters)
 
     @classmethod
     def auto(cls, config):
@@ -60,10 +62,18 @@ class Config:
             return self.dict_copy(recursively=True).items()
         return self.__parameters__.items()
 
-    def insert(self, key: str, value: Any):
+    def insert(
+        self,
+        key: str,
+        value: Any,
+        unique: bool = False,
+        force_non_sequence: bool = False,
+    ):
         """ Insert new parameters. """
         value = value.value if issubclass(type(value), Parameter) else value
-        p = Parameter(name=key, value=value)
+        p = Parameter(
+            name=key, value=value, unique=unique, force_non_sequence=force_non_sequence
+        )
         self.__parameters__[key] = p
         self.__parameters__[key].is_config = issubclass(p.datatype, Config)
 
@@ -261,6 +271,30 @@ class Config:
         for c in self.generate_sequence():
             names.add(c.name)
         return names
+
+    @property
+    def scanned_keys(self):
+        counter = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+        for c in self.generate_sequence():
+            for k, v in c.items(recursively=True):
+                if not v.unique and not v.is_config:
+                    counter[c.name][k][v.value] += 1
+        keys = defaultdict(lambda: list())
+        for name, counter_dict in counter.items():
+            for k, c in counter_dict.items():
+                if len(c) > 1:
+                    keys[name].append(k)
+        return dict(keys)
+
+    @property
+    def scanned_values(self):
+        values = defaultdict(lambda: defaultdict(lambda: list()))
+        keys = self.scanned_keys
+        for c in self.generate_sequence():
+            for k in keys[c.name]:
+                if c.get_value(k) not in values[c.name][k]:
+                    values[c.name][k].append(c.get_value(k))
+        return dict({k: dict(v) for k, v in values.items()})
 
     def merge(self, other):
         raise NotImplementedError()

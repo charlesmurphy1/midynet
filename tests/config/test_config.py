@@ -16,6 +16,14 @@ class TestConfig(unittest.TestCase):
         self.config = md.config.Config(x=self.x, y=self.y, z=self.z, w=self.w)
         self.r_config = md.config.Config(config=self.config, other=self.x)
 
+        self.m_config = config.Config(
+            x=[
+                config.Config(name="x_a", a=[1, 2, 3]),
+                config.Config(name="x_b", b=2),
+            ],
+            y=[-1, 0, 1],
+        )
+
     def test_keys(self):
         for k in self.config.keys():
             self.assertIn(k, ["name", "x", "y", "z", "w"])
@@ -82,17 +90,9 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(counter, len(self.z))
 
     def test_generate_sequence_with_muliple_subconfigs(self):
-        c = config.Config(
-            name="test",
-            x=[
-                config.Config(name="x_a", a=[1, 2, 3]),
-                config.Config(name="x_b", b=2),
-            ],
-            y=[-1, 0, 1],
-        )
         counter = 0
         names = set()
-        for cc in c.generate_sequence():
+        for cc in self.m_config.generate_sequence():
             counter += 1
             names.add(cc.name)
             if self.display:
@@ -100,7 +100,7 @@ class TestConfig(unittest.TestCase):
                 print(cc.format())
 
         self.assertEqual(counter, 12)
-        self.assertEqual(names, c.names)
+        self.assertEqual(names, self.m_config.names)
 
     def test_is_equivalent(self):
         self.assertTrue(self.config.is_equivalent(self.r_config["config"].value))
@@ -115,6 +115,11 @@ class TestConfig(unittest.TestCase):
         r_config = Config(config=config, other=self.x)
         self.assertFalse(self.config.is_subconfig(config))
         self.assertFalse(self.r_config.is_subconfig(r_config))
+
+    def test_scanned_keys(self):
+        if self.display:
+            print(self.m_config.scanned_keys)
+            print(self.m_config.scanned_values)
 
 
 if __name__ == "__main__":
