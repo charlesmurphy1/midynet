@@ -56,7 +56,7 @@ class Config:
         elif key in self.__dict__:
             return getattr(self, key)
         else:
-            message = f"Config named `{self.name}` has no attribute `{key}`"
+            message = f"Config `{self}` has no attribute `{key}`"
             raise AttributeError(message)
 
     def __getitem__(self, key: str) -> Parameter:

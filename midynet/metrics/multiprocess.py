@@ -1,14 +1,14 @@
 import multiprocessing as mp
 import numpy as np
 import time
+from dataclasses import dataclass, field
 
 from .statistics import MCStatistics
-from .mcmc import logEvidence, logPosterior
 
 
+@dataclass
 class MultiProcess:
-    def __init__(self, num_procs=1):
-        self.num_procs = num_procs
+    num_procs: int = 1
 
     def func(self, inputs):
         raise NotImplementedError()
@@ -19,12 +19,15 @@ class MultiProcess:
         return out
 
 
+@dataclass
 class Expectation(MultiProcess):
-    def __init__(self, num_procs=1, seed=None):
-        MultiProcess.__init__(self, num_procs=num_procs)
-        self.seed = int(time.time()) if seed is None else seed
+    seed: int = field(default_factory=lambda: int(time.time()))
+    # statistics: str = field(default_factory=lambda: MCStatistics("std"))
 
-    def compute(self, num_samples=1):
+    def func(self, seed: int) -> float:
+        raise NotImplementedError()
+
+    def compute(self, num_samples: int = 1) -> list[float]:
         seeds = self.seed + np.arange(num_samples)
         with mp.Pool(self.num_procs) as p:
             out = p.map(self.func, seeds)

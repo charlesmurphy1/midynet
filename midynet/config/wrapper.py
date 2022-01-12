@@ -8,7 +8,7 @@ class Wrapper:
         if setup_func is not None:
             setup_func(self.__wrapped__, self.__others__)
 
-    def get_wrapped(self):
+    def get_wrap(self):
         return self.__wrapped__
 
     def get_others(self):

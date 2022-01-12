@@ -18,11 +18,9 @@ class Metrics:
     data: typing.Dict[str, typing.Dict[str, np.ndarray]] = field(
         repr=False, default_factory=dict
     )
-    num_procs: int = field(repr=True, default=1)
 
     def set_up(self, experiment):
         self.config = experiment.config
-        self.num_procs = experiment.config.get_value("num_procs", 1)
 
     def tear_down(self, experiment):
         return

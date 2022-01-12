@@ -168,8 +168,8 @@ class RandomGraphFactory(Factory):
             g,
             setup_func=lambda wrap, others: RandomGraphFactory.setUpSBM(
                 wrap,
-                others["blocks"].get_wrapped(),
-                others["edge_matrix"].get_wrapped(),
+                others["blocks"].get_wrap(),
+                others["edge_matrix"].get_wrap(),
             ),
             blocks=block_wrapper,
             edge_matrix=edge_matrix_wrapper,
