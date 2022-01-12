@@ -10,6 +10,8 @@ from dataclasses import dataclass, field
 from midynet.config import Config
 from midynet.util import Verbose
 
+__all__ = ["Metrics"]
+
 
 @dataclass
 class Metrics:

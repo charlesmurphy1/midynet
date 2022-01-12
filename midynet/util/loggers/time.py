@@ -2,6 +2,8 @@ from datetime import datetime
 
 from .logger import Logger
 
+__all__ = ["TimeLogger"]
+
 
 class TimeLogger(Logger):
     def __init__(self):

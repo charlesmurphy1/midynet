@@ -1,5 +1,7 @@
 import numpy as np
 
+__all__ = ["Statistics", "MCStatistics"]
+
 
 class Statistics:
     def __call__(self, samples):

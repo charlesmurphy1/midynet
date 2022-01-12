@@ -1,5 +1,7 @@
 from _midynet.prior import sbm
 
+__all__ = ["Wrapper"]
+
 
 class Wrapper:
     def __init__(self, wrapped, setup_func=None, **others):

@@ -1,5 +1,7 @@
 import json
 
+__all__ = ["Logger", "LoggerDict"]
+
 
 class Logger:
     def __init__(self):

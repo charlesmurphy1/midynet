@@ -9,6 +9,8 @@ from .prior import *
 from _midynet import random_graph
 from _midynet.prior import sbm
 
+__all__ = ["RandomGraphConfig", "RandomGraphFactory"]
+
 
 class RandomGraphConfig(Config):
     requirements: set[str] = {"name", "size"}
@@ -221,8 +223,8 @@ class RandomGraphFactory(Factory):
             g,
             setup_func=lambda wrap, others: RandomGraphFactory.setUpDCSBM(
                 wrap,
-                others["blocks"].get_wrapped(),
-                others["edge_matrix"].get_wrapped(),
+                others["blocks"].get_wrap(),
+                others["edge_matrix"].get_wrap(),
                 others["degrees"],
             ),
             blocks=block_wrapper,

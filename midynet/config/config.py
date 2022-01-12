@@ -7,6 +7,8 @@ from typing import Any, Callable
 from collections import defaultdict
 from .parameter import Parameter
 
+__all__ = ["Config"]
+
 
 class Config:
     """

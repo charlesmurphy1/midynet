@@ -5,6 +5,19 @@ from .factory import Factory, UnavailableOption
 from .wrapper import Wrapper
 from _midynet.prior import sbm
 
+__all__ = [
+    "EdgeCountPriorConfig",
+    "BlockCountPriorConfig",
+    "BlockPriorConfig",
+    "EdgeMatrixPriorConfig",
+    "DegreePriorConfig",
+    "EdgeCountPriorFactory",
+    "BlockCountPriorFactory",
+    "BlockPriorFactory",
+    "EdgeMatrixPriorFactory",
+    "DegreePriorFactory",
+]
+
 
 class EdgeCountPriorConfig(Config):
     @classmethod

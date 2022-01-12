@@ -3,6 +3,8 @@ from .factory import Factory
 from .wrapper import Wrapper
 from _midynet import dynamics
 
+__all__ = ["DynamicsConfig", "DynamicsFactory"]
+
 
 class DynamicsConfig(Config):
     requirements: set[str] = {"name", "num_steps"}

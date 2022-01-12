@@ -72,7 +72,7 @@ class TestEdgeMatrixPriorFactory(unittest.TestCase, TestFactory):
 
     def setUp_object(self, obj):
         self.b = BlockPriorFactory.build(BlockPriorConfig.uniform(10))
-        obj.set_block_prior(self.b.get_wrapped())
+        obj.set_block_prior(self.b.get_wrap())
         return obj
 
 
@@ -87,10 +87,10 @@ class TestDegreePriorFactory(unittest.TestCase, TestFactory):
         self.b = BlockPriorFactory.build(BlockPriorConfig.uniform(100))
 
         self.e = EdgeMatrixPriorFactory.build(EdgeMatrixPriorConfig.uniform(250))
-        self.e.set_block_prior(self.b.get_wrapped())
+        self.e.set_block_prior(self.b.get_wrap())
 
-        obj.set_block_prior(self.b.get_wrapped())
-        obj.set_edge_matrix_prior(self.e.get_wrapped())
+        obj.set_block_prior(self.b.get_wrap())
+        obj.set_edge_matrix_prior(self.e.get_wrap())
         return obj
 
 

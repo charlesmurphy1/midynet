@@ -1,5 +1,6 @@
 import midynet as md
 import typing
+import pathlib
 import unittest
 
 from midynet.config import *

@@ -3,6 +3,8 @@ import psutil
 from numpy import mean, round
 from .logger import Logger
 
+__all__ = ["MemoryLogger"]
+
 
 class MemoryLogger(Logger):
     def __init__(self, unit="gb"):

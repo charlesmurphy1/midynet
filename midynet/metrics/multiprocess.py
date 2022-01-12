@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 from .statistics import MCStatistics
 
+__all__ = ["MultiProcess", "Expectation"]
+
 
 @dataclass
 class MultiProcess:

@@ -1,6 +1,8 @@
 import typing
 from dataclasses import dataclass, field
 
+__all__ = ["Parameter"]
+
 
 @dataclass(order=True)
 class Parameter:

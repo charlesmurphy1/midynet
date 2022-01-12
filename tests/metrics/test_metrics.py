@@ -77,5 +77,57 @@ class TestMetricsBaseClass(unittest.TestCase):
         pathlib.Path("metrics.pickle").unlink()
 
 
+class TemplateTestMetrics:
+    _metrics: metrics.Metrics
+    graph_config: RandomGraphConfig = RandomGraphConfig.auto("hyperuniform_sbm")
+    dynamics_config: DynamicsConfig = DynamicsConfig.auto("sis")
+    metrics_config: Config = Config(name="metrics", num_procs=4, num_samples=10)
+    config: Config = Config(
+        name="test",
+        graph=graph_config,
+        dynamics=dynamics_config,
+        metrics=metrics_config,
+    )
+    display: bool = False
+    not_implemented: bool = False
+
+    def test_eval(self):
+        if self.not_implemented:
+            with self.assertRaises(NotImplementedError):
+                data = self._metrics.eval(self.config)
+        else:
+            data = self._metrics.eval(self.config)
+            if self.display:
+                print(data)
+
+
+class TestDynamicsEntropy(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.DynamicsEntropyMetrics()
+    not_implemented: bool = True
+
+
+class TestDynamicsPredictionEntropy(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.DynamicsPredictionEntropyMetrics()
+
+
+class TestGraphEntropy(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.GraphEntropyMetrics()
+
+
+class TestGraphReconstructionEntropy(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.GraphReconstructionEntropyMetrics()
+    not_implemented: bool = True
+
+
+class TestReconstructability(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.ReconstructabilityMetrics()
+    not_implemented: bool = True
+
+
+class TestPredictability(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.PredictabilityMetrics()
+    not_implemented: bool = True
+
+
 if __name__ == "__main__":
     unittest.main()

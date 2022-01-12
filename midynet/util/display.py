@@ -7,6 +7,16 @@ import os
 from palettable.palette import Palette
 from cycler import cycler
 
+__all__ = [
+    "hex_to_rgb",
+    "rgb_to_hex",
+    "palettes",
+    "markers",
+    "linestyles",
+    "cycle",
+    "label_plot",
+]
+
 
 def hex_to_rgb(value):
     value = value.lstrip("#")
@@ -58,8 +68,8 @@ for i, k in enumerate(["light", "med", "dark"]):
         rgb_colors["blue"][i],
         rgb_colors["green"][i],
     ]
-    # palettes[k] = Palette(k, "diverging", cm)
-    # palettes[k] = Palette("inv_" + k, "diverging", cm[::-1])
+    palettes[k] = Palette(k, "diverging", cm)
+    palettes[k] = Palette("inv_" + k, "diverging", cm[::-1])
 
 markers = ["o", "s", "v", "^", "*", "d"]
 linestyles = [

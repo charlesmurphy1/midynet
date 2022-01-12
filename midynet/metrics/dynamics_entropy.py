@@ -6,6 +6,8 @@ from midynet import utility
 from .multiprocess import MultiProcess, Expectation
 from .metrics import Metrics
 
+__all__ = ["DynamicsEntropy", "DynamicsEntropyMetrics"]
+
 
 @dataclass
 class DynamicsEntropy(Expectation):
@@ -13,11 +15,10 @@ class DynamicsEntropy(Expectation):
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-        dynamics = DynamicsFactory.build(self.config.dynamics)
         graph = RandomGraphFactory.build(self.config.graph)
+        dynamics = DynamicsFactory.build(self.config.dynamics)
         dynamics.set_random_graph(graph.get_wrap())
-        dynamics.sample()
-        return -dynamics.get_log_likelihood()
+        raise NotImplementedError()
 
 
 class DynamicsEntropyMetrics(Metrics):

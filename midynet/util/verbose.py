@@ -5,6 +5,8 @@ import time
 
 from datetime import datetime
 
+__all__ = ["Verbose"]
+
 
 class Verbose:
     def __init__(self, filename=None, verbose_type=0, progress_bar=None):
