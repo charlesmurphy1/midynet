@@ -25,6 +25,7 @@ class Config:
         self.__scanned_keys__ = None
         self.__scanned_values__ = None
         self.__sequence_size__ = None
+        self.__dict_copy__ = None
         if "name" not in kwargs:
             kwargs["name"] = "config"
         for k, v in kwargs.items():
@@ -91,19 +92,20 @@ class Config:
     def keys(self, recursively: bool = False) -> typing.KeysView:
         """ Keys of the parameters. """
         if recursively:
-            return self.dict_copy(recursively=True).keys()
+            return self.dict_copy().keys()
         return self.__parameters__.keys()
 
     def values(self, recursively: bool = False) -> typing.ValuesView:
         """ Values of the parameters. """
         if recursively:
-            return self.dict_copy(recursively=True).values()
+            return self.dict_copy().values()
+            return self.dict_copy().values()
         return self.__parameters__.values()
 
     def items(self, recursively=False) -> typing.ItemsView:
         """ Items of the parameter dict. """
         if recursively:
-            return self.dict_copy(recursively=True).items()
+            return self.dict_copy().items()
         return self.__parameters__.items()
 
     def reset_buffer(self):
@@ -141,8 +143,8 @@ class Config:
         for v in self.values():
             if v.is_sequenced():
                 return True
-            elif v.is_config:
-                return v.value.is_sequenced()
+            elif v.is_config and v.value.is_sequenced():
+                return True
         return False
 
     def is_equivalent(self, other) -> bool:
@@ -157,48 +159,33 @@ class Config:
     def is_subconfig(self, other) -> bool:
         if not issubclass(type(other), Config):
             return False
-        for k, p in self.dict_copy(recursively=True).items():
+        for k, p in self.dict_copy().items():
             pp = other.get_param(k)
+            if p.is_unique():
+                continue
             if p.is_config and not p.value.is_subconfig(pp.value):
                 return False
-            elif not p.is_config and not p.is_unique() and p.is_sequenced():
+            elif not p.is_config and p.is_sequenced():
                 if not pp.is_sequenced() and pp.value not in p.value:
                     return False
                 elif pp.is_sequenced() and not set(p.value).issubset(set(pp.value)):
                     return False
             elif not p.is_config and not p.is_sequenced() and p.value != pp.value:
+                print("here")
                 return False
         return True
 
     def get_param(self, key: str, default: Any = None) -> Parameter:
-        path = key.split(self.separator)
-        key = path[0]
-        if key not in self.__parameters__:
-            if default is None:
-                default = Config()
-            return default
-        elif self.__parameters__[key].is_config and len(path) > 1:
-            return self.__parameters__[key].value.get_param(
-                self.separator.join(path[1:]), default=default
-            )
-        else:
-            return self.__parameters__[key]
+        return self.dict_copy().get(key, default)
 
     def get_value(self, key: str, default: Any = None):
         return self.get_param(key).value if key in self else default
 
     def set_value(self, key: str, value: Any):
-        path = key.split(self.separator)
-        key = path[0]
-        if self.__parameters__[key].is_config and len(path) > 1:
-            self.__parameters__[key].value.set_value(
-                self.separator.join(path[1:]), value
-            )
-        else:
-            self.__parameters__[key].set_value(value)
+        self.dict_copy().get(key).set_value(value)
         self.reset_buffer()
 
-    def dict_copy(self, recursively=False, prefix="") -> typing.Dict[str, Parameter]:
+    def dict_copy(self, prefix="", recursively=True) -> typing.Dict[str, Parameter]:
         copy = {}
 
         for k, v in self.items():
@@ -209,25 +196,26 @@ class Config:
                         copy[f"{prefix}{k}{self.separator}{vv.name}"] = vv
                         copy.update(
                             vv.dict_copy(
-                                recursively=recursively,
                                 prefix=f"{prefix}{k}{self.separator}{vv.name}{self.separator}",
+                                recursively=recursively,
                             )
                         )
                 else:
                     copy.update(
-                        v.value.dict_copy(
-                            recursively=recursively,
-                            prefix=f"{prefix}{k}{self.separator}",
-                        )
+                        v.value.dict_copy(prefix=f"{prefix}{k}{self.separator}")
                     )
-
         return copy
 
-    def copy(self):
-        return self.__class__(**self.dict_copy())
+    def copy(self, recursively=False):
+        return self.__class__(**self.dict_copy(recursively=False))
 
     def format(
-        self, prefix: str = "", endline="\n", suffix="end\n", forbid: list = None
+        self,
+        prefix: str = "",
+        name_prefix: str = "",
+        endline="\n",
+        suffix="end\n",
+        forbid: list = None,
     ) -> str:
         s = f"{prefix + self.__class__.__name__}(name={self.name}): \n"
 
@@ -244,14 +232,13 @@ class Config:
                 for i, c in enumerate(v.value):
                     ss = c.format(
                         prefix=prefix + f"|\t",
+                        name_prefix=c.name + self.separator,
                         endline=endline,
                         suffix=None,
                     )
                     ss = ss.split(":")[1:]
                     ss = "".join(ss)[2:]
                     ss = ss.split(endline)[:-1]
-                    for i, _ in enumerate(ss):
-                        ss[i] += f"\t (name={c.name})"
                     s += endline.join(ss) + endline
             elif v.is_config:
                 format = v.value.format(prefix=prefix + "|\t ")
@@ -259,11 +246,8 @@ class Config:
                 format = "".join(format)[:-1]
                 name = f"{v.name}(name={v.value.name})"
                 s += f"{prefix}|\t {name}:{format}{endline}"
-            elif v.is_config and v.is_sequenced():
-                s += format_subconfig(v, v.value)
-
             else:
-                s += f"{prefix}|\t {v.name} = {v.value}{endline}"
+                s += f"{prefix}|\t {name_prefix}{v.name} = {v.value}{endline}"
         if suffix is not None:
             s += f"{prefix}{suffix}"
         return s

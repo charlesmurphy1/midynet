@@ -14,10 +14,15 @@ class TestConfig(unittest.TestCase):
         self.y: float = 0.5
         self.z: list[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         self.w: str = 0.5
-        self.config = md.config.Config(x=self.x, y=self.y, z=self.z, w=self.w)
-        self.r_config = md.config.Config(config=self.config, other=self.x)
+        self.config = md.config.Config(
+            name="config", x=self.x, y=self.y, z=self.z, w=self.w
+        )
+        self.r_config = md.config.Config(
+            name="r_config", config=self.config, other=self.x
+        )
 
         self.m_config = config.Config(
+            name="m_config",
             x=[
                 config.Config(name="x_a", a=[1, 2, 3]),
                 config.Config(name="x_b", b=2),
@@ -52,7 +57,7 @@ class TestConfig(unittest.TestCase):
         )
 
     def test_dictcopy_recursively(self):
-        self.assertEqual(len(self.r_config.dict_copy(recursively=True)), 8)
+        self.assertEqual(len(self.r_config.dict_copy()), 8)
         for expected in [
             "name",
             "config",
@@ -63,7 +68,7 @@ class TestConfig(unittest.TestCase):
             f"config{Config.separator}w",
             "other",
         ]:
-            self.assertIn(expected, self.r_config.dict_copy(recursively=True))
+            self.assertIn(expected, self.r_config.dict_copy())
 
     def test_format(self):
         if self.display:
