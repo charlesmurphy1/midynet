@@ -16,25 +16,23 @@ __all__ = ["Metrics"]
 @dataclass
 class Metrics:
     config: Config = field(repr=False, default_factory=Config)
-    verbose: Verbose = field(repr=False, default_factory=Verbose)
     data: typing.Dict[str, typing.Dict[str, np.ndarray]] = field(
-        repr=False, default_factory=dict
+        repr=False, default_factory=dict, init=False
     )
 
-    def set_up(self, experiment):
-        self.config = experiment.config
+    def set_up(self):
+        return
 
-    def tear_down(self, experiment):
+    def tear_down(self):
         return
 
     def eval(self, config: Config) -> typing.Dict[str, float]:
         raise NotImplementedError()
 
-    def compute(self, experiment, verbose=Verbose()) -> None:
-        self.verbose = verbose
-        self.set_up(experiment)
+    def compute(self, verbose=Verbose()) -> None:
+        self.set_up()
 
-        pb = self.verbose.init_progress(self.__class__.__name__, total=len(self.config))
+        pb = verbose.init_progress(self.__class__.__name__, total=len(self.config))
         raw_data = defaultdict(lambda: defaultdict(list))
         for c in self.config.generate_sequence():
             val = self.eval(c)
@@ -42,55 +40,42 @@ class Metrics:
                 raw_data[c.name][k].append(v)
             if pb is not None:
                 pb.update()
-            self.verbose.update_progress()
-        self.verbose.end_progress()
-        self.data = self.format_data(raw_data)
-        self.tear_down(experiment)
+            verbose.update_progress()
+        verbose.end_progress()
+        self.data = self.format(raw_data)
+        self.tear_down()
 
-    def format_data(
-        self, data: typing.Dict[str, typing.Dict[str, list]]
-    ) -> typing.Dict[str, typing.Dict[str, np.array]]:
+    def format(self, data: np.ndarray) -> np.array:
         formatted_data = {}
         for name, data_in_name in data.items():
             formatted_data[name] = {}
             for key, value in data_in_name.items():
-                formatted_data[name][key] = np.zeros(
+                formatted_data[name][key] = np.empty(
                     [len(v) for v in self.config.scanned_values[name].values()]
                 )
+                formatted_data[name][key][:] = np.nan
 
                 for i, c in enumerate(self.config.generate_sequence(only=name)):
-                    index = [
-                        np.where(
-                            c.get_value(k)
-                            == np.array(self.config.scanned_values[name][k])
-                        )[0]
-                        for k in self.config.scanned_keys[name]
-                    ]
-                    formatted_data[name][key][tuple(index)] = value[i]
+                    index = self.get_config_indices(c)
+                    formatted_data[name][key][index] = value[i]
         return formatted_data
 
-    def unformat_data(
+    def flatten(
         self, data: typing.Dict[str, typing.Dict[str, np.array]]
     ) -> typing.Dict[str, typing.Dict[str, np.array]]:
-        unformatted_data = {}
+        flat_data = {}
         for name, data_in_name in data.items():
-            unformatted_data[name] = {}
+            flat_data[name] = {}
 
             for key, values in data_in_name.items():
-                unformatted_data[name][key] = np.zeros(values.size)
+                flat_data[name][key] = np.zeros(values.size)
 
                 for i, c in enumerate(self.config.generate_sequence(only=name)):
-                    index = [
-                        np.where(
-                            c.get_value(k)
-                            == np.array(self.config.scanned_values[name][k])
-                        )[0]
-                        for k in self.config.scanned_keys[name]
-                    ]
-                    unformatted_data[name][key][i] = values[tuple(index)]
-        return unformatted_data
+                    index = self.get_config_indices(c)
+                    flat_data[name][key][i] = values[index]
+        return flat_data
 
-    def save(self, path: pathlib.Path = "metrics.pickle"):
+    def save(self, path: pathlib.Path):
         path = pathlib.Path(path) if isinstance(path, str) else path
         with path.open("wb") as f:
             pickle.dump(self.data, f)
@@ -99,6 +84,65 @@ class Metrics:
         path = pathlib.Path(path) if isinstance(path, str) else path
         with path.open("rb") as f:
             self.data = pickle.load(f)
+
+    def merge(self, other):
+        if not isinstance(other, self.__class__):
+            message = (
+                f"Cannot merge since metrics of type {type(other)} "
+                + f"is different from {self.__class__}."
+            )
+            raise TypeError(message)
+        merged_config = self.config.copy()
+        merged_config.merge(other.config)
+        merged = self.__class__(merged_config)
+
+        self_flat = self.flatten(self.data)
+        other_flat = other.flatten(other.data)
+        merged_flat = {}
+
+        for name, data_in_name in self_flat.items():
+            # getting exclusive data from self
+            if name not in other_flat:
+                merged_flat[name] = data_in_name
+
+        for name, data_in_name in other_flat.items():
+            # getting exclusive data from other
+            if name not in self_flat:
+                merged_flat[name] = data_in_name
+                continue
+            # getting shared data from other
+            for key in data_in_name.keys():
+                merged_flat[name][key] = []
+                for i, c in enumerate(merged_config.generate_sequnece()):
+                    if self.config.is_subconfig(c):
+                        index = self.get_config_flat_index(c)
+                        merged_flat[name][key].append(self_flat[name][key][index])
+                    elif other.config.is_subconfig(c):
+                        index = other.get_config_flat_index(c)
+                        merged_flat[name][key].append(other_flat[name][key][index])
+                    else:
+                        merged_flat[name][key].append(np.nan)
+            merged.data = merged.format(merged_flat)
+            return merged
+
+    def get_config_indices(self, local_config):
+        indices = []
+        for k in self.config.scanned_keys[local_config.name]:
+            value = local_config.get_value(k)
+            all_values = np.array(self.config.scanned_values[local_config.name][k])
+            i = np.where(value == all_values)[0]
+            if i.size == 0:
+                message = "Cannot get indices, config not found."
+                raise ValueError(message)
+            indices.append(i[0])
+        return tuple(indices)
+
+    def get_config_flat_index(self, local_config):
+        for i, c in enumerate(self.config.generate_sequence()):
+            if local_config.is_equivalent(c):
+                return i
+        message = "Cannot get flat index, config not found."
+        raise ValueError(message)
 
 
 class CustomMetrics(Metrics):

@@ -8,9 +8,12 @@ from midynet.config import *
 from midynet import metrics
 
 
+@dataclass
 class DummyMetrics(metrics.Metrics):
+    value: float = np.pi
+
     def eval(self, config):
-        return {"dummy": np.pi}
+        return {"dummy": self.value}
 
 
 @dataclass
@@ -28,12 +31,11 @@ class TestMetricsBaseClass(unittest.TestCase):
         g = RandomGraphConfig.auto("uniform_sbm")
         g.set_value("size", [10, 25, 50, 100])
         self.config = Config(name="test", dynamics=d, graph=g)
-        self.experiment = DummyMetrics(config=self.config)
-        self.metrics = DummyMetrics()
+        self.experiment = DummyExperiment(config=self.config)
+        self.metrics = DummyMetrics(config=self.config)
 
     def test_set_up(self):
-        self.metrics.set_up(self.experiment)
-        self.assertTrue(self.metrics.config.is_equivalent(self.config))
+        pass
 
     def test_tear_down(self):
         pass
@@ -42,7 +44,7 @@ class TestMetricsBaseClass(unittest.TestCase):
         pass
 
     def test_compute(self):
-        self.metrics.compute(self.experiment)
+        self.metrics.compute()
         for name, data in self.metrics.data.items():
             for key, value in data.items():
                 if name == "test.ising":
@@ -52,12 +54,12 @@ class TestMetricsBaseClass(unittest.TestCase):
                 self.assertTrue(np.all(value == np.pi))
 
     def test_format_data(self):
-        self.metrics.compute(self.experiment)
+        self.metrics.compute()
 
-    def test_unformat_data(self):
-        self.metrics.compute(self.experiment)
-        unformatted_data = self.metrics.unformat_data(self.metrics.data)
-        for name, data in unformatted_data.items():
+    def test_flatten(self):
+        self.metrics.compute()
+        flat_data = self.metrics.flatten(self.metrics.data)
+        for name, data in flat_data.items():
             for key, value in data.items():
                 if name == "test.ising":
                     self.assertEqual(value.shape, (5 * 4,))
@@ -66,15 +68,27 @@ class TestMetricsBaseClass(unittest.TestCase):
                 self.assertTrue(np.all(value == np.pi))
 
     def test_save(self):
-        self.metrics.compute(self.experiment)
-        self.metrics.save()
+        self.metrics.compute()
+        self.metrics.save("metrics.pickle")
         pathlib.Path("metrics.pickle").unlink()
 
     def test_load(self):
-        self.metrics.compute(self.experiment)
-        self.metrics.save()
+        self.metrics.compute()
+        self.metrics.save("metrics.pickle")
         self.metrics.load("metrics.pickle")
         pathlib.Path("metrics.pickle").unlink()
+
+    def test_merge(self):
+        config = self.config.deepcopy()
+
+        config.set_value("dynamics.ising.coupling", 6)
+        config.set_value("dynamics.sis.infection_prob", 6)
+        metrics = DummyMetrics(value=2, config=config)
+        self.metrics.compute()
+        metrics.compute()
+        print(self.metrics.data)
+        print(metrics.data)
+        self.metrics.merge(metrics)
 
 
 class TemplateTestMetrics:

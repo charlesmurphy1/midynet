@@ -1,4 +1,5 @@
 import numpy as np
+import pathlib
 
 __all__ = ["clip", "log_sum_exp", "log_mean_exp", "to_batch"]
 
@@ -29,6 +30,20 @@ def log_mean_exp(x):
 
 def to_batch(x, size):
     return zip(*[x[i::size] for i in range(size)])
+
+
+def delete_path(path: pathlib.Path):
+    if not path.exists():
+        return
+    elif not path.is_dir():
+        path.unlink()
+        return
+    for sub in path.iterdir():
+        if sub.is_dir():
+            delete_path(sub)
+        else:
+            sub.unlink()
+    path.rmdir()
 
 
 if __name__ == "__main__":

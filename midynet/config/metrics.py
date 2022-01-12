@@ -9,3 +9,7 @@ __all__ = ["MetricsConfig"]
 
 class MetricsConfig(Config):
     pass
+
+
+class MetricsFactory(Factory):
+    pass

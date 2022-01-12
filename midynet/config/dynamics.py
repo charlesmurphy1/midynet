@@ -7,7 +7,7 @@ __all__ = ["DynamicsConfig", "DynamicsFactory"]
 
 
 class DynamicsConfig(Config):
-    requirements: set[str] = {"name", "num_steps"}
+    requirements: set[str] = {"num_steps"}
 
     @classmethod
     def ising(cls, num_steps: int = 100, coupling: float = 1.0):

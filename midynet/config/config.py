@@ -1,3 +1,4 @@
+import copy
 import itertools
 import pathlib
 import pickle
@@ -19,15 +20,14 @@ class Config:
     requirements: set[str] = {"name"}
     unique_parameters: set[str] = {"name"}
 
-    def __init__(self, **kwargs):
+    def __init__(self, name="config", **kwargs):
         self.__parameters__ = {}
         self.__names__ = None
         self.__scanned_keys__ = None
         self.__scanned_values__ = None
         self.__sequence_size__ = None
         self.__dict_copy__ = None
-        if "name" not in kwargs:
-            kwargs["name"] = "config"
+        self.insert("name", name, unique=True)
         for k, v in kwargs.items():
             self.insert(k, v, unique=k in self.unique_parameters)
 
@@ -151,29 +151,26 @@ class Config:
         if not issubclass(type(other), Config):
             return False
 
-        return self.format() == other.format()
+        s_self = self.format(forbid=self.unique_parameters).split("\n")[1:]
+        s_other = other.format(forbid=self.unique_parameters).split("\n")[1:]
+        return s_self == s_other
 
     def unmet_requirements(self):
         return self.requirements.difference(set(self.keys()))
 
-    def is_subconfig(self, other) -> bool:
-        if not issubclass(type(other), Config):
-            return False
-        for k, p in self.dict_copy().items():
-            pp = other.get_param(k)
-            if p.is_unique():
-                continue
-            if p.is_config and not p.value.is_subconfig(pp.value):
-                return False
-            elif not p.is_config and p.is_sequenced():
-                if not pp.is_sequenced() and pp.value not in p.value:
-                    return False
-                elif pp.is_sequenced() and not set(p.value).issubset(set(pp.value)):
-                    return False
-            elif not p.is_config and not p.is_sequenced() and p.value != pp.value:
-                print("here")
+    def is_subset(self, other) -> bool:
+        for c in other.generate_sequence():
+            if not self.is_subconfig(c):
                 return False
         return True
+
+    def is_subconfig(self, other) -> bool:
+        if other.is_sequenced():
+            return False
+        for c in self.generate_sequence():
+            if c.is_equivalent(other):
+                return True
+        return False
 
     def get_param(self, key: str, default: Any = None) -> Parameter:
         return self.dict_copy().get(key, default)
@@ -193,7 +190,9 @@ class Config:
             if v.is_config and recursively:
                 if v.is_sequenced():
                     for vv in v.value:
-                        copy[f"{prefix}{k}{self.separator}{vv.name}"] = vv
+                        copy[f"{prefix}{k}{self.separator}{vv.name}"] = Parameter(
+                            name=v.name, value=vv, unique=v.unique
+                        )
                         copy.update(
                             vv.dict_copy(
                                 prefix=f"{prefix}{k}{self.separator}{vv.name}{self.separator}",
@@ -206,20 +205,26 @@ class Config:
                     )
         return copy
 
-    def copy(self, recursively=False):
+    def copy(self):
         return self.__class__(**self.dict_copy(recursively=False))
+
+    def deepcopy(self):
+        params = {
+            k: copy.deepcopy(v) for k, v in self.dict_copy(recursively=False).items()
+        }
+        return self.__class__(**params)
 
     def format(
         self,
         prefix: str = "",
         name_prefix: str = "",
         endline="\n",
-        suffix="end\n",
+        suffix="end",
         forbid: list = None,
     ) -> str:
         s = f"{prefix + self.__class__.__name__}(name={self.name}): \n"
 
-        forbid = ["name"] if forbid is None else forbid
+        forbid = [] if forbid is None else forbid
         for k, v in self.items():
             if k in forbid:
                 continue
@@ -264,6 +269,7 @@ class Config:
             elif v.is_config and v.value.is_sequenced():
                 keys_to_scan.append(k)
                 values_to_scan.append(v.value.generate_sequence())
+
         if len(values_to_scan) == 0:
             yield self
         else:
@@ -341,12 +347,31 @@ class Config:
         return dict(config)
 
     def merge(self, other):
-        for k, v in self.items():
-            if not v.unique:
-                if v.is_config:
-                    v.merge(other.get_value(k))
+        for config in other.generate_sequence():
+            if self.is_subconfig(config):
+                continue
+            for key, value in config.items():
+                if value.is_unique():
+                    continue
+                elif key not in self:
+                    message = f"Missing key {key}, configs cannot be merged."
+                    raise ValueError(message)
+                elif value.is_config and self.get_param(key).is_sequenced():
+                    found = False
+                    for sub in self.get_value(key):
+                        if sub.name == value.name:
+                            sub.merge(value.value)
+                            found = True
+                            break
+                    if not found:
+                        self.get_param(key).add_value(value.value)
+                elif value.is_config:
+                    if value.value.name != self.get_value(key).name:
+                        self.get_param(key).add_value(config.get_value(key))
+                    else:
+                        value.value.merge(config.get_value(key))
                 else:
-                    v.add_values(other.get_value(k))
+                    self.get_param(key).add_values(value.value)
 
     def save(
         self, path: typing.Union[str, pathlib.Path] = "config.pickle"

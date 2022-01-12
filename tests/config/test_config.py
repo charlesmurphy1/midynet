@@ -1,6 +1,6 @@
 import midynet as md
-import typing
 import pathlib
+import typing
 import unittest
 
 from midynet.config import *
@@ -110,17 +110,18 @@ class TestConfig(unittest.TestCase):
 
     def test_is_equivalent(self):
         self.assertTrue(self.config.is_equivalent(self.r_config["config"].value))
+        c = self.config.copy()
+        c.set_value("name", "c")
 
     def test_is_subconfig(self):
         config = Config(x=self.x, y=self.y, z=self.z[0], w=self.w)
-        r_config = Config(config=config, other=self.x)
         self.assertTrue(self.config.is_subconfig(config))
+        r_config = Config(config=config, other=self.x)
         self.assertTrue(self.r_config.is_subconfig(r_config))
 
-        config = Config(x=self.x, y=self.y, z=-1, w=self.w)
-        r_config = Config(config=config, other=self.x)
-        self.assertFalse(self.config.is_subconfig(config))
-        self.assertFalse(self.r_config.is_subconfig(r_config))
+    def test_is_subset(self):
+        for c in self.m_config.generate_sequence():
+            self.assertTrue(self.m_config.is_subset(c))
 
     def test_scanned_keys(self):
         if self.display:
@@ -133,6 +134,7 @@ class TestConfig(unittest.TestCase):
     def test_merge_nonsequence_configs(self):
         c1 = Config(name="c1", x=1, y=4)
         c2 = Config(name="c2", x=2, y=4)
+
         c1.merge(c2)
 
         self.assertEqual(c1.name, "c1")
@@ -155,6 +157,19 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(c2.name, "c2")
         self.assertEqual(c2.x, {3, 4})
         self.assertEqual(c2.y, 5)
+
+    def test_merge_sequence_multiconfigs(self):
+
+        c1 = Config(name="c1", x={1, 2}, y=4)
+        c2 = Config(name="c2", x={3, 4}, y=5)
+        c3 = Config(name="c3", c=c1, z=4)
+        c4 = Config(name="c4", c=c2, z=5)
+        c5 = c4.copy()
+        c5.merge(c3)
+
+        self.assertTrue(c5.is_subset(c3))
+        self.assertTrue(c5.is_subset(c4))
+        self.assertFalse(c5.is_subset(c2))
 
     def test_save(self):
         path = pathlib.Path("./test_config.pickle")

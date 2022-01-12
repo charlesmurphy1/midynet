@@ -13,7 +13,7 @@ __all__ = ["RandomGraphConfig", "RandomGraphFactory"]
 
 
 class RandomGraphConfig(Config):
-    requirements: set[str] = {"name", "size"}
+    requirements: set[str] = {"size"}
 
     @classmethod
     def custom_sbm(
