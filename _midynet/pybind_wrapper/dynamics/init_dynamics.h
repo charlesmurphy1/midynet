@@ -25,6 +25,8 @@ void initDynamicsBaseClass(py::module& m){
         .def("get_random_graph", &Dynamics::getRandomGraph)
         .def("get_size", &Dynamics::getSize)
         .def("get_num_states", &Dynamics::getNumStates)
+        .def("get_num_steps", &Dynamics::getNumSteps)
+        .def("set_num_steps", &Dynamics::setNumSteps)
         .def("sample", py::overload_cast<const State&, bool>(&Dynamics::sample),
             py::arg("state"), py::arg("async")=false)
         .def("sample", py::overload_cast<bool>(&Dynamics::sample),
@@ -33,6 +35,7 @@ void initDynamicsBaseClass(py::module& m){
             py::arg("state"), py::arg("async")=false)
         .def("sample_state", py::overload_cast<bool>(&Dynamics::sampleState),
             py::arg("async")=false)
+        .def("sample_graph", &Dynamics::sampleGraph)
         .def("get_random_state", &Dynamics::getRandomState)
         .def("get_neighbors_state", &Dynamics::getNeighborsState,
             py::arg("state"))

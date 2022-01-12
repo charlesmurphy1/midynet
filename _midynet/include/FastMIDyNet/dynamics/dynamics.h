@@ -45,15 +45,18 @@ class Dynamics{
 
         const int getSize() const { return m_randomGraphPtr->getSize(); }
         const int getNumStates() const { return m_numStates; }
+        const int getNumSteps() const { return m_numSteps; }
+        void setNumSteps(int numSteps) { m_numSteps = numSteps; }
 
         const State& sample(const State& initialState, bool async=true){
             m_randomGraphPtr->sample();
             sampleState(initialState, async);
             return getState();
         }
-        void sample(bool async=true){ sample(getRandomState(), async); }
+        const State& sample(bool async=true){ return sample(getRandomState(), async); }
         void sampleState(const State& initialState, bool async=true);
-        void sampleState(bool async=true){ return sampleState(getRandomState(), async); }
+        void sampleState(bool async=true){ sampleState(getRandomState(), async); }
+        const MultiGraph& sampleGraph() { return m_randomGraphPtr->sample(); }
         virtual const State getRandomState();
         const NeighborsState getNeighborsState(const State& state) const;
         const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const;
