@@ -81,6 +81,30 @@ class Config:
             message = f"Invalid type `{type(args)}` for auto build of object `{cls.__name__}`."
             raise TypeError(message)
 
+    def __gt__(self, other):
+        return len(self) > len(other)
+
+    def __ge__(self, other):
+        return len(self) >= len(other)
+
+    def __le__(self, other):
+        return len(self) <= len(other)
+
+    def __lt__(self, other):
+        return len(self) < len(other)
+
+    def __hash__(self):
+        if not self.is_sequenced():
+            params = []
+            for k, v in self.dict_copy().items():
+                if v.is_config or v.is_unique():
+                    continue
+                params.append((k, v.value))
+            return hash(tuple(params))
+        else:
+            message = "unhashable type, must not be sequenced."
+            raise TypeError(message)
+
     @classmethod
     def auto(cls, args):
         """ Automatic construction method. """
@@ -113,6 +137,7 @@ class Config:
         self.__scanned_keys__ = None
         self.__scanned_values__ = None
         self.__sequence_size__ = None
+        self.__hashing_keys__ = None
 
     def insert(
         self,
@@ -167,10 +192,7 @@ class Config:
     def is_subconfig(self, other) -> bool:
         if other.is_sequenced():
             return False
-        for c in self.generate_sequence():
-            if c.is_equivalent(other):
-                return True
-        return False
+        return hash(other) in self.hashing_keys
 
     def get_param(self, key: str, default: Any = None) -> Parameter:
         return self.dict_copy().get(key, default)
@@ -335,6 +357,14 @@ class Config:
             self.__sequence_size__ = sum(1 for _ in self.generate_sequence())
         return self.__sequence_size__
 
+    @property
+    def hashing_keys(self):
+        if self.__hashing_keys__ is None:
+            self.__hashing_keys__ = []
+            for c in self.generate_sequence():
+                self.__hashing_keys__.append(hash(c))
+        return self.__hashing_keys__
+
     def regroup_by_name(self, name=None):
         if name is None:
             name = self.names
@@ -359,7 +389,7 @@ class Config:
                 elif value.is_config and self.get_param(key).is_sequenced():
                     found = False
                     for sub in self.get_value(key):
-                        if sub.name == value.name:
+                        if sub.name == value.value.name:
                             sub.merge(value.value)
                             found = True
                             break
@@ -372,6 +402,7 @@ class Config:
                         value.value.merge(config.get_value(key))
                 else:
                     self.get_param(key).add_values(value.value)
+        self.reset_buffer()
 
     def save(
         self, path: typing.Union[str, pathlib.Path] = "config.pickle"

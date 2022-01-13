@@ -7,10 +7,17 @@ __all__ = ["Parameter"]
 @dataclass(order=True)
 class Parameter:
     name: str
-    value: typing.Union[typing.Any, set] = None
+    value: typing.Any = None
     unique: bool = field(repr=False, default=False)
     with_repetition: bool = field(repr=False, default=False)
     force_non_sequence: bool = field(repr=False, default=False)
+    sort_sequence: bool = field(repr=False, default=True)
+
+    # def __post_init__(self):
+    #     if self.with_repetition and isinstance(self.value, set):
+    #         self.value = list(self.value)
+    #     elif not self.with_repetition and isinstance(self.value, list):
+    #         self.value = set(self.value)
 
     @property
     def datatype(self) -> typing.Any:
@@ -20,7 +27,10 @@ class Parameter:
         if not issubclass(type(values), typing.Iterable) or isinstance(values, str):
             values = [values]
         if self.with_repetition:
-            return list(values)
+            values = list(values)
+            if self.sort_sequence:
+                values.sort()
+            return values
         else:
             return set(values)
 
@@ -38,7 +48,6 @@ class Parameter:
             self.value = self.get_sequence(list(self.value) + [value])
         else:
             self.value = self.get_sequence([self.value, value])
-
         if len(self.value) == 1:
             self.value = next(iter(self.value))
 

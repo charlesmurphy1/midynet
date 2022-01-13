@@ -12,7 +12,7 @@ class TestConfig(unittest.TestCase):
     def setUp(self):
         self.x: int = 1
         self.y: float = 0.5
-        self.z: list[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        self.z: list[int] = {1, 2, 3, 4, 5, 6, 7, 8, 9}
         self.w: str = 0.5
         self.config = md.config.Config(
             name="config", x=self.x, y=self.y, z=self.z, w=self.w
@@ -24,7 +24,7 @@ class TestConfig(unittest.TestCase):
         self.m_config = config.Config(
             name="m_config",
             x=[
-                config.Config(name="x_a", a=[1, 2, 3]),
+                config.Config(name="x_a", a={1, 2, 3}),
                 config.Config(name="x_b", b=2),
             ],
             y=[-1, 0, 1],
@@ -114,7 +114,7 @@ class TestConfig(unittest.TestCase):
         c.set_value("name", "c")
 
     def test_is_subconfig(self):
-        config = Config(x=self.x, y=self.y, z=self.z[0], w=self.w)
+        config = Config(x=self.x, y=self.y, z=1, w=self.w)
         self.assertTrue(self.config.is_subconfig(config))
         r_config = Config(config=config, other=self.x)
         self.assertTrue(self.r_config.is_subconfig(r_config))
@@ -130,6 +130,12 @@ class TestConfig(unittest.TestCase):
     def test_scanned_values(self):
         if self.display:
             print(self.m_config.scanned_values)
+
+    def test_hashing_keys(self):
+        if self.display or True:
+            print(self.m_config.hashing_keys)
+            for c in self.m_config.generate_sequence():
+                print(hash(c) in self.m_config.hashing_keys)
 
     def test_merge_nonsequence_configs(self):
         c1 = Config(name="c1", x=1, y=4)
@@ -166,7 +172,6 @@ class TestConfig(unittest.TestCase):
         c4 = Config(name="c4", c=c2, z=5)
         c5 = c4.copy()
         c5.merge(c3)
-
         self.assertTrue(c5.is_subset(c3))
         self.assertTrue(c5.is_subset(c4))
         self.assertFalse(c5.is_subset(c2))

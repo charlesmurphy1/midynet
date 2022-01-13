@@ -1,6 +1,7 @@
 import numpy as np
 import unittest
 import pathlib
+import time
 from dataclasses import dataclass, field
 
 import midynet
@@ -24,15 +25,22 @@ class DummyExperiment:
 
 class TestMetricsBaseClass(unittest.TestCase):
     def setUp(self):
+        self.begin = time.time()
+        self.coupling = np.linspace(0, 10, 10).tolist()
+        self.infection_prob = np.linspace(0, 10, 10).tolist()
+        self.N = [10, 25, 50, 100]
         d = DynamicsConfig.auto(["ising", "sis"])
-        d[0].set_value("coupling", [1, 2, 3, 4, 5])
-        d[1].set_value("infection_prob", [1, 4, 5])
+        d[0].set_value("coupling", self.coupling)
+        d[1].set_value("infection_prob", self.infection_prob)
 
         g = RandomGraphConfig.auto("uniform_sbm")
-        g.set_value("size", [10, 25, 50, 100])
+        g.set_value("size", self.N)
         self.config = Config(name="test", dynamics=d, graph=g)
         self.experiment = DummyExperiment(config=self.config)
         self.metrics = DummyMetrics(config=self.config)
+
+    def tearDown(self):
+        print(f"Time: {time.time() - self.begin}")
 
     def test_set_up(self):
         pass
@@ -48,9 +56,11 @@ class TestMetricsBaseClass(unittest.TestCase):
         for name, data in self.metrics.data.items():
             for key, value in data.items():
                 if name == "test.ising":
-                    self.assertEqual(value.shape, (5, 4))
+                    self.assertEqual(value.shape, (len(self.coupling), len(self.N)))
                 elif name == "test.sis":
-                    self.assertEqual(value.shape, (3, 4))
+                    self.assertEqual(
+                        value.shape, (len(self.infection_prob), len(self.N))
+                    )
                 self.assertTrue(np.all(value == np.pi))
 
     def test_format_data(self):
@@ -62,9 +72,11 @@ class TestMetricsBaseClass(unittest.TestCase):
         for name, data in flat_data.items():
             for key, value in data.items():
                 if name == "test.ising":
-                    self.assertEqual(value.shape, (5 * 4,))
+                    self.assertEqual(value.shape, (len(self.coupling) * len(self.N),))
                 elif name == "test.sis":
-                    self.assertEqual(value.shape, (3 * 4,))
+                    self.assertEqual(
+                        value.shape, (len(self.infection_prob) * len(self.N),)
+                    )
                 self.assertTrue(np.all(value == np.pi))
 
     def test_save(self):
@@ -81,14 +93,13 @@ class TestMetricsBaseClass(unittest.TestCase):
     def test_merge(self):
         config = self.config.deepcopy()
 
-        config.set_value("dynamics.ising.coupling", 6)
-        config.set_value("dynamics.sis.infection_prob", 6)
+        config.set_value("dynamics.ising.coupling", 1000)
+        config.set_value("dynamics.sis.infection_prob", 1000)
         metrics = DummyMetrics(value=2, config=config)
         self.metrics.compute()
         metrics.compute()
-        print(self.metrics.data)
-        print(metrics.data)
         self.metrics.merge(metrics)
+        print(self.metrics.data)
 
 
 class TemplateTestMetrics:

@@ -92,38 +92,41 @@ class Metrics:
                 + f"is different from {self.__class__}."
             )
             raise TypeError(message)
-        merged_config = self.config.copy()
-        merged_config.merge(other.config)
-        merged = self.__class__(merged_config)
-
         self_flat = self.flatten(self.data)
         other_flat = other.flatten(other.data)
+
+        merged_config = self.config.deepcopy()
+        merged_config.merge(other.config)
         merged_flat = {}
 
         for name, data_in_name in self_flat.items():
             # getting exclusive data from self
             if name not in other_flat:
-                merged_flat[name] = data_in_name
+                merged_flat[name] = data_in_name.copy()
+                continue
 
         for name, data_in_name in other_flat.items():
             # getting exclusive data from other
             if name not in self_flat:
-                merged_flat[name] = data_in_name
+                merged_flat[name] = data_in_name.copy()
                 continue
+            merged_flat[name] = {}
             # getting shared data from other
             for key in data_in_name.keys():
                 merged_flat[name][key] = []
-                for i, c in enumerate(merged_config.generate_sequnece()):
+                for i, c in enumerate(merged_config.generate_sequence(only=name)):
                     if self.config.is_subconfig(c):
-                        index = self.get_config_flat_index(c)
-                        merged_flat[name][key].append(self_flat[name][key][index])
+                        # index = self.get_config_flat_index(c)
+                        # merged_flat[name][key].append(self_flat[name][key][index])
+                        merged_flat[name][key].append(np.nan)
                     elif other.config.is_subconfig(c):
-                        index = other.get_config_flat_index(c)
-                        merged_flat[name][key].append(other_flat[name][key][index])
+                        # index = other.get_config_flat_index(c)
+                        # merged_flat[name][key].append(other_flat[name][key][index])
+                        merged_flat[name][key].append(np.nan)
                     else:
                         merged_flat[name][key].append(np.nan)
-            merged.data = merged.format(merged_flat)
-            return merged
+        self.config = merged_config
+        # self.data = self.format(merged_flat)
 
     def get_config_indices(self, local_config):
         indices = []
@@ -138,7 +141,7 @@ class Metrics:
         return tuple(indices)
 
     def get_config_flat_index(self, local_config):
-        for i, c in enumerate(self.config.generate_sequence()):
+        for i, c in enumerate(self.config.generate_sequence(only=local_config.name)):
             if local_config.is_equivalent(c):
                 return i
         message = "Cannot get flat index, config not found."
