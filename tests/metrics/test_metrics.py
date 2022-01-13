@@ -26,8 +26,8 @@ class DummyExperiment:
 class TestMetricsBaseClass(unittest.TestCase):
     def setUp(self):
         self.begin = time.time()
-        self.coupling = np.linspace(0, 10, 10)
-        self.infection_prob = np.linspace(0, 10, 10)
+        self.coupling = np.linspace(0, 10, 5)
+        self.infection_prob = np.linspace(0, 10, 5)
         self.N = [10, 25, 50, 100]
         d = DynamicsConfig.auto(["ising", "sis"])
         d[0].set_value("coupling", self.coupling)
@@ -40,6 +40,7 @@ class TestMetricsBaseClass(unittest.TestCase):
         self.metrics = DummyMetrics(config=self.config)
 
     def tearDown(self):
+        print()
         print(f"Time: {time.time() - self.begin}")
 
     def test_set_up(self):
@@ -90,20 +91,19 @@ class TestMetricsBaseClass(unittest.TestCase):
         self.metrics.load("metrics.pickle")
         pathlib.Path("metrics.pickle").unlink()
 
-    def test_merge(self):
+    def test_merge_with(self):
         config = self.config.deepcopy()
 
         config.set_value("dynamics.ising.coupling", 1000.0)
         config.set_value("dynamics.sis.infection_prob", 1000.0)
-        config.set_value("graph.size", 1000)
+        config.set_value(
+            "graph.edge_matrix.edge_count", EdgeCountPriorConfig.auto(50.0)
+        )
         metrics = DummyMetrics(value=2, config=config)
         metrics.compute()
         self.metrics.compute()
-        self.metrics.merge(metrics)
-        if True:
-            print(metrics.config.format())
-            print(self.metrics.config.format())
-            print(self.metrics.data)
+        self.metrics.merge_with(metrics)
+        print(self.metrics.data)
 
 
 class TemplateTestMetrics:

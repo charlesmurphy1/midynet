@@ -1,8 +1,8 @@
 import h5py
 import numpy as np
-import typing
 import pathlib
 import pickle
+import typing
 from collections import defaultdict
 from dataclasses import dataclass, field
 
@@ -34,7 +34,7 @@ class Metrics:
 
         pb = verbose.init_progress(self.__class__.__name__, total=len(self.config))
         raw_data = defaultdict(lambda: defaultdict(list))
-        for c in self.config.generate_sequence():
+        for c in self.config.sequence():
             val = self.eval(c)
             for k, v in val.items():
                 raw_data[c.name][k].append(v)
@@ -58,7 +58,7 @@ class Metrics:
                     formatted_data[name][key] = formatted_data[name][key].reshape(1)
                 formatted_data[name][key][:] = np.nan
 
-                for i, c in enumerate(self.config.generate_sequence(only=name)):
+                for i, c in enumerate(self.config.named_sequence(name)):
                     index = self.get_config_indices(c)
                     formatted_data[name][key][index] = value[i]
         return formatted_data
@@ -73,7 +73,7 @@ class Metrics:
             for key, values in data_in_name.items():
                 flat_data[name][key] = np.zeros(values.size)
 
-                for i, c in enumerate(self.config.generate_sequence(only=name)):
+                for i, c in enumerate(self.config.named_sequence(name)):
                     index = self.get_config_indices(c)
                     flat_data[name][key][i] = values[index]
         return flat_data
@@ -88,7 +88,8 @@ class Metrics:
         with path.open("rb") as f:
             self.data = pickle.load(f)
 
-    def merge(self, other):
+    def merge_with(self, other):
+
         if not isinstance(other, self.__class__):
             message = (
                 f"Cannot merge since metrics of type {type(other)} "
@@ -99,41 +100,32 @@ class Metrics:
         other_flat = other.flatten(other.data)
 
         merged_config = self.config.deepcopy()
-        merged_config.merge(other.config)
-        merged_flat = {}
+        merged_config.merge_with(other.config)
+        merged_flat = defaultdict(lambda: defaultdict(list))
 
-        for name, data_in_name in self_flat.items():
-            # getting exclusive data from self
-            if name not in other_flat:
-                merged_flat[name] = data_in_name.copy()
-                continue
+        for c in merged_config.sequence():
+            name = merged_config.subname(c)
+            self_name = self.config.subname(c)
+            other_name = other.config.subname(c)
+            for key in self.data[self_name].keys():
+                if c.is_subconfig(self.config):
+                    index = self.get_config_flat_index(c, name=self_name)
+                    merged_flat[name][key].append(self_flat[self_name][key][index])
+                elif c.is_subconfig(other.config):
+                    index = other.get_config_flat_index(c, name=other_name)
+                    merged_flat[name][key].append(other_flat[other_name][key][index])
+                else:
+                    merged_flat[name][key].append(np.nan)
 
-        for name, data_in_name in other_flat.items():
-            # getting exclusive data from other
-            if name not in self_flat:
-                merged_flat[name] = data_in_name.copy()
-                continue
-            merged_flat[name] = {}
-            # getting shared data from other
-            for key in data_in_name.keys():
-                merged_flat[name][key] = []
-                for i, c in enumerate(merged_config.generate_sequence(only=name)):
-                    if self.config.is_subconfig(c):
-                        index = self.get_config_flat_index(c)
-                        merged_flat[name][key].append(self_flat[name][key][index])
-                    elif other.config.is_subconfig(c):
-                        index = other.get_config_flat_index(c)
-                        merged_flat[name][key].append(other_flat[name][key][index])
-                    else:
-                        merged_flat[name][key].append(np.nan)
         self.config = merged_config
         self.data = self.format(merged_flat)
 
-    def get_config_indices(self, local_config):
+    def get_config_indices(self, local_config, name=None):
+        name = local_config.name if name is None else name
         indices = []
-        for k in self.config.scanned_keys[local_config.name]:
+        for k in self.config.scanned_keys[name]:
             value = local_config.get_value(k)
-            all_values = np.array(self.config.scanned_values[local_config.name][k])
+            all_values = np.array(self.config.scanned_values[name][k])
             i = np.where(value == all_values)[0]
             if i.size == 0:
                 message = "Cannot get indices, config not found."
@@ -141,12 +133,13 @@ class Metrics:
             indices.append(i[0])
         return tuple(indices)
 
-    def get_config_flat_index(self, local_config):
+    def get_config_flat_index(self, local_config, name=None):
+        name = local_config.name if name is None else name
         h = hash(local_config)
-        if h not in self.config.hashing_keys[local_config.name]:
+        if h not in self.config.hashing_keys[name]:
             message = "Cannot get flat index, config not found."
             raise ValueError(message)
-        return self.config.hashing_keys[local_config.name].index(h)
+        return self.config.hashing_keys[name].index(h)
 
 
 class CustomMetrics(Metrics):

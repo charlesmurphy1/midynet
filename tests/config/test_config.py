@@ -12,7 +12,7 @@ class TestConfig(unittest.TestCase):
     def setUp(self):
         self.x: int = 1
         self.y: float = 0.5
-        self.z: list[int] = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+        self.z: list[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         self.w: str = 0.5
         self.config = md.config.Config(
             name="config", x=self.x, y=self.y, z=self.z, w=self.w
@@ -24,7 +24,7 @@ class TestConfig(unittest.TestCase):
         self.m_config = config.Config(
             name="m_config",
             x=[
-                config.Config(name="x_a", a={1, 2, 3}),
+                config.Config(name="x_a", a=[1, 2, 3]),
                 config.Config(name="x_b", b=2),
             ],
             y=[-1, 0, 1],
@@ -77,7 +77,7 @@ class TestConfig(unittest.TestCase):
 
     def test_generate_sequence(self):
         counter = 0
-        for c in self.config.generate_sequence():
+        for c in self.config.sequence():
             counter += 1
             self.assertFalse(c.is_sequenced())
             if self.display:
@@ -87,7 +87,7 @@ class TestConfig(unittest.TestCase):
 
     def test_generate_sequence_recursive(self):
         counter = 0
-        for c in self.r_config.generate_sequence():
+        for c in self.r_config.sequence():
             counter += 1
             self.assertFalse(c.is_sequenced())
             if self.display:
@@ -98,7 +98,7 @@ class TestConfig(unittest.TestCase):
     def test_generate_sequence_with_muliple_subconfigs(self):
         counter = 0
         names = set()
-        for cc in self.m_config.generate_sequence():
+        for cc in self.m_config.sequence():
             counter += 1
             names.add(cc.name)
             if self.display:
@@ -115,13 +115,14 @@ class TestConfig(unittest.TestCase):
 
     def test_is_subconfig(self):
         config = Config(x=self.x, y=self.y, z=1, w=self.w)
-        self.assertTrue(self.config.is_subconfig(config))
+        self.assertTrue(config.is_subconfig(self.config))
         r_config = Config(config=config, other=self.x)
-        self.assertTrue(self.r_config.is_subconfig(r_config))
+        self.assertTrue(r_config.is_subconfig(self.r_config))
 
     def test_is_subset(self):
-        for c in self.m_config.generate_sequence():
-            self.assertTrue(self.m_config.is_subset(c))
+        for c in self.m_config.sequence():
+            self.assertTrue(c.is_subset(self.m_config))
+        pass
 
     def test_scanned_keys(self):
         if self.display:
@@ -134,17 +135,17 @@ class TestConfig(unittest.TestCase):
     def test_hashing_keys(self):
         if self.display:
             print(self.m_config.hashing_keys)
-            for c in self.m_config.generate_sequence():
+            for c in self.m_config.sequence():
                 self.assertTrue(hash(c) in self.m_config.hashing_keys)
 
     def test_merge_nonsequence_configs(self):
         c1 = Config(name="c1", x=1, y=4)
         c2 = Config(name="c2", x=2, y=4)
 
-        c1.merge(c2)
+        c1.merge_with(c2)
 
         self.assertEqual(c1.name, "c1")
-        self.assertEqual(c1.x, {1, 2})
+        self.assertEqual(c1.x, [1, 2])
         self.assertEqual(c1.y, 4)
 
         self.assertEqual(c2.name, "c2")
@@ -152,29 +153,43 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(c2.y, 4)
 
     def test_merge_sequence_configs(self):
-        c1 = Config(name="c1", x={1, 2}, y=4)
-        c2 = Config(name="c2", x={3, 4}, y=5)
-        c1.merge(c2)
+        c1 = Config(name="c1", x=[1, 2], y=4)
+        c2 = Config(name="c2", x=[3, 4], y=5)
+        c1.merge_with(c2)
 
         self.assertEqual(c1.name, "c1")
-        self.assertEqual(c1.x, {1, 2, 3, 4})
-        self.assertEqual(c1.y, {4, 5})
+        self.assertEqual(c1.x, [1, 2, 3, 4])
+        self.assertEqual(c1.y, [4, 5])
 
         self.assertEqual(c2.name, "c2")
-        self.assertEqual(c2.x, {3, 4})
+        self.assertEqual(c2.x, [3, 4])
         self.assertEqual(c2.y, 5)
 
     def test_merge_sequence_multiconfigs(self):
 
-        c1 = Config(name="c1", x={1, 2}, y=4)
-        c2 = Config(name="c2", x={3, 4}, y=5)
+        c1 = Config(name="c1", x=[1, 2], y=4)
+        c2 = Config(name="c2", x=[3, 4], y=5)
         c3 = Config(name="c3", c=c1, z=4)
         c4 = Config(name="c4", c=c2, z=5)
         c5 = c4.copy()
-        c5.merge(c3)
-        self.assertTrue(c5.is_subset(c3))
-        self.assertTrue(c5.is_subset(c4))
-        self.assertFalse(c5.is_subset(c2))
+        c5.merge_with(c3)
+        self.assertTrue(c3.is_subset(c5))
+        self.assertTrue(c4.is_subset(c5))
+        self.assertFalse(c2.is_subset(c5))
+
+    def test_name_intricate_multiconfig(self):
+        bottom1 = Config(name="bottom1", x=[1, 2], y=4)
+        bottom2 = Config(name="bottom2", x=[3, 4], y=5)
+        middle = Config(name="middle", bottom=[bottom1, bottom2], z=2)
+        midtop = Config(name="midtop", middle=middle)
+
+        other1 = Config(name="other1", x=[1, 2], y=4)
+        other2 = Config(name="other2", x=[3, 4], y=5)
+        top = Config(name="top", midtop=midtop, other=[other1, other2])
+        if self.display:
+            print(top.format())
+            for c in top.sequence():
+                print(c.name)
 
     def test_save(self):
         path = pathlib.Path("./test_config.pickle")

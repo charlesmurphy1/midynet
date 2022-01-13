@@ -1,4 +1,5 @@
 import typing
+import copy
 from dataclasses import dataclass, field
 
 __all__ = ["Parameter"]
@@ -19,12 +20,15 @@ class Parameter:
 
     def get_sequence(self, values):
         if not issubclass(type(values), typing.Iterable) or isinstance(values, str):
-            values = [values]
+            seq = [values]
+        else:
+            seq = values.copy()
+
         if not self.with_repetition:
-            values = list(set(values))
+            seq = list(set(seq))
         if self.sort_sequence:
-            values.sort()
-        return values
+            seq.sort()
+        return seq
 
     def __getitem__(self, key):
         if not self.is_sequenced():
@@ -47,8 +51,8 @@ class Parameter:
             self.value = next(iter(self.value))
 
     def add_values(self, values):
-        values = self.get_sequence(values)
-        for v in values:
+        seq = self.get_sequence(values)
+        for v in seq:
             self.add_value(v)
 
     def is_sequenced(self):

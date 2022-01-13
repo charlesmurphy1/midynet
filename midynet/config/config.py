@@ -19,14 +19,17 @@ class Config:
     separator: str = "."
     requirements: set[str] = {"name"}
     unique_parameters: set[str] = {"name"}
+    cache_sequence: bool = False
 
     def __init__(self, name="config", **kwargs):
         self.__parameters__ = {}
         self.__names__ = None
         self.__scanned_keys__ = None
         self.__scanned_values__ = None
-        self.__sequence_size__ = None
-        self.__dict_copy__ = None
+        self.__hashing_keys__ = None
+        self.__subnames__ = {}
+        self.__sequence__ = None
+        self.__named_sequence__ = {}
         self.insert("name", name, unique=True)
         for k, v in kwargs.items():
             self.insert(k, v, unique=k in self.unique_parameters)
@@ -69,7 +72,7 @@ class Config:
         return self.get_param(key)
 
     def __len__(self):
-        return self.sequence_size
+        return len(self.sequence())
 
     @classmethod
     def __auto__(cls, args):
@@ -123,7 +126,6 @@ class Config:
         """ Values of the parameters. """
         if recursively:
             return self.dict_copy().values()
-            return self.dict_copy().values()
         return self.__parameters__.values()
 
     def items(self, recursively=False) -> typing.ItemsView:
@@ -138,6 +140,9 @@ class Config:
         self.__scanned_values__ = None
         self.__sequence_size__ = None
         self.__hashing_keys__ = None
+        self.__subnames__ = {}
+        self.__sequence__ = None
+        self.__named_sequence__ = {}
 
     def insert(
         self,
@@ -165,11 +170,12 @@ class Config:
         self.reset_buffer()
 
     def is_sequenced(self) -> bool:
-        for v in self.values():
+        for v in self.values(True):
             if v.is_sequenced():
                 return True
             elif v.is_config and v.value.is_sequenced():
                 return True
+
         return False
 
     def is_equivalent(self, other) -> bool:
@@ -184,16 +190,16 @@ class Config:
         return self.requirements.difference(set(self.keys()))
 
     def is_subset(self, other) -> bool:
-        for c in other.generate_sequence():
-            if not self.is_subconfig(c):
+        for c in self.sequence():
+            if not c.is_subconfig(other):
                 return False
         return True
 
     def is_subconfig(self, other) -> bool:
-        if other.is_sequenced():
+        if self.is_sequenced():
             return False
-        for v in self.hashing_keys.values():
-            if hash(other) in v:
+        for k, v in other.hashing_keys.items():
+            if hash(self) in v:
                 return True
         return False
 
@@ -282,9 +288,8 @@ class Config:
             s += f"{prefix}{suffix}"
         return s
 
-    def generate_sequence(self, only: str = None) -> typing.Generator:
+    def __generate_sequence__(self, only: str = None) -> typing.Generator:
         keys_to_scan = []
-        _keys_to_scan = []
         values_to_scan = []
 
         for k, v in self.items():
@@ -293,41 +298,54 @@ class Config:
                 values_to_scan.append(v.generate_sequence())
             elif v.is_config and v.value.is_sequenced():
                 keys_to_scan.append(k)
-                values_to_scan.append(v.value.generate_sequence())
-
+                values_to_scan.append(v.value.__generate_sequence__())
         if len(values_to_scan) == 0:
             yield self
         else:
             for values in itertools.product(*values_to_scan):
                 config = self.copy()
-                name = config.name
                 for k, v in zip(keys_to_scan, values):
                     config.set_value(k, v)
-                    if issubclass(type(v), Config) and self.get_param(k).is_sequenced():
-                        name += self.separator + v.name
                 if config.is_sequenced():
-                    for c in config.generate_sequence():
+                    for c in config.__generate_sequence__():
+                        name = self.subname(c)
                         if only is None or name == only:
                             c.set_value("name", name)
                             yield c
                 else:
-                    config.set_value("name", name)
+                    name = self.subname(config)
                     if only is None or name == only:
+                        config.set_value("name", name)
                         yield config
 
     @property
     def names(self):
         if self.__names__ is None:
             self.__names__ = set()
-            for c in self.generate_sequence():
+            for c in self.sequence():
                 self.__names__.add(c.name)
         return self.__names__
+
+    def compute_subname(self, subconfig):
+        ext = ""
+        for k, v in subconfig.items():
+            if not v.is_config:
+                continue
+            if self.get_param(k).is_sequenced():
+                ext += f"{self.separator}{v.value.name}"
+            elif self.get_value(k).is_sequenced():
+                s = self.separator.join(
+                    self.get_value(k).compute_subname(v.value).split(self.separator)[1:]
+                )
+                if len(s) > 0:
+                    ext += self.separator + s
+        return self.name + ext
 
     @property
     def scanned_keys(self) -> typing.Dict[str, list]:
         if self.__scanned_keys__ is None:
             counter = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-            for c in self.generate_sequence():
+            for c in self.sequence():
                 for k, v in c.items(recursively=True):
                     if not v.unique and not v.is_config:
                         counter[c.name][k][v.value] += 1
@@ -348,43 +366,50 @@ class Config:
             if len(keys) == 0:
                 self.__scanned_values__ = {}
             else:
-                for c in self.generate_sequence():
+                for c in self.sequence():
                     for k in keys[c.name]:
                         if c.get_value(k) not in values[c.name][k]:
                             values[c.name][k].append(c.get_value(k))
                 self.__scanned_values__ = dict({k: dict(v) for k, v in values.items()})
         return self.__scanned_values__
 
-    @property
-    def sequence_size(self) -> int:
-        if self.__sequence_size__ is None:
-            self.__sequence_size__ = sum(1 for _ in self.generate_sequence())
-        return self.__sequence_size__
+    # @property
+    # def sequence_size(self) -> int:
+    #     if self.__sequence_size__ is None:
+    #         self.__sequence_size__ = len(self.sequence())
+    #     return self.__sequence_size__
 
     @property
     def hashing_keys(self):
         if self.__hashing_keys__ is None:
             self.__hashing_keys__ = defaultdict(list)
             for name in self.names:
-                for c in self.generate_sequence(only=name):
+                for c in self.named_sequence(name):
                     self.__hashing_keys__[name].append(hash(c))
             self.__hashing_keys__ = dict(self.__hashing_keys__)
         return self.__hashing_keys__
 
-    def regroup_by_name(self, name=None):
-        if name is None:
-            name = self.names
-        elif isinstance(name, str):
-            name = [name]
+    def sequence(self):
+        if self.__sequence__ is None:
+            self.__sequence__ = [c for c in self.__generate_sequence__()]
+        return self.__sequence__
 
-        config = defaultdict(list)
-        for c in self.generate_sequence():
-            config[c.name].append(c)
-        return dict(config)
+    def named_sequence(self, name):
+        if name not in self.__named_sequence__:
+            self.__named_sequence__[name] = [
+                c for c in self.__generate_sequence__(only=name)
+            ]
+        return self.__named_sequence__[name]
 
-    def merge(self, other):
-        for config in other.generate_sequence():
-            if self.is_subconfig(config):
+    def subname(self, config):
+        h = hash(config)
+        if h not in self.__subnames__:
+            self.__subnames__[h] = self.compute_subname(config)
+        return self.__subnames__[h]
+
+    def merge_with(self, other):
+        for config in other.__generate_sequence__():
+            if config.is_subconfig(self):
                 continue
             for key, value in config.items():
                 if value.is_unique():
@@ -392,22 +417,26 @@ class Config:
                 elif key not in self:
                     message = f"Missing key {key}, configs cannot be merged."
                     raise ValueError(message)
-                elif value.is_config and self.get_param(key).is_sequenced():
-                    found = False
-                    for sub in self.get_value(key):
-                        if sub.name == value.value.name:
-                            sub.merge(value.value)
-                            found = True
-                            break
-                    if not found:
-                        self.get_param(key).add_value(value.value)
                 elif value.is_config:
-                    if value.value.name != self.get_value(key).name:
-                        self.get_param(key).add_value(config.get_value(key))
+                    if self.get_param(key).is_sequenced():
+                        found = False
+                        for sub in self.get_value(key):
+                            if sub.name == value.value.name:
+                                sub.merge_with(value.value)
+                                found = True
+                                break
+                        if not found:
+                            self.get_param(key).add_value(value.value)
                     else:
-                        value.value.merge(config.get_value(key))
+                        if value.value.name != self.get_value(key).name:
+                            self.get_param(key).add_value(config.get_value(key))
+                        else:
+                            self.get_value(key).merge_with(config.get_value(key))
                 else:
-                    self.get_param(key).add_values(value.value)
+                    if self.get_param(key).is_sequenced() or value.is_sequenced():
+                        self.get_param(key).add_values(value.value)
+                    else:
+                        self.get_param(key).add_value(value.value)
         self.reset_buffer()
 
     def save(
