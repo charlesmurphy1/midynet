@@ -192,7 +192,10 @@ class Config:
     def is_subconfig(self, other) -> bool:
         if other.is_sequenced():
             return False
-        return hash(other) in self.hashing_keys
+        for v in self.hashing_keys.values():
+            if hash(other) in v:
+                return True
+        return False
 
     def get_param(self, key: str, default: Any = None) -> Parameter:
         return self.dict_copy().get(key, default)
@@ -328,18 +331,19 @@ class Config:
                 for k, v in c.items(recursively=True):
                     if not v.unique and not v.is_config:
                         counter[c.name][k][v.value] += 1
-            keys = defaultdict(lambda: list())
+            keys = {k: [] for k in self.names}
             for name, counter_dict in counter.items():
                 for k, c in counter_dict.items():
                     if len(c) > 1:
                         keys[name].append(k)
             self.__scanned_keys__ = dict(keys)
+
         return self.__scanned_keys__
 
     @property
     def scanned_values(self) -> typing.Dict[str, typing.Dict[str, list]]:
         if self.__scanned_values__ is None:
-            values = defaultdict(lambda: defaultdict(lambda: list()))
+            values = {k: defaultdict(lambda: list()) for k in self.names}
             keys = self.scanned_keys
             if len(keys) == 0:
                 self.__scanned_values__ = {}
@@ -360,9 +364,11 @@ class Config:
     @property
     def hashing_keys(self):
         if self.__hashing_keys__ is None:
-            self.__hashing_keys__ = []
-            for c in self.generate_sequence():
-                self.__hashing_keys__.append(hash(c))
+            self.__hashing_keys__ = defaultdict(list)
+            for name in self.names:
+                for c in self.generate_sequence(only=name):
+                    self.__hashing_keys__[name].append(hash(c))
+            self.__hashing_keys__ = dict(self.__hashing_keys__)
         return self.__hashing_keys__
 
     def regroup_by_name(self, name=None):

@@ -13,12 +13,6 @@ class Parameter:
     force_non_sequence: bool = field(repr=False, default=False)
     sort_sequence: bool = field(repr=False, default=True)
 
-    # def __post_init__(self):
-    #     if self.with_repetition and isinstance(self.value, set):
-    #         self.value = list(self.value)
-    #     elif not self.with_repetition and isinstance(self.value, list):
-    #         self.value = set(self.value)
-
     @property
     def datatype(self) -> typing.Any:
         return self.infer_type(self.value)
@@ -26,13 +20,11 @@ class Parameter:
     def get_sequence(self, values):
         if not issubclass(type(values), typing.Iterable) or isinstance(values, str):
             values = [values]
-        if self.with_repetition:
-            values = list(values)
-            if self.sort_sequence:
-                values.sort()
-            return values
-        else:
-            return set(values)
+        if not self.with_repetition:
+            values = list(set(values))
+        if self.sort_sequence:
+            values.sort()
+        return values
 
     def __getitem__(self, key):
         if not self.is_sequenced():
@@ -41,7 +33,10 @@ class Parameter:
         return self.value[key]
 
     def set_value(self, value):
-        self.value = value.value if issubclass(type(value), Parameter) else value
+        value = value.value if issubclass(type(value), Parameter) else value
+        if issubclass(type(value), typing.Iterable) and not isinstance(value, str):
+            value = self.get_sequence(value)
+        self.value = value
 
     def add_value(self, value):
         if issubclass(type(self.value), typing.Iterable):

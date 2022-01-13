@@ -95,21 +95,19 @@ class BlockPriorConfig(Config):
         return cls(name="delta", state=blocks)
 
     @classmethod
-    def uniform(cls, size: int = 1, block_count_max: int = None):
-        block_count_max = size if block_count_max is None else block_count_max
+    def uniform(cls):
         return cls(
             name="uniform",
-            size=size,
-            block_count=BlockCountPriorConfig.uniform(block_count_max),
+            block_count=BlockCountPriorConfig.uniform(),
         )
 
     @classmethod
-    def hyperuniform(cls, size: int = 1, block_count_max: int = None):
-        block_count_max = size if block_count_max is None else block_count_max
+    def hyperuniform(
+        cls,
+    ):
         return cls(
             name="hyperuniform",
-            size=size,
-            block_count=BlockCountPriorConfig.uniform(block_count_max),
+            block_count=BlockCountPriorConfig.uniform(),
         )
 
 
@@ -187,7 +185,8 @@ class BlockPriorFactory(Factory):
     @staticmethod
     def build_uniform(config: BlockPriorConfig) -> sbm.BlockUniformPrior:
         B = BlockCountPriorFactory.build(config.get_value("block_count"))
-        b = sbm.BlockUniformPrior(config.size, B)
+        b = sbm.BlockUniformPrior(100, B)
+
         return Wrapper(
             b,
             setup_func=lambda wrap, others: wrap.set_block_count_prior(
@@ -201,7 +200,8 @@ class BlockPriorFactory(Factory):
         config: BlockPriorConfig,
     ) -> sbm.BlockUniformHyperPrior:
         B = BlockCountPriorFactory.build(config.get_value("block_count"))
-        b = sbm.BlockUniformHyperPrior(config.size, B)
+        b = sbm.BlockUniformHyperPrior(100, B)
+
         return Wrapper(
             b,
             setup_func=lambda wrap, others: wrap.set_block_count_prior(

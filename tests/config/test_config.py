@@ -132,10 +132,10 @@ class TestConfig(unittest.TestCase):
             print(self.m_config.scanned_values)
 
     def test_hashing_keys(self):
-        if self.display or True:
+        if self.display:
             print(self.m_config.hashing_keys)
             for c in self.m_config.generate_sequence():
-                print(hash(c) in self.m_config.hashing_keys)
+                self.assertTrue(hash(c) in self.m_config.hashing_keys)
 
     def test_merge_nonsequence_configs(self):
         c1 = Config(name="c1", x=1, y=4)

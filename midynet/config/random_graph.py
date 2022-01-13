@@ -37,7 +37,9 @@ class RandomGraphConfig(Config):
     def uniform_sbm(
         cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
     ):
-        blocks = BlockPriorConfig.uniform(size=size, block_count_max=block_count_max)
+        blocks = BlockPriorConfig.uniform()
+        blocks = BlockPriorConfig.uniform()
+        blocks.block_count.set_value("max", block_count_max)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         return cls.custom_sbm("uniform_sbm", size, blocks, edge_matrix)
 
@@ -45,10 +47,7 @@ class RandomGraphConfig(Config):
     def hyperuniform_sbm(
         cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
     ):
-        blocks = BlockPriorConfig.hyperuniform(
-            size=size, block_count_max=block_count_max
-        )
-        blocks.block_count.set_value("max", size)
+        blocks = BlockPriorConfig.hyperuniform()
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         return cls.custom_sbm("hyperuniform_sbm", size, blocks, edge_matrix)
 
@@ -92,18 +91,19 @@ class RandomGraphConfig(Config):
     def uniform_dcsbm(
         cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
     ):
-        blocks = BlockPriorConfig.uniform(size=size, block_count_max=block_count_max)
+        blocks = BlockPriorConfig.uniform()
+        blocks.block_count.set_value("max", block_count_max)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         degrees = DegreePriorConfig.uniform()
+
         return cls.custom_dcsbm("uniform_dcsbm", size, blocks, edge_matrix, degrees)
 
     @classmethod
     def hyperuniform_dcsbm(
         cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
     ):
-        blocks = BlockPriorConfig.hyperuniform(
-            size=size, block_count_max=block_count_max
-        )
+        blocks = BlockPriorConfig.hyperuniform()
+        blocks.block_count.set_value("max", block_count_max)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         degrees = DegreePriorConfig.hyperuniform()
         return cls.custom_dcsbm(
@@ -163,6 +163,7 @@ class RandomGraphFactory(Factory):
         config: RandomGraphConfig,
     ) -> random_graph.StochasticBlockModelFamily:
         block_wrapper = BlockPriorFactory.build(config.blocks)
+        block_wrapper.set_size(config.size)
         edge_matrix_wrapper = EdgeMatrixPriorFactory.build(config.edge_matrix)
 
         g = random_graph.StochasticBlockModelFamily(config.size)
@@ -183,10 +184,20 @@ class RandomGraphFactory(Factory):
 
     @staticmethod
     def build_uniform_sbm(config: RandomGraphConfig):
+        config.blocks.block_count.max = (
+            config.size
+            if config.blocks.block_count.max is None
+            else config.blocks.block_count.max
+        )
         return RandomGraphFactory.build_custom_sbm(config)
 
     @staticmethod
     def build_hyperuniform_sbm(config: RandomGraphConfig):
+        config.blocks.block_count.max = (
+            config.size
+            if config.blocks.block_count.max is None
+            else config.blocks.block_count.max
+        )
         return RandomGraphFactory.build_custom_sbm(config)
 
     @staticmethod
@@ -216,6 +227,7 @@ class RandomGraphFactory(Factory):
         config: RandomGraphConfig,
     ) -> random_graph.DegreeCorrectedStochasticBlockModelFamily:
         block_wrapper = BlockPriorFactory.build(config.blocks)
+        block_wrapper.set_size(config.size)
         edge_matrix_wrapper = EdgeMatrixPriorFactory.build(config.edge_matrix)
         degrees = DegreePriorFactory.build(config.degrees)
         g = random_graph.DegreeCorrectedStochasticBlockModelFamily(config.size)
@@ -238,10 +250,20 @@ class RandomGraphFactory(Factory):
 
     @staticmethod
     def build_uniform_dcsbm(config: RandomGraphConfig):
+        config.blocks.block_count.max = (
+            config.size
+            if config.blocks.block_count.max is None
+            else config.blocks.block_count.max
+        )
         return RandomGraphFactory.build_custom_dcsbm(config)
 
     @staticmethod
     def build_hyperuniform_dcsbm(config: RandomGraphConfig):
+        config.blocks.block_count.max = (
+            config.size
+            if config.blocks.block_count.max is None
+            else config.blocks.block_count.max
+        )
         return RandomGraphFactory.build_custom_dcsbm(config)
 
     @staticmethod

@@ -53,6 +53,9 @@ class Metrics:
                 formatted_data[name][key] = np.empty(
                     [len(v) for v in self.config.scanned_values[name].values()]
                 )
+
+                if formatted_data[name][key].shape == ():
+                    formatted_data[name][key] = formatted_data[name][key].reshape(1)
                 formatted_data[name][key][:] = np.nan
 
                 for i, c in enumerate(self.config.generate_sequence(only=name)):
@@ -116,17 +119,15 @@ class Metrics:
                 merged_flat[name][key] = []
                 for i, c in enumerate(merged_config.generate_sequence(only=name)):
                     if self.config.is_subconfig(c):
-                        # index = self.get_config_flat_index(c)
-                        # merged_flat[name][key].append(self_flat[name][key][index])
-                        merged_flat[name][key].append(np.nan)
+                        index = self.get_config_flat_index(c)
+                        merged_flat[name][key].append(self_flat[name][key][index])
                     elif other.config.is_subconfig(c):
-                        # index = other.get_config_flat_index(c)
-                        # merged_flat[name][key].append(other_flat[name][key][index])
-                        merged_flat[name][key].append(np.nan)
+                        index = other.get_config_flat_index(c)
+                        merged_flat[name][key].append(other_flat[name][key][index])
                     else:
                         merged_flat[name][key].append(np.nan)
         self.config = merged_config
-        # self.data = self.format(merged_flat)
+        self.data = self.format(merged_flat)
 
     def get_config_indices(self, local_config):
         indices = []
@@ -141,11 +142,11 @@ class Metrics:
         return tuple(indices)
 
     def get_config_flat_index(self, local_config):
-        for i, c in enumerate(self.config.generate_sequence(only=local_config.name)):
-            if local_config.is_equivalent(c):
-                return i
-        message = "Cannot get flat index, config not found."
-        raise ValueError(message)
+        h = hash(local_config)
+        if h not in self.config.hashing_keys[local_config.name]:
+            message = "Cannot get flat index, config not found."
+            raise ValueError(message)
+        return self.config.hashing_keys[local_config.name].index(h)
 
 
 class CustomMetrics(Metrics):

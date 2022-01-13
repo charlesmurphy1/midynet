@@ -58,8 +58,8 @@ class TestBlockPriorFactory(unittest.TestCase, TestFactory):
     factory = BlockPriorFactory
     good_configs = [
         BlockPriorConfig.delta([0, 0, 0, 0, 0, 1, 1, 1, 1, 1]),
-        BlockPriorConfig.uniform(10),
-        BlockPriorConfig.hyperuniform(10),
+        BlockPriorConfig.uniform(),
+        BlockPriorConfig.hyperuniform(),
     ]
     missing_configs = [Config(name="missing")]
 
