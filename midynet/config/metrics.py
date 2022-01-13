@@ -4,7 +4,7 @@ from .wrapper import Wrapper
 
 # from midynet.metrics import *
 
-__all__ = ["MetricsConfig"]
+__all__ = ["MetricsConfig", "MetricsFactory"]
 
 
 class MetricsConfig(Config):

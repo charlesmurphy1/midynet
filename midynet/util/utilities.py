@@ -1,7 +1,7 @@
 import numpy as np
 import pathlib
 
-__all__ = ["clip", "log_sum_exp", "log_mean_exp", "to_batch"]
+__all__ = ["clip", "log_sum_exp", "log_mean_exp", "to_batch", "delete_path"]
 
 
 def clip(x, xmin=0, xmax=1):

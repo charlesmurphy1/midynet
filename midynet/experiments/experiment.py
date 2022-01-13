@@ -2,17 +2,22 @@ import h5py
 import json
 import numpy as np
 import os
+import pathlib
 import pickle
 import random
 import shutil
-import zipfile
 import time
+import typing
+import zipfile
 
 from dataclasses import dataclass, field
 
 from midynet.config import Config, MetricsFactory
+from midynet.metrics import Metrics
 from midynet.util import Verbose, LoggerDict, TimeLogger, MemoryLogger, delete_path
 from _midynet import utility
+
+__all__ = ["Experiment"]
 
 
 @dataclass
@@ -25,7 +30,7 @@ class Experiment:
     log_filename: str = field(repr=False, default="log.pickle")
     seed: int = field(repr=False, default_factory=lambda: int(time.time()))
     loggers: LoggerDict = field(repr=False, default_factory=LoggerDict)
-    metrics: Dict[str, Metrics] = field(repr=False, default_factory=dict)
+    metrics: typing.Dict[str, Metrics] = field(repr=False, default_factory=dict)
 
     def __post_init__(self):
         self.path.mkdir(exist_ok=True)

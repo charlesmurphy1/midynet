@@ -1,4 +1,4 @@
-import midynet.util.loggers
-from .display import *
+# from .display import *
+from .loggers import *
 from .utilities import *
 from .verbose import *

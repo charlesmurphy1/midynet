@@ -6,3 +6,4 @@ from .prior import *
 from .random_graph import *
 from .dynamics import *
 from .metrics import *
+from .experiment import *
