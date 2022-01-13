@@ -13,6 +13,7 @@ class Parameter:
     with_repetition: bool = field(repr=False, default=False)
     force_non_sequence: bool = field(repr=False, default=False)
     sort_sequence: bool = field(repr=False, default=True)
+    is_config: bool = False
 
     @property
     def datatype(self) -> typing.Any:
@@ -24,7 +25,7 @@ class Parameter:
         else:
             seq = values.copy()
 
-        if not self.with_repetition:
+        if not self.with_repetition and not self.is_config:
             seq = list(set(seq))
         if self.sort_sequence:
             seq.sort()

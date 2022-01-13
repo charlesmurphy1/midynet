@@ -106,7 +106,7 @@ class TestConfig(unittest.TestCase):
                 print(cc.format())
 
         self.assertEqual(counter, 12)
-        self.assertEqual(names, self.m_config.names)
+        self.assertEqual(names, self.m_config.names())
 
     def test_is_equivalent(self):
         self.assertTrue(self.config.is_equivalent(self.r_config["config"].value))
@@ -126,17 +126,17 @@ class TestConfig(unittest.TestCase):
 
     def test_scanned_keys(self):
         if self.display:
-            print(self.m_config.scanned_keys)
+            print(self.m_config.scanned_keys())
 
     def test_scanned_values(self):
         if self.display:
-            print(self.m_config.scanned_values)
+            print(self.m_config.scanned_values())
 
     def test_hashing_keys(self):
         if self.display:
-            print(self.m_config.hashing_keys)
+            print(self.m_config.hashing_keys())
             for c in self.m_config.sequence():
-                self.assertTrue(hash(c) in self.m_config.hashing_keys)
+                self.assertTrue(hash(c) in self.m_config.hashing_keys())
 
     def test_merge_nonsequence_configs(self):
         c1 = Config(name="c1", x=1, y=4)

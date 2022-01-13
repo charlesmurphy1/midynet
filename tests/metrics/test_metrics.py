@@ -1,7 +1,8 @@
+import itertools
 import numpy as np
-import unittest
 import pathlib
 import time
+import unittest
 from dataclasses import dataclass, field
 
 import midynet
@@ -24,11 +25,16 @@ class DummyExperiment:
 
 
 class TestMetricsBaseClass(unittest.TestCase):
+    time_it: bool = False
+
     def setUp(self):
-        self.begin = time.time()
+        if self.time_it:
+            self.begin = time.time()
         self.coupling = np.linspace(0, 10, 5)
         self.infection_prob = np.linspace(0, 10, 5)
         self.N = [10, 25, 50, 100]
+        self.coupling_size = len(self.coupling)
+        self.N_size = len(self.N)
         d = DynamicsConfig.auto(["ising", "sis"])
         d[0].set_value("coupling", self.coupling)
         d[1].set_value("infection_prob", self.infection_prob)
@@ -40,8 +46,9 @@ class TestMetricsBaseClass(unittest.TestCase):
         self.metrics = DummyMetrics(config=self.config)
 
     def tearDown(self):
-        print()
-        print(f"Time: {time.time() - self.begin}")
+        if self.time_it:
+            print()
+            print(f"Time: {time.time() - self.begin}")
 
     def test_set_up(self):
         pass
@@ -103,7 +110,13 @@ class TestMetricsBaseClass(unittest.TestCase):
         metrics.compute()
         self.metrics.compute()
         self.metrics.merge_with(metrics)
-        print(self.metrics.data)
+        d = self.metrics.data
+        for keys in itertools.product(["test"], ["ising", "sis"], ["delta", "poisson"]):
+            name = ".".join(keys)
+            self.assertIn(name, d)
+            self.assertEqual(
+                d[name]["dummy"].shape, (self.coupling_size + 1, self.N_size)
+            )
 
 
 class TemplateTestMetrics:
@@ -130,7 +143,7 @@ class TemplateTestMetrics:
         else:
             data = self._metrics.eval(self.config)
             if self.display:
-                print(data)
+                print(data.shape == (self))
 
 
 class TestDynamicsEntropy(unittest.TestCase, TemplateTestMetrics):

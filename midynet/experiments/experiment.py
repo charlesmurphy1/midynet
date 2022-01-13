@@ -108,14 +108,13 @@ class Experiment:
             self.metrics[k].load(pathlib.Path(self.path) / f"{k}.pickle")
         self.loggers.load(self.path / self.log_filename)
 
-    # @classmethod
-    # def from_file(cls, path_to_config, autoload=True):
-    #     with open(path_to_config, "rb") as config_file:
-    #         config = pickle.load(config_file)
-    #     exp = cls(config)
-    #     if autoload:
-    #         exp.load()
-    #     return exp
+    @classmethod
+    def load_from_file(cls, name: str, path: pathlib.Path):
+        config = Config.load(path)
+        exp = cls(name, config=config, path=path)
+        exp.load()
+        return exp
+
     #
     # @classmethod
     # def unzip(cls, path_to_zip, destination=None):
@@ -146,93 +145,31 @@ class Experiment:
         path = pathlib.Path() if path is None else path
         destination = pathlib.Path(name) if destination is None else destination / name
         prohibited = [] if prohibited is None else prohibited
+        others = []
         config = None
+        counter = 0
         for local, subpaths, files in os.walk(path):
             if local in prohibited:
                 continue
             for f in files:
 
                 if f == config_filename:
+                    c = Config.load(pathlib.Path(local) / f)
+                    others.append(
+                        cls.load_from_file(f"{name}_{counter}", pathlib.Path(local))
+                    )
                     if config is None:
-                        config = Config.load(pathlib.Path(local) / f)
-                        config.set_value(name, config_name)
+                        config = c
+                        config.set_value("name", name)
                     else:
-                        config.merge(Config.load(pathlib.Path(local) / f))
+                        config.merge_with(c)
 
-        exp = cls(name, config, destionation, config_filename=config_filename)
-
-        # configs = get_config_for_merger(
-        #     location=location, prefix=prefix, prohibited=prohibited
-        # )
-
-        # merge_seed = int(time.time())
-        exp = None
-        # for path, c in configs.items():
-        #     c.name = prefix
-        #     c.seed = merge_seed
-        #     c.path_to_data = path
-        #     other = cls(c)
-        #     other.load_metrics()
-        #     if exp is None:
-        #         exp = other
-        #     else:
-        #         exp = exp.merge_with(other)
+        exp = cls(name, config, destination, config_filename=config_filename)
+        for k in exp.config.metrics.names:
+            exp.metrics[k] = MetricsFactory.build(k)
+            for other in others:
+                exp.metrics[k].merge_with(other.metrics[k])
         return exp
-
-    # def merge_with(self, other):
-    #     if issubclass(type(other), Experiment):
-    #         pass
-    #     elif issubclass(type(other), Config):
-    #         other = Experiment(other)
-    #         other.load()
-    #     elif os.path.isfile(other):
-    #         other = Experiment.from_file(other)
-    #         other.load()
-    #     else:
-    #         raise TypeError()
-    #     shared_config = self.get_shared_config(other)
-    #     merged_experiment = Experiment(shared_config)
-    #     for n, m in self.metrics.items():
-    #         mm = other.metrics[n]
-    #         data = {}
-    #         v = m.unformat_data(m.data)
-    #         vv = mm.unformat_data(mm.data)
-    #
-    #         for k in v.keys():
-    #             data[k] = []
-    #             for i, c in enumerate(merged_experiment.config_array):
-    #                 if self.config > c and not (other.config > c):
-    #                     index = self.config_array.get_scan_index(c)
-    #                     data[k].append(v[k][index])
-    #                 elif not (self.config > c) and other.config > c:
-    #                     index = other.config_array.get_scan_index(c)
-    #                     data[k].append(vv[k][index])
-    #                 elif not (self.config > c) and not (other.config > c):
-    #                     data[k].append(np.nan)
-    #                 else:
-    #                     print("ERROR", c.scan)
-    #
-    #         data = merged_experiment.metrics[n].format_data(data)
-    #         merged_experiment.metrics[n].data = data
-    #     return merged_experiment
-    #
-    # def get_shared_config(self, other):
-    #     shared_config = self.config.copy()
-    #     config = other.config
-    #     for k, v in self.config.state_dict.items():
-    #         vv = config[k]
-    #         if k not in other.config.state_dict:
-    #             msg = f"Key `{k}` was not found in other."
-    #             raise RuntimeError(msg)
-    #         if v == config[k] or k == "seed" or k == "path_to_data":
-    #             pass
-    #         else:
-    #             if not isinstance(v, list):
-    #                 v = [v]
-    #             if not isinstance(vv, list):
-    #                 vv = [vv]
-    #             shared_config[k] = sorted(list(set(v + vv)))
-    #     return shared_config
 
 
 if __name__ == "__main__":

@@ -6,9 +6,11 @@ from _midynet.prior import sbm
 
 class TestWrapper(unittest.TestCase):
     def setUp(self):
-        self.config = config.BlockPriorConfig.uniform(100)
-        block_count = sbm.BlockCountUniformPrior(10)
-        blocks = sbm.BlockUniformPrior(self.config.size, block_count)
+        self.size = 100
+        self.max_block_count = 10
+        self.config = config.BlockPriorConfig.uniform()
+        block_count = sbm.BlockCountUniformPrior(self.max_block_count)
+        blocks = sbm.BlockUniformPrior(self.size, block_count)
         self.wrapper = config.Wrapper(
             blocks,
             setup_func=lambda wrap, other: wrap.set_block_count_prior(
@@ -18,7 +20,7 @@ class TestWrapper(unittest.TestCase):
         )
 
     def test_access_wrapped_method(self):
-        self.assertEqual(self.wrapper.get_size(), 100)
+        self.assertEqual(self.wrapper.get_size(), self.size)
         self.wrapper.sample_priors()
 
     def test_get_wrap(self):

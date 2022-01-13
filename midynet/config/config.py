@@ -1,8 +1,10 @@
+from __future__ import annotations
 import copy
 import itertools
 import pathlib
 import pickle
 import typing
+
 
 from typing import Any, Callable
 from collections import defaultdict
@@ -12,16 +14,31 @@ __all__ = ["Config"]
 
 
 class Config:
-    """
-    Base config class containing the parameters of an experiment set up.
-    """
 
     separator: str = "."
+    """ separator to distinguish """
+
     requirements: set[str] = {"name"}
+    """ Set of required parameter names. """
+
     unique_parameters: set[str] = {"name"}
-    cache_sequence: bool = False
+    """ Set of unique parameter names. """
+
+    cache: bool = True
+    """ Cache the generated sequences, makes the lookup faster at the expense of more memory. """
 
     def __init__(self, name="config", **kwargs):
+        """
+        Base config class containing and managing the parameters of an experiment set up.
+
+        Operators:
+            __str__, __repr__, __contains__, __getattr__, __getitem__, __len__,
+            __gt__, __ge__, __lt__, __le__, __hash__
+
+        Args:
+            name: name of the configuration.
+            **kwargs: other parameter contained by the configuration.
+        """
         self.__parameters__ = {}
         self.__names__ = None
         self.__scanned_keys__ = None
@@ -75,7 +92,8 @@ class Config:
         return len(self.sequence())
 
     @classmethod
-    def __auto__(cls, args):
+    def __auto__(cls, args) -> Config:
+
         if args in cls.__dict__ and isinstance(getattr(cls, args), Callable):
             return getattr(cls, args)()
         elif isinstance(args, cls):
@@ -109,67 +127,70 @@ class Config:
             raise TypeError(message)
 
     @classmethod
-    def auto(cls, args):
-        """ Automatic construction method. """
+    def auto(cls, args: typing.Any) -> Config:
+        """
+        Automatic construction method using `args`.
+
+        Args:
+            args: input for constructing an instance of `Config`.
+        """
         if not isinstance(args, typing.Iterable) or isinstance(args, str):
             return cls.__auto__(args)
         else:
             return [cls.__auto__(a) for a in args]
 
     def keys(self, recursively: bool = False) -> typing.KeysView:
-        """ Keys of the parameters. """
+        """
+        Keys of the parameters.
+        Args:
+            recursively:    if `True`, recursvely returns the keys of all parameters
+                            in `self`, else returns only the parameters directly
+                            owned by `self`. Defaults to `False`.
+        Returns:
+            keys of the parameters.
+        """
         if recursively:
             return self.dict_copy().keys()
         return self.__parameters__.keys()
 
     def values(self, recursively: bool = False) -> typing.ValuesView:
-        """ Values of the parameters. """
+        """
+        Values of the parameters.
+        Args:
+            recursively:    if `True`, recursvely returns the values of all parameters
+                            in `self`, else returns only the parameters directly
+                            owned by `self.` Defaults to `False`.
+        Returns:
+            values of the parameters.
+        """
         if recursively:
             return self.dict_copy().values()
         return self.__parameters__.values()
 
-    def items(self, recursively=False) -> typing.ItemsView:
-        """ Items of the parameter dict. """
+    def items(self, recursively: bool = False) -> typing.ItemsView:
+        """
+        Items of the parameter dict.
+        Args:
+            recursively:    if `True`, recursvely returns the items of all parameters
+                            in `self`, else returns only the parameters directly
+                            owned by `self.` Defaults to `False`.
+        Returns:
+            items of the parameters.
+        """
         if recursively:
             return self.dict_copy().items()
         return self.__parameters__.items()
 
-    def reset_buffer(self):
-        self.__names__ = None
-        self.__scanned_keys__ = None
-        self.__scanned_values__ = None
-        self.__sequence_size__ = None
-        self.__hashing_keys__ = None
-        self.__subnames__ = {}
-        self.__sequence__ = None
-        self.__named_sequence__ = {}
-
-    def insert(
-        self,
-        key: str,
-        value: Any,
-        unique: bool = False,
-        with_repetition: bool = False,
-        force_non_sequence: bool = False,
-    ):
-        """ Insert new parameters. """
-        value = value.value if issubclass(type(value), Parameter) else value
-        p = Parameter(
-            name=key, value=value, unique=unique, force_non_sequence=force_non_sequence
-        )
-        self.__parameters__[key] = p
-        self.__parameters__[key].is_config = issubclass(p.datatype, Config)
-        self.__parameters__[key].with_repetition = (
-            self.__parameters__[key].is_config or with_repetition
-        )
-        self.reset_buffer()
-
-    def erase(self, key: str):
-        """ Erase existing parameters. """
-        self.__parameters__.pop(key)
-        self.reset_buffer()
+    def unmet_requirements(self) -> set[str]:
+        """
+        Returns the set of missing requirements.
+        """
+        return self.requirements.difference(set(self.keys()))
 
     def is_sequenced(self) -> bool:
+        """
+        Check whether `self` contains sequenced parameters, otherwise returns False.
+        """
         for v in self.values(True):
             if v.is_sequenced():
                 return True
@@ -178,7 +199,12 @@ class Config:
 
         return False
 
-    def is_equivalent(self, other) -> bool:
+    def is_equivalent(self, other: Config) -> bool:
+        """
+        Check whether `self` generated the same set of configurations with `other`, otherwise returns False.
+        Args:
+            other:  other configuration to compare with
+        """
         if not issubclass(type(other), Config):
             return False
 
@@ -186,35 +212,106 @@ class Config:
         s_other = other.format(forbid=self.unique_parameters).split("\n")[1:]
         return s_self == s_other
 
-    def unmet_requirements(self):
-        return self.requirements.difference(set(self.keys()))
+    def is_subset(self, other: Config) -> bool:
+        """
+        Check whether `self` generates a set of the configurations generated by `other`, otherwise returns False.
 
-    def is_subset(self, other) -> bool:
+        Args:
+            other:  other configuration to compare with
+        """
         for c in self.sequence():
             if not c.is_subconfig(other):
                 return False
         return True
 
-    def is_subconfig(self, other) -> bool:
+    def is_subconfig(self, other: Config) -> bool:
+        """
+        Check whether `self`, which not be sequenced, is generated by `other`, otherwise returns False.
+
+        Args:
+            other:  other configuration to compare with
+        """
         if self.is_sequenced():
             return False
-        for k, v in other.hashing_keys.items():
+        for k, v in other.hashing_keys().items():
             if hash(self) in v:
                 return True
         return False
 
+    def insert(
+        self,
+        key: str,
+        value: Any,
+        **kwargs,
+    ) -> None:
+        """
+        Insert a new parameter.
+
+        Args:
+            key:  key of the new parameter.
+            value:  value of the new parameter.
+            **kwargs: arguments past to :obj:`Parameter`.
+
+        """
+        value = value.value if issubclass(type(value), Parameter) else value
+        p = Parameter(name=key, value=value, **kwargs)
+        self.__parameters__[key] = p
+        self.__parameters__[key].is_config = issubclass(p.datatype, Config)
+        self.reset_buffer()
+
+    def erase(self, key: str):
+        """
+        Erase existing parameters.
+
+        Args:
+            key: key of the parameter to erase.
+        """
+        self.__parameters__.pop(key)
+        self.reset_buffer()
+
     def get_param(self, key: str, default: Any = None) -> Parameter:
+        """
+        Returns the parameter associated with a key.
+
+        Args:
+            key: key of the parameter to get.
+            default (optional): Returned value if `key` is not in `self`. Defaults to None.
+        """
         return self.dict_copy().get(key, default)
 
-    def get_value(self, key: str, default: Any = None):
+    def get_value(self, key: str, default: Any = None) -> typing.Any:
+        """
+        Returns the value associated with the parameter `key`.
+
+        Args:
+            key: key of the parameter to get.
+            default (optional): Returned value if `key` is not in `self`. Defaults to None.
+        """
         return self.get_param(key).value if key in self else default
 
-    def set_value(self, key: str, value: Any):
+    def set_value(self, key: str, value: Any) -> None:
+        """
+        Sets the value associated with the parameter `key`.
+
+        Args:
+            key: key of the parameter to set.
+            value: new value of the parameter.
+        """
         self.dict_copy().get(key).set_value(value)
         self.reset_buffer()
 
+    # Copying methods
+
     def dict_copy(self, prefix="", recursively=True) -> typing.Dict[str, Parameter]:
         copy = {}
+        """
+        Generates a dictionary representation of the configuration, that looks up
+        recursively the parameters values (if `recursively` is True).
+
+        Args:
+            prefix (optional): prefix of each key in the returned :obj:`dict`. Default is empty.
+            recursvely: whether the dictionary include the parameters of all configs or not. Defaults to `True`.
+        """
 
         for k, v in self.items():
             copy[f"{prefix}{k}"] = v
@@ -236,14 +333,49 @@ class Config:
                     )
         return copy
 
-    def copy(self):
+    def copy(self) -> Config:
+        """
+        Returns a shallow copy of the configuration.
+        """
         return self.__class__(**self.dict_copy(recursively=False))
 
-    def deepcopy(self):
+    def deepcopy(self) -> Config:
+        """
+        Returns a deep copy of the configuration.
+        """
         params = {
             k: copy.deepcopy(v) for k, v in self.dict_copy(recursively=False).items()
         }
         return self.__class__(**params)
+
+    # Formating methods
+
+    def save(
+        self, path: typing.Union[str, pathlib.Path] = "config.pickle"
+    ) -> pathlib.Path:
+        """
+        Saves the configuration in a pickle format.
+
+        Args:
+            path (optional): path where the :obj:`Config` is saved. Defaults to 'config.pickle'.
+        """
+        path = pathlib.Path(path) if path is str else path
+        with path.open(mode="wb") as f:
+            pickle.dump(self, f)
+        return path
+
+    @staticmethod
+    def load(path: typing.Union[str, pathlib.Path] = "config.pickle") -> Config:
+        """
+        Loads a configuration from a pickle format and returns the associated configuration.
+
+        Args:
+            path (optional): path where to find the :obj:`Config` to load. Defaults to 'config.pickle'.
+        """
+        path = pathlib.Path(path) if isinstance(path, str) else path
+        with path.open(mode="rb") as f:
+            config = pickle.load(f)
+        return config
 
     def format(
         self,
@@ -253,6 +385,20 @@ class Config:
         suffix="end",
         forbid: list = None,
     ) -> str:
+        """
+        Returns a string representation of the configuration, useful for debug.
+
+        Args:
+            prefix (optional): string put in front of each line.  Default is empty.
+            name_prefix (optional): string put in front of each parameter.  Default is empty.
+            endline (optional): string put at the end of each line. Default is standard end line.
+            suffix (optional): string put at the end of the format. Default is 'end'.
+            forbid (optional): parameters to forbid. Default is None.
+
+        Notes:
+            The prefix and name_prefix are used to format the :obj:`Config` recursively, and therefore
+            should not be used in general.
+        """
         s = f"{prefix + self.__class__.__name__}(name={self.name}): \n"
 
         forbid = [] if forbid is None else forbid
@@ -288,126 +434,14 @@ class Config:
             s += f"{prefix}{suffix}"
         return s
 
-    def __generate_sequence__(self, only: str = None) -> typing.Generator:
-        keys_to_scan = []
-        values_to_scan = []
+    def merge_with(self, other: Config) -> None:
+        """
+        Merge config with other :obj:`Config`.
 
-        for k, v in self.items():
-            if v.is_sequenced():
-                keys_to_scan.append(k)
-                values_to_scan.append(v.generate_sequence())
-            elif v.is_config and v.value.is_sequenced():
-                keys_to_scan.append(k)
-                values_to_scan.append(v.value.__generate_sequence__())
-        if len(values_to_scan) == 0:
-            yield self
-        else:
-            for values in itertools.product(*values_to_scan):
-                config = self.copy()
-                for k, v in zip(keys_to_scan, values):
-                    config.set_value(k, v)
-                if config.is_sequenced():
-                    for c in config.__generate_sequence__():
-                        name = self.subname(c)
-                        if only is None or name == only:
-                            c.set_value("name", name)
-                            yield c
-                else:
-                    name = self.subname(config)
-                    if only is None or name == only:
-                        config.set_value("name", name)
-                        yield config
+        Args:
+            other: other :obj:`Config`.
+        """
 
-    @property
-    def names(self):
-        if self.__names__ is None:
-            self.__names__ = set()
-            for c in self.sequence():
-                self.__names__.add(c.name)
-        return self.__names__
-
-    def compute_subname(self, subconfig):
-        ext = ""
-        for k, v in subconfig.items():
-            if not v.is_config:
-                continue
-            if self.get_param(k).is_sequenced():
-                ext += f"{self.separator}{v.value.name}"
-            elif self.get_value(k).is_sequenced():
-                s = self.separator.join(
-                    self.get_value(k).compute_subname(v.value).split(self.separator)[1:]
-                )
-                if len(s) > 0:
-                    ext += self.separator + s
-        return self.name + ext
-
-    @property
-    def scanned_keys(self) -> typing.Dict[str, list]:
-        if self.__scanned_keys__ is None:
-            counter = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-            for c in self.sequence():
-                for k, v in c.items(recursively=True):
-                    if not v.unique and not v.is_config:
-                        counter[c.name][k][v.value] += 1
-            keys = {k: [] for k in self.names}
-            for name, counter_dict in counter.items():
-                for k, c in counter_dict.items():
-                    if len(c) > 1:
-                        keys[name].append(k)
-            self.__scanned_keys__ = dict(keys)
-
-        return self.__scanned_keys__
-
-    @property
-    def scanned_values(self) -> typing.Dict[str, typing.Dict[str, list]]:
-        if self.__scanned_values__ is None:
-            values = {k: defaultdict(lambda: list()) for k in self.names}
-            keys = self.scanned_keys
-            if len(keys) == 0:
-                self.__scanned_values__ = {}
-            else:
-                for c in self.sequence():
-                    for k in keys[c.name]:
-                        if c.get_value(k) not in values[c.name][k]:
-                            values[c.name][k].append(c.get_value(k))
-                self.__scanned_values__ = dict({k: dict(v) for k, v in values.items()})
-        return self.__scanned_values__
-
-    # @property
-    # def sequence_size(self) -> int:
-    #     if self.__sequence_size__ is None:
-    #         self.__sequence_size__ = len(self.sequence())
-    #     return self.__sequence_size__
-
-    @property
-    def hashing_keys(self):
-        if self.__hashing_keys__ is None:
-            self.__hashing_keys__ = defaultdict(list)
-            for name in self.names:
-                for c in self.named_sequence(name):
-                    self.__hashing_keys__[name].append(hash(c))
-            self.__hashing_keys__ = dict(self.__hashing_keys__)
-        return self.__hashing_keys__
-
-    def sequence(self):
-        if self.__sequence__ is None:
-            self.__sequence__ = [c for c in self.__generate_sequence__()]
-        return self.__sequence__
-
-    def named_sequence(self, name):
-        if name not in self.__named_sequence__:
-            self.__named_sequence__[name] = [
-                c for c in self.__generate_sequence__(only=name)
-            ]
-        return self.__named_sequence__[name]
-
-    def subname(self, config):
-        h = hash(config)
-        if h not in self.__subnames__:
-            self.__subnames__[h] = self.compute_subname(config)
-        return self.__subnames__[h]
-
-    def merge_with(self, other):
         for config in other.__generate_sequence__():
             if config.is_subconfig(self):
                 continue
@@ -439,20 +473,190 @@ class Config:
                         self.get_param(key).add_value(value.value)
         self.reset_buffer()
 
-    def save(
-        self, path: typing.Union[str, pathlib.Path] = "config.pickle"
-    ) -> pathlib.Path:
-        path = pathlib.Path(path) if path is str else path
-        with path.open(mode="wb") as f:
-            pickle.dump(self, f)
-        return path
+    # Methods that involve cache
 
-    @staticmethod
-    def load(path: typing.Union[str, pathlib.Path] = "config.pickle"):
-        path = pathlib.Path(path) if path is str else path
-        with path.open(mode="rb") as f:
-            config = pickle.load(f)
-        return config
+    def __generate_sequence__(
+        self, only: str = None
+    ) -> typing.Generator[Config, None, None]:
+        """
+        Generates a sequence of the non-sequenced configurations, whose name is `only`,
+        derived from `self`.
+
+        Args:
+            only: name of the :obj:`Configs` to generate.
+        """
+        keys_to_scan = []
+        values_to_scan = []
+
+        for k, v in self.items():
+            if v.is_sequenced():
+                keys_to_scan.append(k)
+                values_to_scan.append(v.generate_sequence())
+            elif v.is_config and v.value.is_sequenced():
+                keys_to_scan.append(k)
+                values_to_scan.append(v.value.__generate_sequence__())
+        if len(values_to_scan) == 0:
+            yield self
+        else:
+            for values in itertools.product(*values_to_scan):
+                config = self.copy()
+                for k, v in zip(keys_to_scan, values):
+                    config.set_value(k, v)
+                if config.is_sequenced():
+                    for c in config.__generate_sequence__():
+                        name = self.subname(c)
+                        if only is None or name == only:
+                            c.set_value("name", name)
+                            yield c
+                else:
+                    name = self.__compute_subname__(config)
+                    if only is None or name == only:
+                        config.set_value("name", name)
+                        yield config
+
+    def reset_buffer(self) -> None:
+        """
+        Resets the buffer of the variables contained by `self`. If `cache` is False, it does nothing.
+        """
+        self.__names__ = None
+        self.__scanned_keys__ = None
+        self.__scanned_values__ = None
+        self.__sequence_size__ = None
+        self.__hashing_keys__ = None
+        self.__subnames__ = {}
+        self.__sequence__ = None
+        self.__named_sequence__ = {}
+
+    def names(self) -> set[str]:
+        """
+        Set of all subnames generated by `self`.
+        """
+        if self.__names__ is None:
+            names = set()
+            for c in self.__generate_sequence__():
+                names.add(c.name)
+            if self.cache:
+                self.__names__ = names
+            else:
+                return names
+        return self.__names__
+
+    def __compute_subname__(self, subconfig: Config) -> str:
+        """
+        Compute the subname of a subconfiguration.
+
+        Args:
+            subconfig: config from which we compute the subname.
+        """
+        ext = ""
+        for k, v in subconfig.items():
+            if not v.is_config:
+                continue
+            if self.get_param(k).is_sequenced():
+                ext += f"{self.separator}{v.value.name}"
+            elif self.get_value(k).is_sequenced():
+                s = self.separator.join(
+                    self.get_value(k)
+                    .__compute_subname__(v.value)
+                    .split(self.separator)[1:]
+                )
+                if len(s) > 0:
+                    ext += self.separator + s
+        return self.name + ext
+
+    def scanned_keys(self) -> typing.Dict[str, list]:
+        """
+        Dictionary containing as keys all subnames and as values the keys associated
+        with the sequenced parameters.
+        """
+        if self.__scanned_keys__ is None:
+            counter = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+            for c in self.sequence():
+                for k, v in c.items(recursively=True):
+                    if not v.unique and not v.is_config:
+                        counter[c.name][k][v.value] += 1
+            keys = {k: [] for k in self.names()}
+            for name, counter_dict in counter.items():
+                for k, c in counter_dict.items():
+                    if len(c) > 1:
+                        keys[name].append(k)
+            self.__scanned_keys__ = dict(keys)
+
+        return self.__scanned_keys__
+
+    def scanned_values(self) -> typing.Dict[str, typing.Dict[str, list]]:
+        """
+        Dictionary containing as keys all subnames and, as values, dictionaries
+        that contain the values of the sequenced parameters.
+        """
+        if self.__scanned_values__ is None:
+            values = {k: defaultdict(lambda: list()) for k in self.names()}
+            keys = self.scanned_keys()
+            if len(keys) == 0:
+                self.__scanned_values__ = {}
+            else:
+                for c in self.sequence():
+                    for k in keys[c.name]:
+                        if c.get_value(k) not in values[c.name][k]:
+                            values[c.name][k].append(c.get_value(k))
+                values = dict({k: dict(v) for k, v in values.items()})
+                if self.cache:
+                    self.__scanned_values__ = values
+                else:
+                    return values
+        return self.__scanned_values__
+
+    def hashing_keys(self) -> typing.Dict[str, list]:
+        """
+        Dictionary containing as keys all subnames and, as value, the hash of all
+        subconfigurations associated with the correspônding subname.
+        """
+        if self.__hashing_keys__ is None:
+            hashing_keys = defaultdict(list)
+            for name in self.names():
+                for c in self.named_sequence(name):
+                    hashing_keys[name].append(hash(c))
+            if self.cache:
+                self.__hashing_keys__ = dict(hashing_keys)
+            else:
+                return dict(hashing_keys)
+        return self.__hashing_keys__
+
+    def sequence(self) -> list[Config]:
+        """
+        List of subconfigurations generated by `self`.
+        """
+        if self.__sequence__ is None:
+            if self.cache:
+                self.__sequence__ = [c for c in self.__generate_sequence__()]
+            else:
+                return [c for c in self.__generate_sequence__()]
+        return self.__sequence__
+
+    def named_sequence(self, subname) -> list[Config]:
+        """
+        List of subconfigurations generated by `self` with specific subname.
+        """
+        if subname not in self.__named_sequence__:
+            if self.cache:
+                self.__named_sequence__[subname] = [
+                    c for c in self.__generate_sequence__(only=subname)
+                ]
+            else:
+                return [c for c in self.__generate_sequence__(only=subname)]
+        return self.__named_sequence__[subname]
+
+    def subname(self, config) -> str:
+        """
+        Subname associated with a subconfiguration generated by `self`.
+        """
+        h = hash(config)
+        if h not in self.__subnames__:
+            if self.cache:
+                self.__subnames__[h] = self.__compute_subname__(config)
+            else:
+                return self.__compute_subname__(config)
+        return self.__subnames__[h]
 
 
 if __name__ == "__main__":

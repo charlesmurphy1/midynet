@@ -51,7 +51,7 @@ class Metrics:
             formatted_data[name] = {}
             for key, value in data_in_name.items():
                 formatted_data[name][key] = np.empty(
-                    [len(v) for v in self.config.scanned_values[name].values()]
+                    [len(v) for v in self.config.scanned_values()[name].values()]
                 )
 
                 if formatted_data[name][key].shape == ():
@@ -123,9 +123,9 @@ class Metrics:
     def get_config_indices(self, local_config, name=None):
         name = local_config.name if name is None else name
         indices = []
-        for k in self.config.scanned_keys[name]:
+        for k in self.config.scanned_keys()[name]:
             value = local_config.get_value(k)
-            all_values = np.array(self.config.scanned_values[name][k])
+            all_values = np.array(self.config.scanned_values()[name][k])
             i = np.where(value == all_values)[0]
             if i.size == 0:
                 message = "Cannot get indices, config not found."
@@ -136,10 +136,10 @@ class Metrics:
     def get_config_flat_index(self, local_config, name=None):
         name = local_config.name if name is None else name
         h = hash(local_config)
-        if h not in self.config.hashing_keys[name]:
+        if h not in self.config.hashing_keys()[name]:
             message = "Cannot get flat index, config not found."
             raise ValueError(message)
-        return self.config.hashing_keys[name].index(h)
+        return self.config.hashing_keys()[name].index(h)
 
 
 class CustomMetrics(Metrics):
