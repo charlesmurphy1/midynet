@@ -182,7 +182,7 @@ class BuildExt(build_ext):
 setup(
     name="midynet",
     version=__version__,
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(where="./midynet"),
     ext_modules=ext_modules,
     install_requires=["pybind11>=2.3"],
     setup_requires=["pybind11>=2.3"],
