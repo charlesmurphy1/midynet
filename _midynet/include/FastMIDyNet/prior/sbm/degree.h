@@ -103,6 +103,53 @@ public:
 
 };
 
+
+class DegreeDeltaPrior: public DegreePrior{
+    DegreeSequence m_degreeSeq;
+public:
+    DegreeDeltaPrior(){}
+    DegreeDeltaPrior(const DegreeSequence& degreeSeq,BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
+        DegreePrior(blockPrior, edgeMatrixPrior){ setDegrees(degreeSeq); }
+
+    DegreeDeltaPrior(const DegreeDeltaPrior& degreeDeltaPrior):
+        DegreePrior() {
+            setBlockPrior(degreeDeltaPrior.getBlockPriorRef());
+            setEdgeMatrixPrior(degreeDeltaPrior.getEdgeMatrixPriorRef());
+            setDegrees(degreeDeltaPrior.getState());
+        }
+    virtual ~DegreeDeltaPrior(){}
+    const DegreeDeltaPrior& operator=(const DegreeDeltaPrior& other){
+        this->setDegrees(other.getState());
+        return *this;
+    }
+
+
+    void setDegrees(const DegreeSequence& degrees){
+        m_degreeSeq = degrees;
+        setState(degrees);
+    }
+    void sampleState() override { };
+    void samplePriors() override { };
+
+    double getLogLikelihood() const override { return 0.; }
+    double getLogPrior() const override { return 0.; };
+
+    double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const ;
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0.; }
+    double getLogJointRatioFromBlockMove(const BlockMove& move) const {
+        return processRecursiveConstFunction<double>( [&](){ return getLogLikelihoodRatioFromBlockMove(move); }, 0);
+    }
+
+    void checkSelfConsistency() const override { };
+    void checkSafety() const override {
+        DegreePrior::checkSafety();
+        if (m_degreeSeq.size() == 0)
+            throw SafetyError("DegreeDeltaPrior: unsafe prior since `m_degreeSeq` is empty.");
+    }
+
+
+};
+
 class DegreeUniformPrior: public DegreePrior{
 public:
     using DegreePrior::DegreePrior;

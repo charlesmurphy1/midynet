@@ -145,6 +145,25 @@ void DegreePrior::destroyBlock(const BlockIndex& blockIdx){
     m_degreeCountsInBlocks.erase(m_degreeCountsInBlocks.begin() + blockIdx);
 }
 
+double DegreeDeltaPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+    CounterMap<BaseGraph::VertexIndex> map;
+
+    for (auto edge : move.addedEdges){
+        map.increment(edge.first);
+        map.increment(edge.second);
+    }
+    for (auto edge : move.addedEdges){
+        map.decrement(edge.first);
+        map.decrement(edge.second);
+    }
+
+    for (auto k: map){
+        if (k.second != 0)
+            return -INFINITY;
+    }
+    return 0.;
+}
+
 void DegreeUniformPrior::sampleState(){
     vector<list<size_t>> degreeSeqInBlocks(m_blockPriorPtr->getBlockCount());
     vector<list<size_t>::iterator> ptr_degreeSeqInBlocks(m_blockPriorPtr->getBlockCount());

@@ -16,6 +16,7 @@ namespace FastMIDyNet{
 
 void initMCMCBaseClass(py::module& m){
     py::class_<MCMC, PyMCMC<>>(m, "MCMC")
+        .def(py::init<>())
         .def(py::init<std::vector<CallBack*>>(), py::arg("callbacks"))
         .def(py::init<const CallBackList&>(), py::arg("callback_list"))
         .def("get_last_log_joint_ratio", &MCMC::getLastLogJointRatio)
@@ -43,6 +44,8 @@ void initMCMCBaseClass(py::module& m){
             py::arg("callbacks") )
         .def(py::init<double, double, const CallBackList&>(),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") )
+        .def(py::init<double, double>(),
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1 )
         .def("get_random_graph", &RandomGraphMCMC::getRandomGraph )
         .def("set_random_graph", &RandomGraphMCMC::setRandomGraph, py::arg("random_graph") )
         ;
@@ -52,6 +55,10 @@ void initMCMCBaseClass(py::module& m){
         .def(py::init<StochasticBlockModelFamily&, BlockProposer&, double, double, const CallBackList&>(),
             py::arg("random_graph"), py::arg("block_proposer"),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") )
+        .def(py::init<double, double, const CallBackList&>(),
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") )
+        .def(py::init<double, double>(),
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1)
         .def("get_random_graph", &StochasticBlockGraphMCMC::getRandomGraph )
         .def("set_random_graph", &StochasticBlockGraphMCMC::setRandomGraph, py::arg("random_graph") )
         .def("get_block_proposer", &StochasticBlockGraphMCMC::getBlockProposer )
@@ -63,6 +70,11 @@ void initMCMCBaseClass(py::module& m){
             py::arg("dynamics"), py::arg("random_graph_mcmc"), py::arg("edge_proposer"),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("sample_graph_prior")=0.5,
             py::arg("callbacks") )
+        .def(py::init<double, double, double, const CallBackList&>(),
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("sample_graph_prior")=0.5,
+            py::arg("callbacks") )
+        .def(py::init<double, double, double>(),
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("sample_graph_prior")=0.5)
         .def("get_dynamics", &DynamicsMCMC::getDynamics )
         .def("set_dynamics", &DynamicsMCMC::setDynamics, py::arg("dynamics") )
         .def("get_random_graph_mcmc", &DynamicsMCMC::getRandomGraphMCMC )

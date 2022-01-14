@@ -28,6 +28,13 @@ void initDegreePrior(py::module& m){
         .def("set_edge_matrix_prior", &DegreePrior::setEdgeMatrixPrior, py::arg("edge_matrix_prior"))
         ;
 
+    py::class_<DegreeDeltaPrior, DegreePrior>(m, "DegreeDeltaPrior")
+        .def(py::init<>())
+        .def(py::init<const DegreeSequence&, BlockPrior&, EdgeMatrixPrior&>(),
+            py::arg("degrees"), py::arg("block_prior"), py::arg("edge_matrix"))
+        .def("set_degrees", &DegreeDeltaPrior::setDegrees)
+        ;
+
     py::class_<DegreeUniformPrior, DegreePrior>(m, "DegreeUniformPrior")
         .def(py::init<>())
         .def(py::init<BlockPrior&, EdgeMatrixPrior&>(), py::arg("block_prior"), py::arg("edge_matrix"));
