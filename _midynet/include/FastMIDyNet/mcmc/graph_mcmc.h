@@ -14,7 +14,7 @@ namespace FastMIDyNet{
 
 class RandomGraphMCMC: public MCMC{
 protected:
-    RandomGraph& m_randomGraph;
+    RandomGraph* m_randomGraphPtr;
     double m_betaLikelihood, m_betaPrior;
     std::uniform_real_distribution<double> m_uniform;
 public:
@@ -24,24 +24,39 @@ public:
         double betaPrior=1,
         const CallBackList& callBacks={}):
     MCMC(callBacks),
-    m_randomGraph(randomGraph),
     m_betaLikelihood(betaLikelihood),
     m_betaPrior(betaPrior),
+    m_uniform(0., 1.) { setRandomGraph(randomGraph); }
+
+    RandomGraphMCMC(
+        double betaLikelihood=1,
+        double betaPrior=1,
+        const CallBackList& callBacks={}):
+    MCMC(callBacks),
     m_uniform(0., 1.) {}
 
 
-    const MultiGraph& getGraph() const { return m_randomGraph.getState(); }
-    double getLogLikelihood() const { return m_randomGraph.getLogLikelihood(); }
-    double getLogPrior() { return m_randomGraph.getLogPrior(); }
-    double getLogJoint() { return m_randomGraph.getLogJoint(); }
-    void sample() { m_randomGraph.sample(); m_hasState=true; }
+    const MultiGraph& getGraph() const { return m_randomGraphPtr->getState(); }
+    double getBetaPrior() const { return m_betaPrior; }
+    void setBetaPrior(double betaPrior) { m_betaPrior = betaPrior; }
+
+    double getBetaLikelihood() const { return m_betaLikelihood; }
+    void setBetaLikelihood(double betaLikelihood) { m_betaLikelihood = betaLikelihood; }
+
+    const RandomGraph& getRandomGraph() const { return *m_randomGraphPtr; }
+    void setRandomGraph(RandomGraph& randomGraph) { m_randomGraphPtr = &randomGraph; }
+
+    double getLogLikelihood() const { return m_randomGraphPtr->getLogLikelihood(); }
+    double getLogPrior() { return m_randomGraphPtr->getLogPrior(); }
+    double getLogJoint() { return m_randomGraphPtr->getLogJoint(); }
+    void sample() { m_randomGraphPtr->sample(); m_hasState=true; }
 
 };
 
 class StochasticBlockGraphMCMC: public RandomGraphMCMC{
 private:
-    BlockProposer& m_blockProposer;
-    StochasticBlockModelFamily& m_sbmGraph;
+    BlockProposer* m_blockProposerPtr;
+    StochasticBlockModelFamily* m_sbmGraphPtr;
 public:
 
     StochasticBlockGraphMCMC(
@@ -50,13 +65,26 @@ public:
         double betaLikelihood=1,
         double betaPrior=1,
         const CallBackList& callBacks={}):
-    RandomGraphMCMC(sbmGraph, betaLikelihood, betaPrior, callBacks),
-    m_sbmGraph(sbmGraph),
-    m_blockProposer(blockProposer){}
+    RandomGraphMCMC(betaLikelihood, betaPrior, callBacks),
+    m_blockProposerPtr(&blockProposer){}
+
+    StochasticBlockGraphMCMC(
+        double betaLikelihood=1,
+        double betaPrior=1,
+        const CallBackList& callBacks={}):
+    RandomGraphMCMC(betaLikelihood, betaPrior, callBacks){}
 
     void setUp();
 
-    const BlockSequence& getBlocks() { return m_sbmGraph.getBlocks(); }
+    const BlockSequence& getBlocks() { return m_sbmGraphPtr->getBlocks(); }
+    const StochasticBlockModelFamily& getRandomGraph() const { return *m_sbmGraphPtr; }
+    void setRandomGraph(StochasticBlockModelFamily& randomGraph) {
+        RandomGraphMCMC::setRandomGraph(randomGraph); m_sbmGraphPtr = &randomGraph;
+    }
+
+    const BlockProposer& getBlockProposer() const { return *m_blockProposerPtr; }
+    void setBlockProposer(BlockProposer& blockProposer) { m_blockProposerPtr = &blockProposer; }
+
 
     void doMetropolisHastingsStep();
 

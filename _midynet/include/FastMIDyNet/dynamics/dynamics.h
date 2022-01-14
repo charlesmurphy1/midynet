@@ -41,6 +41,7 @@ class Dynamics{
         }
 
         const RandomGraph& getRandomGraph() const { return *m_randomGraphPtr; }
+        RandomGraph& getRandomGraphRef() const { return *m_randomGraphPtr; }
         void setRandomGraph(RandomGraph& randomGraph) { m_randomGraphPtr = &randomGraph; }
 
         const int getSize() const { return m_randomGraphPtr->getSize(); }

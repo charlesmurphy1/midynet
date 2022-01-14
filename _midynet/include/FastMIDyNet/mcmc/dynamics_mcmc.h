@@ -11,10 +11,10 @@ namespace FastMIDyNet{
 
 class DynamicsMCMC: public MCMC{
 private:
-    Dynamics& m_dynamics;
-    EdgeProposer& m_edgeProposer;
-    RandomGraphMCMC& m_randomGraphMCMC;
-    double m_betaLikelihood, m_betaPrior, m_sampleGraphPrior;
+    Dynamics* m_dynamicsPtr;
+    EdgeProposer* m_edgeProposerPtr;
+    RandomGraphMCMC* m_randomGraphMCMCPtr;
+    double m_betaLikelihood, m_betaPrior, m_sampleGraphPriorProb;
     std::uniform_real_distribution<double> m_uniform;
     bool m_lastMoveWasGraphMove;
 public:
@@ -24,27 +24,54 @@ public:
         EdgeProposer& edgeProposer,
         double betaLikelihood=1,
         double betaPrior=1,
-        double sampleGraphPrior=0.5,
+        double sampleGraphPriorProb=0.5,
         const CallBackList& callBacks={}):
     MCMC(callBacks),
-    m_dynamics(dynamics),
-    m_randomGraphMCMC(randomGraphMCMC),
-    m_edgeProposer(edgeProposer),
+    m_dynamicsPtr(&dynamics),
+    m_randomGraphMCMCPtr(&randomGraphMCMC),
+    m_edgeProposerPtr(&edgeProposer),
     m_betaLikelihood(betaLikelihood),
     m_betaPrior(betaPrior),
-    m_sampleGraphPrior(sampleGraphPrior),
+    m_sampleGraphPriorProb(sampleGraphPriorProb),
+    m_uniform(0., 1.) {}
+
+    DynamicsMCMC(
+        double betaLikelihood=1,
+        double betaPrior=1,
+        double sampleGraphPriorProb=0.5,
+        const CallBackList& callBacks={}):
+    MCMC(callBacks),
+    m_sampleGraphPriorProb(sampleGraphPriorProb),
     m_uniform(0., 1.) {}
 
     void setUp();
 
-    const MultiGraph& getGraph() const { return m_dynamics.getGraph(); }
-    const int getSize() const { return m_dynamics.getSize(); }
+    const MultiGraph& getGraph() const { return m_dynamicsPtr->getGraph(); }
+    const int getSize() const { return m_dynamicsPtr->getSize(); }
 
-    virtual double getLogLikelihood() const { return m_dynamics.getLogLikelihood(); }
-    virtual double getLogPrior() { return m_dynamics.getLogPrior(); }
-    virtual double getLogJoint() { return m_dynamics.getLogJoint(); }
+    double getBetaPrior() const { return m_betaPrior; }
+    void setBetaPrior(double betaPrior) { m_betaPrior = betaPrior; }
+
+    double getBetaLikelihood() const { return m_betaLikelihood; }
+    void setBetaLikelihood(double betaLikelihood) { m_betaLikelihood = betaLikelihood; }
+
+    double getSampleGraphPriorProb() const { return m_sampleGraphPriorProb; }
+    void setSampleGraphPriorProb(double sampleGraphPriorProb) { m_sampleGraphPriorProb = sampleGraphPriorProb; }
+
+    const RandomGraphMCMC& getRandomGraphMCMC() const { return *m_randomGraphMCMCPtr; }
+    void setRandomGraphMCMC(RandomGraphMCMC& randomGraphMCMC) { m_randomGraphMCMCPtr = &randomGraphMCMC; }
+
+    const EdgeProposer& getEdgeProposer() const { return *m_edgeProposerPtr; }
+    void setEdgeProposer(EdgeProposer& edgeProposer) { m_edgeProposerPtr = &edgeProposer; }
+
+    const Dynamics& getDynamics() const { return *m_dynamicsPtr; }
+    void setDynamics(Dynamics& dynamics) { m_dynamicsPtr = &dynamics; }
+
+    virtual double getLogLikelihood() const { return m_dynamicsPtr->getLogLikelihood(); }
+    virtual double getLogPrior() { return m_dynamicsPtr->getLogPrior(); }
+    virtual double getLogJoint() { return m_dynamicsPtr->getLogJoint(); }
     void sample() {
-        m_dynamics.sample();
+        m_dynamicsPtr->sample();
         m_hasState=true;
     }
 

@@ -34,23 +34,42 @@ void initMCMCBaseClass(py::module& m){
         .def("set_up", &MCMC::setUp)
         .def("tear_down", &MCMC::tearDown)
         .def("do_metropolis_hastings_step", &MCMC::doMetropolisHastingsStep)
-        .def("do_MH_sweep", &MCMC::doMHSweep, py::arg("burn")=1);
+        .def("do_MH_sweep", &MCMC::doMHSweep, py::arg("burn")=1)
+        ;
 
     py::class_<RandomGraphMCMC, MCMC, PyRandomGraphMCMC<>>(m, "RandomGraphMCMC")
         .def(py::init<RandomGraph&, double, double, const CallBackList&>(),
             py::arg("random_graph"), py::arg("beta_likelihood")=1, py::arg("beta_prior")=1,
-            py::arg("callbacks") ) ;
+            py::arg("callbacks") )
+        .def(py::init<double, double, const CallBackList&>(),
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") )
+        .def("get_random_graph", &RandomGraphMCMC::getRandomGraph )
+        .def("set_random_graph", &RandomGraphMCMC::setRandomGraph, py::arg("random_graph") )
+        ;
+
 
     py::class_<StochasticBlockGraphMCMC, RandomGraphMCMC>(m, "StochasticBlockGraphMCMC")
         .def(py::init<StochasticBlockModelFamily&, BlockProposer&, double, double, const CallBackList&>(),
             py::arg("random_graph"), py::arg("block_proposer"),
-            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") ) ;
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") )
+        .def("get_random_graph", &StochasticBlockGraphMCMC::getRandomGraph )
+        .def("set_random_graph", &StochasticBlockGraphMCMC::setRandomGraph, py::arg("random_graph") )
+        .def("get_block_proposer", &StochasticBlockGraphMCMC::getBlockProposer )
+        .def("set_block_proposer", &StochasticBlockGraphMCMC::setBlockProposer, py::arg("block_proposer") )
+        ;
 
     py::class_<DynamicsMCMC, MCMC>(m, "DynamicsMCMC")
         .def(py::init<Dynamics&, RandomGraphMCMC&, EdgeProposer&, double, double, double, const CallBackList&>(),
             py::arg("dynamics"), py::arg("random_graph_mcmc"), py::arg("edge_proposer"),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("sample_graph_prior")=0.5,
-            py::arg("callbacks") ) ;
+            py::arg("callbacks") )
+        .def("get_dynamics", &DynamicsMCMC::getDynamics )
+        .def("set_dynamics", &DynamicsMCMC::setDynamics, py::arg("dynamics") )
+        .def("get_random_graph_mcmc", &DynamicsMCMC::getRandomGraphMCMC )
+        .def("set_random_graph_mcmc", &DynamicsMCMC::setRandomGraphMCMC, py::arg("random_graph_mcmc") )
+        .def("get_edge_proposer", &DynamicsMCMC::getEdgeProposer )
+        .def("set_edge_proposer", &DynamicsMCMC::setEdgeProposer, py::arg("edge_proposer") )
+        ;
 }
 
 }

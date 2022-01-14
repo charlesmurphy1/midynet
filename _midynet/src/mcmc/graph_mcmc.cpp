@@ -6,15 +6,15 @@ namespace FastMIDyNet{
 
 void StochasticBlockGraphMCMC::setUp() {
     MCMC::setUp();
-    m_blockProposer.setUp(m_sbmGraph);
+    m_blockProposerPtr->setUp(*m_sbmGraphPtr);
 }
 
 void StochasticBlockGraphMCMC::doMetropolisHastingsStep() {
-    BlockMove move = m_blockProposer.proposeMove();
+    BlockMove move = m_blockProposerPtr->proposeMove();
     double dS = 0;
-    double logLikelihoodRatio = m_sbmGraph.getLogLikelihoodRatio(move);
-    double logPriorRatio = m_sbmGraph.getLogPriorRatio(move);
-    double LogProposalProbRatio = m_blockProposer.getLogProposalProbRatio(move);
+    double logLikelihoodRatio = m_sbmGraphPtr->getLogLikelihoodRatio(move);
+    double logPriorRatio = m_sbmGraphPtr->getLogPriorRatio(move);
+    double LogProposalProbRatio = m_blockProposerPtr->getLogProposalProbRatio(move);
 
     m_lastLogJointRatio = m_betaLikelihood * logLikelihoodRatio + m_betaPrior * logPriorRatio;
     m_lastLogAcceptance = LogProposalProbRatio + m_lastLogJointRatio;
@@ -22,8 +22,8 @@ void StochasticBlockGraphMCMC::doMetropolisHastingsStep() {
     m_isLastAccepted = false;
     if (m_uniform(rng) < exp(m_lastLogAcceptance)){
         m_isLastAccepted = true;
-        m_sbmGraph.applyMove(move);
-        m_blockProposer.updateProbabilities(move);
+        m_sbmGraphPtr->applyMove(move);
+        m_blockProposerPtr->updateProbabilities(move);
     }
 }
 

@@ -5,25 +5,26 @@
 namespace FastMIDyNet{
 
 void DynamicsMCMC::setUp() {
+    m_edgeProposerPtr->setUp(m_dynamicsPtr->getRandomGraph());
+    m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
+    m_randomGraphMCMCPtr->setUp();
     MCMC::setUp();
-    m_randomGraphMCMC.setUp();
-    m_edgeProposer.setUp(m_dynamics.getRandomGraph());
 }
 
 void DynamicsMCMC::doMetropolisHastingsStep() {
-    if (m_uniform(rng) < m_sampleGraphPrior){
+    if (m_uniform(rng) < m_sampleGraphPriorProb){
         m_lastMoveWasGraphMove = false;
-        m_randomGraphMCMC.doMetropolisHastingsStep();
-        m_lastLogJointRatio = m_randomGraphMCMC.getLastLogJointRatio();
-        m_lastLogAcceptance = m_randomGraphMCMC.getLastLogAcceptance();
-        m_isLastAccepted = m_randomGraphMCMC.isLastAccepted();
+        m_randomGraphMCMCPtr->doMetropolisHastingsStep();
+        m_lastLogJointRatio = m_randomGraphMCMCPtr->getLastLogJointRatio();
+        m_lastLogAcceptance = m_randomGraphMCMCPtr->getLastLogAcceptance();
+        m_isLastAccepted = m_randomGraphMCMCPtr->isLastAccepted();
     }
     else {
         m_lastMoveWasGraphMove = true;
-        GraphMove move = m_edgeProposer.proposeMove();
-        double logLikelihoodRatio = m_dynamics.getLogLikelihoodRatio(move);
-        double logPriorRatio = m_dynamics.getLogPriorRatio(move);
-        double LogProposalProbRatio = m_edgeProposer.getLogProposalProbRatio(move);
+        GraphMove move = m_edgeProposerPtr->proposeMove();
+        double logLikelihoodRatio = m_dynamicsPtr->getLogLikelihoodRatio(move);
+        double logPriorRatio = m_dynamicsPtr->getLogPriorRatio(move);
+        double LogProposalProbRatio = m_edgeProposerPtr->getLogProposalProbRatio(move);
 
         m_lastLogJointRatio = m_betaLikelihood * logLikelihoodRatio + m_betaPrior * logPriorRatio;
         m_lastLogAcceptance = LogProposalProbRatio + m_lastLogJointRatio;
@@ -31,8 +32,8 @@ void DynamicsMCMC::doMetropolisHastingsStep() {
         m_isLastAccepted = false;
         if (m_uniform(rng) < exp(m_lastLogAcceptance)){
             m_isLastAccepted = true;
-            m_dynamics.applyMove(move);
-            m_edgeProposer.updateProbabilities(move);
+            m_dynamicsPtr->applyMove(move);
+            m_edgeProposerPtr->updateProbabilities(move);
         }
     }
 
