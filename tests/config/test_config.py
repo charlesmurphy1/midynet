@@ -251,6 +251,7 @@ class TestExperimentConfig(unittest.TestCase):
         self.assertEqual(len(exp), 1)
 
         self.assertEqual(len(exp.unmet_requirements()), 0)
+        print(exp.format())
 
 
 if __name__ == "__main__":

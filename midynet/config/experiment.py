@@ -42,7 +42,7 @@ class ExperimentConfig(Config):
             "path", path if isinstance(path, pathlib.Path) else pathlib.Path(path)
         )
         obj.insert("seed", seed if seed is not None else int(time.time()))
-        obj.insert("num_procs", seed if seed is not None else int(time.time()))
+        obj.insert("num_procs", num_procs)
 
         return obj
 
