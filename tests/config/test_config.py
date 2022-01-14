@@ -206,6 +206,12 @@ class TestConfig(unittest.TestCase):
         path.unlink()
 
 
+class TestMCMCCOnfig(unittest.TestCase):
+    def test_auto(self):
+        g = RandomGraphConfig.uniform_sbm(100, 250)
+        mcmc = MCMCConfig.auto("sbm", g)
+
+
 class TestMetricsConfig(unittest.TestCase):
     def test_auto(self):
         metrics = MetricsConfig.auto("dynamics_entropy")
@@ -227,6 +233,24 @@ class TestMetricsCollectionConfig(unittest.TestCase):
         self.assertIn("graph_entropy", metrics_config.metrics_names)
         self.assertFalse(metrics_config.is_sequenced())
         self.assertEqual(len(metrics_config.sequence()), 1)
+
+
+class TestExperimentConfig(unittest.TestCase):
+    def test_default(self):
+        exp = ExperimentConfig.default(
+            "test", "sis", "uniform_sbm", metrics=["dynamics_entropy", "graph_entropy"]
+        )
+        self.assertIn("name", exp)
+        self.assertIn("dynamics", exp)
+        self.assertIn("graph", exp)
+        self.assertIn("mcmc", exp)
+        self.assertIn("metrics", exp)
+        self.assertIn("path", exp)
+        self.assertIn("seed", exp)
+        self.assertIn("num_procs", exp)
+        self.assertEqual(len(exp), 1)
+
+        self.assertEqual(len(exp.unmet_requirements()), 0)
 
 
 if __name__ == "__main__":

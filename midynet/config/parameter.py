@@ -1,5 +1,7 @@
 import typing
 import copy
+import pathlib
+
 from dataclasses import dataclass, field
 
 __all__ = ["Parameter"]
@@ -104,7 +106,7 @@ class Parameter:
             yield self.value
 
     def format(self):
-        if isinstance(self.value, str):
+        if isinstance(self.value, str) or isinstance(self.value, pathlib.Path):
             return f"`{self.value}`"
         else:
             return f"{self.value}"

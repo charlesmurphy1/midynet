@@ -96,10 +96,9 @@ class Config:
         return len(self.sequence())
 
     @classmethod
-    def __auto__(cls, args, **kwargs) -> Config:
-
+    def __auto__(cls, args, *others, **kwargs) -> Config:
         if args in cls.__dict__ and isinstance(getattr(cls, args), Callable):
-            return getattr(cls, args)(**kwargs)
+            return getattr(cls, args)(*others, **kwargs)
         elif isinstance(args, cls):
             return args
         else:
@@ -143,7 +142,7 @@ class Config:
             raise TypeError(message)
 
     @classmethod
-    def auto(cls, args: typing.Any) -> Config:
+    def auto(cls, args: typing.Any, *others, **kwargs) -> Config:
         """
         Automatic construction method using `args`.
 
@@ -151,9 +150,9 @@ class Config:
             args: input for constructing an instance of `Config`.
         """
         if not isinstance(args, typing.Iterable) or isinstance(args, str):
-            return cls.__auto__(args)
+            return cls.__auto__(args, *others, **kwargs)
         else:
-            return [cls.__auto__(a) for a in args]
+            return [cls.__auto__(a, *others, **kwargs) for a in args]
 
     def keys(self, recursively: bool = False) -> typing.KeysView:
         """

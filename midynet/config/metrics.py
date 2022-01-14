@@ -77,8 +77,6 @@ class MetricsCollectionConfig(Config):
             args = [args]
         obj = cls(**{a: MetricsConfig.auto(a) for a in args})
         obj.insert("metrics_names", args, force_non_sequence=True, unique=True)
-        obj.insert("num_procs", 1, unique=True)
-        obj.insert("seed", None, unique=True)
         return obj
 
 
