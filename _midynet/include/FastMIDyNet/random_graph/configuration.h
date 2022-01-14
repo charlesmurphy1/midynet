@@ -18,7 +18,13 @@ protected:
 
 public:
     ConfigurationModelFamily(size_t graphSize):
-        DegreeCorrectedStochasticBlockModelFamily(graphSize) {}
+        DegreeCorrectedStochasticBlockModelFamily(graphSize),
+        m_blockSeq(graphSize, 0),
+        m_blockDeltaPrior(m_blockSeq),
+        m_edgeMatrixUniformPrior() {
+            setBlockPrior(m_blockDeltaPrior);
+            setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
+        }
     ConfigurationModelFamily(size_t graphSize, EdgeCountPrior& edgeCountPrior, DegreePrior& degreePrior):
         DegreeCorrectedStochasticBlockModelFamily(graphSize),
         m_blockSeq(graphSize, 0),
@@ -30,6 +36,12 @@ public:
         }
     void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){
         m_edgeMatrixUniformPrior.setEdgeCountPrior(edgeCountPrior);
+    }
+    void setDegreePrior(DegreePrior& degreePrior) {
+        m_degreePriorPtr = &degreePrior;
+        m_degreePriorPtr->isRoot(false);
+        m_degreePriorPtr->setBlockPrior(m_blockDeltaPrior);
+        m_degreePriorPtr->setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
     }
 };
 
