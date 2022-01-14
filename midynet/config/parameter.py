@@ -14,6 +14,8 @@ class Parameter:
     force_non_sequence: bool = field(repr=False, default=False)
     sort_sequence: bool = field(repr=False, default=True)
     is_config: bool = False
+    __cache__: bool = field(repr=False, default=True)
+    __self_hash__: int = field(repr=False, default=None)
 
     @property
     def datatype(self) -> typing.Any:
@@ -37,11 +39,27 @@ class Parameter:
             raise LookupError(message)
         return self.value[key]
 
+    def __hash__(self):
+        if self.__self_hash__ is None:
+            if isinstance(self.value, list):
+                h = hash(tuple(self.value))
+            else:
+                h = hash(self.value)
+            if self.__cache__:
+                self.__self_hash__ = h
+            else:
+                return h
+        return self.__self_hash__
+
+    def __reset_buffer__(self):
+        self.__self_hash__ = None
+
     def set_value(self, value):
         value = value.value if issubclass(type(value), Parameter) else value
         if issubclass(type(value), typing.Iterable) and not isinstance(value, str):
             value = self.get_sequence(value)
         self.value = value
+        self.__reset_buffer__()
 
     def add_value(self, value):
         if issubclass(type(self.value), typing.Iterable):
@@ -50,11 +68,13 @@ class Parameter:
             self.value = self.get_sequence([self.value, value])
         if len(self.value) == 1:
             self.value = next(iter(self.value))
+        self.__reset_buffer__()
 
     def add_values(self, values):
         seq = self.get_sequence(values)
         for v in seq:
             self.add_value(v)
+        self.__reset_buffer__()
 
     def is_sequenced(self):
         return (
@@ -82,6 +102,12 @@ class Parameter:
                 yield v
         else:
             yield self.value
+
+    def format(self):
+        if isinstance(self.value, str):
+            return f"`{self.value}`"
+        else:
+            return f"{self.value}"
 
 
 if __name__ == "__main__":

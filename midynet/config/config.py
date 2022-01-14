@@ -24,7 +24,7 @@ class Config:
     unique_parameters: set[str] = {"name"}
     """ Set of unique parameter names. """
 
-    cache: bool = True
+    __cache__: bool = True
     """ Cache the generated sequences, makes the lookup faster at the expense of more memory. """
 
     def __init__(self, name="config", **kwargs):
@@ -43,13 +43,17 @@ class Config:
         self.__names__ = None
         self.__scanned_keys__ = None
         self.__scanned_values__ = None
-        self.__hashing_keys__ = None
+        self.__hash_dict__ = None
         self.__subnames__ = {}
         self.__sequence__ = None
         self.__named_sequence__ = {}
         self.insert("name", name, unique=True)
         for k, v in kwargs.items():
-            self.insert(k, v, unique=k in self.unique_parameters)
+            self.insert(
+                k,
+                v,
+                unique=k in self.unique_parameters or self.unique_parameters == {"all"},
+            )
 
     def __str__(self) -> str:
         s = self.__class__.__name__
@@ -58,9 +62,9 @@ class Config:
             if v.is_config and v.is_sequenced():
                 s += f"{k}={[vv.name for vv in v.value]}, "
             elif v.is_config:
-                s += f"{k}={v.value.name}, "
+                s += f"{k}=`{v.value.name}`, "
             else:
-                s += f"{k}={v.value}, "
+                s += f"{k}=`{v.value}`, "
         s = s[:-2] + ")" if s[-2:] == ", " else s + ")"
         return s
 
@@ -114,13 +118,25 @@ class Config:
     def __lt__(self, other):
         return len(self) < len(other)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """
+        Hash value of `self`.
+        """
+        if self.__self_hash__ is None:
+            h = self.__compute_hash__()
+            if self.__cache__:
+                self.__self_hash__ = h
+            else:
+                return h
+        return self.__self_hash__
+
+    def __compute_hash__(self):
         if not self.is_sequenced():
             params = []
             for k, v in self.dict_copy().items():
                 if v.is_config or v.is_unique():
                     continue
-                params.append((k, v.value))
+                params.append((k, hash(v)))
             return hash(tuple(params))
         else:
             message = "unhashable type, must not be sequenced."
@@ -233,7 +249,7 @@ class Config:
         """
         if self.is_sequenced():
             return False
-        for k, v in other.hashing_keys().items():
+        for k, v in other.hash_dict().items():
             if hash(self) in v:
                 return True
         return False
@@ -257,7 +273,7 @@ class Config:
         p = Parameter(name=key, value=value, **kwargs)
         self.__parameters__[key] = p
         self.__parameters__[key].is_config = issubclass(p.datatype, Config)
-        self.reset_buffer()
+        self.__reset_buffer__()
 
     def erase(self, key: str):
         """
@@ -267,7 +283,7 @@ class Config:
             key: key of the parameter to erase.
         """
         self.__parameters__.pop(key)
-        self.reset_buffer()
+        self.__reset_buffer__()
 
     def get_param(self, key: str, default: Any = None) -> Parameter:
         """
@@ -298,7 +314,7 @@ class Config:
             value: new value of the parameter.
         """
         self.dict_copy().get(key).set_value(value)
-        self.reset_buffer()
+        self.__reset_buffer__()
 
     # Copying methods
 
@@ -399,22 +415,22 @@ class Config:
             The prefix and name_prefix are used to format the :obj:`Config` recursively, and therefore
             should not be used in general.
         """
-        s = f"{prefix + self.__class__.__name__}(name={self.name}): \n"
+        s = f"{prefix}{self.__class__.__name__}(name=`{self.name}`): \n"
 
         forbid = [] if forbid is None else forbid
         for k, v in self.items():
-            if k in forbid:
+            if k in forbid or k == "name":
                 continue
             elif v.is_config and v.is_sequenced():
-                s += f"{prefix}|\t {v.name}(["
+                s += f"{prefix}|\t{v.name}(["
                 for i, c in enumerate(v.value):
-                    s += f"name={c.name}, "
+                    s += f"name=`{c.name}`, "
                 s = s[:-2] + f"]):{endline}"
 
                 for i, c in enumerate(v.value):
                     ss = c.format(
                         prefix=prefix + f"|\t",
-                        name_prefix=c.name + self.separator,
+                        name_prefix=f"{c.name}{self.separator}",
                         endline=endline,
                         suffix=None,
                     )
@@ -422,14 +438,15 @@ class Config:
                     ss = "".join(ss)[2:]
                     ss = ss.split(endline)[:-1]
                     s += endline.join(ss) + endline
+                s += f"{prefix}|\t{suffix}{endline}"
             elif v.is_config:
-                format = v.value.format(prefix=prefix + "|\t ")
+                format = v.value.format(prefix=prefix + "|\t")
                 format = format.split(":")[1:]
-                format = "".join(format)[:-1]
-                name = f"{v.name}(name={v.value.name})"
-                s += f"{prefix}|\t {name}:{format}{endline}"
+                format = "".join(format)
+                name = f"{v.name}(name=`{v.value.name}`)"
+                s += f"{prefix}|\t{name}:{format}{endline}"
             else:
-                s += f"{prefix}|\t {name_prefix}{v.name} = {v.value}{endline}"
+                s += f"{prefix}|\t{name_prefix}{v.name} = {v.format()}{endline}"
         if suffix is not None:
             s += f"{prefix}{suffix}"
         return s
@@ -442,11 +459,12 @@ class Config:
             other: other :obj:`Config`.
         """
 
+        other.__reset_buffer__()
         for config in other.__generate_sequence__():
             if config.is_subconfig(self):
                 continue
             for key, value in config.items():
-                if value.is_unique():
+                if value.is_unique() or value.force_non_sequence:
                     continue
                 elif key not in self:
                     message = f"Missing key {key}, configs cannot be merged."
@@ -471,7 +489,7 @@ class Config:
                         self.get_param(key).add_values(value.value)
                     else:
                         self.get_param(key).add_value(value.value)
-        self.reset_buffer()
+        self.__reset_buffer__()
 
     # Methods that involve cache
 
@@ -514,7 +532,7 @@ class Config:
                         config.set_value("name", name)
                         yield config
 
-    def reset_buffer(self) -> None:
+    def __reset_buffer__(self) -> None:
         """
         Resets the buffer of the variables contained by `self`. If `cache` is False, it does nothing.
         """
@@ -522,7 +540,8 @@ class Config:
         self.__scanned_keys__ = None
         self.__scanned_values__ = None
         self.__sequence_size__ = None
-        self.__hashing_keys__ = None
+        self.__hash_dict__ = None
+        self.__self_hash__ = None
         self.__subnames__ = {}
         self.__sequence__ = None
         self.__named_sequence__ = {}
@@ -535,7 +554,7 @@ class Config:
             names = set()
             for c in self.__generate_sequence__():
                 names.add(c.name)
-            if self.cache:
+            if self.__cache__:
                 self.__names__ = names
             else:
                 return names
@@ -600,34 +619,34 @@ class Config:
                         if c.get_value(k) not in values[c.name][k]:
                             values[c.name][k].append(c.get_value(k))
                 values = dict({k: dict(v) for k, v in values.items()})
-                if self.cache:
+                if self.__cache__:
                     self.__scanned_values__ = values
                 else:
                     return values
         return self.__scanned_values__
 
-    def hashing_keys(self) -> typing.Dict[str, list]:
+    def hash_dict(self) -> typing.Dict[str, list[int]]:
         """
         Dictionary containing as keys all subnames and, as value, the hash of all
         subconfigurations associated with the correspônding subname.
         """
-        if self.__hashing_keys__ is None:
-            hashing_keys = defaultdict(list)
+        if self.__hash_dict__ is None:
+            hash_dict = defaultdict(list)
             for name in self.names():
                 for c in self.named_sequence(name):
-                    hashing_keys[name].append(hash(c))
-            if self.cache:
-                self.__hashing_keys__ = dict(hashing_keys)
+                    hash_dict[name].append(hash(c))
+            if self.__cache__:
+                self.__hash_dict__ = dict(hash_dict)
             else:
-                return dict(hashing_keys)
-        return self.__hashing_keys__
+                return dict(hash_dict)
+        return self.__hash_dict__
 
     def sequence(self) -> list[Config]:
         """
         List of subconfigurations generated by `self`.
         """
         if self.__sequence__ is None:
-            if self.cache:
+            if self.__cache__:
                 self.__sequence__ = [c for c in self.__generate_sequence__()]
             else:
                 return [c for c in self.__generate_sequence__()]
@@ -638,7 +657,7 @@ class Config:
         List of subconfigurations generated by `self` with specific subname.
         """
         if subname not in self.__named_sequence__:
-            if self.cache:
+            if self.__cache__:
                 self.__named_sequence__[subname] = [
                     c for c in self.__generate_sequence__(only=subname)
                 ]
@@ -650,13 +669,12 @@ class Config:
         """
         Subname associated with a subconfiguration generated by `self`.
         """
-        h = hash(config)
-        if h not in self.__subnames__:
-            if self.cache:
-                self.__subnames__[h] = self.__compute_subname__(config)
+        if hash(config) not in self.__subnames__:
+            if self.__cache__:
+                self.__subnames__[hash(config)] = self.__compute_subname__(config)
             else:
                 return self.__compute_subname__(config)
-        return self.__subnames__[h]
+        return self.__subnames__[hash(config)]
 
 
 if __name__ == "__main__":

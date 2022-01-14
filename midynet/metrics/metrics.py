@@ -136,14 +136,14 @@ class Metrics:
     def get_config_flat_index(self, local_config, name=None):
         name = local_config.name if name is None else name
         h = hash(local_config)
-        if h not in self.config.hashing_keys()[name]:
+        if h not in self.config.hash_dict()[name]:
             message = "Cannot get flat index, config not found."
             raise ValueError(message)
-        return self.config.hashing_keys()[name].index(h)
+        return self.config.hash_dict()[name].index(h)
 
 
 class CustomMetrics(Metrics):
-    def set_up(self, experiment):
+    def set_up(self):
         return
 
 

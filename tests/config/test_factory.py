@@ -14,14 +14,13 @@ class TestFactory:
     unavailable_configs: list[Config] = []
     run_sample: bool = False
 
-    def setUp_object(self, obj):
-        return obj
+    def obj_testing(self, obj):
+        pass
 
     def test_build_good_config(self):
         for c in self.good_configs:
             obj = self.factory.build(c)
-            if self.run_sample:
-                self.setUp_object(obj).sample()
+            self.obj_testing(obj)
 
     def test_build_missing_config(self):
         for c in self.missing_configs:
@@ -43,6 +42,9 @@ class TestEdgeCountPriorFactory(unittest.TestCase, TestFactory):
     missing_configs = [Config(name="missing")]
     run_sample: bool = False
 
+    def obj_testing(self, obj):
+        obj.sample()
+
 
 class TestBlockCountPriorFactory(unittest.TestCase, TestFactory):
     factory = BlockCountPriorFactory
@@ -52,6 +54,9 @@ class TestBlockCountPriorFactory(unittest.TestCase, TestFactory):
         BlockCountPriorConfig.uniform(5),
     ]
     missing_configs = [Config(name="missing")]
+
+    def obj_testing(self, obj):
+        obj.sample()
 
 
 class TestBlockPriorFactory(unittest.TestCase, TestFactory):
@@ -63,6 +68,9 @@ class TestBlockPriorFactory(unittest.TestCase, TestFactory):
     ]
     missing_configs = [Config(name="missing")]
 
+    def obj_testing(self, obj):
+        obj.sample()
+
 
 class TestEdgeMatrixPriorFactory(unittest.TestCase, TestFactory):
     factory = EdgeMatrixPriorFactory
@@ -70,10 +78,12 @@ class TestEdgeMatrixPriorFactory(unittest.TestCase, TestFactory):
         EdgeMatrixPriorConfig.uniform(10),
     ]
 
-    def setUp_object(self, obj):
-        self.b = BlockPriorFactory.build(BlockPriorConfig.uniform(10))
+    def obj_testing(self, obj):
+        c = BlockPriorConfig.uniform()
+        c.block_count.max = 10
+        self.b = BlockPriorFactory.build(BlockPriorConfig.uniform())
         obj.set_block_prior(self.b.get_wrap())
-        return obj
+        obj.sample()
 
 
 class TestDegreePriorFactory(unittest.TestCase, TestFactory):
@@ -91,7 +101,7 @@ class TestDegreePriorFactory(unittest.TestCase, TestFactory):
 
         obj.set_block_prior(self.b.get_wrap())
         obj.set_edge_matrix_prior(self.e.get_wrap())
-        return obj
+        obj.sample()
 
 
 class TestRandomGraphFactory(unittest.TestCase, TestFactory):
@@ -108,6 +118,9 @@ class TestRandomGraphFactory(unittest.TestCase, TestFactory):
         RandomGraphConfig.hyperuniform_dcsbm(100, 250, 10),
     ]
 
+    def obj_testing(self, obj):
+        obj.sample()
+
 
 class TestDynamicsFactory(unittest.TestCase, TestFactory):
     factory = DynamicsFactory
@@ -116,6 +129,21 @@ class TestDynamicsFactory(unittest.TestCase, TestFactory):
         DynamicsConfig.sis(),
         DynamicsConfig.cowan(),
         DynamicsConfig.degree(),
+    }
+
+    def obj_testing(self, obj):
+        c = RandomGraphConfig.fixed_er(10, 25)
+        g = RandomGraphFactory.build(c)
+        obj.set_random_graph(g.get_wrap())
+        obj.set_num_steps(10)
+        obj.sample()
+
+
+class TestMetricsFactory(unittest.TestCase, TestFactory):
+    factory = MetricsFactory
+    good_configs = {
+        MetricsConfig.dynamics_entropy(),
+        MetricsCollectionConfig.auto(["graph_entropy", "graph_entropy"]),
     }
 
 

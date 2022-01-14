@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 from midynet.config import Config
 
-__all__ = []
+__all__ = ["ScriptManager"]
 
 
 def split_into_chunks(
@@ -19,11 +19,12 @@ def split_into_chunks(
 
 
 @dataclass
-class ScriptManage:
+class ScriptManager:
     executable: str
     name: str
     config: Config = field(repr=True, default_factory=Config)
     config_array: list[Config] = field(repr=False, default_factory=list)
+    execution_command: str = field(repr=False, default="bash")
     resources: list[str] = field(repr=False, default_factory=list)
     script_path: pathlib.Path = field(repr=False, default_factory=pathlib.Path)
 

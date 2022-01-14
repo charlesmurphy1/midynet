@@ -110,6 +110,7 @@ class TestMetricsBaseClass(unittest.TestCase):
         metrics.compute()
         self.metrics.compute()
         self.metrics.merge_with(metrics)
+
         d = self.metrics.data
         for keys in itertools.product(["test"], ["ising", "sis"], ["delta", "poisson"]):
             name = ".".join(keys)

@@ -206,5 +206,28 @@ class TestConfig(unittest.TestCase):
         path.unlink()
 
 
+class TestMetricsConfig(unittest.TestCase):
+    def test_auto(self):
+        metrics = MetricsConfig.auto("dynamics_entropy")
+        self.assertEqual(len(metrics.sequence()), 1)
+
+
+class TestMetricsCollectionConfig(unittest.TestCase):
+    def test_auto(self):
+        metrics_config = MetricsCollectionConfig.auto("dynamics_entropy")
+        self.assertIn("dynamics_entropy", metrics_config)
+        self.assertIn("dynamics_entropy", metrics_config.metrics_names)
+
+        metrics_config = MetricsCollectionConfig.auto(
+            ["dynamics_entropy", "graph_entropy"]
+        )
+        self.assertIn("dynamics_entropy", metrics_config)
+        self.assertIn("graph_entropy", metrics_config)
+        self.assertIn("dynamics_entropy", metrics_config.metrics_names)
+        self.assertIn("graph_entropy", metrics_config.metrics_names)
+        self.assertFalse(metrics_config.is_sequenced())
+        self.assertEqual(len(metrics_config.sequence()), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
