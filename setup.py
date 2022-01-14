@@ -4,7 +4,11 @@ import sys
 import os
 import setuptools
 
-__version__ = "1.0.0"
+
+exec(open("./midynet/metadata.py").read())
+
+print(__version__, __author__)
+# __version__ = "1.0.0"
 
 
 class get_pybind_include(object):
@@ -182,10 +186,16 @@ class BuildExt(build_ext):
 setup(
     name="midynet",
     version=__version__,
-    packages=setuptools.find_packages(where="./midynet"),
+    author=__author__,
+    author_email=__email__,
+    url="https://github.com/charlesmurphy1/fast-midynet",
+    license=__license__,
+    description="A package for the analysis of stochastic processes on random graphs.",
+    long_description="",
+    packages=setuptools.find_packages(),
     ext_modules=ext_modules,
-    install_requires=["pybind11>=2.3"],
     setup_requires=["pybind11>=2.3"],
+    install_requires=["pybind11>=2.3", "numpy"],
     include_package_data=True,
     cmdclass={"build_ext": BuildExt},
     zip_safe=False,

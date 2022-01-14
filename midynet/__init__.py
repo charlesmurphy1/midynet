@@ -1,6 +1,8 @@
 from _midynet import *
 import _midynet
 
+from .metadata import __version__
+
 _midynet.utility.seedWithTime()
 
 import midynet.util
