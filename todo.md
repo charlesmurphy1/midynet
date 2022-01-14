@@ -8,7 +8,7 @@
 7. Implementating ProposerFactory.
 8. Testing Experiment and ExperimentConfig.
 9. Finish implementating of ScriptManager and testing.
-10. Enumeration of graphs in C++ class
+10. Enumeration of graphs in C++ class.
 
 # Potential to-do list
 1. Hierarchical version of the stochastic block model (needs re-implementation of all SBM priors)
