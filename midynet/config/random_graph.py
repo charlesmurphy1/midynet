@@ -130,10 +130,15 @@ class RandomGraphConfig(Config):
 
     @classmethod
     def uniform_cm(cls, size: int = 100, edge_count: int = 250):
-        blocks = BlockPriorConfig.uniform(size=size, block_count_max=block_count_max)
-        edge_count = EdgeMatrixPriorConfig.auto(edge_count)
+        edge_count = EdgeCountPriorConfig.auto(edge_count)
         degrees = DegreePriorConfig.uniform()
         return cls.custom_cm("uniform_cm", size, edge_count, degrees)
+
+    @classmethod
+    def hyperuniform_cm(cls, size: int = 100, edge_count: int = 250):
+        edge_count = EdgeCountPriorConfig.auto(edge_count)
+        degrees = DegreePriorConfig.hyperuniform()
+        return cls.custom_cm("hyperuniform_cm", size, edge_count, degrees)
 
 
 class RandomGraphFactory(Factory):
@@ -153,9 +158,8 @@ class RandomGraphFactory(Factory):
         graph.set_degree_prior(degrees)
 
     @staticmethod
-    def setUpCM(graph, blocks, edge_matrix, degrees):
-        graph.set_block_prior(blocks)
-        graph.set_edge_matrix_prior(edge_matrix)
+    def setUpCM(graph, edge_count, degrees):
+        graph.set_edge_count_prior(edge_count)
         graph.set_degree_prior(degrees)
 
     @staticmethod
@@ -275,13 +279,12 @@ class RandomGraphFactory(Factory):
         g = random_graph.ConfigurationModelFamily(config.size)
         return Wrapper(
             g,
-            setup_func=lambda wrap, others: RandomGraphFactory.setUpDCSBM(
+            setup_func=lambda wrap, others: RandomGraphFactory.setUpCM(
                 wrap,
                 others["edge_count"],
                 others["degrees"],
             ),
-            blocks=block_wrapper,
-            edge_matrix=edge_matrix_wrapper,
+            edge_count=edge_count,
             degrees=degrees,
         )
 
@@ -291,6 +294,10 @@ class RandomGraphFactory(Factory):
 
     @staticmethod
     def build_uniform_cm(config: RandomGraphConfig):
+        return RandomGraphFactory.build_custom_cm(config)
+
+    @staticmethod
+    def build_hyperuniform_cm(config: RandomGraphConfig):
         return RandomGraphFactory.build_custom_cm(config)
 
 

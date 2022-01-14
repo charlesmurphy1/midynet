@@ -175,11 +175,7 @@ class BlockCountPriorFactory(Factory):
 class BlockPriorFactory(Factory):
     @staticmethod
     def build_delta(config: BlockPriorConfig) -> sbm.BlockDeltaPrior:
-        state = config.get_value("state")
-        if state is None:
-            b = sbm.BlockDeltaPrior()
-        else:
-            b = sbm.BlockDeltaPrior(state)
+        b = sbm.BlockDeltaPrior()
         return b
 
     @staticmethod
@@ -227,6 +223,10 @@ class EdgeMatrixPriorFactory(Factory):
 
 
 class DegreePriorFactory(Factory):
+    @staticmethod
+    def build_delta(config: DegreePriorConfig) -> sbm.DegreeDeltaPrior:
+        return sbm.DegreeDeltaPrior()
+
     @staticmethod
     def build_uniform(config: DegreePriorConfig) -> sbm.DegreeUniformPrior:
         return sbm.DegreeUniformPrior()

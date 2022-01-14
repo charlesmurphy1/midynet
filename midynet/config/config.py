@@ -96,10 +96,10 @@ class Config:
         return len(self.sequence())
 
     @classmethod
-    def __auto__(cls, args) -> Config:
+    def __auto__(cls, args, **kwargs) -> Config:
 
         if args in cls.__dict__ and isinstance(getattr(cls, args), Callable):
-            return getattr(cls, args)()
+            return getattr(cls, args)(**kwargs)
         elif isinstance(args, cls):
             return args
         else:

@@ -5,5 +5,6 @@ from .wrapper import *
 from .prior import *
 from .random_graph import *
 from .dynamics import *
+from .mcmc import *
 from .metrics import *
 from .experiment import *

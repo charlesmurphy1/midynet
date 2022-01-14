@@ -112,10 +112,12 @@ class TestRandomGraphFactory(unittest.TestCase, TestFactory):
         RandomGraphConfig.fixed_er(100, 250),
         RandomGraphConfig.poisson_er(100, 250.0),
         RandomGraphConfig.uniform_dcsbm(100, 250, 10),
+        RandomGraphConfig.uniform_cm(100, 250),
     }
     missing_configs = [Config(name="missing")]
     unavailable_configs = [
         RandomGraphConfig.hyperuniform_dcsbm(100, 250, 10),
+        RandomGraphConfig.hyperuniform_cm(100, 250),
     ]
 
     def obj_testing(self, obj):
