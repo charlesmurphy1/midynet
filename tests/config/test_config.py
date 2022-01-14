@@ -249,9 +249,7 @@ class TestExperimentConfig(unittest.TestCase):
         self.assertIn("seed", exp)
         self.assertIn("num_procs", exp)
         self.assertEqual(len(exp), 1)
-
         self.assertEqual(len(exp.unmet_requirements()), 0)
-        print(exp.format())
 
 
 if __name__ == "__main__":
