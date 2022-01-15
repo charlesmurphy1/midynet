@@ -5,6 +5,7 @@
 
 #include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/proposer/block_proposer/block_proposer.h"
+#include "FastMIDyNet/proposer/edge_proposer/edge_proposer.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/mcmc/mcmc.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.h"
@@ -15,18 +16,20 @@ namespace FastMIDyNet{
 class RandomGraphMCMC: public MCMC{
 protected:
     RandomGraph* m_randomGraphPtr;
+    EdgeProposer* m_edgeProposerPtr;
     double m_betaLikelihood, m_betaPrior;
     std::uniform_real_distribution<double> m_uniform;
 public:
     RandomGraphMCMC(
         RandomGraph& randomGraph,
+        EdgeProposer& edgeProposer,
         double betaLikelihood=1,
         double betaPrior=1,
         const CallBackList& callBacks={}):
     MCMC(callBacks),
     m_betaLikelihood(betaLikelihood),
     m_betaPrior(betaPrior),
-    m_uniform(0., 1.) { setRandomGraph(randomGraph); }
+    m_uniform(0., 1.) { setRandomGraph(randomGraph); setEdgeProposer(edgeProposer); }
 
     RandomGraphMCMC(
         double betaLikelihood=1,
@@ -51,6 +54,19 @@ public:
     double getLogJoint() { return m_randomGraphPtr->getLogJoint(); }
     void sample() { m_randomGraphPtr->sample(); m_hasState=true; }
 
+    virtual void setUp() {
+        m_edgeProposerPtr->setUp(*m_randomGraphPtr);
+        MCMC::setUp();
+    }
+
+
+    const EdgeProposer& getEdgeProposer() const { return *m_edgeProposerPtr; }
+    void setEdgeProposer(EdgeProposer& edgeProposer) { m_edgeProposerPtr = &edgeProposer; }
+    GraphMove proposeEdgeMove() const { return m_edgeProposerPtr->proposeMove(); }
+    double getLogProposalProbRatio(const GraphMove& move) const { return m_edgeProposerPtr->getLogProposalProbRatio(move); }
+    void updateProbabilities(const GraphMove& move) { m_edgeProposerPtr->updateProbabilities(move); }
+
+
 };
 
 class StochasticBlockGraphMCMC: public RandomGraphMCMC{
@@ -61,11 +77,12 @@ public:
 
     StochasticBlockGraphMCMC(
         StochasticBlockModelFamily& sbmGraph,
+        EdgeProposer& edgeProposer,
         BlockProposer& blockProposer,
         double betaLikelihood=1,
         double betaPrior=1,
         const CallBackList& callBacks={}):
-    RandomGraphMCMC(betaLikelihood, betaPrior, callBacks),
+    RandomGraphMCMC(sbmGraph, edgeProposer, betaLikelihood, betaPrior, callBacks),
     m_blockProposerPtr(&blockProposer){}
 
     StochasticBlockGraphMCMC(
@@ -74,7 +91,10 @@ public:
         const CallBackList& callBacks={}):
     RandomGraphMCMC(betaLikelihood, betaPrior, callBacks){}
 
-    void setUp();
+    void setUp(){
+        m_blockProposerPtr->setUp(*m_sbmGraphPtr);
+        RandomGraphMCMC::setUp();
+    };
 
     const BlockSequence& getBlocks() { return m_sbmGraphPtr->getBlocks(); }
     const StochasticBlockModelFamily& getRandomGraph() const { return *m_sbmGraphPtr; }
@@ -84,6 +104,7 @@ public:
 
     const BlockProposer& getBlockProposer() const { return *m_blockProposerPtr; }
     void setBlockProposer(BlockProposer& blockProposer) { m_blockProposerPtr = &blockProposer; }
+    BlockMove proposeBlockMove() const { return m_blockProposerPtr->proposeMove(); }
 
 
     void doMetropolisHastingsStep();

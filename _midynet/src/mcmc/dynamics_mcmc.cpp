@@ -3,14 +3,7 @@
 
 
 namespace FastMIDyNet{
-
-void DynamicsMCMC::setUp() {
-    m_edgeProposerPtr->setUp(m_dynamicsPtr->getRandomGraph());
-    m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
-    m_randomGraphMCMCPtr->setUp();
-    MCMC::setUp();
-}
-
+    
 void DynamicsMCMC::doMetropolisHastingsStep() {
     if (m_uniform(rng) < m_sampleGraphPriorProb){
         m_lastMoveWasGraphMove = false;
@@ -21,10 +14,10 @@ void DynamicsMCMC::doMetropolisHastingsStep() {
     }
     else {
         m_lastMoveWasGraphMove = true;
-        GraphMove move = m_edgeProposerPtr->proposeMove();
+        GraphMove move = m_randomGraphMCMCPtr->proposeEdgeMove();
         double logLikelihoodRatio = m_dynamicsPtr->getLogLikelihoodRatio(move);
         double logPriorRatio = m_dynamicsPtr->getLogPriorRatio(move);
-        double LogProposalProbRatio = m_edgeProposerPtr->getLogProposalProbRatio(move);
+        double LogProposalProbRatio = m_randomGraphMCMCPtr->getLogProposalProbRatio(move);
 
         m_lastLogJointRatio = m_betaLikelihood * logLikelihoodRatio + m_betaPrior * logPriorRatio;
         m_lastLogAcceptance = LogProposalProbRatio + m_lastLogJointRatio;
@@ -33,7 +26,7 @@ void DynamicsMCMC::doMetropolisHastingsStep() {
         if (m_uniform(rng) < exp(m_lastLogAcceptance)){
             m_isLastAccepted = true;
             m_dynamicsPtr->applyMove(move);
-            m_edgeProposerPtr->updateProbabilities(move);
+            m_randomGraphMCMCPtr->updateProbabilities(move);
         }
     }
 

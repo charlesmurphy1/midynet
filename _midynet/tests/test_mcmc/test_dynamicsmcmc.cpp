@@ -27,6 +27,7 @@ namespace FastMIDyNet{
 
 class TestDynamicsMCMC: public::testing::Test{
 public:
+    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
     UniformBlockProposer blockProposer = UniformBlockProposer(0.);
     BlockCountDeltaPrior blockCount = BlockCountDeltaPrior(BLOCK_COUNT);
     VertexCountUniformPrior vertexCount = VertexCountUniformPrior(GRAPH_SIZE, blockCount);
@@ -34,11 +35,10 @@ public:
     EdgeCountDeltaPrior edgeCount = EdgeCountDeltaPrior(EDGE_COUNT);
     EdgeMatrixUniformPrior edgeMatrix = EdgeMatrixUniformPrior(edgeCount, blocks);
     StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(GRAPH_SIZE,blocks, edgeMatrix);
-    StochasticBlockGraphMCMC graphmcmc = StochasticBlockGraphMCMC(randomGraph, blockProposer);
+    StochasticBlockGraphMCMC graphmcmc = StochasticBlockGraphMCMC(randomGraph, edgeProposer,blockProposer);
 
-    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
     SISDynamics dynamics = SISDynamics(randomGraph, NUM_STEPS, 0.5);
-    DynamicsMCMC mcmc = DynamicsMCMC(dynamics, graphmcmc, edgeProposer, 1., 1., 0.);
+    DynamicsMCMC mcmc = DynamicsMCMC(dynamics, graphmcmc, 1., 1., 0.);
     void SetUp(){
         seed(time(NULL));
         mcmc.sample();

@@ -4,6 +4,7 @@
 #include <time.h>
 
 #include "FastMIDyNet/proposer/block_proposer/uniform.h"
+#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/prior/sbm/edge_count.h"
@@ -22,13 +23,14 @@ size_t EDGE_COUNT = 250;
 
 class TestStochasticBlockGraphMCMC: public::testing::Test{
 public:
+    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
     UniformBlockProposer blockProposer = UniformBlockProposer(0.);
     BlockCountDeltaPrior blockCount = BlockCountDeltaPrior(BLOCK_COUNT);
     BlockUniformPrior blockPrior = BlockUniformPrior(GRAPH_SIZE, blockCount);
     EdgeCountDeltaPrior edgeCount = EdgeCountDeltaPrior(EDGE_COUNT);
     EdgeMatrixUniformPrior edgeMatrix = EdgeMatrixUniformPrior(edgeCount, blockPrior);
     StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(GRAPH_SIZE, blockPrior, edgeMatrix);
-    StochasticBlockGraphMCMC mcmc = StochasticBlockGraphMCMC(randomGraph, blockProposer);
+    StochasticBlockGraphMCMC mcmc = StochasticBlockGraphMCMC(randomGraph, edgeProposer, blockProposer);
     void SetUp(){
         seed(time(NULL));
         mcmc.sample();

@@ -39,8 +39,9 @@ void initMCMCBaseClass(py::module& m){
         ;
 
     py::class_<RandomGraphMCMC, MCMC, PyRandomGraphMCMC<>>(m, "RandomGraphMCMC")
-        .def(py::init<RandomGraph&, double, double, const CallBackList&>(),
-            py::arg("random_graph"), py::arg("beta_likelihood")=1, py::arg("beta_prior")=1,
+        .def(py::init<RandomGraph&, EdgeProposer&, double, double, const CallBackList&>(),
+            py::arg("random_graph"), py::arg("edge_proposer"),
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1,
             py::arg("callbacks") )
         .def(py::init<double, double, const CallBackList&>(),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") )
@@ -48,12 +49,17 @@ void initMCMCBaseClass(py::module& m){
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1 )
         .def("get_random_graph", &RandomGraphMCMC::getRandomGraph )
         .def("set_random_graph", &RandomGraphMCMC::setRandomGraph, py::arg("random_graph") )
+        .def("get_edge_proposer", &RandomGraphMCMC::getEdgeProposer )
+        .def("set_edge_proposer", &RandomGraphMCMC::setEdgeProposer, py::arg("edge_proposer") )
+        .def("propose_edge_move", &RandomGraphMCMC::proposeEdgeMove )
+        .def("get_log_proposal_prob_ratio", &RandomGraphMCMC::getLogProposalProbRatio, py::arg("move") )
+        .def("update_probabilities", &RandomGraphMCMC::updateProbabilities, py::arg("move") )
         ;
 
 
     py::class_<StochasticBlockGraphMCMC, RandomGraphMCMC>(m, "StochasticBlockGraphMCMC")
-        .def(py::init<StochasticBlockModelFamily&, BlockProposer&, double, double, const CallBackList&>(),
-            py::arg("random_graph"), py::arg("block_proposer"),
+        .def(py::init<StochasticBlockModelFamily&, EdgeProposer&, BlockProposer&, double, double, const CallBackList&>(),
+            py::arg("random_graph"), py::arg("edge_proposer"), py::arg("block_proposer"),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") )
         .def(py::init<double, double, const CallBackList&>(),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") )
@@ -63,11 +69,12 @@ void initMCMCBaseClass(py::module& m){
         .def("set_random_graph", &StochasticBlockGraphMCMC::setRandomGraph, py::arg("random_graph") )
         .def("get_block_proposer", &StochasticBlockGraphMCMC::getBlockProposer )
         .def("set_block_proposer", &StochasticBlockGraphMCMC::setBlockProposer, py::arg("block_proposer") )
+        .def("propose_block_move", &StochasticBlockGraphMCMC::proposeBlockMove )
         ;
 
     py::class_<DynamicsMCMC, MCMC>(m, "DynamicsMCMC")
-        .def(py::init<Dynamics&, RandomGraphMCMC&, EdgeProposer&, double, double, double, const CallBackList&>(),
-            py::arg("dynamics"), py::arg("random_graph_mcmc"), py::arg("edge_proposer"),
+        .def(py::init<Dynamics&, RandomGraphMCMC&, double, double, double, const CallBackList&>(),
+            py::arg("dynamics"), py::arg("random_graph_mcmc"),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("sample_graph_prior")=0.5,
             py::arg("callbacks") )
         .def(py::init<double, double, double, const CallBackList&>(),
@@ -79,8 +86,6 @@ void initMCMCBaseClass(py::module& m){
         .def("set_dynamics", &DynamicsMCMC::setDynamics, py::arg("dynamics") )
         .def("get_random_graph_mcmc", &DynamicsMCMC::getRandomGraphMCMC )
         .def("set_random_graph_mcmc", &DynamicsMCMC::setRandomGraphMCMC, py::arg("random_graph_mcmc") )
-        .def("get_edge_proposer", &DynamicsMCMC::getEdgeProposer )
-        .def("set_edge_proposer", &DynamicsMCMC::setEdgeProposer, py::arg("edge_proposer") )
         ;
 }
 
