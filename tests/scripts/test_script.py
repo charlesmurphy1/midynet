@@ -7,10 +7,18 @@ from midynet import scripts
 class TestScriptManager(unittest.TestCase):
     def setUp(self):
         self.config = config.ExperimentConfig.default("test", "sis", "uniform_sbm")
+        resources = {
+            "account": "def-aallard",
+            "time": "24:00:00",
+            "output": "./",
+            "mem": "12G",
+            "cpus-per-task": "40",
+        }
         self.script = scripts.ScriptManager(
             "test_script",
             "python run.py",
             config=self.config,
+            resources=resources,
             env_to_load="./env/midynet-env/bin/activate",
         )
 
