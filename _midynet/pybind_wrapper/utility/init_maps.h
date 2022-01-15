@@ -23,6 +23,7 @@ py::class_< Map<KeyType, ValueType> > declareMap(py::module& m, std::string pyNa
         .def("set", &Map<KeyType, ValueType>::set, py::arg("key"), py::arg("value"))
         .def("is_empty", &Map<KeyType, ValueType>::isEmpty, py::arg("key"))
         .def("erase", &Map<KeyType, ValueType>::erase, py::arg("key"))
+        .def("clear", &Map<KeyType, ValueType>::clear)
         .def("display", &Map<KeyType, ValueType>::display)
         ;
 }

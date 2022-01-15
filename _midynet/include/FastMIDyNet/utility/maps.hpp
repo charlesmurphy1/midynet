@@ -49,6 +49,7 @@ public:
     }
 
     void erase(KeyType key){ if (not isEmpty(key)) { m_map.erase(key); }}
+    void clear(){ m_map.clear(); }
     typename std::map<KeyType, ValueType>::iterator begin() { return m_map.begin(); }
     typename std::map<KeyType, ValueType>::iterator end() { return m_map.end(); }
 

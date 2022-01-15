@@ -53,6 +53,8 @@ public:
     double getLogPrior() { return m_randomGraphPtr->getLogPrior(); }
     double getLogJoint() { return m_randomGraphPtr->getLogJoint(); }
     void sample() { m_randomGraphPtr->sample(); m_hasState=true; }
+    void sampleGraph() { m_randomGraphPtr->sampleState(); m_hasState=true; }
+    void sampleGraphPriors() { m_randomGraphPtr->samplePriors();}
 
     virtual void setUp() {
         m_edgeProposerPtr->setUp(*m_randomGraphPtr);

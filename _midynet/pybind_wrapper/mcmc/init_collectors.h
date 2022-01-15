@@ -4,8 +4,10 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "BaseGraph/types.h"
 #include "FastMIDyNet/mcmc/callbacks/collector.h"
 #include "FastMIDyNet/mcmc/python/callback.hpp"
+#include "FastMIDyNet/utility/functions.h"
 
 namespace py = pybind11;
 namespace FastMIDyNet{
@@ -30,7 +32,16 @@ void initCollectors(py::module& m){
 
     py::class_<CollectEdgeMultiplicityOnSweep, Collector>(m, "CollectEdgeMultiplicityOnSweep")
         .def(py::init<>())
-        .def("get_edge_multiplicity", &CollectEdgeMultiplicityOnSweep::getEdgeMultiplicity);
+        .def("get_marginal_entropy", &CollectEdgeMultiplicityOnSweep::getMarginalEntropy)
+        .def("get_total_count", &CollectEdgeMultiplicityOnSweep::getTotalCount)
+        .def("get_edge_observation_count", [](const CollectEdgeMultiplicityOnSweep& self, size_t v, size_t u){
+                return self.getEdgeObservationCount(getOrderedPair<BaseGraph::VertexIndex>({u, v}));
+            }, py::arg("v"), py::arg("u"))
+        .def("get_edge_count_prob", &CollectEdgeMultiplicityOnSweep::getEdgeObservationCount)
+        .def("get_edge_count_prob", [](const CollectEdgeMultiplicityOnSweep& self, size_t v, size_t u, size_t count){
+                return self.getEdgeCountProb(getOrderedPair<BaseGraph::VertexIndex>({u, v}), count);
+            }, py::arg("v"), py::arg("u"), py::arg("count"))
+        ;
 
     py::class_<WriteGraphToFileOnSweep, Collector>(m, "WriteGraphToFileOnSweep")
         .def(py::init<std::string, std::string>(), py::arg("filename"), py::arg("ext")=".b");

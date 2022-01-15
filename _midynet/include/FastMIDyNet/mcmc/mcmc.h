@@ -49,6 +49,7 @@ public:
 
     void addCallBack(CallBack& callBack) { callBack.setUp(this); m_callBacks.pushBack(callBack); }
     void removeCallBack(size_t& idx) { m_callBacks.remove(idx); }
+    void popCallBack() { m_callBacks.popBack(); }
 
     virtual void setUp() { m_callBacks.setUp(this); m_numSteps = m_numSweeps = 0; }
     virtual void tearDown() { m_callBacks.tearDown(); m_numSteps = m_numSweeps = 0; }

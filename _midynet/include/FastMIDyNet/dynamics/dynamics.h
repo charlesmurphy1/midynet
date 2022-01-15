@@ -33,7 +33,7 @@ class Dynamics{
         const StateSequence& getFutureStates() const { return m_futureStateSequence; }
         void setState(State& state) {m_state = state; }
         const MultiGraph& getGraph() const { return m_randomGraphPtr->getState(); }
-        void setGraph(MultiGraph& graph) {
+        void setGraph(const MultiGraph& graph) {
             m_randomGraphPtr->setState(graph);
             for (size_t t = 0 ; t < m_pastStateSequence.size() ; t++){
                 m_neighborsStateSequence[t] = getNeighborsState(m_pastStateSequence[t]);
@@ -57,7 +57,7 @@ class Dynamics{
         const State& sample(bool async=true){ return sample(getRandomState(), async); }
         void sampleState(const State& initialState, bool async=true);
         void sampleState(bool async=true){ sampleState(getRandomState(), async); }
-        const MultiGraph& sampleGraph() { return m_randomGraphPtr->sample(); }
+        void sampleGraph() { setGraph(m_randomGraphPtr->sample()); }
         virtual const State getRandomState();
         const NeighborsState getNeighborsState(const State& state) const;
         const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const;

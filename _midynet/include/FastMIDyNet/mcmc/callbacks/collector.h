@@ -38,15 +38,28 @@ public:
 
 class CollectEdgeMultiplicityOnSweep: public SweepCollector{
 private:
-    MultiGraph m_edgeMultiplicity;
+    // MultiGraph m_edgeMultiplicity;
+    CounterMap<BaseGraph::Edge> m_observedEdges;
+    CounterMap<std::pair<BaseGraph::Edge, size_t>> m_observedEdgesCount;
+    CounterMap<BaseGraph::Edge> m_observedEdgesMaxCount;
+    size_t m_totalCount;
 public:
     void setUp(MCMC* mcmcPtr) {
         Collector::setUp(mcmcPtr);
-        m_edgeMultiplicity = MultiGraph(m_mcmcPtr->getSize());
+        // m_edgeMultiplicity = MultiGraph(m_mcmcPtr->getSize());
     }
     void collect() override ;
-    void clear() override { m_edgeMultiplicity.clearEdges(); }
-    const MultiGraph& getEdgeMultiplicity() const { return m_edgeMultiplicity; }
+    void clear() override { m_observedEdges.clear(); m_observedEdgesCount.clear(); m_observedEdgesMaxCount.clear();}
+    double getMarginalEntropy() ;
+    bool getTotalCount() const { return m_totalCount; }
+    bool getEdgeObservationCount(BaseGraph::Edge edge) const { return m_observedEdges[edge]; }
+    bool getEdgeCountProb(BaseGraph::Edge edge, size_t count) const {
+        if (count == 0)
+            return 1 - m_observedEdges[edge] / m_totalCount;
+        else
+            return m_observedEdgesCount.get({edge, count}) / m_totalCount;
+    }
+
 };
 
 class WriteGraphToFileOnSweep: public SweepCollector{

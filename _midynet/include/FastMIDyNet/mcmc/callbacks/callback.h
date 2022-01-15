@@ -40,6 +40,7 @@ public:
 
     void pushBack(CallBack& callback) { m_callbacksVec.push_back(&callback); }
     void remove(size_t idx) { m_callbacksVec.erase(m_callbacksVec.begin() + idx); }
+    void popBack() { m_callbacksVec.pop_back(); }
 
 };
 

@@ -36,6 +36,7 @@ void initCallBacks(py::module& m){
         .def("on_sweep_begin", &CallBackList::onSweepBegin)
         .def("on_sweep_end", &CallBackList::onSweepEnd)
         .def("push_back", &CallBackList::pushBack)
+        .def("pop_back", &CallBackList::popBack)
         .def("remove", &CallBackList::remove) ;
     initVerbose(m);
     initCollectors(m);

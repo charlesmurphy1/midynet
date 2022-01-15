@@ -72,7 +72,19 @@ public:
         m_dynamicsPtr->sample();
         m_hasState=true;
     }
-
+    void sampleState() {
+        m_dynamicsPtr->sampleState();
+        m_hasState=true;
+    }
+    void sampleGraph() {
+        m_randomGraphMCMCPtr->sample();
+    }
+    void sampleGraphOnly() {
+        m_randomGraphMCMCPtr->sampleGraph();
+    }
+    void sampleGraphPriors() {
+        m_randomGraphMCMCPtr->sampleGraphPriors();
+    }
 
     void doMetropolisHastingsStep();
 };

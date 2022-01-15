@@ -2,6 +2,7 @@
 
 #include "BaseGraph/fileio.h"
 #include "FastMIDyNet/mcmc/callbacks/collector.h"
+#include "FastMIDyNet/utility/functions.h"
 
 namespace FastMIDyNet{
 
@@ -21,10 +22,25 @@ void CollectEdgeMultiplicityOnSweep::collect(){
     for ( auto idx : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
             if (neighbor.vertexIndex > idx){
-                m_edgeMultiplicity.addMultiedgeIdx(idx, neighbor.vertexIndex, neighbor.label, true);
+                auto edge = getOrderedPair<BaseGraph::VertexIndex>({idx, neighbor.vertexIndex});
+                m_observedEdges.increment(edge);
+                m_observedEdgesCount.increment({edge, neighbor.label});
+                if (neighbor.label > m_observedEdgesMaxCount[edge])
+                    m_observedEdgesMaxCount.set(edge, neighbor.label);
             }
         }
     }
+}
+
+double CollectEdgeMultiplicityOnSweep::getMarginalEntropy() {
+    double marginalEntropy = 0;
+    for (auto edge : m_observedEdges){
+        for (size_t count = 0; count <= m_observedEdgesMaxCount[edge.first]; ++count){
+            double p = getEdgeCountProb(edge.first, count);
+            marginalEntropy -= p * log(p);
+        }
+    }
+    return marginalEntropy;
 }
 
 } // FastMIDyNet
