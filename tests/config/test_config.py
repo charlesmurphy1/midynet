@@ -206,12 +206,6 @@ class TestConfig(unittest.TestCase):
         path.unlink()
 
 
-class TestMCMCCOnfig(unittest.TestCase):
-    def test_auto(self):
-        g = RandomGraphConfig.uniform_sbm(100, 250)
-        mcmc = MCMCConfig.auto("sbm", g)
-
-
 class TestMetricsConfig(unittest.TestCase):
     def test_auto(self):
         metrics = MetricsConfig.auto("dynamics_entropy")
@@ -243,7 +237,6 @@ class TestExperimentConfig(unittest.TestCase):
         self.assertIn("name", exp)
         self.assertIn("dynamics", exp)
         self.assertIn("graph", exp)
-        self.assertIn("mcmc", exp)
         self.assertIn("metrics", exp)
         self.assertIn("path", exp)
         self.assertIn("seed", exp)

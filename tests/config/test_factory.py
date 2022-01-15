@@ -145,11 +145,11 @@ class TestRandomGraphMCMCFactory(unittest.TestCase, TestFactory):
 
     factory = RandomGraphMCMCFactory
     good_configs = {
-        MCMCConfig.sbm(RandomGraphConfig.uniform_sbm(100, 250, 10)),
-        MCMCConfig.er(RandomGraphConfig.poisson_er(100, 250)),
-        MCMCConfig.er(RandomGraphConfig.fixed_er(100, 250)),
-        MCMCConfig.dcsbm(RandomGraphConfig.uniform_dcsbm(100, 250, 10)),
-        MCMCConfig.cm(RandomGraphConfig.uniform_cm(100, 250)),
+        RandomGraphConfig.uniform_sbm(100, 250, 10),
+        RandomGraphConfig.poisson_er(100, 250),
+        RandomGraphConfig.fixed_er(100, 250),
+        RandomGraphConfig.uniform_dcsbm(100, 250, 10),
+        RandomGraphConfig.uniform_cm(100, 250),
     }
 
 

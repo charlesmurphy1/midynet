@@ -96,13 +96,15 @@ class Config:
         return len(self.sequence())
 
     @classmethod
-    def __auto__(cls, args, *others, **kwargs) -> Config:
-        if args in cls.__dict__ and isinstance(getattr(cls, args), Callable):
-            return getattr(cls, args)(*others, **kwargs)
-        elif isinstance(args, cls):
-            return args
+    def __auto__(cls, config_type, *others, **kwargs) -> Config:
+        if config_type in cls.__dict__ and isinstance(
+            getattr(cls, config_type), Callable
+        ):
+            return getattr(cls, config_type)(*others, **kwargs)
+        elif isinstance(config_type, cls):
+            return config_type
         else:
-            message = f"Invalid type `{type(args)}` for auto build of object `{cls.__name__}`."
+            message = f"Invalid config type `{type(config_type)}` for auto build of object `{cls.__name__}`."
             raise TypeError(message)
 
     def __gt__(self, other):
@@ -142,17 +144,17 @@ class Config:
             raise TypeError(message)
 
     @classmethod
-    def auto(cls, args: typing.Any, *others, **kwargs) -> Config:
+    def auto(cls, config_type: str, *others, **kwargs) -> Config:
         """
         Automatic construction method using `args`.
 
         Args:
             args: input for constructing an instance of `Config`.
         """
-        if not isinstance(args, typing.Iterable) or isinstance(args, str):
-            return cls.__auto__(args, *others, **kwargs)
+        if not isinstance(config_type, typing.Iterable) or isinstance(config_type, str):
+            return cls.__auto__(config_type, *others, **kwargs)
         else:
-            return [cls.__auto__(a, *others, **kwargs) for a in args]
+            return [cls.__auto__(c, *others, **kwargs) for c in config_type]
 
     def keys(self, recursively: bool = False) -> typing.KeysView:
         """
@@ -434,19 +436,23 @@ class Config:
                         suffix=None,
                     )
                     ss = ss.split(":")[1:]
-                    ss = "".join(ss)[2:]
-                    ss = ss.split(endline)[:-1]
+                    ss = ":" + "".join(ss)[2:]
+                    ss = ss.split(endline)
                     s += endline.join(ss) + endline
                 s += f"{prefix}|\t{suffix}{endline}"
             elif v.is_config:
                 format = v.value.format(prefix=prefix + "|\t")
                 format = format.split(":")[1:]
-                format = "".join(format)
+                format = ":" + "".join(format)
                 name = f"{v.name}(name=`{v.value.name}`)"
-                s += f"{prefix}|\t{name}:{format}{endline}"
+                ss = f"{prefix}|\t{name}:{format}{endline}".split("\n")
+                if len(ss) > 3:
+                    s += "\n".join(ss)
+                else:
+                    s += ss[0] + "\n"
             else:
                 s += f"{prefix}|\t{name_prefix}{v.name} = {v.format()}{endline}"
-        if suffix is not None:
+        if suffix is not None and len(self.items()) > 0:
             s += f"{prefix}{suffix}"
         return s
 

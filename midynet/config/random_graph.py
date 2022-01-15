@@ -6,6 +6,7 @@ from .config import Config
 from .factory import Factory
 from .wrapper import Wrapper
 from .prior import *
+from .proposer import *
 from _midynet import random_graph
 from _midynet.prior import sbm
 
@@ -26,6 +27,11 @@ class RandomGraphConfig(Config):
         obj = cls(name=name, size=size)
         obj.insert("blocks", BlockPriorConfig.auto(blocks))
         obj.insert("edge_matrix", EdgeMatrixPriorConfig.auto(edge_matrix))
+        if obj.edge_matrix.edge_count.name == "delta":
+            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
+        else:
+            obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
+        obj.insert("block_proposer", BlockProposerConfig.peixoto())
         return obj
 
     @classmethod
@@ -55,6 +61,11 @@ class RandomGraphConfig(Config):
     def custom_er(cls, name: str, size: int, edge_count: EdgeCountPriorConfig):
         obj = cls(name=name, size=size)
         obj.insert("edge_count", EdgeCountPriorConfig.auto(edge_count))
+
+        if obj.edge_count.name == "delta":
+            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
+        else:
+            obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         return obj
 
     @classmethod
@@ -80,6 +91,13 @@ class RandomGraphConfig(Config):
         obj.insert("blocks", BlockPriorConfig.auto(blocks))
         obj.insert("edge_matrix", EdgeMatrixPriorConfig.auto(edge_matrix))
         obj.insert("degrees", DegreePriorConfig.auto(degrees))
+        if obj.degrees.name == "delta":
+            obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
+        elif obj.edge_matrix.edge_count.name == "delta":
+            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
+        else:
+            obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
+        obj.insert("block_proposer", BlockProposerConfig.peixoto())
         return obj
 
     @classmethod
@@ -121,6 +139,12 @@ class RandomGraphConfig(Config):
         obj = cls(name=name, size=size)
         obj.insert("edge_count", EdgeCountPriorConfig.auto(edge_count))
         obj.insert("degrees", DegreePriorConfig.auto(degrees))
+        if obj.degrees.name == "delta":
+            obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
+        elif obj.edge_count.name == "delta":
+            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
+        else:
+            obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         return obj
 
     @classmethod
