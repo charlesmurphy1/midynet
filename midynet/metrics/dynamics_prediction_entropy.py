@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from midynet.config import *
 from midynet import utility
 from .multiprocess import MultiProcess, Expectation
-from .metrics import Metrics
+from .metrics import ExpectationMetrics
 
 __all__ = ["DynamicsPredictionEntropy", "DynamicsPredictionEntropyMetrics"]
 
@@ -22,7 +22,7 @@ class DynamicsPredictionEntropy(Expectation):
         return -dynamics.get_log_likelihood()
 
 
-class DynamicsPredictionEntropyMetrics(Metrics):
+class DynamicsPredictionEntropyMetrics(ExpectationMetrics):
     def eval(self, config: Config):
         dynamics_entropy = DynamicsPredictionEntropy(
             config=config,

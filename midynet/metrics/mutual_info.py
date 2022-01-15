@@ -6,28 +6,29 @@ from midynet import utility
 from .multiprocess import MultiProcess, Expectation
 from .metrics import ExpectationMetrics
 
-__all__ = ["GraphEntropy", "GraphEntropyMetrics"]
+__all__ = ["MutualInformation", "MutualInformationMetrics"]
 
 
 @dataclass
-class GraphEntropy(Expectation):
+class MutualInformation(Expectation):
     config: Config = field(repr=False, default_factory=Config)
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
         graph = RandomGraphFactory.build(self.config.graph)
-        graph.sample()
-        return -graph.get_log_likelihood()
+        dynamics = DynamicsFactory.build(self.config.dynamics)
+        dynamics.set_random_graph(graph.get_wrap())
+        raise NotImplementedError()
 
 
-class GraphEntropyMetrics(ExpectationMetrics):
+class MutualInformationMetrics(ExpectationMetrics):
     def eval(self, config: Config):
-        dynamics_entropy = GraphEntropy(
+        mutual_info = MutualInformation(
             config=config,
             num_procs=config.metrics.get_value("num_procs", 1),
             seed=config.metrics.get_value("seed", int(time.time())),
         )
-        return dynamics_entropy.compute(config.metrics.get_value("num_samples", 10))
+        return mutual_info.compute(config.metrics.get_value("num_samples", 10))
 
 
 if __name__ == "__main__":

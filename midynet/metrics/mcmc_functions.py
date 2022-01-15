@@ -1,75 +1,139 @@
-# def exact_logEvidence(model, state=None, **kwargs):
-#     g = model.graph.copy_state()
-#     logp = []
-#     for gg in model.graph.all_graphs():
-#         model.set_graph(gg)
-#         logp.append(-model.entropy(state=state))
-#     model.set_graph(g)
-#     return log_sum_exp(logp)
-#
-#
-# def annealed_logEvidence(model, state=None, kmax=10, alpha=0.5, **kwargs):
-#     kwargs.setdefault("verbose", 0)
-#     logF = []
-#     beta_k = (np.linspace(0, 1, kmax + 1)) ** (1.0 / alpha)
-#     lower_betas = beta_k[:-1]
-#     upper_betas = beta_k[1:]
-#     params = model.copy_params()
-#     for lb, ub in zip(lower_betas, upper_betas):
-#         logr_k = []
-#         queue = []
-#         if kwargs["verbose"] == 1 or kwargs["verbose"] == 2:
-#             print(f"Inverse temperature: {lb}")
-#         mcmc_equilibriate(model, state=state, queue=queue, beta=lb, **kwargs)
-#         ll = []
-#         for p in queue:
-#             model.set_params(p)
-#             logr_k.append((ub - lb) * model.loglikelihood(state=state))
-#         logF.append(log_mean_exp(logr_k))
-#     model.set_params(params)
-#     return np.sum(logF)
-
-#
-# def arithmetic_logEvidence(model):
-#     logF = []
-#     params = model.copy_params()
-#     for m in range(M):
-#         logF_k = []
-#         for k in range(num_sweeps):
-#             model.resample()
-#             logF_k.append(model.loglikelihood(state))
-#         logF.append(log_mean_exp(logF_k))
-#     model.set_params(params)
-#     return np.mean(logF)
+from midynet.config import *
+from _midynet.mcmc import DynamicsMCMC
+from _midynet.mcmc.callbacks import CollectLikelihoodOnSweep
+from _midynet.random_graph import RandomGraph
+from _midynet.dynamics import Dynamics
 
 
-# def harmonic_logEvidence(model, state=None, **kwargs):
-#     queue = []
-#     kwargs.setdefault("verbose", 0)
-#     params = model.copy_params()
-#     mcmc_equilibriate(model, state=state, queue=queue, **kwargs)
-#     logF = []
-#     for p in queue:
-#         model.set_params(p)
-#         logF.append(-model.loglikelihood(state))
-#     model.set_params(params)
-#     return -log_mean_exp(logF)
-#
-#
-# def meanfield_logEvidence(model, state=None, **kwargs):
-#     kwargs.setdefault("verbose", 0)
-#     hp_x = meanfield_logPosterior(model, state=state, **kwargs)
-#     hxp = -model.entropy()
-#     return hxp - hp_x
-#
-#
-# def exact_meanfield_logEvidence(model, state=None, **kwargs):
-#     kwargs.setdefault("verbose", 0)
-#     hp_x = exact_meanfield_logPosterior(model, state=state, **kwargs)
-#     hxp = -model.entropy()
-#     return hxp - hp_x
-#
-#
+def log_evidence_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
+    logp = []
+    for k in range(config.K):
+        logp_k = []
+        for k in range(config.num_sweeps):
+            dynamicsMCMC.sample_graph()
+            logp_k.append(dynamicsMCMC.get_log_likelihood())
+        logp.append(log_mean_exp(logp_k))
+    return np.mean(logp)
+
+
+def log_evidence_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
+    callback = CollectLikelihoodOnSweep()
+    dynamicsMCMC.add_callback(callback)
+    dynamicsMCMC.set_up()
+
+    for i in range(config.num_sweeps):
+        dynamicsMCMC.do_MH_sweep(burn=config.burn)
+    logp = -np.array(callback.get_log_likelihoods())
+
+    dynamicsMCMC.tear_down()
+    dynamicsMCMC.pop_callback()
+
+    return -log_mean_exp(logp)
+
+
+def log_evidence_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
+    return dynamicsMCMC.get_log_joint() - log_posterior_meanfield(dynamicsMCMC, config)
+
+
+def log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
+    callback = CollectLikelihoodOnSweep()
+    g = dynamicsMCMC.get_graph()
+    dynamicsMCMC.add_callback(callback)
+    dynamicsMCMC.set_up()
+
+    logp = []
+    for lb, ub in zip(config.beta_k[:-1], config.beta_k[1:]):
+        dynamicsMCMC.set_beta_likelihood(lb)
+        if config.reset_to_original:
+            dynamicsMCMC.set_graph(g)
+        for i in range(config.num_sweeps):
+            dynamicsMCMC.do_MH_sweep(burn=config.burn)
+        logp_k = (ub - lb) * np.array(callback.get_log_likelihoods())
+        logp.append(log_mean_exp(logp_k))
+        callback.clear()
+
+    dynamicsMCMC.tear_down()
+    dynamicsMCMC.pop_callback()
+    return -log_mean_exp(logp)
+
+
+def log_evidence_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
+    raise NotImplementedError()
+
+
+def log_evidence_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
+    return dynamicsMCMC.get_log_joint() - log_posterior_exact_meanfield(
+        dynamicsMCMC, config
+    )
+
+
+def log_evidence(dynamicsMCMC: DynamicsMCMC, config: Config):
+    method = "meanfield" if "method" not in config else config.method
+    if method == "exact":
+        return log_evidence_exact(dynamicsMCMC, config)
+    elif method == "exact_meanfield":
+        return log_evidence_exact_meanfield(dynamicsMCMC, config)
+    elif method == "arithmetic":
+        return log_evidence_arithmetic(dynamicsMCMC, config)
+    elif method == "harmonic":
+        return log_evidence_harmonic(dynamicsMCMC, config)
+    elif method == "meanfield":
+        return log_evidence_meanfield(dynamicsMCMC, config)
+    elif method == "annealed":
+        return log_evidence_annealed(dynamicsMCMC, config)
+
+
+def log_posterior_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
+    return dynamicsMCMC.get_log_joint() - log_evidence_arithmetic(dynamicsMCMC, config)
+
+
+def log_posterior_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
+    return dynamicsMCMC.get_log_joint() - log_evidence_harmonic(dynamicsMCMC, config)
+
+
+def log_posterior_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
+    callback = CollectEdgeMultiplicityOnSweep()
+    dynamicsMCMC.add_callback(callback)
+    dynamicsMCMC.set_up()
+
+    for i in range(config.num_sweeps):
+        dynamicsMCMC.do_MH_sweep(burn=config.burn)
+    h = callback.get_marginal_entropy()
+
+    dynamicsMCMC.tear_down()
+    dynamicsMCMC.pop_callback()
+
+    return h
+
+
+def log_posterior_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
+    return dynamicsMCMC.get_log_joint() - log_evidence_annealed(dynamicsMCMC, config)
+
+
+def log_posterior_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
+    return dynamicsMCMC.get_log_joint() - log_evidence_exact(dynamicsMCMC, config)
+
+
+def log_posterior_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
+    raise NotImplementedError()
+
+
+def log_posterior(dynamicsMCMC: DynamicsMCMC, config: Config):
+    method = "meanfield" if "method" not in config else config.method
+    if method == "exact":
+        return log_posterior_exact(dynamicsMCMC, config)
+    elif method == "exact_meanfield":
+        return log_posterior_exact_meanfield(dynamicsMCMC, config)
+    elif method == "arithmetic":
+        return log_posterior_arithmetic(dynamicsMCMC, config)
+    elif method == "harmonic":
+        return log_posterior_harmonic(dynamicsMCMC, config)
+    elif method == "meanfield":
+        return log_posterior_meanfield(dynamicsMCMC, config)
+    elif method == "annealed":
+        return log_posterior_annealed(dynamicsMCMC, config)
+
+
 # def exact_logPosterior(model, state=None, params=None, **kwargs):
 #     if params is not None:
 #         model.set_params(params)

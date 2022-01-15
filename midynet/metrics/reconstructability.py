@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from midynet.config import *
 from midynet import utility
 from .multiprocess import MultiProcess, Expectation
-from .metrics import Metrics
+from .metrics import ExpectationMetrics
 
 __all__ = ["Reconstructability", "ReconstructabilityMetrics"]
 
@@ -21,7 +21,7 @@ class Reconstructability(Expectation):
         raise NotImplementedError()
 
 
-class ReconstructabilityMetrics(Metrics):
+class ReconstructabilityMetrics(ExpectationMetrics):
     def eval(self, config: Config):
         dynamics_entropy = Reconstructability(
             config=config,

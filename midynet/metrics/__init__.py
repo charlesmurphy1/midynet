@@ -7,3 +7,4 @@ from .graph_entropy import *
 from .graph_reconstruction_entropy import *
 from .reconstructability import *
 from .predictability import *
+from .mutual_info import *

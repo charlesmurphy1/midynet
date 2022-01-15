@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from midynet.config import *
 from midynet import utility
 from .multiprocess import MultiProcess, Expectation
-from .metrics import Metrics
+from .metrics import ExpectationMetrics
 
 __all__ = ["Predictability", "PredictabilityMetrics"]
 
@@ -21,7 +21,7 @@ class Predictability(Expectation):
         raise NotImplementedError()
 
 
-class PredictabilityMetrics(Metrics):
+class PredictabilityMetrics(ExpectationMetrics):
     def eval(self, config: Config):
         dynamics_entropy = Predictability(
             config=config,

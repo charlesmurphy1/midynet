@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 
 from midynet.config import Config
 from midynet.util import Verbose
+from .statistics import MCStatistics
 
 __all__ = ["Metrics"]
 
@@ -142,9 +143,11 @@ class Metrics:
         return self.config.hash_dict()[name].index(h)
 
 
-class CustomMetrics(Metrics):
-    def set_up(self):
-        return
+@dataclass
+class ExpectationMetrics(Metrics):
+    statistics: MCStatistics = field(
+        repr=False, default_factory=lambda: MCStatistics("std")
+    )
 
 
 if __name__ == "__main__":

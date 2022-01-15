@@ -175,5 +175,10 @@ class TestPredictability(unittest.TestCase, TemplateTestMetrics):
     not_implemented: bool = True
 
 
+class TestMutualInformation(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.MutualInformationMetrics()
+    not_implemented: bool = True
+
+
 if __name__ == "__main__":
     unittest.main()
