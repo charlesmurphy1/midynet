@@ -109,10 +109,11 @@ class TestRandomGraphFactory(unittest.TestCase, TestFactory):
     good_configs = {
         RandomGraphConfig.uniform_sbm(100, 250, 10),
         RandomGraphConfig.hyperuniform_sbm(100, 250, 10),
-        RandomGraphConfig.fixed_er(100, 250),
-        RandomGraphConfig.poisson_er(100, 250.0),
+        RandomGraphConfig.er(100, 250.0),
         RandomGraphConfig.uniform_dcsbm(100, 250, 10),
         RandomGraphConfig.uniform_cm(100, 250),
+        RandomGraphConfig.poisson_cm(100, 250),
+        RandomGraphConfig.nbinom_cm(100, 250, 0.2),
     }
     missing_configs = [Config(name="missing")]
     unavailable_configs = [
@@ -134,7 +135,7 @@ class TestDynamicsFactory(unittest.TestCase, TestFactory):
     }
 
     def obj_testing(self, obj):
-        c = RandomGraphConfig.fixed_er(10, 25)
+        c = RandomGraphConfig.er(10, 25)
         g = RandomGraphFactory.build(c)
         obj.set_random_graph(g.get_wrap())
         obj.set_num_steps(10)
@@ -146,10 +147,12 @@ class TestRandomGraphMCMCFactory(unittest.TestCase, TestFactory):
     factory = RandomGraphMCMCFactory
     good_configs = {
         RandomGraphConfig.uniform_sbm(100, 250, 10),
-        RandomGraphConfig.poisson_er(100, 250),
-        RandomGraphConfig.fixed_er(100, 250),
+        RandomGraphConfig.er(100, 250.0),
+        RandomGraphConfig.er(100, 250),
         RandomGraphConfig.uniform_dcsbm(100, 250, 10),
         RandomGraphConfig.uniform_cm(100, 250),
+        RandomGraphConfig.poisson_cm(100, 250),
+        RandomGraphConfig.nbinom_cm(100, 250, 1),
     }
 
 

@@ -36,11 +36,6 @@ class RandomGraphConfig(Config):
         return obj
 
     @classmethod
-    def fixed_sbm(cls, blocks, edge_matrix):
-        size = len(blocks)
-        return cls.custom_sbm("fixed_sbm", size, blocks, edge_matrix)
-
-    @classmethod
     def uniform_sbm(
         cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
     ):
@@ -58,6 +53,21 @@ class RandomGraphConfig(Config):
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         return cls.custom_sbm("hyperuniform_sbm", size, blocks, edge_matrix)
 
+    def planted_partition(
+        cls, size: int, edge_count: int, block_count: int, assortativity: float
+    ):
+        obj = cls(
+            "planted_partition",
+            size=size,
+            edge_count=edge_count,
+            block_count=block_count,
+            assortativity=assortativity,
+        )
+        obj.insert("blocks", BlockPriorConfig.delta(block_count))
+        obj.insert("edge_matrix", EdgeMatrixPriorConfig.uniform(edge_count))
+        obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
+        obj.insert("block_proposer", BlockProposerConfig.peixoto())
+
     @classmethod
     def custom_er(cls, name: str, size: int, edge_count: EdgeCountPriorConfig):
         obj = cls(name=name, size=size)
@@ -70,14 +80,9 @@ class RandomGraphConfig(Config):
         return obj
 
     @classmethod
-    def fixed_er(cls, size: int = 100, edge_count: int = 250):
-        edge_count = EdgeCountPriorConfig.delta(edge_count)
-        return cls.custom_er(name="fixed_er", size=size, edge_count=edge_count)
-
-    @classmethod
-    def poisson_er(cls, size: int = 100, mean: int = 250):
-        edge_count = EdgeCountPriorConfig.poisson(mean)
-        return cls.custom_er(name="poisson_er", size=size, edge_count=edge_count)
+    def er(cls, size: int = 100, edge_count: int = 250):
+        edge_count = EdgeCountPriorConfig.auto(edge_count)
+        return cls.custom_er(name="er", size=size, edge_count=edge_count)
 
     @classmethod
     def custom_dcsbm(
@@ -100,11 +105,6 @@ class RandomGraphConfig(Config):
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("block_proposer", BlockProposerConfig.peixoto())
         return obj
-
-    @classmethod
-    def fixed_dcsbm(cls, blocks, edge_matrix, degrees):
-        size = len(blocks)
-        return cls.custom_dcsbm("fixed_dcsbm", size, blocks, edge_matrix, degrees)
 
     @classmethod
     def uniform_dcsbm(
@@ -134,8 +134,8 @@ class RandomGraphConfig(Config):
         cls,
         name: str,
         size: int,
-        edge_count: Union[int, EdgeCountPriorConfig],
-        degrees: Union[np.array, DegreePriorConfig],
+        edge_count: EdgeCountPriorConfig,
+        degrees: DegreePriorConfig,
     ):
         obj = cls(name=name, size=size)
         obj.insert("edge_count", EdgeCountPriorConfig.auto(edge_count))
@@ -149,26 +149,20 @@ class RandomGraphConfig(Config):
         return obj
 
     @classmethod
-    def fixed_cm(cls, degrees):
-        size = len(degrees)
-        obj = cls.custom_cm("fixed_cm", size, degrees)
-        obj.degrees.force_non_sequence = True
+    def poisson_cm(cls, size: int = 100, edge_count: int = 250):
+        obj = cls("poisson_cm", size=size, edge_count=edge_count)
+        obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
         return obj
 
     @classmethod
-    def fixed_poisson_cm(cls, size: int = 100, edge_count: int = 250):
-        size = len(blocks)
-        degrees = poisson_degreeseq(2 * edge_count / size, size)
-        obj = cls.fixed_cm(degrees)
-
-    @classmethod
-    def fixed_nbinom_cm(
-        cls, size: int = 100, edge_count: int = 250, heterogeneity: int = 0
-    ):
-        size = len(blocks)
-        degrees = nbinom_degreeseq(2 * edge_count / size, heterogeneity, size)
-        obj = cls.fixed_cm(degrees)
-        obj.insert("heterogeneity", heterogeneity)
+    def nbinom_cm(cls, size: int = 100, edge_count: int = 250, heterogeneity: int = 0):
+        obj = cls(
+            "nbinom_cm",
+            size=size,
+            edge_count=edge_count,
+            heterogeneity=heterogeneity,
+        )
+        obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
         return obj
 
     @classmethod
@@ -226,8 +220,24 @@ class RandomGraphFactory(Factory):
         )
 
     @staticmethod
-    def build_fixed_sbm(config: RandomGraphConfig):
-        return RandomGraphFactory.build_custom_sbm(config)
+    def build_custom_fixed_sbm(
+        blocks: list[int], edge_matrix: list[list[int]]
+    ) -> random_graph.StochasticBlockModelFamily:
+        # block_prior = sbm.BlockDeltaPrior(blocks)
+        # edge_matrix_prior = sbm.EdgeMatrixUniformPrior()
+        #
+        # g = random_graph.StochasticBlockModelFamily(config.size)
+        # return Wrapper(
+        #     g,
+        #     setup_func=lambda wrap, others: RandomGraphFactory.setUpSBM(
+        #         wrap,
+        #         others["blocks"].get_wrap(),
+        #         others["edge_matrix"].get_wrap(),
+        #     ),
+        #     blocks=block_wrapper,
+        #     edge_matrix=edge_matrix_wrapper,
+        # )
+        UnavailableOption("fixed_sbm")
 
     @staticmethod
     def build_uniform_sbm(config: RandomGraphConfig):
@@ -248,6 +258,10 @@ class RandomGraphFactory(Factory):
         return RandomGraphFactory.build_custom_sbm(config)
 
     @staticmethod
+    def build_planted_partition(config: RandomGraphConfig):
+        UnavailableOption(config.name)
+
+    @staticmethod
     def build_custom_er(config: RandomGraphConfig):
         edge_count = EdgeCountPriorFactory.build(config.edge_count)
         g = random_graph.ErdosRenyiFamily(config.size, edge_count)
@@ -262,11 +276,7 @@ class RandomGraphFactory(Factory):
         )
 
     @staticmethod
-    def build_fixed_er(config: RandomGraphConfig):
-        return RandomGraphFactory.build_custom_er(config)
-
-    @staticmethod
-    def build_poisson_er(config: RandomGraphConfig):
+    def build_er(config: RandomGraphConfig):
         return RandomGraphFactory.build_custom_er(config)
 
     @staticmethod
@@ -290,10 +300,6 @@ class RandomGraphFactory(Factory):
             edge_matrix=edge_matrix_wrapper,
             degrees=degrees,
         )
-
-    @staticmethod
-    def build_fixed_dcsbm(config: RandomGraphConfig):
-        return RandomGraphFactory.build_custom_dcsbm(config)
 
     @staticmethod
     def build_uniform_dcsbm(config: RandomGraphConfig):
@@ -332,8 +338,38 @@ class RandomGraphFactory(Factory):
         )
 
     @staticmethod
-    def build_fixed_cm(config: RandomGraphConfig):
-        return RandomGraphFactory.build_custom_cm(config)
+    def build_fixed_custom_cm(
+        degrees: list[int],
+    ) -> random_graph.ConfigurationModelFamily:
+        size, edge_count = len(degrees), int(sum(degrees) / 2)
+        print(sum(degrees))
+        degree_prior = sbm.DegreeDeltaPrior(degrees)
+        edge_count_prior = sbm.EdgeCountDeltaPrior(edge_count)
+        g = random_graph.ConfigurationModelFamily(size)
+        return Wrapper(
+            g,
+            setup_func=lambda wrap, others: RandomGraphFactory.setUpCM(
+                wrap,
+                others["edge_count"],
+                others["degrees"],
+            ),
+            edge_count=edge_count_prior,
+            degrees=degree_prior,
+        )
+
+    @staticmethod
+    def build_poisson_cm(config: RandomGraphConfig):
+        degrees = poisson_degreeseq(config.size, 2 * config.edge_count / config.size)
+        print("poisson")
+        return RandomGraphFactory.build_fixed_custom_cm(degrees)
+
+    @staticmethod
+    def build_nbinom_cm(config: RandomGraphConfig):
+        degrees = nbinom_degreeseq(
+            config.size, 2 * config.edge_count / config.size, config.heterogeneity
+        )
+        print("nbinom")
+        return RandomGraphFactory.build_fixed_custom_cm(degrees)
 
     @staticmethod
     def build_uniform_cm(config: RandomGraphConfig):

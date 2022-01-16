@@ -1,3 +1,5 @@
+import importlib
+
 from midynet.config import *
 from _midynet.mcmc import DynamicsMCMC, RandomGraphMCMC
 from _midynet.mcmc.callbacks import CollectLikelihoodOnSweep
@@ -90,18 +92,53 @@ def get_log_posterior_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
 
 
 def get_log_posterior_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
-    callback = CollectEdgeMultiplicityOnSweep()
-    dynamicsMCMC.add_callback(callback)
+    graph_callback = CollectEdgeMultiplicityOnSweep()
+    dynamicsMCMC.add_callback(graph_callback)
     dynamicsMCMC.set_up()
 
     for i in range(config.num_sweeps):
         dynamicsMCMC.do_MH_sweep(burn=config.burn)
-    logp = -callback.get_marginal_entropy()  # -H(G|X)
+    logp = -graph_callback.get_marginal_entropy()  # -H(G|X)
 
     dynamicsMCMC.tear_down()
     dynamicsMCMC.pop_callback()
 
     return logp
+
+
+def get_log_posterior_meanfield_sbm(dynamicsMCMC: DynamicsMCMC, config: Config):
+    if importlib.util.find_spec("graph_tool") is None:
+        message = (
+            f"The meanfield method cannot be used for SBM graphs, "
+            + "because `graph_tool` is not installed."
+        )
+        raise NotImplementedError(message)
+    else:
+        from graph_tool.inference import (
+            PartitionModeState,
+            ModeClusterState,
+            mcmc_equilibriate,
+        )
+
+        graph_callback = CollectEdgeMultiplicityOnSweep()
+        partition_callback = CollectPartitionOnSweep()
+        dynamicsMCMC.add_callback(graph_callback)
+        dynamicsMCMC.add_callback(partition_callback)
+        dynamicsMCMC.set_up()
+
+        for i in range(config.num_sweeps):
+            dynamicsMCMC.do_MH_sweep(burn=config.burn)
+        logp = -graph_callback.get_marginal_entropy()  # -H(G|X)
+        partitions = partition_callback.get_partitions()  # -H(b|X)
+        partition_modes = ModeClusterState(partitions)
+        mcmc_equilibrate(partition_modes, wait=1, mcmc_args=dict(niter=1, beta=np.inf))
+        logp += -partition_modes.posterior_entropy(MLE=True)
+
+        dynamicsMCMC.tear_down()
+        dynamicsMCMC.pop_callback()
+        dynamicsMCMC.pop_callback()
+
+        return logp
 
 
 def get_log_posterior_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):

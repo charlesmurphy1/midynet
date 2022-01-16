@@ -19,7 +19,11 @@ def generate_degseq(xk, pk, size):
     cdf = np.array([np.sum(pk[:k]) for k in range(1, len(pk) + 1)])
     inv_cdf = interp1d(cdf, xk)
     y = np.linspace(cdf.min(), cdf.max(), size + 2)[1:-1]
-    return inv_cdf(y)
+    degrees = inv_cdf(y).astype("int")
+    if sum(degrees) % 2:
+        idx = np.random.randint(size)
+        degrees[idx] += 1
+    return degrees
 
 
 def logbeta(a, b):
@@ -39,9 +43,18 @@ def bnbinomial(k, r, a, b):
     return p
 
 
-def poisson_degreeseq(avg_deg, size):
+def poisson_degreeseq(size, avg_deg):
     xk = np.arange(size)
     pk = poisson.pmf(xk, mu=avg_deg)
+    return generate_degseq(xk, pk, size)
+
+
+def nbinom_degreeseq(size, avgk, heterogeneity):
+    var = avgk + heterogeneity * avgk ** 2
+    q = avgk / var
+    n = avgk ** 2 / (var - avgk)
+    xk = np.arange(size)
+    pk = nbinom.pmf(xk, n, q)
     return generate_degseq(xk, pk, size)
 
 
@@ -83,16 +96,6 @@ def scalefree_degreeseq(avg, exponent, size, maxiter=1000, kmax=None):
     xk = np.arange(size)
     pk = bnbinomial(xk, r, alpha, r * beta)  # exponent - 1)
     k = generate_degseq(xk, pk, size)
-    k[k < 1.0] = 1
-    return k
-
-
-def nbinom_degreeseq(avg, h, size):
-    var = avg + h * avg ** 2
-    q = avg / var
-    n = avg ** 2 / (var - avg)
-    x = np.linspace(1 / size, 1 - 1 / size, size)
-    k = nbinom.ppf(x, n, q)
     k[k < 1.0] = 1
     return k
 
