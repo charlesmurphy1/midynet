@@ -5,6 +5,14 @@ from scipy.special import loggamma
 from scipy.interpolate import interp1d
 from scipy.stats import poisson, nbinom
 
+__all__ = [
+    "generate_degseq",
+    "bnbinomial",
+    "poisson_degreeseq",
+    "scalefree_degreeseq",
+    "nbinom_degreeseq",
+]
+
 
 def generate_degseq(xk, pk, size):
     assert xk.shape == pk.shape
@@ -87,3 +95,7 @@ def nbinom_degreeseq(avg, h, size):
     k = nbinom.ppf(x, n, q)
     k[k < 1.0] = 1
     return k
+
+
+if __name__ == "__main__":
+    pass

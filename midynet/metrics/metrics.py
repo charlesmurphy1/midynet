@@ -11,7 +11,7 @@ from midynet.config import Config
 from midynet.util import Verbose
 from .statistics import MCStatistics
 
-__all__ = ["Metrics"]
+__all__ = ["Metrics", "ExpectationMetrics"]
 
 
 @dataclass
