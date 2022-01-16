@@ -1,11 +1,9 @@
 from midynet.config import *
-from _midynet.mcmc import DynamicsMCMC
+from _midynet.mcmc import DynamicsMCMC, RandomGraphMCMC
 from _midynet.mcmc.callbacks import CollectLikelihoodOnSweep
-from _midynet.random_graph import RandomGraph
-from _midynet.dynamics import Dynamics
 
 
-def log_evidence_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_evidence_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
     logp = []
     for k in range(config.K):
         logp_k = []
@@ -16,7 +14,7 @@ def log_evidence_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
     return np.mean(logp)
 
 
-def log_evidence_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_evidence_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
     callback = CollectLikelihoodOnSweep()
     dynamicsMCMC.add_callback(callback)
     dynamicsMCMC.set_up()
@@ -31,11 +29,11 @@ def log_evidence_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
     return -log_mean_exp(logp)
 
 
-def log_evidence_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_evidence_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
     return dynamicsMCMC.get_log_joint() - log_posterior_meanfield(dynamicsMCMC, config)
 
 
-def log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
     callback = CollectLikelihoodOnSweep()
     g = dynamicsMCMC.get_graph()
     dynamicsMCMC.add_callback(callback)
@@ -57,78 +55,78 @@ def log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
     return -log_mean_exp(logp)
 
 
-def log_evidence_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_evidence_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
     raise NotImplementedError()
 
 
-def log_evidence_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_evidence_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
     return dynamicsMCMC.get_log_joint() - log_posterior_exact_meanfield(
         dynamicsMCMC, config
     )
 
 
-def log_evidence(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_evidence(dynamicsMCMC: DynamicsMCMC, config: Config):
     method = "meanfield" if "method" not in config else config.method
     if method == "exact":
-        return log_evidence_exact(dynamicsMCMC, config)
+        return get_log_evidence_exact(dynamicsMCMC, config)
     elif method == "exact_meanfield":
-        return log_evidence_exact_meanfield(dynamicsMCMC, config)
+        return get_log_evidence_exact_meanfield(dynamicsMCMC, config)
     elif method == "arithmetic":
-        return log_evidence_arithmetic(dynamicsMCMC, config)
+        return get_log_evidence_arithmetic(dynamicsMCMC, config)
     elif method == "harmonic":
-        return log_evidence_harmonic(dynamicsMCMC, config)
+        return get_log_evidence_harmonic(dynamicsMCMC, config)
     elif method == "meanfield":
-        return log_evidence_meanfield(dynamicsMCMC, config)
+        return get_log_evidence_meanfield(dynamicsMCMC, config)
     elif method == "annealed":
-        return log_evidence_annealed(dynamicsMCMC, config)
+        return get_log_evidence_annealed(dynamicsMCMC, config)
 
 
-def log_posterior_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_posterior_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
     return dynamicsMCMC.get_log_joint() - log_evidence_arithmetic(dynamicsMCMC, config)
 
 
-def log_posterior_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_posterior_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
     return dynamicsMCMC.get_log_joint() - log_evidence_harmonic(dynamicsMCMC, config)
 
 
-def log_posterior_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_posterior_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
     callback = CollectEdgeMultiplicityOnSweep()
     dynamicsMCMC.add_callback(callback)
     dynamicsMCMC.set_up()
 
     for i in range(config.num_sweeps):
         dynamicsMCMC.do_MH_sweep(burn=config.burn)
-    h = callback.get_marginal_entropy()
+    logp = -callback.get_marginal_entropy()  # H(G|X)
 
     dynamicsMCMC.tear_down()
     dynamicsMCMC.pop_callback()
 
-    return h
+    return logp
 
 
-def log_posterior_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_posterior_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
     return dynamicsMCMC.get_log_joint() - log_evidence_annealed(dynamicsMCMC, config)
 
 
-def log_posterior_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_posterior_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
     return dynamicsMCMC.get_log_joint() - log_evidence_exact(dynamicsMCMC, config)
 
 
-def log_posterior_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_posterior_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
     raise NotImplementedError()
 
 
-def log_posterior(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_posterior(dynamicsMCMC: DynamicsMCMC, config: Config):
     method = "meanfield" if "method" not in config else config.method
     if method == "exact":
-        return log_posterior_exact(dynamicsMCMC, config)
+        return get_log_posterior_exact(dynamicsMCMC, config)
     elif method == "exact_meanfield":
-        return log_posterior_exact_meanfield(dynamicsMCMC, config)
+        return get_log_posterior_exact_meanfield(dynamicsMCMC, config)
     elif method == "arithmetic":
-        return log_posterior_arithmetic(dynamicsMCMC, config)
+        return get_log_posterior_arithmetic(dynamicsMCMC, config)
     elif method == "harmonic":
-        return log_posterior_harmonic(dynamicsMCMC, config)
+        return get_log_posterior_harmonic(dynamicsMCMC, config)
     elif method == "meanfield":
-        return log_posterior_meanfield(dynamicsMCMC, config)
+        return get_log_posterior_meanfield(dynamicsMCMC, config)
     elif method == "annealed":
-        return log_posterior_annealed(dynamicsMCMC, config)
+        return get_log_posterior_annealed(dynamicsMCMC, config)

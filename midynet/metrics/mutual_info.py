@@ -1,10 +1,14 @@
 import time
+from collections import defautldict
 from dataclasses import dataclass, field
 
 from midynet.config import *
-from midynet import utility
+from _midynet import utility
+from _midynet.mcmc import DynamicsMCMC
+
 from .multiprocess import MultiProcess, Expectation
 from .metrics import ExpectationMetrics
+from .mcmc_functions import get_log_evidence
 
 __all__ = ["MutualInformation", "MutualInformationMetrics"]
 
@@ -18,7 +22,14 @@ class MutualInformation(Expectation):
         graph = RandomGraphFactory.build(self.config.graph)
         dynamics = DynamicsFactory.build(self.config.dynamics)
         dynamics.set_random_graph(graph.get_wrap())
-        raise NotImplementedError()
+        random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
+        mcmc = DynamicsMCMC(dynamics, random_graph_mcmc)
+        mcmc.sample()
+        hx = -get_log_evidence(mcmc, self.config.metrics)
+        hg = -mcmc.get_log_prior()
+        hxg = -mcmc.get_log_likelihood()
+        hgx = hg + hxg - hx
+        return {"hx": hx, "hg": hg, "hxg": hxg, "hgx": hgx}
 
 
 class MutualInformationMetrics(ExpectationMetrics):
@@ -28,7 +39,13 @@ class MutualInformationMetrics(ExpectationMetrics):
             num_procs=config.metrics.get_value("num_procs", 1),
             seed=config.metrics.get_value("seed", int(time.time())),
         )
-        return mutual_info.compute(config.metrics.get_value("num_samples", 10))
+        samples = mutual_info.compute(config.metrics.get_value("num_samples", 10))
+        sample_dict = defaultdict(list)
+        for s in samples:
+            for k, v in s.items():
+                sample_dict[k].append(v)
+        result_dict = {k: self.statistics(v) for k, v in sample_dict.items()}
+        return {f"{k}-{kk}": vv for k, v in result_dict.items() for kk, vv in v.items()}
 
 
 if __name__ == "__main__":

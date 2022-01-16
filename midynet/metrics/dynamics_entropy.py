@@ -5,6 +5,7 @@ from midynet.config import *
 from midynet import utility
 from .multiprocess import MultiProcess, Expectation
 from .metrics import ExpectationMetrics
+from .mcmc_functions import build_dynamics_mcmc
 
 __all__ = ["DynamicsEntropy", "DynamicsEntropyMetrics"]
 
@@ -18,7 +19,10 @@ class DynamicsEntropy(Expectation):
         graph = RandomGraphFactory.build(self.config.graph)
         dynamics = DynamicsFactory.build(self.config.dynamics)
         dynamics.set_random_graph(graph.get_wrap())
-        raise NotImplementedError()
+        random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
+        mcmc = DynamicsMCMC(dynamics, random_graph_mcmc)
+        mcmc.sample()
+        return -get_log_evidence(mcmc, self.config.metrics)
 
 
 class DynamicsEntropyMetrics(ExpectationMetrics):

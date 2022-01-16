@@ -29,7 +29,8 @@ class DynamicsPredictionEntropyMetrics(ExpectationMetrics):
             num_procs=config.metrics.get_value("num_procs", 1),
             seed=config.metrics.get_value("seed", int(time.time())),
         )
-        return dynamics_entropy.compute(config.metrics.get_value("num_samples", 10))
+        samples = dynamics_entropy.compute(config.metrics.get_value("num_samples", 10))
+        return self.statistics(samples)
 
 
 if __name__ == "__main__":
