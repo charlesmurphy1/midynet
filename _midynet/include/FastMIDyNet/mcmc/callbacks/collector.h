@@ -38,7 +38,6 @@ public:
 
 class CollectEdgeMultiplicityOnSweep: public SweepCollector{
 private:
-    // MultiGraph m_edgeMultiplicity;
     CounterMap<BaseGraph::Edge> m_observedEdges;
     CounterMap<std::pair<BaseGraph::Edge, size_t>> m_observedEdgesCount;
     CounterMap<BaseGraph::Edge> m_observedEdgesMaxCount;
@@ -46,7 +45,6 @@ private:
 public:
     void setUp(MCMC* mcmcPtr) {
         Collector::setUp(mcmcPtr);
-        // m_edgeMultiplicity = MultiGraph(m_mcmcPtr->getSize());
     }
     void collect() override ;
     void clear() override { m_observedEdges.clear(); m_observedEdgesCount.clear(); m_observedEdgesMaxCount.clear();}

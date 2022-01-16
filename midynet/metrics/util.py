@@ -4,6 +4,8 @@ from midynet.config import *
 from _midynet.mcmc import DynamicsMCMC, RandomGraphMCMC
 from _midynet.mcmc.callbacks import CollectLikelihoodOnSweep
 
+__all__ = ["get_log_evidence", "get_log_posterior"]
+
 
 def get_log_evidence_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
     logp = []
@@ -68,19 +70,22 @@ def get_log_evidence_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config)
 
 
 def get_log_evidence(dynamicsMCMC: DynamicsMCMC, config: Config):
-    method = "meanfield" if "method" not in config else config.method
-    if method == "exact":
-        return get_log_evidence_exact(dynamicsMCMC, config)
-    elif method == "exact_meanfield":
-        return get_log_evidence_exact_meanfield(dynamicsMCMC, config)
-    elif method == "arithmetic":
-        return get_log_evidence_arithmetic(dynamicsMCMC, config)
-    elif method == "harmonic":
-        return get_log_evidence_harmonic(dynamicsMCMC, config)
-    elif method == "meanfield":
-        return get_log_evidence_meanfield(dynamicsMCMC, config)
-    elif method == "annealed":
-        return get_log_evidence_annealed(dynamicsMCMC, config)
+    method = config.get_value("method", "meanfield")
+    functions = {
+        "exact": get_log_evidence_exact,
+        "exact_meanfield": get_log_evidence_exact_meanfield,
+        "arithmetic": get_log_evidence_arithmetic,
+        "harmonic": get_log_evidence_harmonic,
+        "meanfield": get_log_evidence_meanfield,
+        "annealed": get_log_evidence_annealed,
+    }
+    if method in functions:
+        return functions[method](dynamicsMCMC, config)
+    else:
+        message = (
+            f"Invalid method {method}, valid methods are {list(functions.keys())}."
+        )
+        raise ValueError(message)
 
 
 def get_log_posterior_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
@@ -154,16 +159,19 @@ def get_log_posterior_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config
 
 
 def get_log_posterior(dynamicsMCMC: DynamicsMCMC, config: Config):
-    method = "meanfield" if "method" not in config else config.method
-    if method == "exact":
-        return get_log_posterior_exact(dynamicsMCMC, config)
-    elif method == "exact_meanfield":
-        return get_log_posterior_exact_meanfield(dynamicsMCMC, config)
-    elif method == "arithmetic":
-        return get_log_posterior_arithmetic(dynamicsMCMC, config)
-    elif method == "harmonic":
-        return get_log_posterior_harmonic(dynamicsMCMC, config)
-    elif method == "meanfield":
-        return get_log_posterior_meanfield(dynamicsMCMC, config)
-    elif method == "annealed":
-        return get_log_posterior_annealed(dynamicsMCMC, config)
+    method = config.get_value("method", "meanfield")
+    functions = {
+        "exact": get_log_posterior_exact,
+        "exact_meanfield": get_log_posterior_exact_meanfield,
+        "arithmetic": get_log_posterior_arithmetic,
+        "harmonic": get_log_posterior_harmonic,
+        "meanfield": get_log_posterior_meanfield,
+        "annealed": get_log_posterior_annealed,
+    }
+    if method in functions:
+        return functions[method](dynamicsMCMC, config)
+    else:
+        message = (
+            f"Invalid method {method}, valid methods are {list(functions.keys())}."
+        )
+        raise ValueError(message)

@@ -4,11 +4,6 @@
 
 namespace FastMIDyNet{
 
-// void StochasticBlockGraphMCMC::setUp() {
-//     MCMC::setUp();
-//     m_blockProposerPtr->setUp(*m_sbmGraphPtr);
-// }
-
 void StochasticBlockGraphMCMC::doMetropolisHastingsStep() {
     BlockMove move = m_blockProposerPtr->proposeMove();
     double dS = 0;
