@@ -84,7 +84,7 @@ public:
     void applyGraphMove(const GraphMove& move);
     void applyBlockMove(const BlockMove& move);
 
-    void computationFinished() const override {
+    virtual void computationFinished() const override {
         m_isProcessed = false;
         m_blockPriorPtr->computationFinished();
         m_edgeMatrixPriorPtr->computationFinished();
@@ -106,15 +106,14 @@ public:
 
 class DegreeDeltaPrior: public DegreePrior{
     DegreeSequence m_degreeSeq;
+
 public:
     DegreeDeltaPrior(){}
-    DegreeDeltaPrior(const DegreeSequence& degreeSeq,BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
-        DegreePrior(blockPrior, edgeMatrixPrior){ setDegrees(degreeSeq); }
+    DegreeDeltaPrior(const DegreeSequence& degreeSeq):
+        DegreePrior(){ setDegrees(degreeSeq); }
 
     DegreeDeltaPrior(const DegreeDeltaPrior& degreeDeltaPrior):
         DegreePrior() {
-            setBlockPrior(degreeDeltaPrior.getBlockPriorRef());
-            setEdgeMatrixPrior(degreeDeltaPrior.getEdgeMatrixPriorRef());
             setDegrees(degreeDeltaPrior.getState());
         }
     virtual ~DegreeDeltaPrior(){}
@@ -126,7 +125,7 @@ public:
 
     void setDegrees(const DegreeSequence& degrees){
         m_degreeSeq = degrees;
-        setState(degrees);
+        m_state = degrees;
     }
     void sampleState() override { };
     void samplePriors() override { };
@@ -136,16 +135,19 @@ public:
 
     double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const ;
     double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0.; }
-    double getLogJointRatioFromBlockMove(const BlockMove& move) const {
-        return processRecursiveConstFunction<double>( [&](){ return getLogLikelihoodRatioFromBlockMove(move); }, 0);
+    double getLogJointRatioFromBlockMove(const BlockMove& move) const { return 0; }
+    double getLogJointRatioFromGraphMove(const GraphMove& move) const {
+        return getLogLikelihoodRatioFromGraphMove(move);
     }
 
     void checkSelfConsistency() const override { };
     void checkSafety() const override {
-        DegreePrior::checkSafety();
+        // DegreePrior::checkSafety();
         if (m_degreeSeq.size() == 0)
             throw SafetyError("DegreeDeltaPrior: unsafe prior since `m_degreeSeq` is empty.");
     }
+
+    virtual void computationFinished() const override { m_isProcessed = false; }
 
 
 };
