@@ -96,7 +96,7 @@ def get_log_posterior_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
 
     for i in range(config.num_sweeps):
         dynamicsMCMC.do_MH_sweep(burn=config.burn)
-    logp = -callback.get_marginal_entropy()  # H(G|X)
+    logp = -callback.get_marginal_entropy()  # -H(G|X)
 
     dynamicsMCMC.tear_down()
     dynamicsMCMC.pop_callback()
