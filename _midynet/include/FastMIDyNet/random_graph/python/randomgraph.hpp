@@ -24,6 +24,10 @@ public:
     double getLogPriorRatio (const GraphMove& move) override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPriorRatio, move); }
 
     /* Abstract methods */
+    const BlockSequence& getLabels() const override { PYBIND11_OVERRIDE(const BlockSequence&, BaseClass, getLabels, ); }
+    const BlockIndex& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const override {
+        PYBIND11_OVERRIDE(const BlockIndex&, BaseClass, getLabelOfIdx, vertexIdx);
+    }
     void setState(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setState, graph); }
     void applyMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyMove, move); }
     void checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }

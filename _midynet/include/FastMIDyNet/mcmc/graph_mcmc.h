@@ -40,6 +40,7 @@ public:
 
 
     const MultiGraph& getGraph() const { return m_randomGraphPtr->getState(); }
+    const BlockSequence& getLabels() const { return m_randomGraphPtr->getLabels(); }
     double getBetaPrior() const { return m_betaPrior; }
     void setBetaPrior(double betaPrior) { m_betaPrior = betaPrior; }
 

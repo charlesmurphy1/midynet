@@ -47,7 +47,8 @@ public:
         MCMC::setUp();
     };
 
-    const MultiGraph& getGraph() const { return m_dynamicsPtr->getGraph(); }
+    const MultiGraph& getGraph() const { return m_randomGraphMCMCPtr->getGraph(); }
+    const BlockSequence& getLabels() const { return m_randomGraphMCMCPtr->getLabels(); }
     const int getSize() const { return m_dynamicsPtr->getSize(); }
 
     double getBetaPrior() const { return m_betaPrior; }

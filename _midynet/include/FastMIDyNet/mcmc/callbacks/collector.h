@@ -62,6 +62,17 @@ public:
 
 };
 
+class CollectPartitionOnSweep: public SweepCollector{
+private:
+    std::vector<BlockSequence> m_partitions;
+public:
+    void setUp(MCMC* mcmcPtr) { Collector::setUp(mcmcPtr); }
+    void collect() override { m_partitions.push_back(m_mcmcPtr->getLabels()); }
+    void clear() override { m_partitions.clear(); }
+    const std::vector<BlockSequence>& getPartitions() const { return m_partitions; }
+
+};
+
 class WriteGraphToFileOnSweep: public SweepCollector{
 private:
     std::string m_filename;

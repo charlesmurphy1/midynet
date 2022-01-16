@@ -15,11 +15,14 @@ class RandomGraph{
 protected:
     size_t m_size;
     MultiGraph m_state;
+    BlockSequence m_labels;
 public:
 
-    RandomGraph(size_t size=0): m_size(size), m_state(size) { }
+    RandomGraph(size_t size=0): m_size(size), m_state(size), m_labels(size, 0) { }
 
     const MultiGraph& getState() const { return m_state; }
+    virtual const BlockSequence& getLabels() const { return m_labels; }
+    virtual const BlockIndex& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return m_labels[vertexIdx]; }
     virtual void setState(const MultiGraph& state) { m_state = state; }
     const int getSize() const { return m_size; }
 

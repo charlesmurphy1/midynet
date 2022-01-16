@@ -23,6 +23,7 @@ void initMCMCBaseClass(py::module& m){
         .def("get_last_log_acceptance", &MCMC::getLastLogAcceptance)
         .def("is_last_accepted", &MCMC::isLastAccepted)
         .def("get_graph", &MCMC::getGraph)
+        .def("get_labels", &MCMC::getLabels)
         .def("has_state", &MCMC::hasState)
         .def("get_num_steps", &MCMC::getNumSteps)
         .def("get_num_sweeps", &MCMC::getNumSweeps)

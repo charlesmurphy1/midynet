@@ -17,6 +17,9 @@ public:
     const MultiGraph& getGraph() const override {
         PYBIND11_OVERRIDE_PURE(const MultiGraph&, BaseClass, getGraph, );
     }
+    const BlockSequence& getLabels() const override {
+        PYBIND11_OVERRIDE_PURE(const BlockSequence&, BaseClass, getLabels, );
+    }
     double getLogLikelihood() const override {
         PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogLikelihood, );
     }

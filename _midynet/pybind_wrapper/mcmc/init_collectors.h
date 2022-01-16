@@ -42,6 +42,9 @@ void initCollectors(py::module& m){
                 return self.getEdgeCountProb(getOrderedPair<BaseGraph::VertexIndex>({u, v}), count);
             }, py::arg("v"), py::arg("u"), py::arg("count"))
         ;
+    py::class_<CollectPartitionOnSweep, Collector>(m, "CollectPartitionOnSweep")
+        .def(py::init<>())
+        .def("get_partitions", &CollectPartitionOnSweep::getPartitions);
 
     py::class_<WriteGraphToFileOnSweep, Collector>(m, "WriteGraphToFileOnSweep")
         .def(py::init<std::string, std::string>(), py::arg("filename"), py::arg("ext")=".b");

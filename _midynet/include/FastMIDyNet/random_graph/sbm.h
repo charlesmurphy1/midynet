@@ -33,6 +33,7 @@ public:
 
     void setState(const MultiGraph& state) { m_state = state; m_edgeMatrixPriorPtr->setGraph(m_state); }
 
+
     const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }
     BlockPrior& getBlockPriorRef() const { return *m_blockPriorPtr; }
     virtual void setBlockPrior(BlockPrior& blockPrior) {
@@ -51,8 +52,10 @@ public:
         m_edgeMatrixPriorPtr->setBlockPrior(*m_blockPriorPtr);
     }
 
-    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_blockPriorPtr->getBlockOfIdx(idx); }
+    const BlockSequence& getLabels() const { return getBlocks(); }
+    const BlockIndex& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getBlockOfIdx(vertexIdx); }
     const BlockSequence& getBlocks() const { return m_blockPriorPtr->getState(); }
+    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_blockPriorPtr->getBlockOfIdx(idx); }
     const size_t& getBlockCount() const { return m_blockPriorPtr->getBlockCount(); }
     const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPriorPtr->getVertexCountsInBlocks(); }
     const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPriorPtr->getState(); }

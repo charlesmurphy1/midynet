@@ -15,6 +15,8 @@ void initRandomGraphBaseClass(py::module& m){
         .def(py::init<size_t>(), py::arg("size")=0)
         .def("get_state", &RandomGraph::getState)
         .def("set_state", &RandomGraph::setState, py::arg("state"))
+        .def("get_labels", &RandomGraph::getLabels)
+        .def("get_label_of_idx", &RandomGraph::getLabelOfIdx, py::arg("vertex_idx"))
         .def("get_size", &RandomGraph::getSize)
         .def("get_log_likelihood", &RandomGraph::getLogLikelihood)
         .def("get_log_prior", &RandomGraph::getLogPrior)
