@@ -5,7 +5,7 @@ from midynet.config import *
 from midynet import utility
 from .multiprocess import MultiProcess, Expectation
 from .metrics import ExpectationMetrics
-from .mcmc_functions import get_log_evidence
+from .util import get_log_evidence
 
 __all__ = ["Predictability", "PredictabilityMetrics"]
 

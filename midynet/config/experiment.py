@@ -34,8 +34,6 @@ class ExperimentConfig(Config):
         obj = cls(name=name)
         obj.insert("dynamics", DynamicsConfig.auto(dynamics))
         obj.insert("graph", RandomGraphConfig.auto(graph))
-        # graph_name = obj.graph.name.split("_")[-1]
-        # obj.insert("mcmc", MCMCConfig.auto(graph_name, obj.graph))
         obj.insert(
             "metrics",
             MetricsCollectionConfig.auto(metrics if metrics is not None else []),

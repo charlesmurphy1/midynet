@@ -7,6 +7,7 @@ from .factory import Factory
 from .wrapper import Wrapper
 from .prior import *
 from .proposer import *
+from midynet.util.degree_sequences import *
 from _midynet import random_graph
 from _midynet.prior import sbm
 
@@ -149,8 +150,26 @@ class RandomGraphConfig(Config):
 
     @classmethod
     def fixed_cm(cls, degrees):
+        size = len(degrees)
+        obj = cls.custom_cm("fixed_cm", size, degrees)
+        obj.degrees.force_non_sequence = True
+        return obj
+
+    @classmethod
+    def fixed_poisson_cm(cls, size: int = 100, edge_count: int = 250):
         size = len(blocks)
-        return cls.custom_cm("fixed_cm", size, degrees)
+        degrees = poisson_degreeseq(2 * edge_count / size, size)
+        obj = cls.fixed_cm(degrees)
+
+    @classmethod
+    def fixed_nbinom_cm(
+        cls, size: int = 100, edge_count: int = 250, heterogeneity: int = 0
+    ):
+        size = len(blocks)
+        degrees = nbinom_degreeseq(2 * edge_count / size, heterogeneity, size)
+        obj = cls.fixed_cm(degrees)
+        obj.insert("heterogeneity", heterogeneity)
+        return obj
 
     @classmethod
     def uniform_cm(cls, size: int = 100, edge_count: int = 250):

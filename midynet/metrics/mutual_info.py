@@ -1,14 +1,13 @@
 import time
-from collections import defautldict
+from collections import defaultdict
 from dataclasses import dataclass, field
 
 from midynet.config import *
 from _midynet import utility
 from _midynet.mcmc import DynamicsMCMC
-
 from .multiprocess import MultiProcess, Expectation
 from .metrics import ExpectationMetrics
-from .mcmc_functions import get_log_evidence
+from .util import get_log_evidence
 
 __all__ = ["MutualInformation", "MutualInformationMetrics"]
 
