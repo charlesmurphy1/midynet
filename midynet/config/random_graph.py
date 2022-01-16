@@ -33,6 +33,7 @@ class RandomGraphConfig(Config):
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("block_proposer", BlockProposerConfig.peixoto())
+        obj.insert("mcmc_type", "sbmlike")
         return obj
 
     @classmethod
@@ -66,7 +67,8 @@ class RandomGraphConfig(Config):
         obj.insert("blocks", BlockPriorConfig.delta(block_count))
         obj.insert("edge_matrix", EdgeMatrixPriorConfig.uniform(edge_count))
         obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
-        obj.insert("block_proposer", BlockProposerConfig.peixoto())
+        obj.insert("mcmc_type", "generic")
+        return obj
 
     @classmethod
     def custom_er(cls, name: str, size: int, edge_count: EdgeCountPriorConfig):
@@ -77,6 +79,7 @@ class RandomGraphConfig(Config):
             obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
+        obj.insert("mcmc_type", "generic")
         return obj
 
     @classmethod
@@ -104,6 +107,7 @@ class RandomGraphConfig(Config):
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("block_proposer", BlockProposerConfig.peixoto())
+        obj.insert("mcmc_type", "sbmlike")
         return obj
 
     @classmethod
@@ -146,12 +150,14 @@ class RandomGraphConfig(Config):
             obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
+        obj.insert("mcmc_type", "generic")
         return obj
 
     @classmethod
     def poisson_cm(cls, size: int = 100, edge_count: int = 250):
         obj = cls("poisson_cm", size=size, edge_count=edge_count)
         obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
+        obj.insert("mcmc_type", "generic")
         return obj
 
     @classmethod
@@ -163,6 +169,7 @@ class RandomGraphConfig(Config):
             heterogeneity=heterogeneity,
         )
         obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
+        obj.insert("mcmc_type", "generic")
         return obj
 
     @classmethod
@@ -223,20 +230,6 @@ class RandomGraphFactory(Factory):
     def build_custom_fixed_sbm(
         blocks: list[int], edge_matrix: list[list[int]]
     ) -> random_graph.StochasticBlockModelFamily:
-        # block_prior = sbm.BlockDeltaPrior(blocks)
-        # edge_matrix_prior = sbm.EdgeMatrixUniformPrior()
-        #
-        # g = random_graph.StochasticBlockModelFamily(config.size)
-        # return Wrapper(
-        #     g,
-        #     setup_func=lambda wrap, others: RandomGraphFactory.setUpSBM(
-        #         wrap,
-        #         others["blocks"].get_wrap(),
-        #         others["edge_matrix"].get_wrap(),
-        #     ),
-        #     blocks=block_wrapper,
-        #     edge_matrix=edge_matrix_wrapper,
-        # )
         UnavailableOption("fixed_sbm")
 
     @staticmethod
@@ -342,7 +335,6 @@ class RandomGraphFactory(Factory):
         degrees: list[int],
     ) -> random_graph.ConfigurationModelFamily:
         size, edge_count = len(degrees), int(sum(degrees) / 2)
-        print(sum(degrees))
         degree_prior = sbm.DegreeDeltaPrior(degrees)
         edge_count_prior = sbm.EdgeCountDeltaPrior(edge_count)
         g = random_graph.ConfigurationModelFamily(size)
@@ -360,7 +352,6 @@ class RandomGraphFactory(Factory):
     @staticmethod
     def build_poisson_cm(config: RandomGraphConfig):
         degrees = poisson_degreeseq(config.size, 2 * config.edge_count / config.size)
-        print("poisson")
         return RandomGraphFactory.build_fixed_custom_cm(degrees)
 
     @staticmethod
@@ -368,7 +359,6 @@ class RandomGraphFactory(Factory):
         degrees = nbinom_degreeseq(
             config.size, 2 * config.edge_count / config.size, config.heterogeneity
         )
-        print("nbinom")
         return RandomGraphFactory.build_fixed_custom_cm(degrees)
 
     @staticmethod
