@@ -22,29 +22,36 @@ __all__ = ["Experiment"]
 
 @dataclass
 class Experiment:
-    name: str
-    config: Config
-    path: pathlib.Path = field(default_factory=pathlib.Path)
-    verbose: Verbose = field(default_factory=Verbose)
-    config_filename: str = field(repr=False, default="config.pickle")
-    log_filename: str = field(repr=False, default="log.pickle")
-    seed: int = field(repr=False, default_factory=lambda: int(time.time()))
-    loggers: LoggerDict = field(repr=False, default_factory=LoggerDict)
-    metrics: typing.Dict[str, Metrics] = field(repr=False, default_factory=dict)
+    config: Config = field(repr=False, init=True)
+    verbose: Verbose = field(default_factory=Verbose, init=True)
+    loggers: LoggerDict = field(repr=False, default_factory=LoggerDict, init=True)
+    name: str = field(default="exp", init=False)
+    path: pathlib.Path = field(default_factory=pathlib.Path, init=False)
+    config_filename: str = field(repr=False, default="config.pickle", init=False)
+    log_filename: str = field(repr=False, default="log.pickle", init=False)
+    seed: int = field(repr=False, default_factory=lambda: int(time.time()), init=False)
+    metrics: typing.Dict[str, Metrics] = field(
+        repr=False, default_factory=dict, init=False
+    )
 
     def __post_init__(self):
+        self.name = self.config.get_value("name", "exp")
+        self.path = self.config.get_value("path", "./")
         self.path.mkdir(exist_ok=True)
 
         if isinstance(self.verbose, int):
-            if verbose == 1 or verbose == 2:
-                self.verbose = Verbose(filename=self.path / "verbose", vtype=verbose)
+            if self.verbose == 1 or self.verbose == 2:
+                self.verbose = Verbose(
+                    filename=self.path / "verbose", verbose_type=self.verbose
+                )
             else:
-                self.verbose = Verbose(vtype=verbose)
+                self.verbose = Verbose(verbose_type=self.verbose)
         elif not isinstance(self.verbose, Verbose):
-            message = (
-                f"Invalid type `{type(verbose)}` for verbose, expect `[int, Verbose]`."
-            )
+            message = f"Invalid type `{type(self.verbose)}` for verbose, expect `[int, Verbose]`."
             raise TypeError(message)
+
+        if isinstance(self.loggers, dict):
+            self.loggers = LoggerDict(**self.loggers)
 
         random.seed(self.seed)
         np.random.seed(self.seed)
@@ -79,7 +86,7 @@ class Experiment:
         if "time" in self.loggers.keys():
             begin = self.loggers["time"].log["begin"]
             self.verbose(f"Current time: {begin}")
-        self.verbose(self.config)
+        self.verbose(self.config.format())
 
     def end(self):
         self.loggers.on_task_end()
@@ -94,10 +101,10 @@ class Experiment:
     def compute_metrics(self, save=True):
         self.verbose("\n---Computing metrics---")
 
-        for k in self.config.metrics.names:
-            self.metrics[k] = MetricsFactory.build(k)
+        self.metrics = MetricsFactory.build(self.config)
+        for k in self.config.metrics.metrics_names:
             self.loggers.on_task_update("metrics")
-            self.metrics[k].compute(self, verbose=self.verbose)
+            self.metrics[k].compute(verbose=self.verbose)
             if save:
                 self.metrics[k].save(pathlib.Path(self.path) / f"{k}.pickle")
 
@@ -108,7 +115,7 @@ class Experiment:
             m.save(pathlib.Path(self.path) / f"{k}.pickle")
 
     def load(self):
-        for k in self.config.metrics.names:
+        for k in self.config.metrics.metrics_names:
             self.metrics[k] = MetricsFactory.build(k)
             self.metrics[k].load(pathlib.Path(self.path) / f"{k}.pickle")
         self.loggers.load(self.path / self.log_filename)
