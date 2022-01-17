@@ -115,12 +115,12 @@ namespace FastMIDyNet {
     }
 
     TEST_F(TestDynamicsBaseClass, getLogJointRatio_forSomeGraphMove_returnLogJointRatio){
-        double ratio = dynamics.getLogJointRatio(GRAPH_MOVE);
+        double ratio = dynamics.getLogJointRatioFromGraphMove(GRAPH_MOVE);
         EXPECT_EQ(ratio, 0.);
     }
 
     TEST_F(TestDynamicsBaseClass, applyMove_forSomeGraphMove_expectChangesInTheGraph){
-        dynamics.applyMove(GRAPH_MOVE);
+        dynamics.applyGraphMove(GRAPH_MOVE);
         auto graph = dynamics.getGraph();
         EXPECT_EQ(graph.getEdgeMultiplicityIdx(0, 2), 2);
         EXPECT_EQ(graph.getEdgeMultiplicityIdx(0, 5), 1);

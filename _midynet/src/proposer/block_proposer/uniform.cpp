@@ -5,7 +5,7 @@
 
 namespace FastMIDyNet {
 
-BlockMove UniformBlockProposer::proposeMove(BaseGraph::VertexIndex movedVertex) {
+BlockMove UniformBlockProposer::proposeMove(BaseGraph::VertexIndex movedVertex) const {
     if (*m_blockCountPtr == 1 && m_blockCreationProbability == 0)
         return {movedVertex, (*m_blocksPtr)[movedVertex], (*m_blocksPtr)[movedVertex], 0};
 
@@ -29,11 +29,11 @@ BlockMove UniformBlockProposer::proposeMove(BaseGraph::VertexIndex movedVertex) 
     return {movedVertex, currentBlock, newBlock, addedBlocks};
 }
 
-void UniformBlockProposer::setUp(const StochasticBlockModelFamily& sbmGraph) {
-    m_blockCountPtr = &sbmGraph.getBlockCount();
-    m_blocksPtr = &sbmGraph.getBlocks();
-    m_vertexCountsPtr = &sbmGraph.getVertexCountsInBlocks();
-    m_vertexDistribution = std::uniform_int_distribution<BaseGraph::VertexIndex>(0, sbmGraph.getSize() - 1);
+void UniformBlockProposer::setUp(const RandomGraph& randomGraph) {
+    m_blockCountPtr = &randomGraph.getBlockCount();
+    m_blocksPtr = &randomGraph.getBlocks();
+    m_vertexCountsPtr = &randomGraph.getVertexCountsInBlocks();
+    m_vertexDistribution = std::uniform_int_distribution<BaseGraph::VertexIndex>(0, randomGraph.getSize() - 1);
 }
 
 double UniformBlockProposer::getLogProposalProbRatio(const BlockMove& move) const {

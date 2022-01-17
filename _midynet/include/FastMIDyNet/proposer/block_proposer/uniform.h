@@ -16,8 +16,8 @@ class UniformBlockProposer: public BlockProposer {
     const std::vector<size_t>* m_vertexCountsPtr = NULL;
     const size_t* m_blockCountPtr = NULL;
     const double m_blockCreationProbability;
-    std::bernoulli_distribution m_createNewBlockDistribution;
-    std::uniform_int_distribution<BaseGraph::VertexIndex> m_vertexDistribution;
+    mutable std::bernoulli_distribution m_createNewBlockDistribution;
+    mutable std::uniform_int_distribution<BaseGraph::VertexIndex> m_vertexDistribution;
 
     public:
         UniformBlockProposer(double createNewBlockProbability=.1):
@@ -25,15 +25,14 @@ class UniformBlockProposer: public BlockProposer {
             m_blockCreationProbability(createNewBlockProbability) {
             assertValidProbability(createNewBlockProbability);
         }
-        BlockMove proposeMove(BaseGraph::VertexIndex);
-        BlockMove proposeMove(){
+        BlockMove proposeMove(BaseGraph::VertexIndex) const;
+        BlockMove proposeMove() const override{
             auto vertexIdx = m_vertexDistribution(rng);
             return proposeMove(vertexIdx);
         }
-        void setUp(const StochasticBlockModelFamily& sbmGraph) ;
-        double getLogProposalProbRatio(const BlockMove&) const;
-        void updateProbabilities(const BlockMove&) {};
-        void checkSafety() const {
+        void setUp(const RandomGraph& sbmGraph) override;
+        double getLogProposalProbRatio(const BlockMove&) const override;
+        void checkSafety() const override{
             if (m_blocksPtr == nullptr)
                 throw SafetyError("UniformBlockProposer: unsafe proposer since `m_blocksPtr` is NULL.");
             if (m_vertexCountsPtr == nullptr)

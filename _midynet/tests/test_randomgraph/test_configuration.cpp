@@ -39,11 +39,11 @@ TEST_F(TestConfigurationModelFamily, sample_getGraphWithCorrectNumberOfEdges){
 
 TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromBlockMove_returnMinusInfinity){
     BlockMove move = {0, 0, 1, 1};
-    double dS = randomGraph.getLogPriorRatio(move);
+    double dS = randomGraph.getLogPriorRatioFromBlockMove(move);
     EXPECT_EQ(dS, -INFINITY);
 }
 
 TEST_F(TestConfigurationModelFamily, applyBlockMove_throwConsistencyError){
     BlockMove move = {0, 0, 1, 1};
-    EXPECT_THROW(randomGraph.applyMove(move), ConsistencyError);
+    EXPECT_THROW(randomGraph.applyBlockMove(move), ConsistencyError);
 }

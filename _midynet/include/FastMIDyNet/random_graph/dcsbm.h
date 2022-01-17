@@ -27,10 +27,10 @@ public:
             setDegreePrior(degreePrior);
         }
 
-    void sampleState () ;
-    void samplePriors () ;
+    void sampleState () override;
+    void samplePriors () override;
 
-    void setState(const MultiGraph& state) { m_state = state; m_degreePriorPtr->setGraph(m_state); }
+    void setState(const MultiGraph& state) override { m_state = state; m_degreePriorPtr->setGraph(m_state); }
 
     const DegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
     DegreePrior& getDegreePriorRef() const { return *m_degreePriorPtr; }
@@ -55,26 +55,25 @@ public:
     }
 
 
-    const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_degreePriorPtr->getDegreeOfIdx(idx); }
-    const DegreeSequence& getDegrees() const { return m_degreePriorPtr->getState(); }
-    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const  { return m_degreePriorPtr->getDegreeCountsInBlocks(); }
+    const DegreeSequence& getDegrees() const override { return m_degreePriorPtr->getState(); }
+    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override { return m_degreePriorPtr->getDegreeCountsInBlocks(); }
 
-    double getLogLikelihood() const;
-    double getLogPrior() ;
+    double getLogLikelihood() const override ;
+    double getLogPrior() const override ;
 
-    double getLogLikelihoodRatioEdgeTerm (const GraphMove&) ;
-    double getLogLikelihoodRatioAdjTerm (const GraphMove&) ;
+    double getLogLikelihoodRatioEdgeTerm (const GraphMove&) const override;
+    double getLogLikelihoodRatioAdjTerm (const GraphMove&) const override;
 
-    double getLogLikelihoodRatio (const GraphMove&) ;
-    double getLogLikelihoodRatio (const BlockMove&) ;
+    double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
+    double getLogLikelihoodRatioFromBlockMove (const BlockMove&) const override;
 
-    double getLogPriorRatio (const GraphMove&) ;
-    double getLogPriorRatio (const BlockMove&) ;
+    double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
+    double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
 
-    void applyMove (const GraphMove&) ;
-    void applyMove (const BlockMove&) ;
+    void applyGraphMove (const GraphMove&) override;
+    void applyBlockMove (const BlockMove&) override;
 
-    void computationFinished() const {
+    void computationFinished() const override{
         m_blockPriorPtr->computationFinished();
         m_edgeMatrixPriorPtr->computationFinished();
         m_degreePriorPtr->computationFinished();
@@ -84,8 +83,8 @@ public:
     static void checkGraphConsistencyWithDegreeSequence(const MultiGraph&, const DegreeSequence&) ;
 
 
-    void checkSelfConsistency() const ;
-    virtual void checkSafety() const ;
+    void checkSelfConsistency() const override;
+    virtual void checkSafety() const override;
 
 };
 

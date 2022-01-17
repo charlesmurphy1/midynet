@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 
 #include "fixtures.hpp"
+#include "FastMIDyNet/proposer/block_proposer/uniform.h"
+#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
 #include "FastMIDyNet/mcmc/graph_mcmc.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.h"
 #include "FastMIDyNet/mcmc/callbacks/collector.h"
@@ -10,8 +12,10 @@ namespace FastMIDyNet{
 #define CALLBACK_TESTS(TEST_CALL_BACK, TESTED_CALL_CLASS)\
     class TEST_CALL_BACK: public::testing::Test{\
     public:\
-        DummyRandomGraph g = DummyRandomGraph();\
-        StochasticBlockGraphMCMC mcmc = StochasticBlockGraphMCMC(g.randomGraph, g.edgeProposer,g.blockProposer);\
+        DummyRandomGraph g = DummyRandomGraph(10);\
+        HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();\
+        UniformBlockProposer blockProposer = UniformBlockProposer();\
+        RandomGraphMCMC mcmc = RandomGraphMCMC(g, edgeProposer, blockProposer);\
         TESTED_CALL_CLASS callback = TESTED_CALL_CLASS();\
         void SetUp(){\
             seedWithTime();\

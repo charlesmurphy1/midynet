@@ -22,9 +22,9 @@ class PeixotoBlockProposer: public BlockProposer {
     const MultiGraph* m_graphPtr = NULL;
     const double m_blockCreationProbability;
     const double m_shift;
-    std::uniform_real_distribution<double> m_uniform01 = std::uniform_real_distribution<double>(0., 1.);
-    std::bernoulli_distribution m_createNewBlockDistribution;
-    std::uniform_int_distribution<BaseGraph::VertexIndex> m_vertexDistribution;
+    mutable std::uniform_real_distribution<double> m_uniform01 = std::uniform_real_distribution<double>(0., 1.);
+    mutable std::bernoulli_distribution m_createNewBlockDistribution;
+    mutable std::uniform_int_distribution<BaseGraph::VertexIndex> m_vertexDistribution;
 
 
     public:
@@ -34,19 +34,18 @@ class PeixotoBlockProposer: public BlockProposer {
             m_shift(shift) {
             assertValidProbability(createNewBlockProbability);
         }
-        BlockMove proposeMove(BaseGraph::VertexIndex);
-        BlockMove proposeMove(){
+        BlockMove proposeMove(BaseGraph::VertexIndex) const;
+        BlockMove proposeMove() const override{
             auto vertexIdx = m_vertexDistribution(rng);
             return proposeMove(vertexIdx);
         }
-        void setUp(const StochasticBlockModelFamily& sbmGraph);
+        void setUp(const RandomGraph& randomGraph) override;
         double getLogProposalProb(const BlockMove& move) const;
         double getReverseLogProposalProb(const BlockMove& move) const;
-        double getLogProposalProbRatio(const BlockMove& move) const{
+        double getLogProposalProbRatio(const BlockMove& move) const override{
             return getReverseLogProposalProb(move) - getLogProposalProb(move);
         };
-        void updateProbabilities(const BlockMove&) {};
-        void checkSafety() const {
+        void checkSafety() const override {
             if (m_blocksPtr == nullptr)
                 throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_blocksPtr` is NULL.");
             if (m_vertexCountsPtr == nullptr)

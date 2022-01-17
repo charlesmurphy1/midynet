@@ -13,7 +13,7 @@ namespace FastMIDyNet{
 class DummyMCMC: public MCMC{
 private:
     MultiGraph graph = MultiGraph(0);
-    BlockSequence labels = BlockSequence();
+    BlockSequence blocks = BlockSequence();
     std::uniform_real_distribution<double> m_uniform = std::uniform_real_distribution<double>(0, 1);
 public:
     void doMetropolisHastingsStep(){
@@ -30,7 +30,7 @@ public:
     double getLogJoint() { return getLogLikelihood() + getLogPrior(); }
     void sample() { m_hasState = true; }
     const MultiGraph& getGraph() const override { return graph; }
-    const BlockSequence& getLabels() const override { return labels; }
+    const BlockSequence& getBlocks() const override { return blocks; }
 };
 
 class TestMCMC: public::testing::Test{

@@ -7,6 +7,7 @@
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/prior/prior.hpp"
+#include "FastMIDyNet/utility/maps.hpp"
 
 
 namespace FastMIDyNet{
@@ -15,16 +16,36 @@ class RandomGraph{
 protected:
     size_t m_size;
     MultiGraph m_state;
-    BlockSequence m_labels;
 public:
 
-    RandomGraph(size_t size=0): m_size(size), m_state(size), m_labels(size, 0) { }
+    RandomGraph(size_t size=0):
+        m_size(size),
+        m_state(size)
+        { }
 
     const MultiGraph& getState() const { return m_state; }
-    virtual const BlockSequence& getLabels() const { return m_labels; }
-    virtual const BlockIndex& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return m_labels[vertexIdx]; }
-    virtual void setState(const MultiGraph& state) { m_state = state; }
+    virtual void setState(const MultiGraph& state) {
+        m_state = state;
+    }
+
     const int getSize() const { return m_size; }
+    virtual const std::vector<BlockIndex>& getBlocks() const = 0;
+    virtual const size_t& getBlockCount() const = 0;
+    virtual const std::vector<size_t>& getVertexCountsInBlocks() const = 0;
+    virtual const Matrix<size_t>& getEdgeMatrix() const = 0;
+    virtual const std::vector<size_t>& getEdgeCountsInBlocks() const = 0;
+    virtual const size_t& getEdgeCount() const = 0;
+    virtual const std::vector<size_t>& getDegrees() const = 0;
+    virtual const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const = 0;
+    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getBlocks()[vertexIdx]; }
+    const size_t& getDegreeOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getDegrees()[vertexIdx]; }
+
+    size_t computeBlockCount() const ;
+    std::vector<size_t> computeVertexCountsInBlocks() const ;
+    Matrix<size_t> computeEdgeMatrix() const ;
+    std::vector<size_t> computeEdgeCountsInBlocks() const ;
+    std::vector<CounterMap<size_t>> computeDegreeCountsInBlocks() const ;
+
 
     const MultiGraph& sample() {
         samplePriors();
@@ -37,18 +58,26 @@ public:
     virtual void sampleState() = 0;
     virtual void samplePriors() = 0;
     virtual double getLogLikelihood() const = 0;
-    virtual double getLogPrior() = 0;
-    double getLogJoint() { return getLogLikelihood() + getLogPrior(); }
+    virtual double getLogPrior() const = 0;
+    double getLogJoint() const { return getLogLikelihood() + getLogPrior(); }
 
-    virtual double getLogLikelihoodRatio (const GraphMove& move) = 0;
-    virtual double getLogPriorRatio (const GraphMove& move) = 0;
-    double getLogJointRatio (const GraphMove& move){
-        return getLogPriorRatio(move) + getLogLikelihoodRatio(move);
+    virtual double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const = 0;
+    virtual double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const = 0;
+    virtual double getLogPriorRatioFromGraphMove (const GraphMove& move) const = 0;
+    virtual double getLogPriorRatioFromBlockMove (const BlockMove& move) const = 0;
+    double getLogJointRatioFromGraphMove (const GraphMove& move) const{
+        return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
     }
-    virtual void applyMove(const GraphMove& move);
+    double getLogJointRatioFromBlockMove (const BlockMove& move) const{
+        return getLogPriorRatioFromBlockMove(move) + getLogLikelihoodRatioFromBlockMove(move);
+    }
+    virtual void applyGraphMove(const GraphMove& move);
+    virtual void applyBlockMove(const BlockMove& move) { };
+
     // void enumerateAllGraphs() const;
     virtual void checkSelfConsistency() const { };
     virtual void checkSafety() const { };
+    virtual void computationFinished() const { };
 
 };
 

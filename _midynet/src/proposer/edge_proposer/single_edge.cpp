@@ -6,7 +6,7 @@
 namespace FastMIDyNet {
 
 
-GraphMove SingleEdgeProposer::proposeMove() {
+GraphMove SingleEdgeProposer::proposeMove() const {
     auto vertex1 = m_vertexSamplerPtr->sample();
     auto vertex2 = m_vertexSamplerPtr->sample();
     BaseGraph::Edge proposedEdge = {vertex1, vertex2};

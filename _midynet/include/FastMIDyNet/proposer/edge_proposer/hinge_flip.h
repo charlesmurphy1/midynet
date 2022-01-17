@@ -12,21 +12,21 @@ namespace FastMIDyNet {
 
 class HingeFlipProposer: public EdgeProposer {
 private:
-    std::bernoulli_distribution m_flipOrientationDistribution = std::bernoulli_distribution(.5);
+    mutable std::bernoulli_distribution m_flipOrientationDistribution = std::bernoulli_distribution(.5);
 protected:
     sset::SamplableSet<BaseGraph::Edge> m_edgeSamplableSet = sset::SamplableSet<BaseGraph::Edge> (1, 100);
     VertexSampler* m_vertexSamplerPtr = NULL;
 public:
     using EdgeProposer::EdgeProposer;
-    bool setAcceptIsolated(bool accept);
+    bool setAcceptIsolated(bool accept) override;
 
-    GraphMove proposeMove();
-    void setUp(const RandomGraph& randomGraph) { setUp(randomGraph.getState()); }
+    GraphMove proposeMove() const override;
+    void setUp(const RandomGraph& randomGraph) override { setUp(randomGraph.getState()); }
     void setUp(const MultiGraph& graph);
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
 
-    double getLogProposalProbRatio(const GraphMove&) const { return 0; }
-    void updateProbabilities(const GraphMove& move);
+    double getLogProposalProbRatio(const GraphMove&) const override{ return 0; }
+    void updateProbabilities(const GraphMove& move) override;
     void checkSafety() const override {
         if (m_vertexSamplerPtr == nullptr)
             throw SafetyError("HingeFlipProposer: unsafe proposer since `m_vertexSamplerPtr` is NULL.");

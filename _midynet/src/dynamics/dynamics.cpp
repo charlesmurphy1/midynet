@@ -162,7 +162,7 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(
     }
 };
 
-double Dynamics::getLogLikelihoodRatio(const GraphMove& move) const{
+double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const{
     double logLikelihoodRatio = 0;
     set<size_t> verticesAffected;
     map<VertexIndex,VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
@@ -193,16 +193,16 @@ double Dynamics::getLogLikelihoodRatio(const GraphMove& move) const{
     return logLikelihoodRatio;
 }
 
-double Dynamics::getLogPriorRatio(const GraphMove& move){
-    return m_randomGraphPtr->getLogJointRatio(move);
+double Dynamics::getLogPriorRatioFromGraphMove(const GraphMove& move) const{
+    return m_randomGraphPtr->getLogJointRatioFromGraphMove(move);
 }
 
-double Dynamics::getLogJointRatio(const GraphMove& move){
-    return getLogPriorRatio(move) + getLogLikelihoodRatio(move);
+double Dynamics::getLogJointRatioFromGraphMove(const GraphMove& move) const{
+    return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
 }
 
 
-void Dynamics::applyMove(const GraphMove& move){
+void Dynamics::applyGraphMove(const GraphMove& move){
     set<VertexIndex> verticesAffected;
     map<VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
 
@@ -228,7 +228,7 @@ void Dynamics::applyMove(const GraphMove& move){
             m_neighborsStateSequence[t][idx] = nextNeighborMap[idx][t];
         }
     }
-    m_randomGraphPtr->applyMove(move);
+    m_randomGraphPtr->applyGraphMove(move);
 };
 
 }

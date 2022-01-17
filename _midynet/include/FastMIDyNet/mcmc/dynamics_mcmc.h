@@ -48,7 +48,7 @@ public:
     };
 
     const MultiGraph& getGraph() const { return m_randomGraphMCMCPtr->getGraph(); }
-    const BlockSequence& getLabels() const { return m_randomGraphMCMCPtr->getLabels(); }
+    const BlockSequence& getBlocks() const { return m_randomGraphMCMCPtr->getBlocks(); }
     const int getSize() const { return m_dynamicsPtr->getSize(); }
 
     double getBetaPrior() const { return m_betaPrior; }
@@ -61,10 +61,18 @@ public:
     void setSampleGraphPriorProb(double sampleGraphPriorProb) { m_sampleGraphPriorProb = sampleGraphPriorProb; }
 
     const RandomGraphMCMC& getRandomGraphMCMC() const { return *m_randomGraphMCMCPtr; }
-    void setRandomGraphMCMC(RandomGraphMCMC& randomGraphMCMC) { m_randomGraphMCMCPtr = &randomGraphMCMC; }
+    void setRandomGraphMCMC(RandomGraphMCMC& randomGraphMCMC) {
+        m_randomGraphMCMCPtr = &randomGraphMCMC;
+        if (m_dynamicsPtr != nullptr)
+            m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
+    }
 
     const Dynamics& getDynamics() const { return *m_dynamicsPtr; }
-    void setDynamics(Dynamics& dynamics) { m_dynamicsPtr = &dynamics; }
+    void setDynamics(Dynamics& dynamics) {
+        m_dynamicsPtr = &dynamics;
+        if (m_randomGraphMCMCPtr != nullptr)
+            m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
+    }
 
     virtual double getLogLikelihood() const { return m_dynamicsPtr->getLogLikelihood(); }
     virtual double getLogPrior() { return m_dynamicsPtr->getLogPrior(); }
@@ -78,13 +86,11 @@ public:
         m_hasState=true;
     }
     void sampleGraph() {
-        m_randomGraphMCMCPtr->sample();
+        m_dynamicsPtr->sampleGraph();
     }
     void sampleGraphOnly() {
-        m_randomGraphMCMCPtr->sampleGraph();
-    }
-    void sampleGraphPriors() {
-        m_randomGraphMCMCPtr->sampleGraphPriors();
+        m_randomGraphMCMCPtr->sampleGraphOnly();
+        m_dynamicsPtr->setGraph(m_randomGraphMCMCPtr->getGraph());
     }
 
     void doMetropolisHastingsStep();

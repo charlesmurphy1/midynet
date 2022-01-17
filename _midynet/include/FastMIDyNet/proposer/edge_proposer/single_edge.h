@@ -14,16 +14,15 @@ namespace FastMIDyNet {
 class SingleEdgeProposer: public EdgeProposer {
 private:
     const FastMIDyNet::MultiGraph* m_graphPtr = NULL;
-    std::bernoulli_distribution m_addOrRemoveDistribution = std::bernoulli_distribution(.5);
+    mutable std::bernoulli_distribution m_addOrRemoveDistribution = std::bernoulli_distribution(.5);
 protected:
     VertexSampler* m_vertexSamplerPtr = NULL;
 public:
-    GraphMove proposeMove();
-    void setUp(const RandomGraph& randomGraph) { setUp(randomGraph.getState()); }
+    GraphMove proposeMove() const override;
+    void setUp(const RandomGraph& randomGraph) override { setUp(randomGraph.getState()); }
     void setUp(const MultiGraph&);
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
-    double getLogProposalProbRatio(const GraphMove&) const;
-    void updateProbabilities(const GraphMove&) { }
+    double getLogProposalProbRatio(const GraphMove&) const override;
     void checkSafety() const override {
         if (m_graphPtr == nullptr)
             throw SafetyError("SingleEdgeProposer: unsafe proposer since `m_graphPtr` is NULL.");

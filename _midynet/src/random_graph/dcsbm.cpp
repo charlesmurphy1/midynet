@@ -64,13 +64,13 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{
     return logLikelihood;
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogPrior() {
+double DegreeCorrectedStochasticBlockModelFamily::getLogPrior() const {
     double logPrior =  m_blockPriorPtr->getLogJoint() + m_edgeMatrixPriorPtr->getLogJoint() + m_degreePriorPtr->getLogJoint();
     computationFinished();
     return logPrior;
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) {
+double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const {
     const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
@@ -105,7 +105,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm 
     return logLikelihoodRatioTerm;
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (const GraphMove& move) {
+double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (const GraphMove& move) const {
     IntMap<pair<VertexIndex, VertexIndex>> diffAdjMatMap;
     IntMap<VertexIndex> diffDegreeMap;
     double logLikelihoodRatioTerm = 0;
@@ -141,11 +141,11 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (
 };
 
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio (const GraphMove& move) {
+double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const {
     return getLogLikelihoodRatioEdgeTerm(move) + getLogLikelihoodRatioAdjTerm(move);
 }
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio(const BlockMove& move){
+double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
     BlockSequence blockSeq = getBlocks();
     EdgeMatrix edgeMat = getEdgeMatrix();
     vector<size_t> edgesInBlock = getEdgeCountsInBlocks();
@@ -182,29 +182,29 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatio(const Bl
     return logLikelihoodRatio;
 };
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatio(const GraphMove& move){
+double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatioFromGraphMove(const GraphMove& move) const {
     double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromGraphMove(move) + m_degreePriorPtr->getLogPriorRatioFromGraphMove(move);
     computationFinished();
     return logPriorRatio;
 }
 
-double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatio(const BlockMove& move){
+double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatioFromBlockMove(const BlockMove& move) const {
     double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromBlockMove(move) + m_degreePriorPtr->getLogPriorRatioFromBlockMove(move);
     computationFinished();
     return logPriorRatio;
 }
 
-void DegreeCorrectedStochasticBlockModelFamily::applyMove (const GraphMove& move){
+void DegreeCorrectedStochasticBlockModelFamily::applyGraphMove (const GraphMove& move) {
     m_blockPriorPtr->applyGraphMove(move);
     m_edgeMatrixPriorPtr->applyGraphMove(move);
     m_degreePriorPtr->applyGraphMove(move);
-    RandomGraph::applyMove(move);
+    RandomGraph::applyGraphMove(move);
     computationFinished();
     #if DEBUG
     checkSelfConsistency();
     #endif
 };
-void DegreeCorrectedStochasticBlockModelFamily::applyMove (const BlockMove& move){
+void DegreeCorrectedStochasticBlockModelFamily::applyBlockMove (const BlockMove& move){
     m_blockPriorPtr->applyBlockMove(move);
     m_edgeMatrixPriorPtr->applyBlockMove(move);
     m_degreePriorPtr->applyBlockMove(move);

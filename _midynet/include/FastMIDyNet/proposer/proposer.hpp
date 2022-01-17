@@ -9,13 +9,7 @@ namespace FastMIDyNet{
 template<typename MoveType>
 class Proposer{
     public:
-        std::pair<MoveType, double> operator()() {
-            MoveType move = proposeMove();
-            return { move, getLogProposalProbRatio(move) };
-        }
-        virtual MoveType proposeMove() = 0;
-        virtual double getLogProposalProbRatio(const MoveType&) const = 0;
-        virtual void updateProbabilities(const MoveType&) = 0;
+        virtual MoveType proposeMove() const = 0;
         virtual void checkConsistency() const {};
         virtual void checkSafety() const {};
 };

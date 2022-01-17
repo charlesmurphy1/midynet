@@ -17,18 +17,47 @@ using namespace std;
 
 namespace FastMIDyNet{
 
-class DummyRandomGraph{
+class DummyRandomGraph: public RandomGraph{
+    std::vector<size_t> m_blocks;
+    size_t m_blockCount = 1;
+    std::vector<size_t> m_vertexCounts;
+    Matrix<size_t> m_edgeMatrix;
+    std::vector<size_t> m_edgeCounts;
+    size_t m_edgeCount;
+    std::vector<size_t> m_degrees;
+    std::vector<CounterMap<size_t>> m_degreeCounts;
 public:
-    size_t GRAPH_SIZE = 100;
-    size_t BLOCK_COUNT = 5;
-    size_t EDGE_COUNT = 250;
-    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    UniformBlockProposer blockProposer = UniformBlockProposer(0.);
-    BlockCountDeltaPrior blockCount = BlockCountDeltaPrior(BLOCK_COUNT);
-    BlockUniformPrior blockPrior = BlockUniformPrior(GRAPH_SIZE, blockCount);
-    EdgeCountDeltaPrior edgeCount = EdgeCountDeltaPrior(EDGE_COUNT);
-    EdgeMatrixUniformPrior edgeMatrix = EdgeMatrixUniformPrior(edgeCount, blockPrior);
-    StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(GRAPH_SIZE, blockPrior, edgeMatrix);
+    using RandomGraph::RandomGraph;
+    DummyRandomGraph(size_t size): RandomGraph(size), m_blocks(size, 0), m_vertexCounts(1, size){}
+
+    void setState(const MultiGraph& state) override{
+        m_state = state;
+        m_edgeCount = state.getTotalEdgeNumber();
+        m_edgeMatrix = Matrix<size_t>(1, {1, 2 * m_edgeCount});
+        m_edgeCounts = std::vector<size_t>(1, 2 * m_edgeCount);
+        m_degreeCounts = computeDegreeCountsInBlocks();
+        m_degrees = state.getDegrees();
+    }
+
+    const std::vector<BlockIndex>& getBlocks() const override { return m_blocks; }
+    const size_t& getBlockCount() const override { return m_blockCount; }
+    const std::vector<size_t>& getVertexCountsInBlocks() const override { return m_vertexCounts; }
+    const Matrix<size_t>& getEdgeMatrix() const override { return m_edgeMatrix; }
+    const std::vector<size_t>& getEdgeCountsInBlocks() const override { return m_edgeCounts; }
+    const size_t& getEdgeCount() const override { return m_edgeCount; }
+    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override { return m_degreeCounts; }
+    const std::vector<size_t>& getDegrees() const override { return m_degrees; }
+
+    void sampleState() override { };
+    virtual void samplePriors() override { };
+    double getLogLikelihood() const override { return 0; }
+    double getLogPrior() const override { return 0; }
+    double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override{ return 0; }
+    double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0; }
+    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { return 0; }
+    double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { return 0; }
+
 };
+
 
 }

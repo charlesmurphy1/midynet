@@ -18,9 +18,10 @@ class VertexSampler{
 protected:
     bool m_withIsolatedVertices = true;
 public:
-    virtual const BaseGraph::VertexIndex sample() = 0;
+    virtual BaseGraph::VertexIndex sample() const = 0;
     virtual void setUp(const MultiGraph&) = 0;
-    virtual void update(const GraphMove&) = 0;
+    virtual void update(const GraphMove&) { };
+    virtual void update(const BlockMove&) { };
     virtual double getLogProposalProbRatio(const GraphMove&) const = 0;
 
     bool setAcceptIsolated(bool accept) { return m_withIsolatedVertices = accept; }
@@ -40,17 +41,17 @@ public:
         m_withIsolatedVertices = other.m_withIsolatedVertices;
         return *this;
     }
-    const BaseGraph::VertexIndex sample() { return m_vertexSampler.sample_ext_RNG(rng).first; }
-    void setUp(const MultiGraph& graph);
-    void update(const GraphMove& move) {}
-    double getLogProposalProbRatio(const GraphMove&) const { return 0.; }
+
+    BaseGraph::VertexIndex sample() const override { return m_vertexSampler.sample_ext_RNG(rng).first; }
+    void setUp(const MultiGraph& graph) override;
+    double getLogProposalProbRatio(const GraphMove&) const override { return 0.; }
 
 };
 
 class VertexDegreeSampler: public VertexSampler{
 private:
     sset::SamplableSet<BaseGraph::Edge> m_edgeSampler = sset::SamplableSet<BaseGraph::Edge> (1, 100);
-    std::bernoulli_distribution m_vertexChoiceDistribution = std::bernoulli_distribution(.5);
+    mutable std::bernoulli_distribution m_vertexChoiceDistribution = std::bernoulli_distribution(.5);
     double m_shift;
 public:
     VertexDegreeSampler(double shift=1):m_shift(shift){};
@@ -62,10 +63,11 @@ public:
         this->m_withIsolatedVertices = other.m_withIsolatedVertices;
         return *this;
     }
-    const BaseGraph::VertexIndex sample();
-    void setUp(const MultiGraph& graph);
-    void update(const GraphMove& move);
-    double getLogProposalProbRatio(const GraphMove&) const { return 0.; }
+
+    BaseGraph::VertexIndex sample() const override;
+    void setUp(const MultiGraph& graph) override;
+    void update(const GraphMove& move) override;
+    double getLogProposalProbRatio(const GraphMove&) const override { return 0.; }
 };
 
 }/* FastMIDyNet */

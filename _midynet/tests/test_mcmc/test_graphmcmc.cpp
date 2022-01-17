@@ -14,8 +14,11 @@ namespace FastMIDyNet{
 
 class TestStochasticBlockGraphMCMC: public::testing::Test{
 public:
-    DummyRandomGraph g = DummyRandomGraph();
-    StochasticBlockGraphMCMC mcmc = StochasticBlockGraphMCMC(g.randomGraph, g.edgeProposer, g.blockProposer);
+
+    DummyRandomGraph randomGraph = DummyRandomGraph(10);
+    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
+    UniformBlockProposer blockProposer = UniformBlockProposer();
+    RandomGraphMCMC mcmc = RandomGraphMCMC(randomGraph, edgeProposer, blockProposer);
     void SetUp(){
         seed(time(NULL));
         mcmc.sample();

@@ -14,7 +14,7 @@ using namespace BaseGraph;
 
 namespace FastMIDyNet {
 
-void RandomGraph::applyMove(const GraphMove& move){
+void RandomGraph::applyGraphMove(const GraphMove& move){
     for (auto edge: move.addedEdges){
         auto v = edge.first, u = edge.second;
         m_state.addEdgeIdx(v, u);
@@ -26,6 +26,63 @@ void RandomGraph::applyMove(const GraphMove& move){
         else
             throw std::logic_error("Cannot remove non-existing edge (" + to_string(u) + ", " + to_string(v) + ").");
     }
+}
+
+size_t RandomGraph::computeBlockCount() const {
+    auto blocks = getBlocks();
+    return *max_element(blocks.begin(), blocks.end()) + 1;
+}
+
+std::vector<size_t> RandomGraph::computeVertexCountsInBlocks() const {
+    auto blocks = getBlocks();
+    std::vector<size_t> vertexCounts(getBlockCount(), 0);
+    for (auto idx : m_state){
+        ++vertexCounts[blocks[idx]];
+    }
+    return vertexCounts;
+}
+
+Matrix<size_t> RandomGraph::computeEdgeMatrix() const {
+    auto blocks = getBlocks();
+    auto blockCount = getBlockCount();
+    Matrix<size_t> edgeMatrix(blockCount, {blockCount, 0});
+    for (auto idx: m_state){
+        for(auto neighbor : m_state.getNeighboursOfIdx(idx)){
+            size_t edgeMult = neighbor.label;
+            if (idx == neighbor.vertexIndex)
+                edgeMult *= 2;
+            edgeMatrix[blocks[idx]][blocks[neighbor.vertexIndex]] += neighbor.label;
+        }
+    }
+    return edgeMatrix;
+}
+
+std::vector<size_t> RandomGraph::computeEdgeCountsInBlocks() const {
+    auto blockCount = getBlockCount();
+    auto edgeMatrix = getEdgeMatrix();
+    std::vector<size_t> edgeCounts(blockCount, 0);
+
+    for (size_t blockIdx = 0; blockIdx < blockCount; ++blockIdx){
+        for (auto ers : edgeMatrix[blockIdx]){
+            edgeCounts[blockIdx] += ers;
+        }
+    }
+    return edgeCounts;
+}
+
+std::vector<CounterMap<size_t>> RandomGraph::computeDegreeCountsInBlocks() const {
+    auto blockCount = getBlockCount();
+    auto blocks = getBlocks();
+    auto edgeMatrix = getEdgeMatrix();
+    std::vector<CounterMap<size_t>> degreeCounts(blockCount);
+
+    for(size_t idx: m_state){
+        size_t degree = m_state.getDegreeOfIdx(idx);
+        BlockIndex block = blocks[idx];
+        degreeCounts[block].increment(degree);
+    }
+
+    return degreeCounts;
 
 }
 

@@ -41,7 +41,7 @@ public:
     const size_t getNumSweeps() const { return m_numSweeps; }
 
     virtual const MultiGraph& getGraph() const = 0 ;
-    virtual const BlockSequence& getLabels() const = 0 ;
+    virtual const std::vector<BlockIndex>& getBlocks() const = 0 ;
     size_t getSize() const { return getGraph().getSize(); }
     virtual double getLogLikelihood() const = 0 ;
     virtual double getLogPrior() = 0 ;

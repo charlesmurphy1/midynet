@@ -37,11 +37,11 @@ TEST_F(TestErdosRenyiFamily, sample_getGraphWithCorrectNumberOfEdges){
 
 TEST_F(TestErdosRenyiFamily, getLogLikelihoodRatioFromBlockMove_returnMinusInfinity){
     BlockMove move = {0, 0, 1, 1};
-    double dS = randomGraph.getLogPriorRatio(move);
+    double dS = randomGraph.getLogPriorRatioFromBlockMove(move);
     EXPECT_EQ(dS, -INFINITY);
 }
 
 TEST_F(TestErdosRenyiFamily, applyBlockMove_throwConsistencyError){
     BlockMove move = {0, 0, 1, 1};
-    EXPECT_THROW(randomGraph.applyMove(move), ConsistencyError);
+    EXPECT_THROW(randomGraph.applyBlockMove(move), ConsistencyError);
 }

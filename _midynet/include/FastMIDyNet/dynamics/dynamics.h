@@ -78,10 +78,10 @@ class Dynamics{
             VertexNeighborhoodState neighborhoodState
         ) const;
 
-        double getLogLikelihoodRatio(const GraphMove& move) const;
-        double getLogPriorRatio(const GraphMove& move);
-        double getLogJointRatio(const GraphMove& move);
-        void applyMove(const GraphMove& move);
+        double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const;
+        double getLogPriorRatioFromGraphMove(const GraphMove& move) const;
+        double getLogJointRatioFromGraphMove(const GraphMove& move) const;
+        void applyGraphMove(const GraphMove& move);
 
     protected:
         size_t m_numStates;

@@ -64,7 +64,7 @@ TEST_F(TestPeixotoBlockProposer, getReverseLogProposalProbRatio_fromSomeBlockMov
     FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), findBlockMove(0), 0};
     FastMIDyNet::BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx, 0};
     double actual = blockProposer.getReverseLogProposalProb(move);
-    randomGraph.applyMove(move);
+    randomGraph.applyBlockMove(move);
     double expected = blockProposer.getLogProposalProb(reverseMove);
     EXPECT_FLOAT_EQ(actual, expected);
 }
@@ -73,7 +73,7 @@ TEST_F(TestPeixotoBlockProposer, getReverseLogProposalProbRatio_fromSomeBlockMov
     FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), randomGraph.getBlockCount(), 1};
     FastMIDyNet::BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx, -1};
     double actual = blockProposer.getReverseLogProposalProb(move);
-    randomGraph.applyMove(move);
+    randomGraph.applyBlockMove(move);
     double expected = blockProposer.getLogProposalProb(reverseMove);
     EXPECT_FLOAT_EQ(actual, expected);
 }

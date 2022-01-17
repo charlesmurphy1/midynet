@@ -19,6 +19,10 @@ class StochasticBlockModelFamily: public RandomGraph{
 protected:
     BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
+    std::vector<size_t> m_degrees;
+    std::vector<CounterMap<size_t>> m_degreeCounts;
+
+
 public:
     StochasticBlockModelFamily(size_t graphSize): RandomGraph(graphSize) { }
     StochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
@@ -31,7 +35,12 @@ public:
     void samplePriors () ;
 
 
-    void setState(const MultiGraph& state) { m_state = state; m_edgeMatrixPriorPtr->setGraph(m_state); }
+    void setState(const MultiGraph& state) {
+        m_state = state;
+        m_edgeMatrixPriorPtr->setGraph(m_state);
+        m_degreeCounts = computeDegreeCountsInBlocks();
+        m_degrees = m_state.getDegrees();
+    }
 
 
     const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }
@@ -52,37 +61,34 @@ public:
         m_edgeMatrixPriorPtr->setBlockPrior(*m_blockPriorPtr);
     }
 
-    const BlockSequence& getLabels() const { return getBlocks(); }
-    const BlockIndex& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getBlockOfIdx(vertexIdx); }
-    const BlockSequence& getBlocks() const { return m_blockPriorPtr->getState(); }
-    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_blockPriorPtr->getBlockOfIdx(idx); }
+    const BlockSequence& getBlocks() const override { return m_blockPriorPtr->getState(); }
     const size_t& getBlockCount() const { return m_blockPriorPtr->getBlockCount(); }
     const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPriorPtr->getVertexCountsInBlocks(); }
     const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPriorPtr->getState(); }
     const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPriorPtr->getEdgeCountsInBlocks(); }
     const size_t& getEdgeCount() const { return m_edgeMatrixPriorPtr->getEdgeCount(); }
+    virtual const std::vector<size_t>& getDegrees() const { return m_degrees; }
+    virtual const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const { return m_degreeCounts; }
 
-    void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BlockIndex, BlockIndex>>&);
-    void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>>&);
-    void getDiffEdgeMatMapFromBlockMove(const BlockMove&, IntMap<std::pair<BlockIndex, BlockIndex>>&);
+    void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BlockIndex, BlockIndex>>&) const;
+    void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>>&) const;
+    void getDiffEdgeMatMapFromBlockMove(const BlockMove&, IntMap<std::pair<BlockIndex, BlockIndex>>&) const;
 
     virtual double getLogLikelihood() const;
-    virtual double getLogPrior() ;
-    double getLogJoint() { return getLogLikelihood() + getLogPrior(); }
+    virtual double getLogPrior() const ;
+    double getLogJoint() const { return getLogLikelihood() + getLogPrior(); }
 
-    virtual double getLogLikelihoodRatioEdgeTerm (const GraphMove&) ;
-    virtual double getLogLikelihoodRatioAdjTerm (const GraphMove&) ;
+    virtual double getLogLikelihoodRatioEdgeTerm (const GraphMove&) const ;
+    virtual double getLogLikelihoodRatioAdjTerm (const GraphMove&) const ;
 
-    virtual double getLogLikelihoodRatio (const GraphMove&) ;
-    virtual double getLogLikelihoodRatio (const BlockMove&) ;
+    virtual double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
+    virtual double getLogLikelihoodRatioFromBlockMove (const BlockMove&) const override;
 
-    virtual double getLogPriorRatio (const GraphMove&) ;
-    virtual double getLogPriorRatio (const BlockMove&) ;
+    virtual double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
+    virtual double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
 
-    double getLogJointRatio (const BlockMove& move) { return getLogLikelihoodRatio(move) + getLogPriorRatio(move); }
-
-    virtual void applyMove (const GraphMove&);
-    virtual void applyMove (const BlockMove&);
+    virtual void applyGraphMove (const GraphMove&) override;
+    virtual void applyBlockMove (const BlockMove&) override;
 
     virtual void computationFinished() const {
         m_blockPriorPtr->computationFinished();

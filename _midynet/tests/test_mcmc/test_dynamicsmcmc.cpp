@@ -18,10 +18,11 @@ size_t NUM_STEPS=10;
 
 class TestDynamicsMCMC: public::testing::Test{
 public:
-    DummyRandomGraph g = DummyRandomGraph();
-
-    StochasticBlockGraphMCMC graphmcmc = StochasticBlockGraphMCMC(g.randomGraph, g.edgeProposer,g.blockProposer);
-    SISDynamics dynamics = SISDynamics(g.randomGraph, NUM_STEPS, 0.5);
+    DummyRandomGraph randomGraph = DummyRandomGraph(10);
+    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
+    UniformBlockProposer blockProposer = UniformBlockProposer();
+    RandomGraphMCMC graphmcmc = RandomGraphMCMC(randomGraph, edgeProposer, blockProposer);
+    SISDynamics dynamics = SISDynamics(randomGraph, NUM_STEPS, 0.5);
     DynamicsMCMC mcmc = DynamicsMCMC(dynamics, graphmcmc, 1., 1., 0.);
     void SetUp(){
         seed(time(NULL));

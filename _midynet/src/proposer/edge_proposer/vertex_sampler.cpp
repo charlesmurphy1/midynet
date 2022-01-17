@@ -1,5 +1,6 @@
 #include "FastMIDyNet/proposer/edge_proposer/vertex_sampler.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/rng.h"
 
 
 namespace FastMIDyNet{
@@ -12,7 +13,7 @@ void VertexUniformSampler::setUp(const MultiGraph& graph){
 }
 
 
-const BaseGraph::VertexIndex VertexDegreeSampler::sample(){
+BaseGraph::VertexIndex VertexDegreeSampler::sample() const {
     auto edge = m_edgeSampler.sample_ext_RNG(rng).first;
 
     if ( m_vertexChoiceDistribution(rng) )

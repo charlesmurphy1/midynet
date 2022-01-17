@@ -65,7 +65,7 @@ private:
     std::vector<BlockSequence> m_partitions;
 public:
     void setUp(MCMC* mcmcPtr) { Collector::setUp(mcmcPtr); }
-    void collect() override { m_partitions.push_back(m_mcmcPtr->getLabels()); }
+    void collect() override { m_partitions.push_back(m_mcmcPtr->getBlocks()); }
     void clear() override { m_partitions.clear(); }
     const std::vector<BlockSequence>& getPartitions() const { return m_partitions; }
 

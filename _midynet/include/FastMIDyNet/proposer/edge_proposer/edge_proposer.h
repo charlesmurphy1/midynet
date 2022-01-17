@@ -17,6 +17,9 @@ public:
     virtual void setUp(const RandomGraph& randomGraph) = 0;
     bool getAcceptIsolated() const { return m_withIsolatedVertices; }
     virtual bool setAcceptIsolated(bool accept) { return m_withIsolatedVertices = accept; }
+    virtual double getLogProposalProbRatio(const GraphMove& move) const = 0;
+    virtual void updateProbabilities(const GraphMove& move) {};
+    virtual void updateProbabilities(const BlockMove& move) {};
 
 };
 

@@ -56,12 +56,12 @@ TEST_F(TestRandomGraphBaseClass, getLogJoint_return0){
 }
 
 TEST_F(TestRandomGraphBaseClass, applyMove_forSomeGraphMove){
-    randomGraph.applyMove(GRAPH_MOVE);
+    randomGraph.applyGraphMove(GRAPH_MOVE);
     EXPECT_FALSE( randomGraph.getState().isEdgeIdx(GRAPH_MOVE.removedEdges[0]) );
     EXPECT_TRUE( randomGraph.getState().isEdgeIdx(GRAPH_MOVE.addedEdges[0]) );
 }
 
 TEST_F(TestRandomGraphBaseClass, applyMove_forNonExistingEdgeRemoved_throwLogicError){
     GraphMove move = {{{0,0}}, {}}; // non-existing edge, throw logic_error
-    EXPECT_THROW(randomGraph.applyMove(move), std::logic_error);
+    EXPECT_THROW(randomGraph.applyGraphMove(move), std::logic_error);
 }
