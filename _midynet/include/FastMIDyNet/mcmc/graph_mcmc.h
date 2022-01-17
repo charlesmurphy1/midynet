@@ -86,7 +86,7 @@ public:
         double betaPrior=1,
         const CallBackList& callBacks={}):
     RandomGraphMCMC(sbmGraph, edgeProposer, betaLikelihood, betaPrior, callBacks),
-    m_blockProposerPtr(&blockProposer){}
+    m_blockProposerPtr(&blockProposer){ setRandomGraph(sbmGraph); }
 
     StochasticBlockGraphMCMC(
         double betaLikelihood=1,

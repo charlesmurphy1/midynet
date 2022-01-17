@@ -28,7 +28,12 @@ class PeixotoBlockProposer: public BlockProposer {
 
 
     public:
-        PeixotoBlockProposer(double createNewBlockProbability=.1, double shift=1);
+        PeixotoBlockProposer(double createNewBlockProbability=0.1, double shift=1):
+            m_createNewBlockDistribution(createNewBlockProbability),
+            m_blockCreationProbability(createNewBlockProbability),
+            m_shift(shift) {
+            assertValidProbability(createNewBlockProbability);
+        }
         BlockMove proposeMove(BaseGraph::VertexIndex);
         BlockMove proposeMove(){
             auto vertexIdx = m_vertexDistribution(rng);
@@ -41,7 +46,20 @@ class PeixotoBlockProposer: public BlockProposer {
             return getReverseLogProposalProb(move) - getLogProposalProb(move);
         };
         void updateProbabilities(const BlockMove&) {};
-        void checkConsistency() {};
+        void checkSafety() const {
+            if (m_blocksPtr == nullptr)
+                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_blocksPtr` is NULL.");
+            if (m_vertexCountsPtr == nullptr)
+                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_vertexCountsPtr` is NULL.");
+            if (m_blockCountPtr == nullptr)
+                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_blockCountPtr` is NULL.");
+            if (m_edgeMatrixPtr == nullptr)
+                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_edgeMatrixPtr` is NULL.");
+            if (m_edgeCountsPtr == nullptr)
+                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_edgeCountsPtr` is NULL.");
+            if (m_graphPtr == nullptr)
+                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_graphPtr` is NULL.");
+        }
     private:
         IntMap<std::pair<BlockIndex, BlockIndex>> getEdgeMatrixDiff(const BlockMove& move) const ;
         IntMap<BlockIndex> getEdgeCountsDiff(const BlockMove& move) const ;

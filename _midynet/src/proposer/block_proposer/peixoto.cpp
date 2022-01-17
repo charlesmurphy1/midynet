@@ -6,14 +6,6 @@
 
 namespace FastMIDyNet {
 
-
-PeixotoBlockProposer::PeixotoBlockProposer(double createNewBlockProbability, double shift):
-    m_createNewBlockDistribution(createNewBlockProbability),
-    m_blockCreationProbability(createNewBlockProbability),
-    m_shift(shift) {
-    assertValidProbability(createNewBlockProbability);
-}
-
 BlockMove PeixotoBlockProposer::proposeMove(BaseGraph::VertexIndex movedVertex) {
     BlockIndex prevBlockIdx = (*m_blocksPtr)[movedVertex];
     if (m_createNewBlockDistribution(rng) == 1){
@@ -58,6 +50,7 @@ void PeixotoBlockProposer::setUp(const StochasticBlockModelFamily& sbmGraph) {
     m_edgeMatrixPtr = &sbmGraph.getEdgeMatrix();
     m_edgeCountsPtr = &sbmGraph.getEdgeCountsInBlocks();
     m_graphPtr = &sbmGraph.getState();
+    m_vertexDistribution = std::uniform_int_distribution<BaseGraph::VertexIndex>(0, sbmGraph.getSize() - 1);
 }
 
 double PeixotoBlockProposer::getLogProposalProb(const BlockMove& move) const {

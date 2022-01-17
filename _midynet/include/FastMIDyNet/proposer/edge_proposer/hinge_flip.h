@@ -2,8 +2,8 @@
 #define FAST_MIDYNET_HINGE_FLIP_H
 
 
+#include "FastMIDyNet/exceptions.h"
 #include "edge_proposer.h"
-// #include "FastMIDyNet/proposer/edge_proposer/vertex_sampler.h"
 #include "vertex_sampler.h"
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
@@ -27,7 +27,12 @@ public:
 
     double getLogProposalProbRatio(const GraphMove&) const { return 0; }
     void updateProbabilities(const GraphMove& move);
+    void checkSafety() const override {
+        if (m_vertexSamplerPtr == nullptr)
+            throw SafetyError("HingeFlipProposer: unsafe proposer since `m_vertexSamplerPtr` is NULL.");
+    }
 };
+
 
 class HingeFlipUniformProposer: public HingeFlipProposer{
 private:

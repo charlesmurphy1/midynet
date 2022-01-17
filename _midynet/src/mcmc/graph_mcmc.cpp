@@ -1,3 +1,4 @@
+#include <iostream>
 #include "FastMIDyNet/mcmc/graph_mcmc.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.h"
 
@@ -5,6 +6,7 @@
 namespace FastMIDyNet{
 
 void StochasticBlockGraphMCMC::doMetropolisHastingsStep() {
+    m_blockProposerPtr->checkSafety();
     BlockMove move = m_blockProposerPtr->proposeMove();
     double dS = 0;
     double logLikelihoodRatio = m_sbmGraphPtr->getLogLikelihoodRatio(move);

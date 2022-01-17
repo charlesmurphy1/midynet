@@ -16,6 +16,8 @@ class Proposer{
         virtual MoveType proposeMove() = 0;
         virtual double getLogProposalProbRatio(const MoveType&) const = 0;
         virtual void updateProbabilities(const MoveType&) = 0;
+        virtual void checkConsistency() const {};
+        virtual void checkSafety() const {};
 };
 
 }

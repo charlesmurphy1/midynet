@@ -2,6 +2,7 @@
 #define FAST_MIDYNET_SINGLE_EDGE_H
 
 
+#include "FastMIDyNet/exceptions.h"
 #include "edge_proposer.h"
 #include "vertex_sampler.h"
 #include "SamplableSet.hpp"
@@ -23,6 +24,12 @@ public:
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     double getLogProposalProbRatio(const GraphMove&) const;
     void updateProbabilities(const GraphMove&) { }
+    void checkSafety() const override {
+        if (m_graphPtr == nullptr)
+            throw SafetyError("SingleEdgeProposer: unsafe proposer since `m_graphPtr` is NULL.");
+        if (m_vertexSamplerPtr == nullptr)
+            throw SafetyError("SingleEdgeProposer: unsafe proposer since `m_vertexSamplerPtr` is NULL.");
+    }
 };
 
 class SingleEdgeUniformProposer: public SingleEdgeProposer{
