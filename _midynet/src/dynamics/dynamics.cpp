@@ -89,6 +89,7 @@ void Dynamics::syncUpdateState(){
         transProbs = getTransitionProbs(m_state[idx], neighborState[idx]);
         future_state[idx] = generateCategorical<double, size_t>(transProbs);
     }
+    m_state = future_state;
 };
 
 void Dynamics::asyncUpdateState(int numUpdates){
@@ -106,6 +107,7 @@ void Dynamics::asyncUpdateState(int numUpdates){
         updateNeighborStateInPlace(idx, currentState[idx], newVertexState, neighborState);
         currentState[idx] = newVertexState;
     }
+    m_state = currentState;
 };
 
 double Dynamics::getLogLikelihood() const {

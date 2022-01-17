@@ -4,6 +4,7 @@
 #include "FastMIDyNet/mcmc/graph_mcmc.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.h"
 #include "FastMIDyNet/mcmc/callbacks/collector.h"
+#include "FastMIDyNet/mcmc/callbacks/verbose.h"
 namespace FastMIDyNet{
 
 #define CALLBACK_TESTS(TEST_CALL_BACK, TESTED_CALL_CLASS)\
@@ -42,38 +43,40 @@ namespace FastMIDyNet{
     }\
     TEST_F(TEST_CALL_BACK, onSweepEnd_raiseNoExceptionOrSegFault){\
         callback.onSweepEnd();\
-    }
+    }\
+
+#define COLLECTOR_TESTS(TEST_COLLECTOR, TESTED_COLLECTOR_CLASS, GETTER)\
+    CALLBACK_TESTS(TEST_COLLECTOR, TESTED_COLLECTOR_CLASS);\
+    TEST_F(TEST_COLLECTOR, onSweepEnd_collect_expectVectorNotEmpty){\
+        callback.onSweepEnd();\
+        EXPECT_EQ(callback.GETTER().size(), 1);\
+    }\
+
 
 CALLBACK_TESTS(TestCallBackBaseClass, CallBack);
 
-CALLBACK_TESTS(TestCollectGraphOnSweep, CollectGraphOnSweep);
-TEST_F(TestCollectGraphOnSweep, onSweepEnd_collectGraph_expectGraphVectorNotEmpty){
-    callback.onSweepEnd();
-    EXPECT_EQ(callback.getGraphs().size(), 1);
-}
+COLLECTOR_TESTS(TestCollectGraphOnSweep, CollectGraphOnSweep, getGraphs);
 
 CALLBACK_TESTS(TestCollectEdgeMultiplicityOnSweep, CollectEdgeMultiplicityOnSweep);
 
-CALLBACK_TESTS(TestCollectPartitionOnSweep, CollectPartitionOnSweep);
+COLLECTOR_TESTS(TestCollectPartitionOnSweep, CollectPartitionOnSweep, getPartitions);
 
-// CALLBACK_TESTS(TestWriteGraphToFileOnSweep, WriteGraphToFileOnSweep);
+COLLECTOR_TESTS(TestCollectLikelihoodOnSweep, CollectLikelihoodOnSweep, getLogLikelihoods);
 
-CALLBACK_TESTS(TestCollectLikelihoodOnSweep, CollectLikelihoodOnSweep);
-TEST_F(TestCollectLikelihoodOnSweep, onSweepEnd_collectLikelihood_expectLikelihoodVectorNotEmpty){
-    callback.onSweepEnd();
-    EXPECT_EQ(callback.getLogLikelihoods().size(), 1);
-}
+COLLECTOR_TESTS(TestCollectPriorOnSweep, CollectPriorOnSweep, getLogPriors);
 
-CALLBACK_TESTS(TestCollectPriorOnSweep, CollectPriorOnSweep);
-TEST_F(TestCollectPriorOnSweep, onSweepEnd_collectPrior_expectPriorVectorNotEmpty){
-    callback.onSweepEnd();
-    EXPECT_EQ(callback.getLogPriors().size(), 1);
-}
+COLLECTOR_TESTS(TestCollectJointOnSweep, CollectJointOnSweep, getLogJoints);
 
-CALLBACK_TESTS(TestCollectJointOnSweep, CollectJointOnSweep);
-TEST_F(TestCollectJointOnSweep, onSweepEnd_collectJoint_expectJointVectorNotEmpty){
-    callback.onSweepEnd();
-    EXPECT_EQ(callback.getLogJoints().size(), 1);
-}
+CALLBACK_TESTS(TestTimerVerbose, TimerVerbose);
+
+CALLBACK_TESTS(TestuccessCounterVerbose, SuccessCounterVerbose);
+
+CALLBACK_TESTS(TestFailureCounterVerbose, FailureCounterVerbose);
+
+CALLBACK_TESTS(TestMinimumLogJointRatioVerbose, MinimumLogJointRatioVerbose);
+
+CALLBACK_TESTS(TestMaximumLogJointRatioVerbose, MaximumLogJointRatioVerbose);
+
+CALLBACK_TESTS(TestMeanLogJointRatioVerbose, MeanLogJointRatioVerbose);
 
 }

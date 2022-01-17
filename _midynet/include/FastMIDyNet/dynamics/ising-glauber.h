@@ -19,6 +19,8 @@ class IsingGlauberDynamics: public BinaryDynamics {
 
         double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const;
         double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const;
+        double getCoupling() const { return m_couplingConstant; }
+        void setCoupling(double couplingConstant) { m_couplingConstant = couplingConstant; }
 };
 
 } // namespace FastMIDyNet

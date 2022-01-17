@@ -19,6 +19,8 @@ class DegreeDynamics: public BinaryDynamics {
 
         double getActivationProb(const VertexNeighborhoodState& neighborhood_state) const;
         double getDeactivationProb(const VertexNeighborhoodState& neighborhood_state) const;
+        double getC() const { return m_C; }
+        void setC(double C) { m_C = C; }
 
     };
 

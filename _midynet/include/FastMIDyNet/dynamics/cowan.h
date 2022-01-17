@@ -23,6 +23,14 @@ public:
 
     double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const;
     double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const;
+    double getA() const { return m_a; }
+    void setA(double a) { m_a = a; }
+    double getNu() const { return m_nu; }
+    void setNu(double nu) { m_nu = nu; }
+    double getMu() const { return m_mu; }
+    void setMu(double mu) { m_mu = mu; }
+    double getEta() const { return m_eta; }
+    void setEta(double eta) { m_eta = eta; }
 };
 
 } // namespace FastMIDyNet
