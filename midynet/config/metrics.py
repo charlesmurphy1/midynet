@@ -72,31 +72,31 @@ class MetricsCollectionConfig(Config):
     unique_parameters: list[str] = {"name", "metrics_names", "num_procs", "seed"}
 
     @classmethod
-    def auto(cls, args: typing.Union[str, list[str]]):
-        if isinstance(args, str):
-            args = [args]
-        obj = cls(**{a: MetricsConfig.auto(a) for a in args})
-        obj.insert("metrics_names", args, force_non_sequence=True, unique=True)
+    def auto(cls, config_types: typing.Union[str, list[str]]):
+        if isinstance(config_types, str):
+            config_types = [config_types]
+        obj = cls(**{a: MetricsConfig.auto(a) for a in config_types})
+        obj.insert("metrics_names", config_types, force_non_sequence=True, unique=True)
         return obj
 
 
 class MetricsFactory(Factory):
     @classmethod
     def build(cls, config: Config) -> typing.Any:
-        if config.unmet_requirements():
+        if config.unmet_requirements() and not isinstance(config, str):
             raise MissingRequirementsError(config)
         options = {
             k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
         }
-        if isinstance(config, MetricsConfig):
-            if config.name in options:
+        if isinstance(config.metrics, MetricsConfig):
+            if config.metrics.name in options:
                 return options[config.name](config)
             else:
                 raise OptionError(actual=config.name, expected=list(options.keys()))
-        elif isinstance(config, MetricsCollectionConfig):
-            names = config.metrics_names
+        elif isinstance(config.metrics, MetricsCollectionConfig):
+            names = config.metrics.metrics_names
             metrics = {}
-            for name in config.metrics_names:
+            for name in config.metrics.metrics_names:
                 if name in options:
                     metrics[name] = options[name](config)
                 else:
@@ -111,27 +111,27 @@ class MetricsFactory(Factory):
 
     @staticmethod
     def build_dynamics_entropy(config: MetricsCollectionConfig):
-        return DynamicsEntropyMetrics(config.dynamics_entropy)
+        return DynamicsEntropyMetrics(config)
 
     @staticmethod
     def build_dynamics_prediction_entropy(config: MetricsCollectionConfig):
-        return DynamicsPredictionEntropyMetrics(config.dynamics_prediction_entropy)
+        return DynamicsPredictionEntropyMetrics(config)
 
     @staticmethod
     def build_predictability(config: MetricsCollectionConfig):
-        return PredictabilityMetrics(config.predictability)
+        return PredictabilityMetrics(config)
 
     @staticmethod
     def build_graph_entropy(config: MetricsCollectionConfig):
-        return GraphEntropyMetrics(config.graph_entropy)
+        return GraphEntropyMetrics(config)
 
     @staticmethod
     def build_graph_reconstruction_entropy(config: MetricsCollectionConfig):
-        return GraphReconstructionEntropyMetrics(config.graph_reconstruction_entropy)
+        return GraphReconstructionEntropyMetrics(config)
 
     @staticmethod
     def build_reconstructability(config: MetricsCollectionConfig):
-        return ReconstructabilityMetrics(config.reconstructability)
+        return ReconstructabilityMetrics(config)
 
 
 if __name__ == "__main__":

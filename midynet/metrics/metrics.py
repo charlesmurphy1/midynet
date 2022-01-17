@@ -16,15 +16,17 @@ __all__ = ["Metrics", "ExpectationMetrics"]
 
 @dataclass
 class Metrics:
-    config: Config = field(repr=False, default_factory=Config)
+    config: Config = field(repr=False, default=None)
     data: typing.Dict[str, typing.Dict[str, np.ndarray]] = field(
         repr=False, default_factory=dict, init=False
     )
 
     def set_up(self):
+        self.counter = 0
         return
 
     def tear_down(self):
+        self.counter = 0
         return
 
     def eval(self, config: Config) -> typing.Dict[str, float]:
@@ -32,7 +34,6 @@ class Metrics:
 
     def compute(self, verbose=Verbose()) -> None:
         self.set_up()
-
         pb = verbose.init_progress(self.__class__.__name__, total=len(self.config))
         raw_data = defaultdict(lambda: defaultdict(list))
         for c in self.config.sequence():

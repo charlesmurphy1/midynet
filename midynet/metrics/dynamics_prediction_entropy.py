@@ -1,3 +1,4 @@
+import numpy as np
 import time
 from dataclasses import dataclass, field
 
@@ -27,8 +28,9 @@ class DynamicsPredictionEntropyMetrics(ExpectationMetrics):
         dynamics_entropy = DynamicsPredictionEntropy(
             config=config,
             num_procs=config.metrics.get_value("num_procs", 1),
-            seed=config.metrics.get_value("seed", int(time.time())),
+            seed=config.metrics.get_value("seed", int(time.time())) + self.counter,
         )
+        self.counter += len(self.config)
         samples = dynamics_entropy.compute(config.metrics.get_value("num_samples", 10))
         return self.statistics(samples)
 

@@ -28,6 +28,9 @@ class Verbose:
             self.print_msg(msg)
         self.last_line = msg
 
+    def __repr__(self):
+        return f"Verbose(type={self.verbose_type})"
+
     def save_msg(self, msg, overwrite_last=False):
         if overwrite_last:
             _file = open(self.filename, "r")

@@ -16,7 +16,6 @@ class ExperimentConfig(Config):
         "path",
         "seed",
         "num_procs",
-        "verbose",
     }
 
     @classmethod
@@ -29,7 +28,6 @@ class ExperimentConfig(Config):
         path: pathlib.Path = ".",
         seed: int = None,
         num_procs: int = 1,
-        verbose: int = 0,
     ):
         obj = cls(name=name)
         obj.insert("dynamics", DynamicsConfig.auto(dynamics))
@@ -43,7 +41,6 @@ class ExperimentConfig(Config):
         )
         obj.insert("seed", seed if seed is not None else int(time.time()))
         obj.insert("num_procs", num_procs)
-        obj.insert("verbose", verbose)
 
         return obj
 
