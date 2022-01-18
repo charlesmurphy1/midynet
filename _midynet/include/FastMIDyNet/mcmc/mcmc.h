@@ -44,8 +44,8 @@ public:
     virtual const std::vector<BlockIndex>& getBlocks() const = 0 ;
     size_t getSize() const { return getGraph().getSize(); }
     virtual double getLogLikelihood() const = 0 ;
-    virtual double getLogPrior() = 0 ;
-    virtual double getLogJoint() = 0 ;
+    virtual double getLogPrior() const = 0 ;
+    virtual double getLogJoint() const = 0 ;
     virtual void sample() = 0 ;
 
     void addCallBack(CallBack& callBack) { callBack.setUp(this); m_callBacks.pushBack(callBack); }

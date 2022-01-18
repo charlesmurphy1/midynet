@@ -21,7 +21,9 @@ void initEdgeProposer(py::module& m){
         .def(py::init<>())
         .def("set_up", &EdgeProposer::setUp, py::arg("random_graph"))
         .def("accept_isolated", &EdgeProposer::setAcceptIsolated, py::arg("accept"))
-        .def("accept_isolated", &EdgeProposer::getAcceptIsolated);
+        .def("accept_isolated", &EdgeProposer::getLogProposalProbRatio)
+        .def("update", py::overload_cast<const GraphMove&>(&EdgeProposer::updateProbabilities), py::arg("move"))
+        .def("update", py::overload_cast<const BlockMove&>(&EdgeProposer::updateProbabilities), py::arg("move"));
 
     /* Double edge swap proposers */
     py::class_<DoubleEdgeSwapProposer, EdgeProposer>(m, "DoubleEdgeSwapProposer")

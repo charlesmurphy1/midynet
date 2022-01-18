@@ -16,7 +16,7 @@ const size_t BLOCK_COUNT = 2;
 const size_t GRAPH_SIZE = 5, EDGE_COUNT=6;
 const FastMIDyNet::BlockSequence BLOCK_SEQUENCE = {0, 0, 1, 0, 0};
 
-class TestUniformBlockProposer: public::testing::Test {
+class TestBlockUniformProposer: public::testing::Test {
     public:
         BlockCountPoissonPrior blockCountPrior = {BLOCK_COUNT};
         BlockUniformPrior blockPrior = {GRAPH_SIZE, blockCountPrior};
@@ -24,7 +24,7 @@ class TestUniformBlockProposer: public::testing::Test {
         EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
         StochasticBlockModelFamily randomGraph = {GRAPH_SIZE, blockPrior, edgeMatrixPrior};
 
-        UniformBlockProposer blockProposer = FastMIDyNet::UniformBlockProposer(NEW_BLOCK_PROBABILITY);
+        BlockUniformProposer blockProposer = FastMIDyNet::BlockUniformProposer(NEW_BLOCK_PROBABILITY);
 
         void SetUp() {
             blockCountPrior.setState(BLOCK_COUNT);
@@ -33,23 +33,23 @@ class TestUniformBlockProposer: public::testing::Test {
         }
 };
 
-TEST_F(TestUniformBlockProposer, getLogProposalProbRatio_sameBlockmove_return0) {
+TEST_F(TestBlockUniformProposer, getLogProposalProbRatio_sameBlockmove_return0) {
     FastMIDyNet::BlockMove move = {0, 0, 0};
     EXPECT_EQ(blockProposer.getLogProposalProbRatio(move), 0);
 }
 
-TEST_F(TestUniformBlockProposer, getLogProposalProbRatio_moveBetweenExistingAndNonEmptyBlocks_return0) {
+TEST_F(TestBlockUniformProposer, getLogProposalProbRatio_moveBetweenExistingAndNonEmptyBlocks_return0) {
     FastMIDyNet::BlockMove move = {0, 0, 1};
     EXPECT_EQ(blockProposer.getLogProposalProbRatio(move), 0);
 }
 
-TEST_F(TestUniformBlockProposer, getLogProposalProbRatio_createNewBlock_returnCorrectRatio) {
+TEST_F(TestBlockUniformProposer, getLogProposalProbRatio_createNewBlock_returnCorrectRatio) {
     FastMIDyNet::BlockMove move = {0, 0, 2};
     EXPECT_EQ(blockProposer.getLogProposalProbRatio(move),
             -log(NEW_BLOCK_PROBABILITY)+log(1-NEW_BLOCK_PROBABILITY)-log(BLOCK_COUNT));
 }
 
-TEST_F(TestUniformBlockProposer, getLogProposalProbRatio_destroyBlock_returnCorrectRatio) {
+TEST_F(TestBlockUniformProposer, getLogProposalProbRatio_destroyBlock_returnCorrectRatio) {
     FastMIDyNet::BlockMove move = {2, 1, 0};
     EXPECT_EQ(blockProposer.getLogProposalProbRatio(move),
             log(BLOCK_COUNT-1)-log(1-NEW_BLOCK_PROBABILITY)+log(NEW_BLOCK_PROBABILITY));

@@ -34,7 +34,7 @@ TEST_F(TestConfigurationModelFamily, randomGraph_hasCorrectBlockSequence){
 
 TEST_F(TestConfigurationModelFamily, sample_getGraphWithCorrectNumberOfEdges){
     randomGraph.sample();
-    EXPECT_EQ(randomGraph.getState().getTotalEdgeNumber(), randomGraph.getEdgeCount());
+    EXPECT_EQ(randomGraph.getGraph().getTotalEdgeNumber(), randomGraph.getEdgeCount());
 }
 
 TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromBlockMove_returnMinusInfinity){

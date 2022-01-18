@@ -26,6 +26,9 @@ public:
     const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const {
         PYBIND11_OVERRIDE(const std::vector<CounterMap<size_t>>&, BaseClass, getDegreeCountsInBlocks, );
     }
+    const std::vector<size_t>& getDegrees() const {
+        PYBIND11_OVERRIDE(const std::vector<size_t>&, BaseClass, getDegrees, );
+    }
     double getLogLikelihood() const override { PYBIND11_OVERRIDE(double, BaseClass, getLogLikelihood, ); }
     double getLogPrior() const override { PYBIND11_OVERRIDE(double, BaseClass, getLogPrior, ); }
     double getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const override { PYBIND11_OVERRIDE(double, BaseClass, getLogLikelihoodRatioEdgeTerm, move); }

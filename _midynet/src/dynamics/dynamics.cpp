@@ -4,6 +4,7 @@
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/dynamics/dynamics.h"
+#include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/rng.h"
@@ -58,21 +59,21 @@ const NeighborsState Dynamics::getNeighborsState(const State& state) const {
     return neighborSates;
 };
 
-const VertexNeighborhoodStateSequence Dynamics::getVertexNeighborsState ( const VertexIndex& vertex_idx ) const {
+const VertexNeighborhoodStateSequence Dynamics::getVertexNeighborsState ( const VertexIndex& vertexIdx ) const {
     VertexNeighborhoodStateSequence neighborState(m_numSteps);
     for (auto t=0; t<m_numSteps; t++) {
-        neighborState[t] = m_neighborsStateSequence[t][vertex_idx];
+        neighborState[t] = m_neighborsStateSequence[t][vertexIdx];
     }
     return neighborState;
 };
 
 void Dynamics::updateNeighborStateInPlace(
-    VertexIndex vertex_idx,
+    VertexIndex vertexIdx,
     VertexState prevVertexState,
     VertexState newVertexState,
     NeighborsState& neighborState) const {
     int neighborIdx, edgeMultiplicity;
-    for ( auto neighbor: getGraph().getNeighboursOfIdx(vertex_idx) ){
+    for ( auto neighbor: getGraph().getNeighboursOfIdx(vertexIdx) ){
         neighborIdx = neighbor.vertexIndex;
         edgeMultiplicity = neighbor.label;
         neighborState[neighborIdx][prevVertexState] -= edgeMultiplicity;
@@ -144,6 +145,7 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(
     map<VertexIndex, VertexNeighborhoodStateSequence>& nextNeighborMap) const{
     VertexIndex v = edge.first, u = edge.second;
 
+
     if (prevNeighborMap.count(v) == 0){
         prevNeighborMap.insert({v, getVertexNeighborsState(v)}) ;
         nextNeighborMap.insert({v, getVertexNeighborsState(v)}) ;
@@ -205,7 +207,6 @@ double Dynamics::getLogJointRatioFromGraphMove(const GraphMove& move) const{
 void Dynamics::applyGraphMove(const GraphMove& move){
     set<VertexIndex> verticesAffected;
     map<VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
-
     VertexNeighborhoodStateSequence neighborState(m_numSteps);
     size_t v, u;
     for (const auto& edge : move.addedEdges){

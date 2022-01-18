@@ -1,12 +1,13 @@
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/generators.h"
+#include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/proposer/block_proposer/peixoto.h"
 #include <random>
 
 
 namespace FastMIDyNet {
 
-BlockMove PeixotoBlockProposer::proposeMove(BaseGraph::VertexIndex movedVertex) const {
+BlockMove BlockPeixotoProposer::proposeMove(BaseGraph::VertexIndex movedVertex) const {
     BlockIndex prevBlockIdx = (*m_blocksPtr)[movedVertex];
     if (m_createNewBlockDistribution(rng) == 1){
         return {movedVertex, prevBlockIdx, *m_blockCountPtr, 1};
@@ -43,17 +44,17 @@ BlockMove PeixotoBlockProposer::proposeMove(BaseGraph::VertexIndex movedVertex) 
     }
 }
 
-void PeixotoBlockProposer::setUp(const RandomGraph& randomGraph) {
+void BlockPeixotoProposer::setUp(const RandomGraph& randomGraph) {
     m_blockCountPtr = &randomGraph.getBlockCount();
     m_blocksPtr = &randomGraph.getBlocks();
     m_vertexCountsPtr = &randomGraph.getVertexCountsInBlocks();
     m_edgeMatrixPtr = &randomGraph.getEdgeMatrix();
     m_edgeCountsPtr = &randomGraph.getEdgeCountsInBlocks();
-    m_graphPtr = &randomGraph.getState();
+    m_graphPtr = &randomGraph.getGraph();
     m_vertexDistribution = std::uniform_int_distribution<BaseGraph::VertexIndex>(0, randomGraph.getSize() - 1);
 }
 
-double PeixotoBlockProposer::getLogProposalProb(const BlockMove& move) const {
+double BlockPeixotoProposer::getLogProposalProb(const BlockMove& move) const {
     if ( move.addedBlocks == 1){
          return log(m_blockCreationProbability);
     } else if (m_graphPtr->getDegreeOfIdx(move.vertexIdx) == 0){
@@ -78,7 +79,7 @@ double PeixotoBlockProposer::getLogProposalProb(const BlockMove& move) const {
 }
 
 
-IntMap<std::pair<BlockIndex, BlockIndex>> PeixotoBlockProposer::getEdgeMatrixDiff(const BlockMove& move) const {
+IntMap<std::pair<BlockIndex, BlockIndex>> BlockPeixotoProposer::getEdgeMatrixDiff(const BlockMove& move) const {
     IntMap<std::pair<BlockIndex, BlockIndex>> edgeMatDiff;
     BlockIndex r = move.prevBlockIdx, s = move.nextBlockIdx;
     for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
@@ -95,7 +96,7 @@ IntMap<std::pair<BlockIndex, BlockIndex>> PeixotoBlockProposer::getEdgeMatrixDif
      return edgeMatDiff;
 }
 
-IntMap<BlockIndex> PeixotoBlockProposer::getEdgeCountsDiff(const BlockMove& move) const {
+IntMap<BlockIndex> BlockPeixotoProposer::getEdgeCountsDiff(const BlockMove& move) const {
     IntMap<BlockIndex> edgeCountsDiff;
     BlockIndex r = move.prevBlockIdx, s = move.nextBlockIdx;
     for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
@@ -108,7 +109,7 @@ IntMap<BlockIndex> PeixotoBlockProposer::getEdgeCountsDiff(const BlockMove& move
      return edgeCountsDiff;
 }
 
-double PeixotoBlockProposer::getReverseLogProposalProb(const BlockMove& move) const {
+double BlockPeixotoProposer::getReverseLogProposalProb(const BlockMove& move) const {
     if ( move.addedBlocks == -1){
          return log(m_blockCreationProbability);
     } else if (m_graphPtr->getDegreeOfIdx(move.vertexIdx) == 0){

@@ -16,7 +16,7 @@ protected:
     sset::SamplableSet<BaseGraph::Edge> m_edgeSamplableSet = sset::SamplableSet<BaseGraph::Edge>(1, 100);
 public:
     GraphMove proposeMove() const override;
-    void setUp(const RandomGraph& randomGraph) override { setUp(randomGraph.getState()); }
+    void setUp(const RandomGraph& randomGraph) override { setUp(randomGraph.getGraph()); }
     void setUp(const MultiGraph&);
     double getLogProposalProbRatio(const GraphMove&) const override { return 0; }
     void updateProbabilities(const GraphMove&) override;

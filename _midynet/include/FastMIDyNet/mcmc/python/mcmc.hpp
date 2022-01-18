@@ -17,16 +17,16 @@ public:
     const MultiGraph& getGraph() const override {
         PYBIND11_OVERRIDE_PURE(const MultiGraph&, BaseClass, getGraph, );
     }
-    const BlockSequence& getLabels() const override {
-        PYBIND11_OVERRIDE_PURE(const BlockSequence&, BaseClass, getLabels, );
+    const std::vector<BlockIndex>& getBlocks() const override {
+        PYBIND11_OVERRIDE_PURE(const std::vector<BlockIndex>&, BaseClass, getBlocks, );
     }
     double getLogLikelihood() const override {
         PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogLikelihood, );
     }
-    double getLogPrior() override {
+    double getLogPrior() const override {
         PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPrior, );
     }
-    double getLogJoint() override {
+    double getLogJoint() const override {
         PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogJoint, );
     }
     void sample() override {
@@ -40,31 +40,6 @@ public:
     void setUp() override { PYBIND11_OVERRIDE(void, BaseClass, setUp, ); }
     void tearDown() override { PYBIND11_OVERRIDE(void, BaseClass, tearDown, ); }
 };
-
-template<typename BaseClass = RandomGraphMCMC>
-class PyRandomGraphMCMC: public PyMCMC<BaseClass>{
-public:
-    using PyMCMC<BaseClass>::PyMCMC;
-    /* Pure abstract methods */
-
-    /* Abstract methods */
-    const MultiGraph& getGraph() const override {
-        PYBIND11_OVERRIDE(const MultiGraph&, BaseClass, getGraph, );
-    }
-    double getLogLikelihood() const override {
-        PYBIND11_OVERRIDE(double, BaseClass, getLogLikelihood, );
-    }
-    double getLogPrior() override {
-        PYBIND11_OVERRIDE(double, BaseClass, getLogPrior, );
-    }
-    double getLogJoint() override {
-        PYBIND11_OVERRIDE(double, BaseClass, getLogJoint, );
-    }
-    void sample() override {
-        PYBIND11_OVERRIDE(void, BaseClass, sample, );
-    }
-};
-
 
 
 

@@ -21,7 +21,11 @@ protected:
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
     std::vector<size_t> m_degrees;
     std::vector<CounterMap<size_t>> m_degreeCounts;
-
+    void samplePriors () ;
+    virtual void computationFinished() const {
+        m_blockPriorPtr->computationFinished();
+        m_edgeMatrixPriorPtr->computationFinished();
+    }
 
 public:
     StochasticBlockModelFamily(size_t graphSize): RandomGraph(graphSize) { }
@@ -31,15 +35,14 @@ public:
             setEdgeMatrixPrior(edgeMatrixPrior);
         }
 
-    void sampleState () ;
-    void samplePriors () ;
+    void sampleGraph () ;
 
 
-    void setState(const MultiGraph& state) {
-        m_state = state;
-        m_edgeMatrixPriorPtr->setGraph(m_state);
+    void setGraph(const MultiGraph& graph) override{
+        m_graph = graph;
+        m_edgeMatrixPriorPtr->setGraph(m_graph);
         m_degreeCounts = computeDegreeCountsInBlocks();
-        m_degrees = m_state.getDegrees();
+        m_degrees = m_graph.getDegrees();
     }
 
 
@@ -90,10 +93,7 @@ public:
     virtual void applyGraphMove (const GraphMove&) override;
     virtual void applyBlockMove (const BlockMove&) override;
 
-    virtual void computationFinished() const {
-        m_blockPriorPtr->computationFinished();
-        m_edgeMatrixPriorPtr->computationFinished();
-    }
+
 
     static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
     static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);

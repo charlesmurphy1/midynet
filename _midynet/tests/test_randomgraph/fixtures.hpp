@@ -55,13 +55,13 @@ public:
     using RandomGraph::RandomGraph;
     DummyRandomGraph(size_t size): RandomGraph(size), m_blocks(size, 0), m_vertexCounts(1, size){}
 
-    void setState(const MultiGraph& state) override{
-        m_state = state;
-        m_edgeCount = state.getTotalEdgeNumber();
+    void setGraph(const MultiGraph& graph) override{
+        m_graph = graph;
+        m_edgeCount = graph.getTotalEdgeNumber();
         m_edgeMatrix = Matrix<size_t>(1, {1, 2 * m_edgeCount});
         m_edgeCounts = std::vector<size_t>(1, 2 * m_edgeCount);
         m_degreeCounts = computeDegreeCountsInBlocks();
-        m_degrees = state.getDegrees();
+        m_degrees = graph.getDegrees();
     }
 
     const std::vector<BlockIndex>& getBlocks() const override { return m_blocks; }
@@ -73,7 +73,7 @@ public:
     const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override { return m_degreeCounts; }
     const std::vector<size_t>& getDegrees() const override { return m_degrees; }
 
-    void sampleState() override { };
+    void sampleGraph() override { };
     virtual void samplePriors() override { };
     double getLogLikelihood() const override { return 0; }
     double getLogPrior() const override { return 0; }

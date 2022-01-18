@@ -19,7 +19,7 @@ protected:
     VertexSampler* m_vertexSamplerPtr = NULL;
 public:
     GraphMove proposeMove() const override;
-    void setUp(const RandomGraph& randomGraph) override { setUp(randomGraph.getState()); }
+    void setUp(const RandomGraph& randomGraph) override { setUp(randomGraph.getGraph()); }
     void setUp(const MultiGraph&);
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     double getLogProposalProbRatio(const GraphMove&) const override;

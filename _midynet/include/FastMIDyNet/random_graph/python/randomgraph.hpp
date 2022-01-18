@@ -14,20 +14,22 @@ namespace FastMIDyNet{
 
 template<typename BaseClass = RandomGraph>
 class PyRandomGraph: public BaseClass{
+protected:
+    void samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePriors, ); }
+    void computationFinished() const override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
 public:
     using BaseClass::BaseClass;
     /* Pure abstract methods */
-    void sampleState() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleState, ); }
-    void samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePriors, ); }
+    void sampleGraph() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleGraph, ); }
     double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogLikelihood, ); }
-    double getLogPrior() override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPrior, ); }
-    double getLogLikelihoodRatio (const GraphMove& move) override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogLikelihoodRatio, move); }
-    double getLogPriorRatio (const GraphMove& move) override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPriorRatio, move); }
+    double getLogPrior() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPrior, ); }
+    double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogLikelihoodRatioFromGraphMove, move); }
+    double getLogPriorRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPriorRatioFromGraphMove, move); }
+    double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogLikelihoodRatioFromBlockMove, move); }
+    double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPriorRatioFromBlockMove, move); }
+
     const std::vector<BlockIndex>& getBlocks() const override  {
         PYBIND11_OVERRIDE_PURE(const std::vector<BlockIndex>&, BaseClass, getBlocks, );
-    }
-    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex vertexIdx) const override  {
-        PYBIND11_OVERRIDE_PURE(const BlockIndex&, BaseClass, getBlockOfIdx, vertexIdx);
     }
     const size_t& getBlockCount() const override  {
         PYBIND11_OVERRIDE_PURE(const size_t&, BaseClass, getBlockCount, );
@@ -47,20 +49,14 @@ public:
     const std::vector<size_t>& getDegrees() const override  {
         PYBIND11_OVERRIDE_PURE(const std::vector<size_t>&, BaseClass, getDegrees, );
     }
-    const std::vector<size_t>& getDegreeOfIdx(BaseGraph::VertexIndex idx) const override  {
-        PYBIND11_OVERRIDE_PURE(const std::vector<size_t>&, BaseClass, getDegreeOfIdx, idx);
-    }
     const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override  {
         PYBIND11_OVERRIDE_PURE(const std::vector<CounterMap<size_t>>&, BaseClass, getDegreeCountsInBlocks, );
     }
 
     /* Abstract methods */
-    const BlockSequence& getLabels() const override { PYBIND11_OVERRIDE(const BlockSequence&, BaseClass, getLabels, ); }
-    const BlockIndex& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const override {
-        PYBIND11_OVERRIDE(const BlockIndex&, BaseClass, getLabelOfIdx, vertexIdx);
-    }
-    void setState(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setState, graph); }
-    void applyMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyMove, move); }
+    void setGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setGraph, graph); }
+    void applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
+    void applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
     void checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
 };
 

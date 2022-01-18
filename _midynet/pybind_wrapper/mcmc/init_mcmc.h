@@ -8,6 +8,7 @@
 #include "FastMIDyNet/mcmc/graph_mcmc.h"
 #include "FastMIDyNet/mcmc/dynamics_mcmc.h"
 #include "FastMIDyNet/mcmc/python/mcmc.hpp"
+#include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/proposer/block_proposer/block_proposer.h"
 #include "FastMIDyNet/proposer/edge_proposer/edge_proposer.h"
 
@@ -23,7 +24,7 @@ void initMCMCBaseClass(py::module& m){
         .def("get_last_log_acceptance", &MCMC::getLastLogAcceptance)
         .def("is_last_accepted", &MCMC::isLastAccepted)
         .def("get_graph", &MCMC::getGraph)
-        .def("get_labels", &MCMC::getLabels)
+        .def("get_blocks", &MCMC::getBlocks)
         .def("has_state", &MCMC::hasState)
         .def("get_num_steps", &MCMC::getNumSteps)
         .def("get_num_sweeps", &MCMC::getNumSweeps)
@@ -40,14 +41,16 @@ void initMCMCBaseClass(py::module& m){
         .def("do_MH_sweep", &MCMC::doMHSweep, py::arg("burn")=1)
         ;
 
-    py::class_<RandomGraphMCMC, MCMC, PyRandomGraphMCMC<>>(m, "RandomGraphMCMC")
-        .def(py::init<RandomGraph&, EdgeProposer&, double, double, const CallBackList&>(),
-            py::arg("random_graph"), py::arg("edge_proposer"),
+    py::class_<RandomGraphMCMC, MCMC>(m, "RandomGraphMCMC")
+        .def(py::init<RandomGraph&, EdgeProposer&, BlockProposer&, double, double, const CallBackList&>(),
+            py::arg("random_graph"), py::arg("edge_proposer"), py::arg("block_proposer"),
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks"))
+        .def(py::init<EdgeProposer&, BlockProposer&, double, double, const CallBackList&>(),
+            py::arg("edge_proposer"), py::arg("block_proposer"),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1,
-            py::arg("callbacks") )
-        .def(py::init<double, double, const CallBackList&>(),
-            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") )
-        .def(py::init<double, double>(),
+            py::arg("callbacks"))
+        .def(py::init<EdgeProposer&, BlockProposer&, double, double>(),
+            py::arg("edge_proposer"), py::arg("edge_proposer"),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1 )
         .def("get_beta_prior", &RandomGraphMCMC::getBetaPrior)
         .def("set_beta_prior", &RandomGraphMCMC::setBetaPrior, py::arg("beta_prior"))
@@ -58,38 +61,25 @@ void initMCMCBaseClass(py::module& m){
         .def("get_random_graph", &RandomGraphMCMC::getRandomGraph )
         .def("set_random_graph", &RandomGraphMCMC::setRandomGraph, py::arg("random_graph") )
         .def("get_edge_proposer", &RandomGraphMCMC::getEdgeProposer )
-        .def("set_edge_proposer", &RandomGraphMCMC::setEdgeProposer, py::arg("edge_proposer") )
+        .def("get_block_proposer", &RandomGraphMCMC::getBlockProposer )
         .def("propose_edge_move", &RandomGraphMCMC::proposeEdgeMove )
-        .def("get_log_proposal_prob_ratio", &RandomGraphMCMC::getLogProposalProbRatio, py::arg("move") )
-        .def("update_probabilities", &RandomGraphMCMC::updateProbabilities, py::arg("move") )
-        ;
-
-
-    py::class_<StochasticBlockGraphMCMC, RandomGraphMCMC>(m, "StochasticBlockGraphMCMC")
-        .def(py::init<StochasticBlockModelFamily&, EdgeProposer&, BlockProposer&, double, double, const CallBackList&>(),
-            py::arg("random_graph"), py::arg("edge_proposer"), py::arg("block_proposer"),
-            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") )
-        .def(py::init<double, double, const CallBackList&>(),
-            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("callbacks") )
-        .def(py::init<double, double>(),
-            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1)
-        .def("get_random_graph", &StochasticBlockGraphMCMC::getRandomGraph )
-        .def("set_random_graph", &StochasticBlockGraphMCMC::setRandomGraph, py::arg("random_graph") )
-        .def("get_block_proposer", &StochasticBlockGraphMCMC::getBlockProposer )
-        .def("set_block_proposer", &StochasticBlockGraphMCMC::setBlockProposer, py::arg("block_proposer") )
-        .def("propose_block_move", &StochasticBlockGraphMCMC::proposeBlockMove )
+        .def("get_log_proposal_prob_ratio_from_graph_move", &RandomGraphMCMC::getLogProposalProbRatioFromGraphMove, py::arg("move") )
+        .def("get_log_proposal_prob_ratio_from_block_move", &RandomGraphMCMC::getLogProposalProbRatioFromBlockMove, py::arg("move") )
+        .def("update_probabilities_from_graph_move", &RandomGraphMCMC::updateProbabilitiesFromGraphMove, py::arg("move") )
+        .def("update_probabilities_from_block_move", &RandomGraphMCMC::updateProbabilitiesFromBlockMove, py::arg("move") )
         ;
 
     py::class_<DynamicsMCMC, MCMC>(m, "DynamicsMCMC")
         .def(py::init<Dynamics&, RandomGraphMCMC&, double, double, double, const CallBackList&>(),
             py::arg("dynamics"), py::arg("random_graph_mcmc"),
-            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("sample_graph_prior")=0.5,
-            py::arg("callbacks") )
-        .def(py::init<double, double, double, const CallBackList&>(),
-            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("sample_graph_prior")=0.5,
-            py::arg("callbacks") )
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1,
+            py::arg("sample_graph_prior")=0.5, py::arg("callbacks"))
+        .def(py::init<double, double, double,const CallBackList&>(),
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1,
+            py::arg("sample_graph_prior")=0.5, py::arg("callbacks"))
         .def(py::init<double, double, double>(),
-            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1, py::arg("sample_graph_prior")=0.5)
+            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1,
+            py::arg("sample_graph_prior")=0.5)
         .def("get_beta_prior", &DynamicsMCMC::getBetaPrior)
         .def("set_beta_prior", &DynamicsMCMC::setBetaPrior, py::arg("beta_prior"))
         .def("get_beta_likelihood", &DynamicsMCMC::getBetaLikelihood)

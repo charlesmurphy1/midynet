@@ -15,17 +15,19 @@ namespace FastMIDyNet{
 class RandomGraph{
 protected:
     size_t m_size;
-    MultiGraph m_state;
+    MultiGraph m_graph;
+    virtual void samplePriors() = 0;
+    virtual void computationFinished() const { };
 public:
 
     RandomGraph(size_t size=0):
         m_size(size),
-        m_state(size)
+        m_graph(size)
         { }
 
-    const MultiGraph& getState() const { return m_state; }
-    virtual void setState(const MultiGraph& state) {
-        m_state = state;
+    const MultiGraph& getGraph() const { return m_graph; }
+    virtual void setGraph(const MultiGraph& state) {
+        m_graph = state;
     }
 
     const int getSize() const { return m_size; }
@@ -49,14 +51,13 @@ public:
 
     const MultiGraph& sample() {
         samplePriors();
-        sampleState();
+        sampleGraph();
         #if DEBUG
         checkSelfConsistency();
         #endif
-        return getState();
+        return getGraph();
     };
-    virtual void sampleState() = 0;
-    virtual void samplePriors() = 0;
+    virtual void sampleGraph() = 0;
     virtual double getLogLikelihood() const = 0;
     virtual double getLogPrior() const = 0;
     double getLogJoint() const { return getLogLikelihood() + getLogPrior(); }
@@ -77,7 +78,6 @@ public:
     // void enumerateAllGraphs() const;
     virtual void checkSelfConsistency() const { };
     virtual void checkSafety() const { };
-    virtual void computationFinished() const { };
 
 };
 

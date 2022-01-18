@@ -15,11 +15,11 @@ namespace FastMIDyNet{
 
 class RandomGraphMCMC: public MCMC{
 protected:
-    RandomGraph* m_randomGraphPtr;
-    EdgeProposer* m_edgeProposerPtr;
-    BlockProposer* m_blockProposerPtr;
+    RandomGraph* m_randomGraphPtr = nullptr;
+    EdgeProposer& m_edgeProposer;
+    BlockProposer& m_blockProposer;
     double m_betaLikelihood, m_betaPrior;
-    std::uniform_real_distribution<double> m_uniform;
+    mutable std::uniform_real_distribution<double> m_uniform;
 public:
     RandomGraphMCMC(
         RandomGraph& randomGraph,
@@ -29,20 +29,26 @@ public:
         double betaPrior=1,
         const CallBackList& callBacks={}):
     MCMC(callBacks),
+    m_edgeProposer(edgeProposer),
+    m_blockProposer(blockProposer),
     m_betaLikelihood(betaLikelihood),
     m_betaPrior(betaPrior),
-    m_uniform(0., 1.) { setRandomGraph(randomGraph); setEdgeProposer(edgeProposer); setBlockProposer(blockProposer); }
+    m_uniform(0., 1.) { setRandomGraph(randomGraph); }
 
     RandomGraphMCMC(
+        EdgeProposer& edgeProposer,
+        BlockProposer& blockProposer,
         double betaLikelihood=1,
         double betaPrior=1,
         const CallBackList& callBacks={}):
     MCMC(callBacks),
+    m_edgeProposer(edgeProposer),
+    m_blockProposer(blockProposer),
     m_uniform(0., 1.) {}
 
 
-    const MultiGraph& getGraph() const { return m_randomGraphPtr->getState(); }
-    const BlockSequence& getBlocks() const { return m_randomGraphPtr->getBlocks(); }
+    const MultiGraph& getGraph() const override { return m_randomGraphPtr->getGraph(); }
+    const BlockSequence& getBlocks() const override { return m_randomGraphPtr->getBlocks(); }
     double getBetaPrior() const { return m_betaPrior; }
     void setBetaPrior(double betaPrior) { m_betaPrior = betaPrior; }
 
@@ -52,79 +58,35 @@ public:
     const RandomGraph& getRandomGraph() const { return *m_randomGraphPtr; }
     void setRandomGraph(RandomGraph& randomGraph) { m_randomGraphPtr = &randomGraph; }
 
-    double getLogLikelihood() const { return m_randomGraphPtr->getLogLikelihood(); }
-    double getLogPrior() { return m_randomGraphPtr->getLogPrior(); }
-    double getLogJoint() { return m_randomGraphPtr->getLogJoint(); }
-    void sample() { m_randomGraphPtr->sample(); m_hasState=true; }
-    void sampleGraphOnly() { m_randomGraphPtr->sampleState(); m_hasState=true; }
+    double getLogLikelihood() const override { return m_randomGraphPtr->getLogLikelihood(); }
+    double getLogPrior() const override { return m_randomGraphPtr->getLogPrior(); }
+    double getLogJoint() const override { return m_randomGraphPtr->getLogJoint(); }
+    void sample() override { m_randomGraphPtr->sample(); m_hasState=true; }
+    void sampleGraphOnly() { m_randomGraphPtr->sampleGraph(); m_hasState=true; }
 
-    virtual void setUp() {
-        m_edgeProposerPtr->setUp(*m_randomGraphPtr);
+    void setUp() override {
+        if (m_randomGraphPtr == nullptr)
+            throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_randomGraphPtr` is NULL.");
+        m_edgeProposer.setUp(*m_randomGraphPtr);
+        m_blockProposer.setUp(*m_randomGraphPtr);
         MCMC::setUp();
     }
 
 
-    const EdgeProposer& getEdgeProposer() const { return *m_edgeProposerPtr; }
-    void setEdgeProposer(EdgeProposer& edgeProposer) { m_edgeProposerPtr = &edgeProposer; }
-    GraphMove proposeEdgeMove() const { return m_edgeProposerPtr->proposeMove(); }
+    const EdgeProposer& getEdgeProposer() const { return m_edgeProposer; }
+    GraphMove proposeEdgeMove() const { return m_edgeProposer.proposeMove(); }
+
+    const BlockProposer& getBlockProposer() const { return m_blockProposer; }
 
 
-    const BlockProposer& getBlockProposer() const { return *m_blockProposerPtr; }
-    void setBlockProposer(BlockProposer& blockProposer) { m_blockProposerPtr = &blockProposer; }
+    double getLogProposalProbRatioFromGraphMove(const GraphMove& move) const { return m_edgeProposer.getLogProposalProbRatio(move); }
+    double getLogProposalProbRatioFromBlockMove(const BlockMove& move) const { return m_blockProposer.getLogProposalProbRatio(move); }
+    void updateProbabilitiesFromGraphMove(const GraphMove& move) { m_blockProposer.updateProbabilities(move); m_edgeProposer.updateProbabilities(move); }
+    void updateProbabilitiesFromBlockMove(const BlockMove& move) { m_blockProposer.updateProbabilities(move); m_edgeProposer.updateProbabilities(move); }
 
-    double getLogProposalProbRatio(const GraphMove& move) const { return m_edgeProposerPtr->getLogProposalProbRatio(move); }
-    void updateProbabilities(const GraphMove& move) { m_edgeProposerPtr->updateProbabilities(move); }
-    double getLogProposalProbRatio(const BlockMove& move) const { return m_blockProposerPtr->getLogProposalProbRatio(move); }
-    void updateProbabilities(const BlockMove& move) { m_blockProposerPtr->updateProbabilities(move); }
-
-
-    void doMetropolisHastingsStep();
-
-
+    void doMetropolisHastingsStep() override ;
 
 };
-//
-// class StochasticBlockGraphMCMC: public RandomGraphMCMC{
-// private:
-//     BlockProposer* m_blockProposerPtr;
-//     StochasticBlockModelFamily* m_sbmGraphPtr;
-// public:
-//
-//     StochasticBlockGraphMCMC(
-//         StochasticBlockModelFamily& sbmGraph,
-//         EdgeProposer& edgeProposer,
-//         BlockProposer& blockProposer,
-//         double betaLikelihood=1,
-//         double betaPrior=1,
-//         const CallBackList& callBacks={}):
-//     RandomGraphMCMC(sbmGraph, edgeProposer, betaLikelihood, betaPrior, callBacks),
-//     m_blockProposerPtr(&blockProposer){ setRandomGraph(sbmGraph); }
-//
-//     StochasticBlockGraphMCMC(
-//         double betaLikelihood=1,
-//         double betaPrior=1,
-//         const CallBackList& callBacks={}):
-//     RandomGraphMCMC(betaLikelihood, betaPrior, callBacks){}
-//
-//     void setUp(){
-//         m_blockProposerPtr->setUp(*m_sbmGraphPtr);
-//         RandomGraphMCMC::setUp();
-//     };
-//
-//     const BlockSequence& getBlocks() { return m_sbmGraphPtr->getBlocks(); }
-//     const StochasticBlockModelFamily& getRandomGraph() const { return *m_sbmGraphPtr; }
-//     void setRandomGraph(StochasticBlockModelFamily& randomGraph) {
-//         RandomGraphMCMC::setRandomGraph(randomGraph); m_sbmGraphPtr = &randomGraph;
-//     }
-//
-//     const BlockProposer& getBlockProposer() const { return *m_blockProposerPtr; }
-//     void setBlockProposer(BlockProposer& blockProposer) { m_blockProposerPtr = &blockProposer; }
-//     BlockMove proposeBlockMove() const { return m_blockProposerPtr->proposeMove(); }
-//
-//
-//     void doMetropolisHastingsStep();
-//
-// };
 
 }
 

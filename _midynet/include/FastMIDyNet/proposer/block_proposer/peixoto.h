@@ -4,16 +4,16 @@
 
 #include "SamplableSet.hpp"
 
+#include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/proposer/block_proposer/block_proposer.h"
-#include "FastMIDyNet/random_graph/sbm.h"
-
+#include "FastMIDyNet/random_graph/random_graph.h"
 
 namespace FastMIDyNet {
 
 
-class PeixotoBlockProposer: public BlockProposer {
+class BlockPeixotoProposer: public BlockProposer {
     const BlockSequence* m_blocksPtr = NULL;
     const std::vector<size_t>* m_vertexCountsPtr = NULL;
     const size_t* m_blockCountPtr = NULL;
@@ -28,7 +28,7 @@ class PeixotoBlockProposer: public BlockProposer {
 
 
     public:
-        PeixotoBlockProposer(double createNewBlockProbability=0.1, double shift=1):
+        BlockPeixotoProposer(double createNewBlockProbability=0.1, double shift=1):
             m_createNewBlockDistribution(createNewBlockProbability),
             m_blockCreationProbability(createNewBlockProbability),
             m_shift(shift) {
@@ -47,17 +47,17 @@ class PeixotoBlockProposer: public BlockProposer {
         };
         void checkSafety() const override {
             if (m_blocksPtr == nullptr)
-                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_blocksPtr` is NULL.");
+                throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_blocksPtr` is NULL.");
             if (m_vertexCountsPtr == nullptr)
-                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_vertexCountsPtr` is NULL.");
+                throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_vertexCountsPtr` is NULL.");
             if (m_blockCountPtr == nullptr)
-                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_blockCountPtr` is NULL.");
+                throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_blockCountPtr` is NULL.");
             if (m_edgeMatrixPtr == nullptr)
-                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_edgeMatrixPtr` is NULL.");
+                throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_edgeMatrixPtr` is NULL.");
             if (m_edgeCountsPtr == nullptr)
-                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_edgeCountsPtr` is NULL.");
+                throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_edgeCountsPtr` is NULL.");
             if (m_graphPtr == nullptr)
-                throw SafetyError("PeixotoBlockProposer: unsafe proposer since `m_graphPtr` is NULL.");
+                throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_graphPtr` is NULL.");
         }
     private:
         IntMap<std::pair<BlockIndex, BlockIndex>> getEdgeMatrixDiff(const BlockMove& move) const ;

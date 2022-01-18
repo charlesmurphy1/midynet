@@ -17,7 +17,7 @@ void DynamicsMCMC::doMetropolisHastingsStep() {
         GraphMove move = m_randomGraphMCMCPtr->proposeEdgeMove();
         double logLikelihoodRatio = m_dynamicsPtr->getLogLikelihoodRatioFromGraphMove(move);
         double logPriorRatio = m_dynamicsPtr->getLogPriorRatioFromGraphMove(move);
-        double LogProposalProbRatio = m_randomGraphMCMCPtr->getLogProposalProbRatio(move);
+        double LogProposalProbRatio = m_randomGraphMCMCPtr->getLogProposalProbRatioFromGraphMove(move);
 
         m_lastLogJointRatio = m_betaLikelihood * logLikelihoodRatio + m_betaPrior * logPriorRatio;
         m_lastLogAcceptance = LogProposalProbRatio + m_lastLogJointRatio;
@@ -26,7 +26,7 @@ void DynamicsMCMC::doMetropolisHastingsStep() {
         if (m_uniform(rng) < exp(m_lastLogAcceptance)){
             m_isLastAccepted = true;
             m_dynamicsPtr->applyGraphMove(move);
-            m_randomGraphMCMCPtr->updateProbabilities(move);
+            m_randomGraphMCMCPtr->updateProbabilitiesFromGraphMove(move);
         }
     }
 

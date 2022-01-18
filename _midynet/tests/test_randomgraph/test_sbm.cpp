@@ -26,7 +26,7 @@ class TestStochasticBlockModelFamily: public::testing::Test{
         EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
 
         BaseGraph::Edge findEdge(){
-            const auto& graph = randomGraph.getState();
+            const auto& graph = randomGraph.getGraph();
             BaseGraph::Edge edge;
             BaseGraph::VertexIndex neighborIdx;
             for ( auto idx: graph ){
@@ -61,18 +61,18 @@ class TestStochasticBlockModelFamily: public::testing::Test{
 
 TEST_F(TestStochasticBlockModelFamily, sampleState_graphChanges){
     for (size_t i = 0; i < 10; i++) {
-        auto prevGraph = randomGraph.getState();
-        randomGraph.sampleState();
-        auto nextGraph = randomGraph.getState();
+        auto prevGraph = randomGraph.getGraph();
+        randomGraph.sampleGraph();
+        auto nextGraph = randomGraph.getGraph();
         EXPECT_FALSE(prevGraph == nextGraph);
     }
 }
 
 TEST_F(TestStochasticBlockModelFamily, sample_graphChanges){
     for (size_t i = 0; i < 10; i++) {
-        auto prevGraph = randomGraph.getState();
+        auto prevGraph = randomGraph.getGraph();
         randomGraph.sample();
-        auto nextGraph = randomGraph.getState();
+        auto nextGraph = randomGraph.getGraph();
         EXPECT_FALSE(prevGraph == nextGraph);
     }
 }
@@ -83,40 +83,40 @@ TEST_F(TestStochasticBlockModelFamily, getLogLikelihood_returnNonZeroValue){
 
 TEST_F(TestStochasticBlockModelFamily, applyMove_forAddedEdge){
     BaseGraph::Edge addedEdge = {0, 2};
-    size_t addedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
+    size_t addedEdgeMultBefore = randomGraph.getGraph().getEdgeMultiplicityIdx(addedEdge);
     FastMIDyNet::GraphMove move = {{}, {addedEdge}};
     randomGraph.applyGraphMove(move);
-    size_t addedEdgeMultAfter = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
+    size_t addedEdgeMultAfter = randomGraph.getGraph().getEdgeMultiplicityIdx(addedEdge);
     EXPECT_EQ(addedEdgeMultAfter - 1, addedEdgeMultBefore);
 }
 
 TEST_F(TestStochasticBlockModelFamily, applyMove_forAddedSelfLoop){
     BaseGraph::Edge addedEdge = {0, 0};
-    size_t addedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
+    size_t addedEdgeMultBefore = randomGraph.getGraph().getEdgeMultiplicityIdx(addedEdge);
     FastMIDyNet::GraphMove move = {{}, {addedEdge}};
     randomGraph.applyGraphMove(move);
-    size_t addedEdgeMultAfter = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
+    size_t addedEdgeMultAfter = randomGraph.getGraph().getEdgeMultiplicityIdx(addedEdge);
     EXPECT_EQ(addedEdgeMultAfter - 1, addedEdgeMultBefore);
 }
 
 TEST_F(TestStochasticBlockModelFamily, applyMove_forRemovedEdge){
     BaseGraph::Edge removedEdge = findEdge();
-    size_t removedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
+    size_t removedEdgeMultBefore = randomGraph.getGraph().getEdgeMultiplicityIdx(removedEdge);
     FastMIDyNet::GraphMove move = {{removedEdge}, {}};
     randomGraph.applyGraphMove(move);
-    size_t removedEdgeMultAfter = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
+    size_t removedEdgeMultAfter = randomGraph.getGraph().getEdgeMultiplicityIdx(removedEdge);
     EXPECT_EQ(removedEdgeMultAfter + 1, removedEdgeMultBefore);
 }
 
 TEST_F(TestStochasticBlockModelFamily, applyMove_forRemovedEdgeAndAddedEdge){
     BaseGraph::Edge addedEdge = {0, 2};
     BaseGraph::Edge removedEdge = findEdge();
-    size_t removedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
-    size_t addedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
+    size_t removedEdgeMultBefore = randomGraph.getGraph().getEdgeMultiplicityIdx(removedEdge);
+    size_t addedEdgeMultBefore = randomGraph.getGraph().getEdgeMultiplicityIdx(addedEdge);
     FastMIDyNet::GraphMove move = {{removedEdge}, {addedEdge}};
     randomGraph.applyGraphMove(move);
-    size_t removedEdgeMultAfter = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
-    size_t addedEdgeMultAfter = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
+    size_t removedEdgeMultAfter = randomGraph.getGraph().getEdgeMultiplicityIdx(removedEdge);
+    size_t addedEdgeMultAfter = randomGraph.getGraph().getEdgeMultiplicityIdx(addedEdge);
     EXPECT_EQ(removedEdgeMultAfter + 1, removedEdgeMultBefore);
     EXPECT_EQ(addedEdgeMultAfter - 1, addedEdgeMultBefore);
 

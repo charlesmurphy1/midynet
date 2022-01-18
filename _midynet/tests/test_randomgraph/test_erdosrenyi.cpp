@@ -32,7 +32,7 @@ TEST_F(TestErdosRenyiFamily, randomGraph_hasCorrectBlockSequence){
 
 TEST_F(TestErdosRenyiFamily, sample_getGraphWithCorrectNumberOfEdges){
     randomGraph.sample();
-    EXPECT_EQ(randomGraph.getState().getTotalEdgeNumber(), randomGraph.getEdgeCount());
+    EXPECT_EQ(randomGraph.getGraph().getTotalEdgeNumber(), randomGraph.getEdgeCount());
 }
 
 TEST_F(TestErdosRenyiFamily, getLogLikelihoodRatioFromBlockMove_returnMinusInfinity){

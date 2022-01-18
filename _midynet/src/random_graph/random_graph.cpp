@@ -17,12 +17,12 @@ namespace FastMIDyNet {
 void RandomGraph::applyGraphMove(const GraphMove& move){
     for (auto edge: move.addedEdges){
         auto v = edge.first, u = edge.second;
-        m_state.addEdgeIdx(v, u);
+        m_graph.addEdgeIdx(v, u);
     }
     for (auto edge: move.removedEdges){
         auto v = edge.first, u = edge.second;
-        if ( m_state.isEdgeIdx(u, v) )
-            m_state.removeEdgeIdx(v, u);
+        if ( m_graph.isEdgeIdx(u, v) )
+            m_graph.removeEdgeIdx(v, u);
         else
             throw std::logic_error("Cannot remove non-existing edge (" + to_string(u) + ", " + to_string(v) + ").");
     }
@@ -36,7 +36,7 @@ size_t RandomGraph::computeBlockCount() const {
 std::vector<size_t> RandomGraph::computeVertexCountsInBlocks() const {
     auto blocks = getBlocks();
     std::vector<size_t> vertexCounts(getBlockCount(), 0);
-    for (auto idx : m_state){
+    for (auto idx : m_graph){
         ++vertexCounts[blocks[idx]];
     }
     return vertexCounts;
@@ -46,8 +46,8 @@ Matrix<size_t> RandomGraph::computeEdgeMatrix() const {
     auto blocks = getBlocks();
     auto blockCount = getBlockCount();
     Matrix<size_t> edgeMatrix(blockCount, {blockCount, 0});
-    for (auto idx: m_state){
-        for(auto neighbor : m_state.getNeighboursOfIdx(idx)){
+    for (auto idx: m_graph){
+        for(auto neighbor : m_graph.getNeighboursOfIdx(idx)){
             size_t edgeMult = neighbor.label;
             if (idx == neighbor.vertexIndex)
                 edgeMult *= 2;
@@ -76,8 +76,8 @@ std::vector<CounterMap<size_t>> RandomGraph::computeDegreeCountsInBlocks() const
     auto edgeMatrix = getEdgeMatrix();
     std::vector<CounterMap<size_t>> degreeCounts(blockCount);
 
-    for(size_t idx: m_state){
-        size_t degree = m_state.getDegreeOfIdx(idx);
+    for(size_t idx: m_graph){
+        size_t degree = m_graph.getDegreeOfIdx(idx);
         BlockIndex block = blocks[idx];
         degreeCounts[block].increment(degree);
     }

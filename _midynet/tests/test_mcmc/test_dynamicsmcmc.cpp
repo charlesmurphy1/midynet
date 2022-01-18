@@ -20,7 +20,7 @@ class TestDynamicsMCMC: public::testing::Test{
 public:
     DummyRandomGraph randomGraph = DummyRandomGraph(10);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    UniformBlockProposer blockProposer = UniformBlockProposer();
+    BlockUniformProposer blockProposer = BlockUniformProposer();
     RandomGraphMCMC graphmcmc = RandomGraphMCMC(randomGraph, edgeProposer, blockProposer);
     SISDynamics dynamics = SISDynamics(randomGraph, NUM_STEPS, 0.5);
     DynamicsMCMC mcmc = DynamicsMCMC(dynamics, graphmcmc, 1., 1., 0.);

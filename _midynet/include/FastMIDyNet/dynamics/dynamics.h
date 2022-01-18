@@ -31,10 +31,12 @@ class Dynamics{
         const State& getState() const { return m_state; }
         const StateSequence& getPastStates() const { return m_pastStateSequence; }
         const StateSequence& getFutureStates() const { return m_futureStateSequence; }
-        void setState(State& state) {m_state = state; }
-        const MultiGraph& getGraph() const { return m_randomGraphPtr->getState(); }
+        void setState(State& state) {
+            m_state = state;
+        }
+        const MultiGraph& getGraph() const { return m_randomGraphPtr->getGraph(); }
         void setGraph(const MultiGraph& graph) {
-            m_randomGraphPtr->setState(graph);
+            m_randomGraphPtr->setGraph(graph);
             for (size_t t = 0 ; t < m_pastStateSequence.size() ; t++){
                 m_neighborsStateSequence[t] = getNeighborsState(m_pastStateSequence[t]);
             }

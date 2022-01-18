@@ -23,7 +23,7 @@ public:
         double betaLikelihood=1,
         double betaPrior=1,
         double sampleGraphPriorProb=0.5,
-        const CallBackList& callBacks={}):
+        const CallBackList& callBacks={} ):
     MCMC(callBacks),
     m_dynamicsPtr(&dynamics),
     m_randomGraphMCMCPtr(&randomGraphMCMC),
@@ -41,14 +41,14 @@ public:
     m_sampleGraphPriorProb(sampleGraphPriorProb),
     m_uniform(0., 1.) {}
 
-    void setUp(){
+    void setUp() override {
         m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
         m_randomGraphMCMCPtr->setUp();
         MCMC::setUp();
     };
 
-    const MultiGraph& getGraph() const { return m_randomGraphMCMCPtr->getGraph(); }
-    const BlockSequence& getBlocks() const { return m_randomGraphMCMCPtr->getBlocks(); }
+    const MultiGraph& getGraph() const override { return m_randomGraphMCMCPtr->getGraph(); }
+    const BlockSequence& getBlocks() const override { return m_randomGraphMCMCPtr->getBlocks(); }
     const int getSize() const { return m_dynamicsPtr->getSize(); }
 
     double getBetaPrior() const { return m_betaPrior; }
@@ -74,10 +74,10 @@ public:
             m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
     }
 
-    virtual double getLogLikelihood() const { return m_dynamicsPtr->getLogLikelihood(); }
-    virtual double getLogPrior() { return m_dynamicsPtr->getLogPrior(); }
-    virtual double getLogJoint() { return m_dynamicsPtr->getLogJoint(); }
-    void sample() {
+    double getLogLikelihood() const override { return m_dynamicsPtr->getLogLikelihood(); }
+    double getLogPrior() const override { return m_dynamicsPtr->getLogPrior(); }
+    double getLogJoint() const override { return m_dynamicsPtr->getLogJoint(); }
+    void sample() override {
         m_dynamicsPtr->sample();
         m_hasState=true;
     }
@@ -90,10 +90,9 @@ public:
     }
     void sampleGraphOnly() {
         m_randomGraphMCMCPtr->sampleGraphOnly();
-        m_dynamicsPtr->setGraph(m_randomGraphMCMCPtr->getGraph());
     }
 
-    void doMetropolisHastingsStep();
+    void doMetropolisHastingsStep() override ;
 };
 
 }

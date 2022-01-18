@@ -24,7 +24,7 @@ class TestRandomGraphBaseClass: public::testing::Test{
 
 
         void SetUp() {
-            randomGraph.setState(graph);
+            randomGraph.setGraph(graph);
         }
 };
 
@@ -32,21 +32,21 @@ class TestRandomGraphBaseClass: public::testing::Test{
 // void enumerateAllGraphs() const;
 
 TEST_F(TestRandomGraphBaseClass, getState_returnHouseMultigraphGraph){
-    MultiGraph graph = randomGraph.getState();
+    MultiGraph graph = randomGraph.getGraph();
     EXPECT_EQ(graph.getSize(), NUM_VERTICES);
     EXPECT_EQ(graph.getTotalEdgeNumber(), 10);
 }
 
-TEST_F(TestRandomGraphBaseClass, setState_differentFromHouseGraph){
-    MultiGraph graph = randomGraph.getState();
+TEST_F(TestRandomGraphBaseClass, setGraph_differentFromHouseGraph){
+    MultiGraph graph = randomGraph.getGraph();
     graph.addEdgeIdx(0, 0);
-    randomGraph.setState(graph);
+    randomGraph.setGraph(graph);
     EXPECT_EQ(graph.getSize(), NUM_VERTICES);
     EXPECT_EQ(graph.getTotalEdgeNumber(), 11);
 }
 
 TEST_F(TestRandomGraphBaseClass, getSize_returnCorrectGraphSize){
-    MultiGraph graph = randomGraph.getState();
+    MultiGraph graph = randomGraph.getGraph();
     EXPECT_EQ(graph.getSize(), randomGraph.getSize());
     EXPECT_EQ(NUM_VERTICES, randomGraph.getSize());
 }
@@ -57,8 +57,8 @@ TEST_F(TestRandomGraphBaseClass, getLogJoint_return0){
 
 TEST_F(TestRandomGraphBaseClass, applyMove_forSomeGraphMove){
     randomGraph.applyGraphMove(GRAPH_MOVE);
-    EXPECT_FALSE( randomGraph.getState().isEdgeIdx(GRAPH_MOVE.removedEdges[0]) );
-    EXPECT_TRUE( randomGraph.getState().isEdgeIdx(GRAPH_MOVE.addedEdges[0]) );
+    EXPECT_FALSE( randomGraph.getGraph().isEdgeIdx(GRAPH_MOVE.removedEdges[0]) );
+    EXPECT_TRUE( randomGraph.getGraph().isEdgeIdx(GRAPH_MOVE.addedEdges[0]) );
 }
 
 TEST_F(TestRandomGraphBaseClass, applyMove_forNonExistingEdgeRemoved_throwLogicError){

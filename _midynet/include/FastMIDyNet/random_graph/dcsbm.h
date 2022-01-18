@@ -19,6 +19,12 @@ namespace FastMIDyNet{
 class DegreeCorrectedStochasticBlockModelFamily: public StochasticBlockModelFamily{
 protected:
     DegreePrior* m_degreePriorPtr = nullptr;
+    void samplePriors () override;
+    void computationFinished() const override{
+        m_blockPriorPtr->computationFinished();
+        m_edgeMatrixPriorPtr->computationFinished();
+        m_degreePriorPtr->computationFinished();
+    }
 public:
     DegreeCorrectedStochasticBlockModelFamily(size_t graphSize):
         StochasticBlockModelFamily(graphSize) { }
@@ -27,10 +33,9 @@ public:
             setDegreePrior(degreePrior);
         }
 
-    void sampleState () override;
-    void samplePriors () override;
+    void sampleGraph () override;
 
-    void setState(const MultiGraph& state) override { m_state = state; m_degreePriorPtr->setGraph(m_state); }
+    void setGraph(const MultiGraph& graph) override { m_graph = graph; m_degreePriorPtr->setGraph(m_graph); }
 
     const DegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
     DegreePrior& getDegreePriorRef() const { return *m_degreePriorPtr; }
@@ -73,11 +78,7 @@ public:
     void applyGraphMove (const GraphMove&) override;
     void applyBlockMove (const BlockMove&) override;
 
-    void computationFinished() const override{
-        m_blockPriorPtr->computationFinished();
-        m_edgeMatrixPriorPtr->computationFinished();
-        m_degreePriorPtr->computationFinished();
-    }
+
 
     static DegreeSequence getDegreesFromGraph(const MultiGraph&) ;
     static void checkGraphConsistencyWithDegreeSequence(const MultiGraph&, const DegreeSequence&) ;

@@ -22,11 +22,11 @@ void DegreeCorrectedStochasticBlockModelFamily::samplePriors(){
     computationFinished();
 };
 
-void DegreeCorrectedStochasticBlockModelFamily::sampleState(){
+void DegreeCorrectedStochasticBlockModelFamily::sampleGraph(){
     const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const DegreeSequence& degreeSeq = getDegrees();
-    setState( generateDCSBM(blockSeq, edgeMat, degreeSeq) );
+    setGraph( generateDCSBM(blockSeq, edgeMat, degreeSeq) );
 }
 
 double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{
@@ -44,7 +44,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{
     }
 
     const DegreeSequence& degreeSeq = getDegrees();
-    const MultiGraph& graph = getState();
+    const MultiGraph& graph = getGraph();
     size_t neighborIdx, edgeMult;
     for (auto idx : graph){
         logLikelihood += logFactorial(degreeSeq[idx]);
@@ -124,7 +124,7 @@ double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (
 
     for (auto diff : diffAdjMatMap){
         auto u = diff.first.first, v = diff.first.second;
-        auto edgeMult = m_state.getEdgeMultiplicityIdx(u, v);
+        auto edgeMult = m_graph.getEdgeMultiplicityIdx(u, v);
         if (u == v){
             logLikelihoodRatioTerm -= logDoubleFactorial(2 * (edgeMult + diff.second)) - logDoubleFactorial(2 * edgeMult);
         }
@@ -242,8 +242,8 @@ void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency() const{
     m_edgeMatrixPriorPtr->checkSelfConsistency();
     m_degreePriorPtr->checkSelfConsistency();
 
-    checkGraphConsistencyWithEdgeMatrix(m_state, getBlocks(), getEdgeMatrix());
-    checkGraphConsistencyWithDegreeSequence(m_state, getDegrees());
+    checkGraphConsistencyWithEdgeMatrix(m_graph, getBlocks(), getEdgeMatrix());
+    checkGraphConsistencyWithDegreeSequence(m_graph, getDegrees());
 }
 
 void DegreeCorrectedStochasticBlockModelFamily::checkSafety()const{

@@ -16,20 +16,26 @@ static inline double sigmoid(double x) {
 class TestIsingGlauber: public::testing::Test{
 public:
     FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7);
-    FastMIDyNet::IsingGlauberDynamics dynamics = FastMIDyNet::IsingGlauberDynamics(graph, COUPLING_CONSTANT, NUM_STEPS);
+    FastMIDyNet::IsingGlauberDynamics dynamics = FastMIDyNet::IsingGlauberDynamics(graph, NUM_STEPS, COUPLING_CONSTANT);
 };
 
 
 TEST_F(TestIsingGlauber, getActivationProb_forEachStateTransition_returnCorrectProbability) {
-    for (auto neighborState: NEIGHBOR_STATES)
-    EXPECT_EQ(sigmoid(2*COUPLING_CONSTANT*(neighborState[0]-neighborState[1])),
-    dynamics.getActivationProb(neighborState));
+    for (auto neighborState: NEIGHBOR_STATES){
+        EXPECT_EQ(
+            sigmoid( 2 * COUPLING_CONSTANT * (neighborState[0]-neighborState[1]) ),
+            dynamics.getActivationProb(neighborState)
+        );
+    }
 }
 
 TEST_F(TestIsingGlauber, getDeactivationProb_forEachStateTransition_returnCorrectProbability) {
-    for (auto neighborState: NEIGHBOR_STATES)
-    EXPECT_EQ(sigmoid(-2*COUPLING_CONSTANT*(neighborState[0]-neighborState[1])),
-    dynamics.getDeactivationProb(neighborState));
+    for (auto neighborState: NEIGHBOR_STATES){
+        EXPECT_EQ(sigmoid(
+            -2*COUPLING_CONSTANT*(neighborState[0]-neighborState[1])),
+            dynamics.getDeactivationProb(neighborState)
+        );
+    }
 }
 
 }

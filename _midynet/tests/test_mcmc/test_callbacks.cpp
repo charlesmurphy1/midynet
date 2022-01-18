@@ -14,7 +14,7 @@ namespace FastMIDyNet{
     public:\
         DummyRandomGraph g = DummyRandomGraph(10);\
         HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();\
-        UniformBlockProposer blockProposer = UniformBlockProposer();\
+        BlockUniformProposer blockProposer = BlockUniformProposer();\
         RandomGraphMCMC mcmc = RandomGraphMCMC(g, edgeProposer, blockProposer);\
         TESTED_CALL_CLASS callback = TESTED_CALL_CLASS();\
         void SetUp(){\

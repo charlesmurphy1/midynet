@@ -17,8 +17,8 @@ py::class_<Proposer<MoveType>, PyProposer<MoveType>> declareProposerBaseClass(py
     return py::class_<Proposer<MoveType>, PyProposer<MoveType>>(m, pyName.c_str())
         .def(py::init<>())
         .def("propose_move", &Proposer<MoveType>::proposeMove)
-        .def("get_log_proposal_ratio", &Proposer<MoveType>::getLogProposalProbRatio, py::arg("move"))
-        .def("update", &Proposer<MoveType>::updateProbabilities, py::arg("move")) ;
+        .def("check_consistency", &Proposer<MoveType>::checkConsistency)
+        .def("check_safety", &Proposer<MoveType>::checkSafety);
 }
 
 void initProposerBaseClass(py::module& m){

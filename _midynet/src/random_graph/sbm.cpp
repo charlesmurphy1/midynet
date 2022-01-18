@@ -18,11 +18,11 @@ using namespace std;
 using namespace FastMIDyNet;
 using namespace BaseGraph;
 
-void StochasticBlockModelFamily::sampleState(){
+void StochasticBlockModelFamily::sampleGraph(){
     const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     MultiGraph graph = generateSBM(blockSeq, edgeMat);
-    setState(graph);
+    setGraph(graph);
 }
 
 void StochasticBlockModelFamily::samplePriors(){
@@ -47,7 +47,7 @@ double StochasticBlockModelFamily::getLogLikelihood() const{
         }
     }
 
-    const MultiGraph& graph = getState();
+    const MultiGraph& graph = getGraph();
     size_t neighborIdx, edgeMult;
     for (auto idx : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
@@ -133,7 +133,7 @@ double StochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (const GraphMove
 
     for (auto diff : diffAdjMatMap){
         auto u = diff.first.first, v = diff.first.second;
-        auto edgeMult = m_state.getEdgeMultiplicityIdx(u, v);
+        auto edgeMult = m_graph.getEdgeMultiplicityIdx(u, v);
         if (u == v){
             logLikelihoodRatioTerm -= logDoubleFactorial(2 * edgeMult + 2 * diff.second) - logDoubleFactorial(2 * edgeMult);
         }
@@ -152,7 +152,7 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove(
     const BlockMove& move, IntMap<pair<BlockIndex, BlockIndex>>& diffEdgeMatMap
 ) const {
     const BlockSequence& blockSeq = getBlocks();
-    for (auto neighbor : m_state.getNeighboursOfIdx(move.vertexIdx)){
+    for (auto neighbor : m_graph.getNeighboursOfIdx(move.vertexIdx)){
         BlockIndex blockIdx = blockSeq[neighbor.vertexIndex];
         size_t edgeMult = neighbor.label;
         pair<BlockIndex, BlockIndex> orderedBlockPair = getOrderedPair<BlockIndex> ({move.prevBlockIdx, blockIdx});
@@ -298,7 +298,7 @@ void StochasticBlockModelFamily::checkSelfConsistency() const{
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeMatrixPriorPtr->checkSelfConsistency();
 
-    checkGraphConsistencyWithEdgeMatrix(m_state, getBlocks(), getEdgeMatrix());
+    checkGraphConsistencyWithEdgeMatrix(m_graph, getBlocks(), getEdgeMatrix());
 }
 
 void StochasticBlockModelFamily::checkSafety()const{

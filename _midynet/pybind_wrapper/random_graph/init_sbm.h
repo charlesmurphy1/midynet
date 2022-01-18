@@ -21,22 +21,7 @@ void initStochasticBlockModelFamily(py::module& m){
         .def("get_block_of_idx", &StochasticBlockModelFamily::getBlockOfIdx,
             py::arg("idx"))
         .def("set_block_prior", &StochasticBlockModelFamily::setBlockPrior)
-        .def("set_edge_matrix_prior", &StochasticBlockModelFamily::setEdgeMatrixPrior)
-        .def("get_blocks", &StochasticBlockModelFamily::getBlocks)
-        .def("get_block_count", &StochasticBlockModelFamily::getBlockCount)
-        .def("get_vertex_count_in_blocks", &StochasticBlockModelFamily::getVertexCountsInBlocks)
-        .def("get_edge_count", &StochasticBlockModelFamily::getEdgeCount)
-        .def("get_edge_count_in_blocks", &StochasticBlockModelFamily::getEdgeCountsInBlocks)
-        .def("get_edge_matrix", &StochasticBlockModelFamily::getEdgeMatrix)
-        .def("get_log_likehood_ratio", py::overload_cast<const BlockMove&>(&StochasticBlockModelFamily::getLogLikelihoodRatio),
-            py::arg("move"))
-        .def("get_log_prior_ratio", py::overload_cast<const BlockMove&>(&StochasticBlockModelFamily::getLogPriorRatio),
-            py::arg("move"))
-        .def("get_log_joint_ratio", py::overload_cast<const BlockMove&>(&StochasticBlockModelFamily::getLogJointRatio),
-            py::arg("move"))
-        .def("apply_move", py::overload_cast<const BlockMove&>(&StochasticBlockModelFamily::applyMove),
-            py::arg("move"))
-        ;
+        .def("set_edge_matrix_prior", &StochasticBlockModelFamily::setEdgeMatrixPrior);
 }
 
 void initErdosRenyiFamily(py::module& m){

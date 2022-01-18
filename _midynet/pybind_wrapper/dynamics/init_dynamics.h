@@ -52,13 +52,13 @@ void initDynamicsBaseClass(py::module& m){
             py::arg("neighbor_state"))
         .def("get_transition_probs", &Dynamics::getTransitionProbs,
             py::arg("prev_vertex_state"), py::arg("neighbor_state"))
-        .def("get_log_likelihood_ratio", &Dynamics::getLogLikelihoodRatio,
+        .def("get_log_likelihood_ratio_from_graph_move", &Dynamics::getLogLikelihoodRatioFromGraphMove,
             py::arg("move"))
-        .def("get_log_prior_ratio", &Dynamics::getLogPriorRatio,
+        .def("get_log_prior_ratio_from_graph_move", &Dynamics::getLogPriorRatioFromGraphMove,
             py::arg("move"))
-        .def("get_log_joint_ratio", &Dynamics::getLogJointRatio,
+        .def("get_log_joint_ratio_from_graph_move", &Dynamics::getLogJointRatioFromGraphMove,
             py::arg("move"))
-        .def("apply_move", &Dynamics::applyMove,
+        .def("apply_graph_move", &Dynamics::applyGraphMove,
             py::arg("move"))
         ;
 }

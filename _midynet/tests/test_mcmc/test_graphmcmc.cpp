@@ -17,7 +17,7 @@ public:
 
     DummyRandomGraph randomGraph = DummyRandomGraph(10);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    UniformBlockProposer blockProposer = UniformBlockProposer();
+    BlockUniformProposer blockProposer = BlockUniformProposer();
     RandomGraphMCMC mcmc = RandomGraphMCMC(randomGraph, edgeProposer, blockProposer);
     void SetUp(){
         seed(time(NULL));
