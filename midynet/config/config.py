@@ -354,16 +354,33 @@ class Config:
         """
         Returns a shallow copy of the configuration.
         """
-        return self.__class__(**self.dict_copy(recursively=False))
+        config_copy = self.__class__()
+        for k, v in self.dict_copy(recursively=False).items():
+            config_copy.insert(
+                k,
+                v.value,
+                unique=v.unique,
+                with_repetition=v.with_repetition,
+                force_non_sequence=v.force_non_sequence,
+                sort_sequence=v.sort_sequence,
+            )
+        return config_copy
 
     def deepcopy(self) -> Config:
         """
         Returns a deep copy of the configuration.
         """
-        params = {
-            k: copy.deepcopy(v) for k, v in self.dict_copy(recursively=False).items()
-        }
-        return self.__class__(**params)
+        config_copy = self.__class__()
+        for k, v in self.dict_copy(recursively=False).items():
+            config_copy.insert(
+                k,
+                copy.deepcopy(v.value),
+                unique=v.unique,
+                with_repetition=v.with_repetition,
+                force_non_sequence=v.force_non_sequence,
+                sort_sequence=v.sort_sequence,
+            )
+        return config_copy
 
     # Formating methods
 
@@ -525,6 +542,14 @@ class Config:
                 config = self.copy()
                 for k, v in zip(keys_to_scan, values):
                     config.set_value(k, v)
+                    config.get_param(k).unique = self.get_param(k).unique
+                    config.get_param(k).with_repetition = self.get_param(
+                        k
+                    ).with_repetition
+                    config.get_param(k).force_non_sequence = self.get_param(
+                        k
+                    ).force_non_sequence
+                    config.get_param(k).sort_sequence = self.get_param(k).sort_sequence
                 if config.is_sequenced():
                     for c in config.__generate_sequence__():
                         name = self.subname(c)

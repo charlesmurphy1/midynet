@@ -29,6 +29,7 @@ bool HingeFlipProposer::setAcceptIsolated(bool accept){
 }
 
 void HingeFlipProposer::setUp(const MultiGraph& graph){
+    m_edgeSamplableSet.clear();
     m_vertexSamplerPtr->setUp(graph);
     for (auto vertex: graph) {
         for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {

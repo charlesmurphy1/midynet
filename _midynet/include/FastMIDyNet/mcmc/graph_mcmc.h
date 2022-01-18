@@ -65,11 +65,15 @@ public:
     void sampleGraphOnly() { m_randomGraphPtr->sampleGraph(); m_hasState=true; }
 
     void setUp() override {
+        setUpProposers();
+        MCMC::setUp();
+    }
+
+    void setUpProposers() {
         if (m_randomGraphPtr == nullptr)
             throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_randomGraphPtr` is NULL.");
         m_edgeProposer.setUp(*m_randomGraphPtr);
         m_blockProposer.setUp(*m_randomGraphPtr);
-        MCMC::setUp();
     }
 
 

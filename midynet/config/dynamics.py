@@ -19,12 +19,14 @@ class DynamicsConfig(Config):
         num_steps: int = 100,
         infection_prob: float = 0.5,
         recovery_prob: float = 0.5,
+        auto_infection_prob: float = 1e-6,
     ):
         return cls(
             name="sis",
             num_steps=num_steps,
             infection_prob=infection_prob,
             recovery_prob=recovery_prob,
+            auto_infection_prob=auto_infection_prob,
         )
 
     @classmethod
@@ -58,7 +60,10 @@ class DynamicsFactory(Factory):
     @staticmethod
     def build_sis(config: DynamicsConfig):
         return dynamics.SISDynamics(
-            config.num_steps, config.infection_prob, config.recovery_prob
+            config.num_steps,
+            config.infection_prob,
+            config.recovery_prob,
+            config.auto_infection_prob,
         )
 
     @staticmethod

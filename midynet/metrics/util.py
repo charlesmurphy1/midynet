@@ -7,7 +7,7 @@ from _midynet.mcmc import DynamicsMCMC, RandomGraphMCMC
 from _midynet.mcmc.callbacks import (
     CollectLikelihoodOnSweep,
     CollectEdgeMultiplicityOnSweep,
-    # CollectPartitionOnSweep,
+    CollectPartitionOnSweep,
 )
 
 
@@ -16,30 +16,31 @@ __all__ = ["get_log_evidence", "get_log_posterior"]
 
 def get_log_evidence_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
     logp = []
-    # og_log_likelihood = dynamicsMCMC.get_log_likelihood()
+    g = dynamicsMCMC.get_graph()
     for k in range(config.K):
         logp_k = []
         for m in range(config.num_sweeps):
-            pass
-            # dynamicsMCMC.sample_graph()
-            # logp_k.append(dynamicsMCMC.get_log_likelihood())
-            # print(og_log_likelihood, dynamicsMCMC.get_log_likelihood())
+            dynamicsMCMC.sample_graph()
+            logp_k.append(dynamicsMCMC.get_log_likelihood())
         logp.append(log_mean_exp(logp_k))
+    dynamicsMCMC.set_graph(g)
+
     return np.mean(logp)
 
 
 def get_log_evidence_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
     callback = CollectLikelihoodOnSweep()
+    g = dynamicsMCMC.get_graph()
     dynamicsMCMC.add_callback(callback)
     dynamicsMCMC.set_up()
-
+    burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
     for i in range(config.num_sweeps):
-        dynamicsMCMC.do_MH_sweep(burn=config.burn)
+        dynamicsMCMC.do_MH_sweep(burn=burn)
     logp = -np.array(callback.get_log_likelihoods())
 
     dynamicsMCMC.tear_down()
     dynamicsMCMC.pop_callback()
-
+    dynamicsMCMC.set_graph(g)
     return -log_mean_exp(logp)
 
 
@@ -54,20 +55,22 @@ def get_log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
     g = dynamicsMCMC.get_graph()
     dynamicsMCMC.add_callback(callback)
     dynamicsMCMC.set_up()
-
+    burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
     logp = []
     for lb, ub in zip(config.beta_k[:-1], config.beta_k[1:]):
         dynamicsMCMC.set_beta_likelihood(lb)
         if config.reset_to_original:
             dynamicsMCMC.set_graph(g)
         for i in range(config.num_sweeps):
-            dynamicsMCMC.do_MH_sweep(burn=config.burn)
+            dynamicsMCMC.do_MH_sweep(burn=burn)
         logp_k = (ub - lb) * np.array(callback.get_log_likelihoods())
         logp.append(log_mean_exp(logp_k))
         callback.clear()
 
     dynamicsMCMC.tear_down()
     dynamicsMCMC.pop_callback()
+    dynamicsMCMC.set_graph(g)
+
     return -log_mean_exp(logp)
 
 
@@ -101,20 +104,24 @@ def get_log_evidence(dynamicsMCMC: DynamicsMCMC, config: Config):
 
 
 def get_log_posterior_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
-    return dynamicsMCMC.get_log_joint() - log_evidence_arithmetic(dynamicsMCMC, config)
+    return dynamicsMCMC.get_log_joint() - get_log_evidence_arithmetic(
+        dynamicsMCMC, config
+    )
 
 
 def get_log_posterior_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
-    return dynamicsMCMC.get_log_joint() - log_evidence_harmonic(dynamicsMCMC, config)
+    return dynamicsMCMC.get_log_joint() - get_log_evidence_harmonic(
+        dynamicsMCMC, config
+    )
 
 
 def get_log_posterior_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
     graph_callback = CollectEdgeMultiplicityOnSweep()
     dynamicsMCMC.add_callback(graph_callback)
     dynamicsMCMC.set_up()
-
+    burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
     for i in range(config.num_sweeps):
-        dynamicsMCMC.do_MH_sweep(burn=config.burn)
+        dynamicsMCMC.do_MH_sweep(burn=burn)
     logp = -graph_callback.get_marginal_entropy()  # -H(G|X)
 
     dynamicsMCMC.tear_down()
@@ -142,9 +149,9 @@ def get_log_posterior_meanfield_sbm(dynamicsMCMC: DynamicsMCMC, config: Config):
         dynamicsMCMC.add_callback(graph_callback)
         dynamicsMCMC.add_callback(partition_callback)
         dynamicsMCMC.set_up()
-
+        burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
         for i in range(config.num_sweeps):
-            dynamicsMCMC.do_MH_sweep(burn=config.burn)
+            dynamicsMCMC.do_MH_sweep(burn=burn)
         logp = -graph_callback.get_marginal_entropy()  # -H(G|X)
         partitions = partition_callback.get_partitions()  # -H(b|X)
         partition_modes = ModeClusterState(partitions)
@@ -159,11 +166,13 @@ def get_log_posterior_meanfield_sbm(dynamicsMCMC: DynamicsMCMC, config: Config):
 
 
 def get_log_posterior_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
-    return dynamicsMCMC.get_log_joint() - log_evidence_annealed(dynamicsMCMC, config)
+    return dynamicsMCMC.get_log_joint() - get_log_evidence_annealed(
+        dynamicsMCMC, config
+    )
 
 
 def get_log_posterior_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
-    return dynamicsMCMC.get_log_joint() - log_evidence_exact(dynamicsMCMC, config)
+    return dynamicsMCMC.get_log_joint() - get_log_evidence_exact(dynamicsMCMC, config)
 
 
 def get_log_posterior_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):

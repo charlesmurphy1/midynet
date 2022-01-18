@@ -11,10 +11,10 @@ __all__ = ["Parameter"]
 class Parameter:
     name: str
     value: typing.Any = None
-    unique: bool = field(repr=False, default=False)
-    with_repetition: bool = field(repr=False, default=False)
-    force_non_sequence: bool = field(repr=False, default=False)
-    sort_sequence: bool = field(repr=False, default=True)
+    unique: bool = field(repr=True, default=False)
+    with_repetition: bool = field(repr=True, default=False)
+    force_non_sequence: bool = field(repr=True, default=False)
+    sort_sequence: bool = field(repr=True, default=True)
     is_config: bool = False
     __cache__: bool = field(repr=False, default=True)
     __self_hash__: int = field(repr=False, default=None)

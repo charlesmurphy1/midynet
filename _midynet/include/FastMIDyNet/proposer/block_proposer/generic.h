@@ -12,12 +12,13 @@
 namespace FastMIDyNet {
 
 class BlockGenericProposer: public BlockProposer {
+    const std::vector<BlockIndex>* m_blocksPtr;
     public:
         BlockGenericProposer(){}
         BlockMove proposeMove() const override{
-            return {0, 0, 0, 0};
+            return {0, (*m_blocksPtr)[0], (*m_blocksPtr)[0], 0};
         }
-        void setUp(const RandomGraph& randomGraph) override {};
+        void setUp(const RandomGraph& randomGraph) override { m_blocksPtr = &randomGraph.getBlocks(); }
         double getLogProposalProbRatio(const BlockMove&) const override { return 0;};
         void checkSafety() const override { }
 };

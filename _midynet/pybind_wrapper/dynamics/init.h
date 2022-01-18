@@ -51,12 +51,12 @@ void initDynamics(py::module& m){
         .def("set_coupling", &IsingGlauberDynamics::setCoupling, py::arg("coupling"));
 
     py::class_<SISDynamics, BinaryDynamics>(m, "SISDynamics")
-        .def(py::init<size_t, double, double>(),
+        .def(py::init<size_t, double, double, double>(),
             py::arg("num_steps"), py::arg("infection_prob"),
-            py::arg("recovery_prob")=0.5)
-        .def(py::init<RandomGraph&, size_t, double, double>(),
+            py::arg("recovery_prob")=0.5, py::arg("auto_infection_prob")=1e-6)
+        .def(py::init<RandomGraph&, size_t, double, double, double>(),
             py::arg("random_graph"), py::arg("num_steps"), py::arg("infection_prob"),
-            py::arg("recovery_prob")=0.5)
+            py::arg("recovery_prob")=0.5, py::arg("auto_infection_prob")=1e-6)
         .def("get_infection_prob", &SISDynamics::getInfectionProb)
         .def("set_infection_prob", &SISDynamics::setInfectionProb, py::arg("infection_prob"))
         .def("get_recovery_prob", &SISDynamics::getRecoveryProb)

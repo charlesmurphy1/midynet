@@ -159,8 +159,7 @@ class TestRandomGraphMCMCFactory(unittest.TestCase, TestFactory):
 class TestMetricsFactory(unittest.TestCase, TestFactory):
     factory = MetricsFactory
     good_configs = {
-        MetricsConfig.dynamics_entropy(),
-        MetricsCollectionConfig.auto(["graph_entropy", "graph_entropy"]),
+        ExperimentConfig.default("test", "ising", "er", metrics=["dynamics_entropy"])
     }
 
 

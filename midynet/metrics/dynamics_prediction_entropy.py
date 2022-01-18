@@ -20,7 +20,8 @@ class DynamicsPredictionEntropy(Expectation):
         graph = RandomGraphFactory.build(self.config.graph)
         dynamics.set_random_graph(graph.get_wrap())
         dynamics.sample()
-        return -dynamics.get_log_likelihood()
+        hxg = -dynamics.get_log_likelihood()
+        return hxg
 
 
 class DynamicsPredictionEntropyMetrics(ExpectationMetrics):

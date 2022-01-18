@@ -11,8 +11,8 @@ namespace FastMIDyNet{
 
 class DynamicsMCMC: public MCMC{
 private:
-    Dynamics* m_dynamicsPtr;
-    RandomGraphMCMC* m_randomGraphMCMCPtr;
+    Dynamics& m_dynamics;
+    RandomGraphMCMC& m_randomGraphMCMC;
     double m_betaLikelihood, m_betaPrior, m_sampleGraphPriorProb;
     std::uniform_real_distribution<double> m_uniform;
     bool m_lastMoveWasGraphMove;
@@ -25,31 +25,23 @@ public:
         double sampleGraphPriorProb=0.5,
         const CallBackList& callBacks={} ):
     MCMC(callBacks),
-    m_dynamicsPtr(&dynamics),
-    m_randomGraphMCMCPtr(&randomGraphMCMC),
+    m_dynamics(dynamics),
+    m_randomGraphMCMC(randomGraphMCMC),
     m_betaLikelihood(betaLikelihood),
     m_betaPrior(betaPrior),
     m_sampleGraphPriorProb(sampleGraphPriorProb),
-    m_uniform(0., 1.) {}
-
-    DynamicsMCMC(
-        double betaLikelihood=1,
-        double betaPrior=1,
-        double sampleGraphPriorProb=0.5,
-        const CallBackList& callBacks={}):
-    MCMC(callBacks),
-    m_sampleGraphPriorProb(sampleGraphPriorProb),
-    m_uniform(0., 1.) {}
+    m_uniform(0., 1.) { m_randomGraphMCMC.setRandomGraph(m_dynamics.getRandomGraphRef()); }
 
     void setUp() override {
-        m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
-        m_randomGraphMCMCPtr->setUp();
+        m_randomGraphMCMC.setRandomGraph(m_dynamics.getRandomGraphRef());
+        m_randomGraphMCMC.setUp();
         MCMC::setUp();
     };
 
-    const MultiGraph& getGraph() const override { return m_randomGraphMCMCPtr->getGraph(); }
-    const BlockSequence& getBlocks() const override { return m_randomGraphMCMCPtr->getBlocks(); }
-    const int getSize() const { return m_dynamicsPtr->getSize(); }
+    const MultiGraph& getGraph() const override { return m_randomGraphMCMC.getGraph(); }
+    void setGraph(const MultiGraph& graph) { m_dynamics.setGraph(graph); m_randomGraphMCMC.setUpProposers(); }
+    const BlockSequence& getBlocks() const override { return m_randomGraphMCMC.getBlocks(); }
+    const int getSize() const { return m_dynamics.getSize(); }
 
     double getBetaPrior() const { return m_betaPrior; }
     void setBetaPrior(double betaPrior) { m_betaPrior = betaPrior; }
@@ -60,36 +52,25 @@ public:
     double getSampleGraphPriorProb() const { return m_sampleGraphPriorProb; }
     void setSampleGraphPriorProb(double sampleGraphPriorProb) { m_sampleGraphPriorProb = sampleGraphPriorProb; }
 
-    const RandomGraphMCMC& getRandomGraphMCMC() const { return *m_randomGraphMCMCPtr; }
-    void setRandomGraphMCMC(RandomGraphMCMC& randomGraphMCMC) {
-        m_randomGraphMCMCPtr = &randomGraphMCMC;
-        if (m_dynamicsPtr != nullptr)
-            m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
-    }
+    const RandomGraphMCMC& getRandomGraphMCMC() const { return m_randomGraphMCMC; }
+    const Dynamics& getDynamics() const { return m_dynamics; }
 
-    const Dynamics& getDynamics() const { return *m_dynamicsPtr; }
-    void setDynamics(Dynamics& dynamics) {
-        m_dynamicsPtr = &dynamics;
-        if (m_randomGraphMCMCPtr != nullptr)
-            m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
-    }
-
-    double getLogLikelihood() const override { return m_dynamicsPtr->getLogLikelihood(); }
-    double getLogPrior() const override { return m_dynamicsPtr->getLogPrior(); }
-    double getLogJoint() const override { return m_dynamicsPtr->getLogJoint(); }
+    double getLogLikelihood() const override { return m_dynamics.getLogLikelihood(); }
+    double getLogPrior() const override { return m_dynamics.getLogPrior(); }
+    double getLogJoint() const override { return m_dynamics.getLogJoint(); }
     void sample() override {
-        m_dynamicsPtr->sample();
+        m_dynamics.sample();
         m_hasState=true;
     }
     void sampleState() {
-        m_dynamicsPtr->sampleState();
+        m_dynamics.sampleState();
         m_hasState=true;
     }
     void sampleGraph() {
-        m_dynamicsPtr->sampleGraph();
+        m_dynamics.sampleGraph();
     }
     void sampleGraphOnly() {
-        m_randomGraphMCMCPtr->sampleGraphOnly();
+        m_randomGraphMCMC.sampleGraphOnly();
     }
 
     void doMetropolisHastingsStep() override ;

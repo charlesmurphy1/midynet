@@ -50,7 +50,7 @@ void initMCMCBaseClass(py::module& m){
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1,
             py::arg("callbacks"))
         .def(py::init<EdgeProposer&, BlockProposer&, double, double>(),
-            py::arg("edge_proposer"), py::arg("edge_proposer"),
+            py::arg("edge_proposer"), py::arg("block_proposer"),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1 )
         .def("get_beta_prior", &RandomGraphMCMC::getBetaPrior)
         .def("set_beta_prior", &RandomGraphMCMC::setBetaPrior, py::arg("beta_prior"))
@@ -74,10 +74,8 @@ void initMCMCBaseClass(py::module& m){
             py::arg("dynamics"), py::arg("random_graph_mcmc"),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1,
             py::arg("sample_graph_prior")=0.5, py::arg("callbacks"))
-        .def(py::init<double, double, double,const CallBackList&>(),
-            py::arg("beta_likelihood")=1, py::arg("beta_prior")=1,
-            py::arg("sample_graph_prior")=0.5, py::arg("callbacks"))
-        .def(py::init<double, double, double>(),
+        .def(py::init<Dynamics&, RandomGraphMCMC&, double, double, double>(),
+            py::arg("dynamics"), py::arg("random_graph_mcmc"),
             py::arg("beta_likelihood")=1, py::arg("beta_prior")=1,
             py::arg("sample_graph_prior")=0.5)
         .def("get_beta_prior", &DynamicsMCMC::getBetaPrior)
@@ -89,9 +87,9 @@ void initMCMCBaseClass(py::module& m){
         .def("sample_graph", &DynamicsMCMC::sampleGraph )
         .def("sample_graph_only", &DynamicsMCMC::sampleGraphOnly )
         .def("get_dynamics", &DynamicsMCMC::getDynamics )
-        .def("set_dynamics", &DynamicsMCMC::setDynamics, py::arg("dynamics") )
         .def("get_random_graph_mcmc", &DynamicsMCMC::getRandomGraphMCMC )
-        .def("set_random_graph_mcmc", &DynamicsMCMC::setRandomGraphMCMC, py::arg("random_graph_mcmc") )
+        .def("get_graph", &DynamicsMCMC::getGraph )
+        .def("set_graph", &DynamicsMCMC::setGraph )
         ;
 }
 

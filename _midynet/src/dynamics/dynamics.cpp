@@ -121,7 +121,7 @@ double Dynamics::getLogLikelihood() const {
             for (auto neighbor: getGraph().getNeighboursOfIdx(idx)){
                 neighborIdx = neighbor.vertexIndex;
                 edgeMultiplicity = neighbor.label;
-                neighborState[m_pastStateSequence[t][idx]] += edgeMultiplicity;
+                neighborState[m_pastStateSequence[t][neighborIdx]] += edgeMultiplicity;
             }
             log_likelihood += log(getTransitionProb(m_pastStateSequence[t][idx],
                 m_futureStateSequence[t][idx], neighborState));

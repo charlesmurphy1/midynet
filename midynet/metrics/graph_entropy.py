@@ -17,7 +17,8 @@ class GraphEntropy(Expectation):
         utility.seed(seed)
         graph = RandomGraphFactory.build(self.config.graph)
         graph.sample()
-        return -graph.get_log_likelihood()
+        hg = -graph.get_log_likelihood()
+        return hg
 
 
 class GraphEntropyMetrics(ExpectationMetrics):

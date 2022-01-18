@@ -131,12 +131,13 @@ class TemplateTestMetrics:
             "sis",
             "er",
             path="./tests/experiments/test-dir",
-            num_procs=4,
+            num_procs=1,
             seed=1,
         )
         self.config.set_value("dynamics.num_steps", 10)
+        self.config.set_value("dynamics.infection_prob", [0.0, 0.5])
         self.config.set_value("graph.size", 10)
-        self.config.set_value("graph.edge_count.state", 10)
+        self.config.set_value("graph.edge_count.state", 25)
         self.metrics = self._metrics(self.config)
 
     def test_eval(self):
@@ -146,24 +147,9 @@ class TemplateTestMetrics:
         else:
             for c in self.config.sequence():
                 data = self.metrics.eval(c)
-                # print(self.metrics, data)
-
-
-# class TestDynamicsEntropy(unittest.TestCase, TemplateTestMetrics):
-#     _config
-#     TemplateTestMetrics._config.set_value(
-#         "metrics", MetricsCollectionConfig.auto("dynamics_entropy")
-#     )
-#     TemplateTestMetrics._config.set_value(
-#         "metrics.dynamics_entropy.method",
-#         ["arithmetic", "harmonic", "meanfield", "annealed"],
-#     )
-#     _metrics: metrics.Metrics = metrics.DynamicsEntropyMetrics(
-#         TemplateTestMetrics._config
-#     )
-#
-#     def setUp(self):
-#         print(self.config.format())
+                if self.display:
+                    print(c.format())
+                    print(data)
 
 
 class TestDynamicsEntropy(unittest.TestCase, TemplateTestMetrics):
@@ -175,11 +161,11 @@ class TestDynamicsEntropy(unittest.TestCase, TemplateTestMetrics):
             "metrics", MetricsCollectionConfig.auto("dynamics_entropy")
         )
         self.config.metrics.dynamics_entropy.set_value("num_samples", 5)
-        self.config.metrics.dynamics_entropy.set_value("method", "arithmetic")
+        self.config.metrics.dynamics_entropy.set_value(
+            "method", ["arithmetic", "harmonic", "meanfield", "annealed"]
+        )
         self.config.metrics.dynamics_entropy.set_value("K", 2)
-        self.config.metrics.dynamics_entropy.set_value("num_sweeps", 5)
-
-        print(self.config.format())
+        self.config.metrics.dynamics_entropy.set_value("num_sweeps", 10)
 
 
 class TestDynamicsPredictionEntropy(unittest.TestCase, TemplateTestMetrics):
@@ -193,28 +179,74 @@ class TestDynamicsPredictionEntropy(unittest.TestCase, TemplateTestMetrics):
         self.config.metrics.dynamics_prediction_entropy.set_value("num_samples", 24)
 
 
-# class TestGraphEntropy(unittest.TestCase, TemplateTestMetrics):
-#     _metrics: metrics.Metrics = metrics.GraphEntropyMetrics()
-#
-#
-# class TestGraphReconstructionEntropy(unittest.TestCase, TemplateTestMetrics):
-#     _metrics: metrics.Metrics = metrics.GraphReconstructionEntropyMetrics()
-#     not_implemented: bool = True
-#
-#
-# class TestReconstructability(unittest.TestCase, TemplateTestMetrics):
-#     _metrics: metrics.Metrics = metrics.ReconstructabilityMetrics()
-#     not_implemented: bool = True
-#
-#
-# class TestPredictability(unittest.TestCase, TemplateTestMetrics):
-#     _metrics: metrics.Metrics = metrics.PredictabilityMetrics()
-#     not_implemented: bool = True
-#
-#
-# class TestMutualInformation(unittest.TestCase, TemplateTestMetrics):
-#     _metrics: metrics.Metrics = metrics.MutualInformationMetrics()
-#     not_implemented: bool = True
+class TestGraphEntropy(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.GraphEntropyMetrics
+
+    def setUp(self):
+        TemplateTestMetrics.setUp(self)
+        self.config.set_value("metrics", MetricsCollectionConfig.auto("graph_entropy"))
+        self.config.metrics.graph_entropy.set_value("num_samples", 24)
+
+
+class TestGraphReconstructionEntropy(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.GraphReconstructionEntropyMetrics
+    not_implemented: bool = False
+
+    def setUp(self):
+        TemplateTestMetrics.setUp(self)
+        self.config.set_value(
+            "metrics", MetricsCollectionConfig.auto("graph_reconstruction_entropy")
+        )
+        self.config.metrics.graph_reconstruction_entropy.set_value("num_samples", 5)
+        self.config.metrics.graph_reconstruction_entropy.set_value(
+            "method", ["arithmetic", "harmonic", "meanfield", "annealed"]
+        )
+        self.config.metrics.graph_reconstruction_entropy.set_value("K", 2)
+        self.config.metrics.graph_reconstruction_entropy.set_value("num_sweeps", 10)
+
+
+class TestReconstructability(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.ReconstructabilityMetrics
+
+    def setUp(self):
+        TemplateTestMetrics.setUp(self)
+        self.config.set_value(
+            "metrics", MetricsCollectionConfig.auto("reconstructability")
+        )
+        self.config.metrics.reconstructability.set_value("num_samples", 5)
+        self.config.metrics.reconstructability.set_value(
+            "method", ["arithmetic", "harmonic", "meanfield", "annealed"]
+        )
+        self.config.metrics.reconstructability.set_value("K", 2)
+        self.config.metrics.reconstructability.set_value("num_sweeps", 10)
+
+
+class TestPredictability(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.PredictabilityMetrics
+
+    def setUp(self):
+        TemplateTestMetrics.setUp(self)
+        self.config.set_value("metrics", MetricsCollectionConfig.auto("predictability"))
+        self.config.metrics.predictability.set_value("num_samples", 5)
+        self.config.metrics.predictability.set_value(
+            "method", ["arithmetic", "harmonic", "meanfield", "annealed"]
+        )
+        self.config.metrics.predictability.set_value("K", 2)
+        self.config.metrics.predictability.set_value("num_sweeps", 10)
+
+
+class TestMutualInformation(unittest.TestCase, TemplateTestMetrics):
+    _metrics: metrics.Metrics = metrics.MutualInformationMetrics
+
+    def setUp(self):
+        TemplateTestMetrics.setUp(self)
+        self.config.set_value("metrics", MetricsCollectionConfig.auto("mutualinfo"))
+        self.config.metrics.mutualinfo.set_value("num_samples", 5)
+        self.config.metrics.mutualinfo.set_value(
+            "method", ["arithmetic", "harmonic", "meanfield", "annealed"]
+        )
+        self.config.metrics.mutualinfo.set_value("K", 2)
+        self.config.metrics.mutualinfo.set_value("num_sweeps", 10)
 
 
 if __name__ == "__main__":

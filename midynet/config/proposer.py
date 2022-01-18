@@ -80,14 +80,20 @@ class EdgeProposerFactory(Factory):
 class BlockProposerFactory(Factory):
     @staticmethod
     def build_uniform(
-        config: BlockProposerFactory,
-    ) -> proposer.block_proposer.UniformBlockProposer:
-        return proposer.block_proposer.UniformBlockProposer(config.create_new_block)
+        config: BlockProposerConfig,
+    ) -> proposer.block_proposer.BlockUniformProposer:
+        return proposer.block_proposer.BlockUniformProposer(config.create_new_block)
 
     @staticmethod
     def build_peixoto(
-        config: BlockProposerFactory,
-    ) -> proposer.block_proposer.PeixotoBlockProposer:
-        return proposer.block_proposer.PeixotoBlockProposer(
+        config: BlockProposerConfig,
+    ) -> proposer.block_proposer.BlockPeixotoProposer:
+        return proposer.block_proposer.BlockPeixotoProposer(
             config.create_new_block, config.shift
         )
+
+    @staticmethod
+    def build_generic(
+        config: BlockProposerConfig,
+    ) -> proposer.block_proposer.BlockGenericProposer:
+        return proposer.block_proposer.BlockGenericProposer()

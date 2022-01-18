@@ -51,12 +51,7 @@ public:
     double getMarginalEntropy() ;
     bool getTotalCount() const { return m_totalCount; }
     bool getEdgeObservationCount(BaseGraph::Edge edge) const { return m_observedEdges[edge]; }
-    bool getEdgeCountProb(BaseGraph::Edge edge, size_t count) const {
-        if (count == 0)
-            return 1 - m_observedEdges[edge] / m_totalCount;
-        else
-            return m_observedEdgesCount.get({edge, count}) / m_totalCount;
-    }
+    double getEdgeCountProb(BaseGraph::Edge edge, size_t count) const ;
 
 };
 

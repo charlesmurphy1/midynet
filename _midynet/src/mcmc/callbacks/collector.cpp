@@ -17,6 +17,7 @@ void WriteGraphToFileOnSweep::collect(){
 }
 
 void CollectEdgeMultiplicityOnSweep::collect(){
+    ++m_totalCount;
     const MultiGraph& graph = m_mcmcPtr->getGraph();
 
     for ( auto idx : graph){
@@ -32,12 +33,20 @@ void CollectEdgeMultiplicityOnSweep::collect(){
     }
 }
 
+double CollectEdgeMultiplicityOnSweep::getEdgeCountProb(BaseGraph::Edge edge, size_t count) const {
+    if (count == 0)
+        return 1 - ((double)m_observedEdges.get(edge)) / ((double)m_totalCount);
+    else
+        return ((double)m_observedEdgesCount.get({edge, count})) / ((double)m_totalCount);
+}
+
 double CollectEdgeMultiplicityOnSweep::getMarginalEntropy() {
     double marginalEntropy = 0;
     for (auto edge : m_observedEdges){
         for (size_t count = 0; count <= m_observedEdgesMaxCount[edge.first]; ++count){
             double p = getEdgeCountProb(edge.first, count);
-            marginalEntropy -= p * log(p);
+            if (p > 0)
+                marginalEntropy -= p * log(p);
         }
     }
     return marginalEntropy;

@@ -31,6 +31,7 @@ class Expectation(MultiProcess):
 
     def compute(self, num_samples: int = 1) -> list[float]:
         seeds = self.seed + np.arange(num_samples)
-        with mp.Pool(self.num_procs) as p:
-            out = p.map(self.func, seeds)
+        # with mp.Pool(self.num_procs) as p:
+        #     out = p.map(self.func, seeds)
+        out = [self.func(s) for s in seeds]
         return out

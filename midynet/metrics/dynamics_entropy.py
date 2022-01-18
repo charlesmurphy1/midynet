@@ -22,18 +22,11 @@ class DynamicsEntropy(Expectation):
         dynamics = DynamicsFactory.build(self.config.dynamics)
         dynamics.set_random_graph(graph.get_wrap())
         random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
-        mcmc = DynamicsMCMC()
-        mcmc.set_dynamics(dynamics)
-        mcmc.set_random_graph_mcmc(random_graph_mcmc.get_wrap())
-        # print(
-        #     "HERE",
-        #     id(mcmc.get_dynamics().get_random_graph())
-        #     == id(random_graph_mcmc.get_random_graph()),
-        # )
+
+        mcmc = DynamicsMCMC(dynamics, random_graph_mcmc.get_wrap())
         mcmc.sample()
-        print(mcmc.get_dynamics().get_graph())
-        # return -get_log_evidence(mcmc, self.config.metrics.dynamics_entropy)
-        return 0
+        hx = -get_log_evidence(mcmc, self.config.metrics.dynamics_entropy)
+        return hx
 
 
 class DynamicsEntropyMetrics(ExpectationMetrics):
@@ -43,7 +36,8 @@ class DynamicsEntropyMetrics(ExpectationMetrics):
             num_procs=config.metrics.get_value("num_procs", 1),
             seed=config.metrics.get_value("seed", int(time.time())),
         )
-        return dynamics_entropy.compute(config.metrics.get_value("num_samples", 10))
+        samples = dynamics_entropy.compute(config.metrics.get_value("num_samples", 10))
+        return self.statistics(samples)
 
 
 if __name__ == "__main__":
