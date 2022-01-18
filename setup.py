@@ -78,6 +78,7 @@ ext_modules = [
             "./_midynet/src/exceptions.cpp",
             "./_midynet/src/generators.cpp",
             "./_midynet/src/utility/functions.cpp",
+            # "./_midynet/src/utility/distance.cpp",
             "./_midynet/src/prior/sbm/block_count.cpp",
             "./_midynet/src/prior/sbm/vertex_count.cpp",
             "./_midynet/src/prior/sbm/block.cpp",

@@ -3,3 +3,4 @@ from .loggers import *
 from .utilities import *
 from .verbose import *
 from .degree_sequences import *
+from .convergence import *

@@ -6,6 +6,7 @@
 
 #include "callback.h"
 #include "FastMIDyNet/mcmc/dynamics_mcmc.h"
+#include "FastMIDyNet/utility/distance.h"
 #include "BaseGraph/fileio.h"
 
 namespace FastMIDyNet{
@@ -102,6 +103,27 @@ public:
     void collect() override { m_collectedJoints.push_back( m_mcmcPtr->getLogJoint() ); }
     void clear() override { m_collectedJoints.clear(); }
     const std::vector<double>& getLogJoints() const { return m_collectedJoints; }
+
+};
+
+class CollectGraphDistance: public Collector{
+private:
+    MultiGraph m_originalGraph;
+    const GraphDistance& m_distance;
+    std::vector<double> m_collectedDistances;
+public:
+    CollectGraphDistance(const GraphDistance& distance): m_distance(distance){}
+    const std::vector<double>& getCollectedDistances() { return m_collectedDistances; }
+    void onSweepBegin() { m_originalGraph = m_mcmcPtr->getGraph(); }
+    void collect() {
+        m_collectedDistances.push_back(
+            m_distance.compute( m_originalGraph, m_mcmcPtr->getGraph() )
+        );
+    }
+    void clear() { m_collectedDistances.clear(); };
+    void onStepEnd() { collect(); }
+
+
 
 };
 

@@ -1,7 +1,16 @@
+import basegraph
+import networkx as nx
 import numpy as np
 import pathlib
 
-__all__ = ["clip", "log_sum_exp", "log_mean_exp", "to_batch", "delete_path"]
+__all__ = [
+    "clip",
+    "log_sum_exp",
+    "log_mean_exp",
+    "to_batch",
+    "delete_path",
+    "convert_basegraph_to_networkx",
+]
 
 
 def clip(x, xmin=0, xmax=1):
@@ -44,6 +53,11 @@ def delete_path(path: pathlib.Path):
         else:
             sub.unlink()
     path.rmdir()
+
+
+def convert_basegraph_to_networkx(g: basegraph.core.UndirectedMultigraph) -> nx.Graph:
+    A = np.array(g.get_adjacency_matrix())
+    return nx.from_numpy_array(A)
 
 
 if __name__ == "__main__":

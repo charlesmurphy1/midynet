@@ -6,6 +6,7 @@
 
 #include "FastMIDyNet/utility/maps.hpp"
 #include "init_maps.h"
+// #include "init_distance.h"
 
 namespace py = pybind11;
 namespace FastMIDyNet{
@@ -13,6 +14,7 @@ namespace FastMIDyNet{
 
 void initUtility(py::module& m){
     initMaps(m);
+    // initDistances(m);
 }
 
 }

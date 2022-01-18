@@ -2,7 +2,7 @@ import time
 from dataclasses import dataclass, field
 
 from midynet.config import *
-from midynet import utility
+from _midynet import utility
 from _midynet.mcmc import DynamicsMCMC
 from .multiprocess import MultiProcess, Expectation
 from .metrics import ExpectationMetrics

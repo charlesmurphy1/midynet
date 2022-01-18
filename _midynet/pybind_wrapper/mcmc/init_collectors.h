@@ -8,6 +8,7 @@
 #include "FastMIDyNet/mcmc/callbacks/collector.h"
 #include "FastMIDyNet/mcmc/python/callback.hpp"
 #include "FastMIDyNet/utility/functions.h"
+// #include "FastMIDyNet/utility/distance.h"
 
 namespace py = pybind11;
 namespace FastMIDyNet{
@@ -26,11 +27,11 @@ void initCollectors(py::module& m){
         .def(py::init<>());
 
     /* Graph collector classes */
-    py::class_<CollectGraphOnSweep, Collector>(m, "CollectGraphOnSweep")
+    py::class_<CollectGraphOnSweep, SweepCollector>(m, "CollectGraphOnSweep")
         .def(py::init<>())
         .def("get_graphs", &CollectGraphOnSweep::getGraphs);
 
-    py::class_<CollectEdgeMultiplicityOnSweep, Collector>(m, "CollectEdgeMultiplicityOnSweep")
+    py::class_<CollectEdgeMultiplicityOnSweep, SweepCollector>(m, "CollectEdgeMultiplicityOnSweep")
         .def(py::init<>())
         .def("get_marginal_entropy", &CollectEdgeMultiplicityOnSweep::getMarginalEntropy)
         .def("get_total_count", &CollectEdgeMultiplicityOnSweep::getTotalCount)
@@ -42,25 +43,29 @@ void initCollectors(py::module& m){
                 return self.getEdgeCountProb(getOrderedPair<BaseGraph::VertexIndex>({u, v}), count);
             }, py::arg("v"), py::arg("u"), py::arg("count"))
         ;
-    py::class_<CollectPartitionOnSweep, Collector>(m, "CollectPartitionOnSweep")
+    py::class_<CollectPartitionOnSweep, SweepCollector>(m, "CollectPartitionOnSweep")
         .def(py::init<>())
         .def("get_partitions", &CollectPartitionOnSweep::getPartitions);
 
-    py::class_<WriteGraphToFileOnSweep, Collector>(m, "WriteGraphToFileOnSweep")
+    py::class_<WriteGraphToFileOnSweep, SweepCollector>(m, "WriteGraphToFileOnSweep")
         .def(py::init<std::string, std::string>(), py::arg("filename"), py::arg("ext")=".b");
 
     /* Metrics collector classes */
-    py::class_<CollectLikelihoodOnSweep, Collector>(m, "CollectLikelihoodOnSweep")
+    py::class_<CollectLikelihoodOnSweep, SweepCollector>(m, "CollectLikelihoodOnSweep")
         .def(py::init<>())
         .def("get_log_likelihoods", &CollectLikelihoodOnSweep::getLogLikelihoods);
 
-    py::class_<CollectPriorOnSweep, Collector>(m, "CollectPriorOnSweep")
+    py::class_<CollectPriorOnSweep, SweepCollector>(m, "CollectPriorOnSweep")
         .def(py::init<>())
         .def("get_log_priors", &CollectPriorOnSweep::getLogPriors);
 
-    py::class_<CollectJointOnSweep, Collector>(m, "CollectJointOnSweep")
+    py::class_<CollectJointOnSweep, SweepCollector>(m, "CollectJointOnSweep")
         .def(py::init<>())
         .def("get_log_joints", &CollectJointOnSweep::getLogJoints);
+
+    // py::class_<CollectGraphDistance, Collector>(m, "CollectGraphDistance")
+    //     .def(py::init<const GraphDistance&>(), py::arg("distance"))
+    //     .def("get_distances", &CollectGraphDistance::getCollectedDistances);
 }
 
 }
