@@ -1,19 +1,29 @@
 import importlib
+import numpy as np
 
 from midynet.config import *
+from midynet.util import log_mean_exp
 from _midynet.mcmc import DynamicsMCMC, RandomGraphMCMC
-from _midynet.mcmc.callbacks import CollectLikelihoodOnSweep
+from _midynet.mcmc.callbacks import (
+    CollectLikelihoodOnSweep,
+    CollectEdgeMultiplicityOnSweep,
+    # CollectPartitionOnSweep,
+)
+
 
 __all__ = ["get_log_evidence", "get_log_posterior"]
 
 
 def get_log_evidence_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
     logp = []
+    # og_log_likelihood = dynamicsMCMC.get_log_likelihood()
     for k in range(config.K):
         logp_k = []
-        for k in range(config.num_sweeps):
-            dynamicsMCMC.sample_graph()
-            logp_k.append(dynamicsMCMC.get_log_likelihood())
+        for m in range(config.num_sweeps):
+            pass
+            # dynamicsMCMC.sample_graph()
+            # logp_k.append(dynamicsMCMC.get_log_likelihood())
+            # print(og_log_likelihood, dynamicsMCMC.get_log_likelihood())
         logp.append(log_mean_exp(logp_k))
     return np.mean(logp)
 
@@ -34,7 +44,9 @@ def get_log_evidence_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
 
 
 def get_log_evidence_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
-    return dynamicsMCMC.get_log_joint() - log_posterior_meanfield(dynamicsMCMC, config)
+    return dynamicsMCMC.get_log_joint() - get_log_posterior_meanfield(
+        dynamicsMCMC, config
+    )
 
 
 def get_log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
@@ -64,7 +76,7 @@ def get_log_evidence_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
 
 
 def get_log_evidence_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
-    return dynamicsMCMC.get_log_joint() - log_posterior_exact_meanfield(
+    return dynamicsMCMC.get_log_joint() - get_log_posterior_exact_meanfield(
         dynamicsMCMC, config
     )
 

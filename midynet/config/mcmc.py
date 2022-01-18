@@ -19,7 +19,7 @@ class RandomGraphMCMCFactory(Factory):
         options = {
             k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
         }
-        name = config.get_value("mcmc_type", "generic")
+        name = "sbmlike" if "block_proposer" in config else "generic"
         if name in options:
             return options[name](config)
         else:

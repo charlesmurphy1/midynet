@@ -1,8 +1,10 @@
 import time
+import numpy as np
 from dataclasses import dataclass, field
 
 from midynet.config import *
 from midynet import utility
+from _midynet.mcmc import DynamicsMCMC
 from .multiprocess import MultiProcess, Expectation
 from .metrics import ExpectationMetrics
 from .util import get_log_evidence
@@ -20,9 +22,18 @@ class DynamicsEntropy(Expectation):
         dynamics = DynamicsFactory.build(self.config.dynamics)
         dynamics.set_random_graph(graph.get_wrap())
         random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
-        mcmc = DynamicsMCMC(dynamics, random_graph_mcmc)
+        mcmc = DynamicsMCMC()
+        mcmc.set_dynamics(dynamics)
+        mcmc.set_random_graph_mcmc(random_graph_mcmc.get_wrap())
+        # print(
+        #     "HERE",
+        #     id(mcmc.get_dynamics().get_random_graph())
+        #     == id(random_graph_mcmc.get_random_graph()),
+        # )
         mcmc.sample()
-        return -get_log_evidence(mcmc, self.config.metrics)
+        print(mcmc.get_dynamics().get_graph())
+        # return -get_log_evidence(mcmc, self.config.metrics.dynamics_entropy)
+        return 0
 
 
 class DynamicsEntropyMetrics(ExpectationMetrics):

@@ -436,14 +436,14 @@ class Config:
                         suffix=None,
                     )
                     ss = ss.split(":")[1:]
-                    ss = ":" + "".join(ss)[2:]
+                    ss = "".join(ss)[2:]
                     ss = ss.split(endline)
-                    s += endline.join(ss) + endline
+                    s += endline.join(ss)
                 s += f"{prefix}|\t{suffix}{endline}"
             elif v.is_config:
                 format = v.value.format(prefix=prefix + "|\t")
                 format = format.split(":")[1:]
-                format = ":" + "".join(format)
+                format = "".join(format)
                 name = f"{v.name}(name=`{v.value.name}`)"
                 ss = f"{prefix}|\t{name}:{format}{endline}".split("\n")
                 if len(ss) > 3:

@@ -20,14 +20,13 @@ class Metrics:
     data: typing.Dict[str, typing.Dict[str, np.ndarray]] = field(
         repr=False, default_factory=dict, init=False
     )
+    counter: int = field(repr=False, default=0, init=False)
 
     def set_up(self):
         self.counter = 0
-        return
 
     def tear_down(self):
         self.counter = 0
-        return
 
     def eval(self, config: Config) -> typing.Dict[str, float]:
         raise NotImplementedError()

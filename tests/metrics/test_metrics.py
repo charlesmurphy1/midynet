@@ -30,9 +30,9 @@ class TestMetricsBaseClass(unittest.TestCase):
     def setUp(self):
         if self.time_it:
             self.begin = time.time()
-        self.coupling = np.linspace(0, 10, 5)
-        self.infection_prob = np.linspace(0, 10, 5)
-        self.N = [10, 25, 50, 100]
+        self.coupling = np.linspace(0, 10, 2)
+        self.infection_prob = np.linspace(0, 10, 2)
+        self.N = [10, 100]
         self.coupling_size = len(self.coupling)
         self.N_size = len(self.N)
         d = DynamicsConfig.auto(["ising", "sis"])
@@ -122,62 +122,99 @@ class TestMetricsBaseClass(unittest.TestCase):
 
 class TemplateTestMetrics:
     _metrics: metrics.Metrics
-    graph_config: RandomGraphConfig = RandomGraphConfig.auto("hyperuniform_sbm")
-    dynamics_config: DynamicsConfig = DynamicsConfig.auto("sis")
-    metrics_config: Config = Config(name="metrics", num_procs=4, num_samples=10)
-    config: Config = Config(
-        name="test",
-        graph=graph_config,
-        dynamics=dynamics_config,
-        metrics=metrics_config,
-    )
     display: bool = False
     not_implemented: bool = False
 
     def setUp(self):
-        print(self.graph_config.format())
+        self.config = ExperimentConfig.default(
+            "test",
+            "sis",
+            "er",
+            path="./tests/experiments/test-dir",
+            num_procs=4,
+            seed=1,
+        )
+        self.config.set_value("dynamics.num_steps", 10)
+        self.config.set_value("graph.size", 10)
+        self.config.set_value("graph.edge_count.state", 10)
+        self.metrics = self._metrics(self.config)
 
     def test_eval(self):
         if self.not_implemented:
             with self.assertRaises(NotImplementedError):
-                data = self._metrics.eval(self.config)
+                data = self.metrics.eval(self.config)
         else:
-            data = self._metrics.eval(self.config)
-            if self.display:
-                print(data.shape == (self))
+            for c in self.config.sequence():
+                data = self.metrics.eval(c)
+                # print(self.metrics, data)
+
+
+# class TestDynamicsEntropy(unittest.TestCase, TemplateTestMetrics):
+#     _config
+#     TemplateTestMetrics._config.set_value(
+#         "metrics", MetricsCollectionConfig.auto("dynamics_entropy")
+#     )
+#     TemplateTestMetrics._config.set_value(
+#         "metrics.dynamics_entropy.method",
+#         ["arithmetic", "harmonic", "meanfield", "annealed"],
+#     )
+#     _metrics: metrics.Metrics = metrics.DynamicsEntropyMetrics(
+#         TemplateTestMetrics._config
+#     )
+#
+#     def setUp(self):
+#         print(self.config.format())
 
 
 class TestDynamicsEntropy(unittest.TestCase, TemplateTestMetrics):
-    _metrics: metrics.Metrics = metrics.DynamicsEntropyMetrics()
-    not_implemented: bool = True
+    _metrics: metrics.Metrics = metrics.DynamicsEntropyMetrics
+
+    def setUp(self):
+        TemplateTestMetrics.setUp(self)
+        self.config.set_value(
+            "metrics", MetricsCollectionConfig.auto("dynamics_entropy")
+        )
+        self.config.metrics.dynamics_entropy.set_value("num_samples", 5)
+        self.config.metrics.dynamics_entropy.set_value("method", "arithmetic")
+        self.config.metrics.dynamics_entropy.set_value("K", 2)
+        self.config.metrics.dynamics_entropy.set_value("num_sweeps", 5)
+
+        print(self.config.format())
 
 
 class TestDynamicsPredictionEntropy(unittest.TestCase, TemplateTestMetrics):
-    _metrics: metrics.Metrics = metrics.DynamicsPredictionEntropyMetrics()
+    _metrics: metrics.Metrics = metrics.DynamicsPredictionEntropyMetrics
+
+    def setUp(self):
+        TemplateTestMetrics.setUp(self)
+        self.config.set_value(
+            "metrics", MetricsCollectionConfig.auto("dynamics_prediction_entropy")
+        )
+        self.config.metrics.dynamics_prediction_entropy.set_value("num_samples", 24)
 
 
-class TestGraphEntropy(unittest.TestCase, TemplateTestMetrics):
-    _metrics: metrics.Metrics = metrics.GraphEntropyMetrics()
-
-
-class TestGraphReconstructionEntropy(unittest.TestCase, TemplateTestMetrics):
-    _metrics: metrics.Metrics = metrics.GraphReconstructionEntropyMetrics()
-    not_implemented: bool = True
-
-
-class TestReconstructability(unittest.TestCase, TemplateTestMetrics):
-    _metrics: metrics.Metrics = metrics.ReconstructabilityMetrics()
-    not_implemented: bool = True
-
-
-class TestPredictability(unittest.TestCase, TemplateTestMetrics):
-    _metrics: metrics.Metrics = metrics.PredictabilityMetrics()
-    not_implemented: bool = True
-
-
-class TestMutualInformation(unittest.TestCase, TemplateTestMetrics):
-    _metrics: metrics.Metrics = metrics.MutualInformationMetrics()
-    not_implemented: bool = True
+# class TestGraphEntropy(unittest.TestCase, TemplateTestMetrics):
+#     _metrics: metrics.Metrics = metrics.GraphEntropyMetrics()
+#
+#
+# class TestGraphReconstructionEntropy(unittest.TestCase, TemplateTestMetrics):
+#     _metrics: metrics.Metrics = metrics.GraphReconstructionEntropyMetrics()
+#     not_implemented: bool = True
+#
+#
+# class TestReconstructability(unittest.TestCase, TemplateTestMetrics):
+#     _metrics: metrics.Metrics = metrics.ReconstructabilityMetrics()
+#     not_implemented: bool = True
+#
+#
+# class TestPredictability(unittest.TestCase, TemplateTestMetrics):
+#     _metrics: metrics.Metrics = metrics.PredictabilityMetrics()
+#     not_implemented: bool = True
+#
+#
+# class TestMutualInformation(unittest.TestCase, TemplateTestMetrics):
+#     _metrics: metrics.Metrics = metrics.MutualInformationMetrics()
+#     not_implemented: bool = True
 
 
 if __name__ == "__main__":

@@ -97,6 +97,7 @@ ext_modules = [
             "./_midynet/src/proposer/edge_proposer/double_edge_swap.cpp",
             "./_midynet/src/proposer/edge_proposer/hinge_flip.cpp",
             "./_midynet/src/proposer/edge_proposer/single_edge.cpp",
+            "./_midynet/src/proposer/block_proposer/generic.cpp",
             "./_midynet/src/proposer/block_proposer/uniform.cpp",
             "./_midynet/src/proposer/block_proposer/peixoto.cpp",
             "./_midynet/src/mcmc/mcmc.cpp",

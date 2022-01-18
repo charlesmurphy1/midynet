@@ -2,7 +2,8 @@ import time
 from dataclasses import dataclass, field
 
 from midynet.config import *
-from midynet import utility
+from _midynet import utility
+from _midynet.mcmc import DynamicsMCMC
 from .multiprocess import MultiProcess, Expectation
 from .metrics import ExpectationMetrics
 from .util import get_log_posterior
@@ -20,7 +21,9 @@ class Reconstructability(Expectation):
         dynamics = DynamicsFactory.build(self.config.dynamics)
         dynamics.set_random_graph(graph.get_wrap())
         random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
-        mcmc = DynamicsMCMC(dynamics, random_graph_mcmc)
+        mcmc = DynamicsMCMC()
+        mcmc.set_dynamics(dynamics)
+        mcmc.set_random_graph_mcmc(random_graph_mcmc.get_wrap())
         mcmc.sample()
         return dynamics.get_log_likelihood() - get_log_evidence(
             mcmc, self.config.metrics

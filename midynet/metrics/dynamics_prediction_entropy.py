@@ -31,7 +31,9 @@ class DynamicsPredictionEntropyMetrics(ExpectationMetrics):
             seed=config.metrics.get_value("seed", int(time.time())) + self.counter,
         )
         self.counter += len(self.config)
-        samples = dynamics_entropy.compute(config.metrics.get_value("num_samples", 10))
+        samples = dynamics_entropy.compute(
+            config.metrics.dynamics_prediction_entropy.get_value("num_samples", 10)
+        )
         return self.statistics(samples)
 
 
