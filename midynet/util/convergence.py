@@ -1,12 +1,21 @@
 import typing
-from netrd.distance import BaseDistance
+import importlib
 
 from basegraph.core import UndirectedMultigraph
 from _midynet.mcmc import DynamicsMCMC
 from midynet.util import convert_basegraph_to_networkx
 
-#
+
 class MCMCConvergenceAnalysis:
+    if importlib.util.find_spec("netrd") is None:
+        message = (
+            f"The MCMCConvergenceAnalysis method cannot be used, "
+            + "because `netrd` is not installed."
+        )
+        raise NotImplementedError(message)
+    else:
+        from netrd.distance import BaseDistance
+
     def __init__(
         self,
         mcmc: DynamicsMCMC,
