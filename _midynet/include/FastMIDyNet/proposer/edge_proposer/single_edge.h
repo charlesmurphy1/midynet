@@ -18,7 +18,8 @@ private:
 protected:
     VertexSampler* m_vertexSamplerPtr = NULL;
 public:
-    GraphMove proposeMove() const override;
+    using EdgeProposer::EdgeProposer;
+    GraphMove proposeRawMove() const override;
     void setUp(const RandomGraph& randomGraph) override { setUp(randomGraph.getGraph()); }
     void setUp(const MultiGraph&);
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
@@ -35,14 +36,16 @@ class SingleEdgeUniformProposer: public SingleEdgeProposer{
 private:
     VertexUniformSampler m_vertexUniformSampler;
 public:
-    SingleEdgeUniformProposer(){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
+    SingleEdgeUniformProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
+        SingleEdgeProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
 };
 
 class SingleEdgeDegreeProposer: public SingleEdgeProposer{
 private:
     VertexDegreeSampler m_vertexDegreeSampler;
 public:
-    SingleEdgeDegreeProposer(double shift=1):
+    SingleEdgeDegreeProposer(bool allowSelfLoops=true, bool allowMultiEdges=true, double shift=1):
+        SingleEdgeProposer(allowSelfLoops, allowMultiEdges),
         m_vertexDegreeSampler(shift){ m_vertexSamplerPtr = &m_vertexDegreeSampler; }
 };
 

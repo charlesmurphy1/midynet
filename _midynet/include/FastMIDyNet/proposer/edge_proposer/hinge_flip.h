@@ -20,7 +20,7 @@ public:
     using EdgeProposer::EdgeProposer;
     bool setAcceptIsolated(bool accept) override;
 
-    GraphMove proposeMove() const override;
+    GraphMove proposeRawMove() const override;
     void setUp(const RandomGraph& randomGraph) override { setUp(randomGraph.getGraph()); }
     void setUp(const MultiGraph& graph);
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
@@ -38,16 +38,16 @@ class HingeFlipUniformProposer: public HingeFlipProposer{
 private:
     VertexUniformSampler m_vertexUniformSampler = VertexUniformSampler();
 public:
-    HingeFlipUniformProposer(){
-        m_vertexSamplerPtr = &m_vertexUniformSampler;
-    }
+    HingeFlipUniformProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
+        HingeFlipProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
 };
 
 class HingeFlipDegreeProposer: public HingeFlipProposer{
 private:
     VertexDegreeSampler m_vertexDegreeSampler;
 public:
-    HingeFlipDegreeProposer(double shift=1):
+    HingeFlipDegreeProposer(bool allowSelfLoops=true, bool allowMultiEdges=true, double shift=1):
+        HingeFlipProposer(allowSelfLoops, allowMultiEdges),
         m_vertexDegreeSampler(shift){ m_vertexSamplerPtr = &m_vertexDegreeSampler; }
 };
 

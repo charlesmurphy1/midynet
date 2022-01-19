@@ -36,11 +36,13 @@ public:
     /* Pure abstract methods */
     void setUp(const RandomGraph& randomGraph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, randomGraph); }
     double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogProposalProbRatio, move); }
+    GraphMove proposeRawMove() const override { PYBIND11_OVERRIDE_PURE(GraphMove, BaseClass, proposeRawMove, ); }
 
     /* Abstract & overloaded methods */
     bool setAcceptIsolated(bool accept) override { PYBIND11_OVERRIDE(bool, BaseClass, setAcceptIsolated, accept); }
     void updateProbabilities(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, updateProbabilities, move); }
     void updateProbabilities(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, updateProbabilities, move); }
+    GraphMove proposeMove() const override { PYBIND11_OVERRIDE_PURE(GraphMove, BaseClass, proposeMove, ); }
 };
 
 

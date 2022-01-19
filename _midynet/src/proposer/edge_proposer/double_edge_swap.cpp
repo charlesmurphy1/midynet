@@ -6,7 +6,7 @@
 namespace FastMIDyNet {
 
 
-GraphMove DoubleEdgeSwapProposer::proposeMove() const {
+GraphMove DoubleEdgeSwapProposer::proposeRawMove() const {
     auto edge1 = m_edgeSamplableSet.sample_ext_RNG(rng).first;
     auto edge2 = m_edgeSamplableSet.sample_ext_RNG(rng).first;
 

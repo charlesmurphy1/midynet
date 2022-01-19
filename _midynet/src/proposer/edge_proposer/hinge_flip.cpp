@@ -6,7 +6,7 @@
 namespace FastMIDyNet {
 
 
-GraphMove HingeFlipProposer::proposeMove() const {
+GraphMove HingeFlipProposer::proposeRawMove() const {
     auto edge = m_edgeSamplableSet.sample_ext_RNG(rng).first;
     BaseGraph::VertexIndex node = m_vertexSamplerPtr->sample();
 
