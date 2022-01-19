@@ -2,7 +2,7 @@ import importlib
 import numpy as np
 
 from midynet.config import *
-from midynet.util import log_mean_exp
+from midynet.util import log_mean_exp, log_sum_exp, enumerate_all_graphs
 from _midynet.mcmc import DynamicsMCMC, RandomGraphMCMC
 from _midynet.mcmc.callbacks import (
     CollectLikelihoodOnSweep,
@@ -88,7 +88,7 @@ def get_log_evidence_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
     for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
         if graph.is_compatible(g):
             dynamicsMCMC.set_graph(g)
-            logevidence.append(dynamicsMCMC.getLogJoint())
+            logevidence.append(dynamicsMCMC.get_log_joint())
     dynamicsMCMC.tear_down()
 
     dynamicsMCMC.set_graph(original_graph)
