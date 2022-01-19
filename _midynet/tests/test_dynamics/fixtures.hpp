@@ -48,12 +48,12 @@ public:
 
     void sampleGraph() override { };
     virtual void samplePriors() override { };
-    double getLogLikelihood() const override { return 0; }
-    double getLogPrior() const override { return 0; }
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override{ return 0; }
-    double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0; }
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { return 0; }
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { return 0; }
+    const double getLogLikelihood() const override { return 0; }
+    const double getLogPrior() const override { return 0; }
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override{ return 0; }
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0; }
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { return 0; }
+    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { return 0; }
 
 };
 
@@ -62,7 +62,7 @@ class DummyDynamics: public Dynamics{
         DummyDynamics(RandomGraph& randomGraph, int numStates, size_t numSteps):
             Dynamics(randomGraph, numStates, numSteps) { }
 
-        double getTransitionProb(
+        const double getTransitionProb(
             VertexState prevVertexState,
             VertexState nextVertexState,
             VertexNeighborhoodState vertexNeighborhoodState

@@ -14,8 +14,8 @@ const std::vector<size_t> TESTED_INTEGERS;
 class DummyBlockCountPrior: public FastMIDyNet::BlockCountPrior {
     public:
         void sampleState() {}
-        double getLogLikelihoodFromState(const size_t& state) const { return state; }
-        double getLogPrior() { return 0; }
+        const double getLogLikelihoodFromState(const size_t& state) const { return state; }
+        const double getLogPrior() { return 0; }
 
         void checkSelfConsistency() const {}
         bool getIsProcessed() { return m_isProcessed; }

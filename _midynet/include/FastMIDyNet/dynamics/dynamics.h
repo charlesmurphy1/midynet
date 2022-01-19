@@ -21,6 +21,7 @@ protected:
     size_t m_numStates;
     size_t m_numSteps;
     State m_state;
+    const bool m_normalizeCoupling;
     StateSequence m_pastStateSequence;
     StateSequence m_futureStateSequence;
     RandomGraph* m_randomGraphPtr;
@@ -39,19 +40,22 @@ protected:
         std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&
     ) const ;
 public:
-    explicit Dynamics(size_t numStates, size_t numSteps):
+    explicit Dynamics(size_t numStates, size_t numSteps, bool normalizeCoupling=true):
         m_numStates(numStates),
-        m_numSteps(numSteps)
+        m_numSteps(numSteps),
+        m_normalizeCoupling(normalizeCoupling)
         { }
-    explicit Dynamics(RandomGraph& randomGraph, size_t numStates, size_t numSteps):
+    explicit Dynamics(RandomGraph& randomGraph, size_t numStates, size_t numSteps, bool normalizeCoupling=true):
         m_randomGraphPtr(&randomGraph),
         m_numStates(numStates),
-        m_numSteps(numSteps)
+        m_numSteps(numSteps),
+        m_normalizeCoupling(normalizeCoupling)
         { }
 
     const State& getState() const { return m_state; }
     const StateSequence& getPastStates() const { return m_pastStateSequence; }
     const StateSequence& getFutureStates() const { return m_futureStateSequence; }
+    const bool normalizeCoupling() const { return m_normalizeCoupling; }
     void setState(State& state) {
         m_state = state;
     }
@@ -88,10 +92,10 @@ public:
     void syncUpdateState();
     void asyncUpdateState(int num_updates);
 
-    double getLogLikelihood() const;
-    double getLogPrior() const { return m_randomGraphPtr->getLogJoint(); }
-    double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
-    virtual double getTransitionProb(
+    const double getLogLikelihood() const;
+    const double getLogPrior() const { return m_randomGraphPtr->getLogJoint(); }
+    const double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
+    virtual const double getTransitionProb(
         VertexState prevVertexState,
         VertexState nextVertexState,
         VertexNeighborhoodState neighborhoodState
@@ -101,9 +105,9 @@ public:
         VertexNeighborhoodState neighborhoodState
     ) const;
 
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const;
-    double getLogPriorRatioFromGraphMove(const GraphMove& move) const;
-    double getLogJointRatioFromGraphMove(const GraphMove& move) const;
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const;
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const;
+    const double getLogJointRatioFromGraphMove(const GraphMove& move) const;
     void applyGraphMove(const GraphMove& move);
 
     virtual void checkSafety() const ;

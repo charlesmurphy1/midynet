@@ -9,7 +9,7 @@ class DummyProposer0: public FastMIDyNet::Proposer<DummyMove>{
         bool updated = false;
 
         DummyMove proposeMove() const override { return false; }
-        double getLogProposalProbRatio(const DummyMove&) const  { return 0.; }
+        const double getLogProposalProbRatio(const DummyMove&) const { return 0.; }
         void updateProbabilities(const DummyMove&) { updated=true; }
 };
 class DummyProposer1: public FastMIDyNet::Proposer<DummyMove>{
@@ -17,7 +17,7 @@ class DummyProposer1: public FastMIDyNet::Proposer<DummyMove>{
         bool updated = false;
 
         DummyMove proposeMove() const override { return true; }
-        double getLogProposalProbRatio(const DummyMove&) const { return 1.; }
+        const double getLogProposalProbRatio(const DummyMove&) const { return 1.; }
         void updateProbabilities(const DummyMove&) { updated=true; }
 };
 static const size_t randomGenerationsNumber = 10000;

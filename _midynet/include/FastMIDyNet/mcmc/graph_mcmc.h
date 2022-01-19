@@ -58,9 +58,9 @@ public:
     const RandomGraph& getRandomGraph() const { return *m_randomGraphPtr; }
     void setRandomGraph(RandomGraph& randomGraph) { m_randomGraphPtr = &randomGraph; }
 
-    double getLogLikelihood() const override { return m_randomGraphPtr->getLogLikelihood(); }
-    double getLogPrior() const override { return m_randomGraphPtr->getLogPrior(); }
-    double getLogJoint() const override { return m_randomGraphPtr->getLogJoint(); }
+    const double getLogLikelihood() const override { return m_randomGraphPtr->getLogLikelihood(); }
+    const double getLogPrior() const override { return m_randomGraphPtr->getLogPrior(); }
+    const double getLogJoint() const override { return m_randomGraphPtr->getLogJoint(); }
     void sample() override { m_randomGraphPtr->sample(); m_hasState=true; }
     void sampleGraphOnly() { m_randomGraphPtr->sampleGraph(); m_hasState=true; }
 

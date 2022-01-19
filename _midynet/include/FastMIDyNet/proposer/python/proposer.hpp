@@ -37,7 +37,7 @@ public:
     using PyProposer<GraphMove, BaseClass>::PyProposer;
     /* Pure abstract methods */
     void setUp(const RandomGraph& randomGraph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, randomGraph); }
-    double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogProposalProbRatio, move); }
+    const double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
     GraphMove proposeRawMove() const override { PYBIND11_OVERRIDE_PURE(GraphMove, BaseClass, proposeRawMove, ); }
 
     /* Abstract & overloaded methods */
@@ -52,7 +52,7 @@ class PyHingeFlipProposer: public PyEdgeProposer<BaseClass>{
 public:
     using PyEdgeProposer<BaseClass>::PyEdgeProposer;
     /* Pure abstract methods */
-    double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogProposalProbRatio, move); }
+    const double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
 
     /* Abstract & overloaded methods */
 };
@@ -62,7 +62,7 @@ class PySingleEdgeProposer: public PyEdgeProposer<BaseClass>{
 public:
     using PyEdgeProposer<BaseClass>::PyEdgeProposer;
     /* Pure abstract methods */
-    double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogProposalProbRatio, move); }
+    const double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
 
     /* Abstract & overloaded methods */
 };
@@ -75,7 +75,7 @@ public:
 
     /* Pure abstract methods */
     void setUp(const RandomGraph& randomGraph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, randomGraph); }
-    double getLogProposalProbRatio(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogProposalProbRatio, move); }
+    const double getLogProposalProbRatio(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
 
     /* Abstract & overloaded methods */
     void updateProbabilities(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, updateProbabilities, move); }
@@ -92,8 +92,8 @@ public:
     void setUp(const MultiGraph& graph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, graph) ;}
     void update(const GraphMove& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, update, move) ;}
     void update(const BlockMove& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, update, move) ;}
-    double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getVertexWeight, vertexIdx) ;}
-    double getTotalWeight() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getTotalWeight, ) ;}
+    const double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getVertexWeight, vertexIdx) ;}
+    const double getTotalWeight() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getTotalWeight, ) ;}
 
     /* Abstract & overloaded methods */
     void checkSafety() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSafety, ) ;}

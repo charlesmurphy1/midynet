@@ -13,7 +13,7 @@ namespace FastMIDyNet{
     class TestDegreeDynamics: public::testing::Test{
     public:
         FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7);
-        FastMIDyNet::DegreeDynamics dynamic = FastMIDyNet::DegreeDynamics(graph, NUM_STEPS, C);
+        FastMIDyNet::DegreeDynamics dynamic = FastMIDyNet::DegreeDynamics(graph, NUM_STEPS, C, false);
     };
 
 

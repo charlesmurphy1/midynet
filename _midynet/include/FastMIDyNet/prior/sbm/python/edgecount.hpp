@@ -17,12 +17,12 @@ class PyEdgeCountPrior: public PyPrior<size_t, EdgeCountPriorBaseClass> {
 public:
     using PyPrior<size_t, EdgeCountPriorBaseClass>::PyPrior;
     /* Pure abstract methods */
-    double getLogLikelihoodFromState(const size_t& state) const override { PYBIND11_OVERRIDE_PURE(double, EdgeCountPriorBaseClass, getLogLikelihoodFromState, state); }
+    const double getLogLikelihoodFromState(const size_t& state) const override { PYBIND11_OVERRIDE_PURE(const double, EdgeCountPriorBaseClass, getLogLikelihoodFromState, state); }
 
     /* Overloaded abstract methods */
     void samplePriors() override { PYBIND11_OVERRIDE(void, EdgeCountPriorBaseClass, samplePriors, ); }
-    double getLogLikelihood() const override { PYBIND11_OVERRIDE(double, EdgeCountPriorBaseClass, getLogLikelihood, ); }
-    double getLogPrior() const override { PYBIND11_OVERRIDE(double, EdgeCountPriorBaseClass, getLogPrior, ); }
+    const double getLogLikelihood() const override { PYBIND11_OVERRIDE(const double, EdgeCountPriorBaseClass, getLogLikelihood, ); }
+    const double getLogPrior() const override { PYBIND11_OVERRIDE(const double, EdgeCountPriorBaseClass, getLogPrior, ); }
 };
 
 }

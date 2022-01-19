@@ -12,7 +12,7 @@ namespace FastMIDyNet {
 class BlockProposer: public Proposer<BlockMove> {
 public:
     virtual void setUp(const RandomGraph& randomGraph) = 0;
-    virtual double getLogProposalProbRatio(const BlockMove& move) const = 0;
+    virtual const double getLogProposalProbRatio(const BlockMove& move) const = 0;
     virtual void updateProbabilities(const GraphMove& move) {};
     virtual void updateProbabilities(const BlockMove& move) {};
 

@@ -41,13 +41,13 @@ public:
     virtual const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const = 0;
     const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getBlocks()[vertexIdx]; }
     const size_t& getDegreeOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getDegrees()[vertexIdx]; }
-    virtual bool isCompatible(const MultiGraph& graph) const { return graph.getSize() == m_size; }
+    virtual const bool isCompatible(const MultiGraph& graph) const { return graph.getSize() == m_size; }
 
-    size_t computeBlockCount() const ;
-    std::vector<size_t> computeVertexCountsInBlocks() const ;
-    Matrix<size_t> computeEdgeMatrix() const ;
-    std::vector<size_t> computeEdgeCountsInBlocks() const ;
-    std::vector<CounterMap<size_t>> computeDegreeCountsInBlocks() const ;
+    const size_t computeBlockCount() const ;
+    const std::vector<size_t> computeVertexCountsInBlocks() const ;
+    const Matrix<size_t> computeEdgeMatrix() const ;
+    const std::vector<size_t> computeEdgeCountsInBlocks() const ;
+    const std::vector<CounterMap<size_t>> computeDegreeCountsInBlocks() const ;
 
 
     const MultiGraph& sample() {
@@ -59,18 +59,18 @@ public:
         return getGraph();
     };
     virtual void sampleGraph() = 0;
-    virtual double getLogLikelihood() const = 0;
-    virtual double getLogPrior() const = 0;
-    double getLogJoint() const { return getLogLikelihood() + getLogPrior(); }
+    virtual const double getLogLikelihood() const = 0;
+    virtual const double getLogPrior() const = 0;
+    const double getLogJoint() const { return getLogLikelihood() + getLogPrior(); }
 
-    virtual double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const = 0;
-    virtual double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const = 0;
-    virtual double getLogPriorRatioFromGraphMove (const GraphMove& move) const = 0;
-    virtual double getLogPriorRatioFromBlockMove (const BlockMove& move) const = 0;
-    double getLogJointRatioFromGraphMove (const GraphMove& move) const{
+    virtual const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const = 0;
+    virtual const double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const = 0;
+    virtual const double getLogPriorRatioFromGraphMove (const GraphMove& move) const = 0;
+    virtual const double getLogPriorRatioFromBlockMove (const BlockMove& move) const = 0;
+    const double getLogJointRatioFromGraphMove (const GraphMove& move) const{
         return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
     }
-    double getLogJointRatioFromBlockMove (const BlockMove& move) const{
+    const double getLogJointRatioFromBlockMove (const BlockMove& move) const{
         return getLogPriorRatioFromBlockMove(move) + getLogLikelihoodRatioFromBlockMove(move);
     }
     virtual void applyGraphMove(const GraphMove& move);

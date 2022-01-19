@@ -21,7 +21,7 @@ void BlockCountPoissonPrior::sampleState() {
     setState(blockCount);
 };
 
-double BlockCountPoissonPrior::getLogLikelihoodFromState(const size_t& state) const {
+const double BlockCountPoissonPrior::getLogLikelihoodFromState(const size_t& state) const {
     return logZeroTruncatedPoissonPMF(state, m_mean);
 };
 
@@ -40,7 +40,7 @@ void BlockCountPoissonPrior::checkSelfConsistency() const {
 //     setState(blockCount);
 // };
 //
-// double BlockCountPoissonPrior::getLogLikelihoodFromState(const size_t& state) const {
+// const double BlockCountPoissonPrior::getLogLikelihoodFromState(const size_t& state) const {
 //     return logZeroTruncatedPoissonPMF(state, m_mean);
 // };
 //

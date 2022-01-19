@@ -18,8 +18,8 @@ public:
     /* Pure abstract methods */
     void sampleState() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleState, ); }
     void samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePriors, ); }
-    double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogLikelihood, ); }
-    double getLogPrior() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPrior, ); }
+    const double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, ); }
+    const double getLogPrior() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPrior, ); }
     void checkSelfConsistency() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSelfConsistency, ); }
     void checkSafety() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSafety, ); }
 

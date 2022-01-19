@@ -62,11 +62,11 @@ void BlockUniformPrior::sampleState() {
 }
 
 
-double BlockUniformPrior::getLogLikelihood() const {
+const double BlockUniformPrior::getLogLikelihood() const {
     return -logMultisetCoefficient(getSize(), getBlockCount());
 }
 
-double BlockUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+const double BlockUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
     size_t prevNumBlocks = m_blockCountPriorPtr->getState();
     size_t newNumBlocks = m_blockCountPriorPtr->getStateAfterBlockMove(move);
     double logLikelihoodRatio = 0;
@@ -82,11 +82,11 @@ void BlockHyperPrior::sampleState(){
     setState( b );
 };
 
-double BlockHyperPrior::getLogLikelihood() const {
+const double BlockHyperPrior::getLogLikelihood() const {
     return -logMultinomialCoefficient(getVertexCountsInBlocks());
 };
 
-double BlockHyperPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const{
+const double BlockHyperPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const{
     const auto& nr = getVertexCountsInBlocks();
 
     double logLikelihoodRatio = 0;

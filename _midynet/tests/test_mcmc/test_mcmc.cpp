@@ -25,9 +25,9 @@ public:
             m_isLastAccepted = false;
 
     }
-    double getLogLikelihood() const { return 1; }
-    double getLogPrior() const { return 2; }
-    double getLogJoint() const { return getLogLikelihood() + getLogPrior(); }
+    const double getLogLikelihood() const { return 1; }
+    const double getLogPrior() const { return 2; }
+    const double getLogJoint() const { return getLogLikelihood() + getLogPrior(); }
     void sample() { m_hasState = true; }
     const MultiGraph& getGraph() const override { return graph; }
     const BlockSequence& getBlocks() const override { return blocks; }

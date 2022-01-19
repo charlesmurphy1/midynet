@@ -29,19 +29,19 @@ public:
     const std::vector<size_t>& getDegrees() const {
         PYBIND11_OVERRIDE(const std::vector<size_t>&, BaseClass, getDegrees, );
     }
-    double getLogLikelihood() const override { PYBIND11_OVERRIDE(double, BaseClass, getLogLikelihood, ); }
-    double getLogPrior() const override { PYBIND11_OVERRIDE(double, BaseClass, getLogPrior, ); }
-    double getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const override { PYBIND11_OVERRIDE(double, BaseClass, getLogLikelihoodRatioEdgeTerm, move); }
-    double getLogLikelihoodRatioAdjTerm (const GraphMove& move) const override { PYBIND11_OVERRIDE(double, BaseClass, getLogLikelihoodRatioAdjTerm, move); }
-    double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE(double, BaseClass, getLogLikelihoodRatioFromGraphMove, move); }
-    double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE(double, BaseClass, getLogLikelihoodRatioFromBlockMove, move); }
-    double getLogPriorRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE(double, BaseClass, getLogPriorRatioFromGraphMove, move); }
-    double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE(double, BaseClass, getLogPriorRatioFromBlockMove, move); }
+    const double getLogLikelihood() const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihood, ); }
+    const double getLogPrior() const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPrior, ); }
+    const double getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihoodRatioEdgeTerm, move); }
+    const double getLogLikelihoodRatioAdjTerm (const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihoodRatioAdjTerm, move); }
+    const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihoodRatioFromGraphMove, move); }
+    const double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihoodRatioFromBlockMove, move); }
+    const double getLogPriorRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromGraphMove, move); }
+    const double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromBlockMove, move); }
     void applyGraphMove (const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
     void applyBlockMove (const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
     void computationFinished() const override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
     void checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
-    bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
+    const bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
 };
 
 template<typename BaseClass = DegreeCorrectedStochasticBlockModelFamily>
@@ -55,7 +55,7 @@ public:
     void setBlockPrior(BlockPrior& blockPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setBlockPrior, blockPrior); }
     void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setEdgeMatrixPrior, edgeMatrixPrior); }
     void setDegreePrior(DegreePrior& DegreePrior) override { PYBIND11_OVERRIDE(void, BaseClass, setDegreePrior, DegreePrior); }
-    bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
+    const bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
 };
 
 }

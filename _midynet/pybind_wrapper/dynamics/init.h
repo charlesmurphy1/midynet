@@ -19,12 +19,14 @@ void initDynamics(py::module& m){
     initBinaryDynamicsBaseClass(m);
 
     py::class_<CowanDynamics, BinaryDynamics>(m, "CowanDynamics")
-        .def(py::init<size_t, double, double, double, double>(),
+        .def(py::init<size_t, double, double, double, double, bool>(),
             py::arg("num_steps"), py::arg("nu"),
-            py::arg("a")=1, py::arg("mu")=1, py::arg("eta")=0.5)
-        .def(py::init<RandomGraph&, size_t, double, double, double, double>(),
+            py::arg("a")=1, py::arg("mu")=1,
+            py::arg("eta")=0.5, py::arg("normalize")=true)
+        .def(py::init<RandomGraph&, size_t, double, double, double, double, bool>(),
             py::arg("random_graph"), py::arg("num_steps"), py::arg("nu"),
-            py::arg("a")=1, py::arg("mu")=1, py::arg("eta")=0.5)
+            py::arg("a")=1, py::arg("mu")=1, py::arg("eta")=0.5,
+            py::arg("normalize")=true)
         .def("get_a", &CowanDynamics::getA)
         .def("set_a", &CowanDynamics::setA, py::arg("a"))
         .def("get_nu", &CowanDynamics::getNu)
@@ -35,28 +37,31 @@ void initDynamics(py::module& m){
         .def("set_eta", &CowanDynamics::setEta, py::arg("eta"));
 
     py::class_<DegreeDynamics, BinaryDynamics>(m, "DegreeDynamics")
-        .def(py::init<size_t, double>(),
-            py::arg("num_steps"), py::arg("C"))
+        .def(py::init<size_t, double, bool>(),
+            py::arg("num_steps"), py::arg("C"), py::arg("normalize")=true)
         .def(py::init<RandomGraph&, size_t, double>(),
             py::arg("random_graph"), py::arg("num_steps"), py::arg("C"))
         .def("get_c", &DegreeDynamics::getC)
         .def("set_c", &DegreeDynamics::setC, py::arg("c"));
 
     py::class_<IsingGlauberDynamics, BinaryDynamics>(m, "IsingGlauberDynamics")
-        .def(py::init<size_t, double>(),
-            py::arg("num_steps"), py::arg("coupling"))
-        .def(py::init<RandomGraph&, size_t, double>(),
-            py::arg("random_graph"), py::arg("num_steps"), py::arg("coupling"))
+        .def(py::init<size_t, double, bool>(),
+            py::arg("num_steps"), py::arg("coupling"), py::arg("normalize")=true)
+        .def(py::init<RandomGraph&, size_t, double, bool>(),
+            py::arg("random_graph"), py::arg("num_steps"), py::arg("coupling"),
+            py::arg("normalize")=true)
         .def("get_coupling", &IsingGlauberDynamics::getCoupling)
         .def("set_coupling", &IsingGlauberDynamics::setCoupling, py::arg("coupling"));
 
     py::class_<SISDynamics, BinaryDynamics>(m, "SISDynamics")
-        .def(py::init<size_t, double, double, double>(),
+        .def(py::init<size_t, double, double, double, bool>(),
             py::arg("num_steps"), py::arg("infection_prob"),
-            py::arg("recovery_prob")=0.5, py::arg("auto_infection_prob")=1e-6)
-        .def(py::init<RandomGraph&, size_t, double, double, double>(),
+            py::arg("recovery_prob")=0.5, py::arg("auto_infection_prob")=1e-6,
+            py::arg("normalize")=true)
+        .def(py::init<RandomGraph&, size_t, double, double, double, bool>(),
             py::arg("random_graph"), py::arg("num_steps"), py::arg("infection_prob"),
-            py::arg("recovery_prob")=0.5, py::arg("auto_infection_prob")=1e-6)
+            py::arg("recovery_prob")=0.5, py::arg("auto_infection_prob")=1e-6,
+            py::arg("normalize")=true)
         .def("get_infection_prob", &SISDynamics::getInfectionProb)
         .def("set_infection_prob", &SISDynamics::setInfectionProb, py::arg("infection_prob"))
         .def("get_recovery_prob", &SISDynamics::getRecoveryProb)

@@ -38,10 +38,10 @@ class Prior{
             processRecursiveFunction(_func);
             return getState();
         }
-        virtual double getLogLikelihood() const = 0;
-        virtual double getLogPrior() const = 0;
+        virtual const double getLogLikelihood() const = 0;
+        virtual const double getLogPrior() const = 0;
 
-        double getLogJoint() const {
+        const double getLogJoint() const {
             auto _func = [&]() { return getLogPrior() + getLogLikelihood(); };
             double logJoint = processRecursiveConstFunction<double>(_func , 0);
             return logJoint;
@@ -71,7 +71,7 @@ class Prior{
         }
 
         template<typename RETURN_TYPE>
-        RETURN_TYPE processRecursiveFunction(const std::function<RETURN_TYPE()>& func, RETURN_TYPE init) {
+        RETURN_TYPE processRecursiveFunction(const std::function<RETURN_TYPE()>& func, RETURN_TYPE init) const {
             RETURN_TYPE ret = init;
             if (!m_isProcessed)
                 ret = func();
@@ -90,7 +90,7 @@ class Prior{
 
     protected:
         StateType m_state;
-        bool m_isRoot = true;
+        mutable bool m_isRoot = true;
         mutable bool m_isProcessed = false;
 };
 

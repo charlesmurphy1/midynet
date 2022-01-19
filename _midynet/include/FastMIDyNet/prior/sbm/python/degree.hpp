@@ -18,11 +18,11 @@ class PyDegreePrior: public PyPrior<std::vector<size_t>, DegreePriorBaseClass> {
 public:
     using PyPrior<std::vector<size_t>, DegreePriorBaseClass>::PyPrior;
     /* Pure abstract methods */
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override {
-        PYBIND11_OVERRIDE_PURE(double, DegreePriorBaseClass, getLogLikelihoodRatioFromGraphMove, move);
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override {
+        PYBIND11_OVERRIDE_PURE(const double, DegreePriorBaseClass, getLogLikelihoodRatioFromGraphMove, move);
     }
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override {
-        PYBIND11_OVERRIDE_PURE(double, DegreePriorBaseClass, getLogLikelihoodRatioFromBlockMove, move);
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override {
+        PYBIND11_OVERRIDE_PURE(const double, DegreePriorBaseClass, getLogLikelihoodRatioFromBlockMove, move);
     }
 
     /* Overloaded abstract methods */

@@ -12,10 +12,10 @@ const std::vector<size_t> TESTED_INTEGERS;
 
 class DummyPrior: public FastMIDyNet::Prior<size_t> {
     public:
-        void samplePriors() { }
-        void sampleState() { }
-        double getLogLikelihood() const override { return m_state; }
-        double getLogPrior() const override{ return 0; }
+        void samplePriors() override { }
+        void sampleState() override { }
+        const double getLogLikelihood() const override { return m_state; }
+        const double getLogPrior() const override{ return 0; }
         void checkSelfConsistency() const override {}
         const bool getIsProcessed() const { return m_isProcessed; }
         void computationFinished() const override{ m_isProcessed = false; }

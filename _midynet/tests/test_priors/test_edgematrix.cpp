@@ -14,10 +14,9 @@ class DummyEdgeMatrixPrior: public FastMIDyNet::EdgeMatrixPrior {
     public:
         using EdgeMatrixPrior::EdgeMatrixPrior;
         void sampleState() {}
-        double getLogLikelihood() const { return 0.; }
-
-        double getLogLikelihoodRatioFromGraphMove(const FastMIDyNet::GraphMove&) const { return 0; }
-        double getLogLikelihoodRatioFromBlockMove(const FastMIDyNet::BlockMove&) const { return 0; }
+        const double getLogLikelihood() const { return 0.; }
+        const double getLogLikelihoodRatioFromGraphMove(const FastMIDyNet::GraphMove&) const { return 0; }
+        const double getLogLikelihoodRatioFromBlockMove(const FastMIDyNet::BlockMove&) const { return 0; }
 
         void applyGraphMove(const FastMIDyNet::GraphMove&) { };
         void applyBlockMove(const FastMIDyNet::BlockMove&) { };

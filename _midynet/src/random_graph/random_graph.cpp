@@ -28,12 +28,12 @@ void RandomGraph::applyGraphMove(const GraphMove& move){
     }
 }
 
-size_t RandomGraph::computeBlockCount() const {
+const size_t RandomGraph::computeBlockCount() const {
     auto blocks = getBlocks();
     return *max_element(blocks.begin(), blocks.end()) + 1;
 }
 
-std::vector<size_t> RandomGraph::computeVertexCountsInBlocks() const {
+const std::vector<size_t> RandomGraph::computeVertexCountsInBlocks() const {
     auto blocks = getBlocks();
     std::vector<size_t> vertexCounts(getBlockCount(), 0);
     for (auto idx : m_graph){
@@ -42,7 +42,7 @@ std::vector<size_t> RandomGraph::computeVertexCountsInBlocks() const {
     return vertexCounts;
 }
 
-Matrix<size_t> RandomGraph::computeEdgeMatrix() const {
+const Matrix<size_t> RandomGraph::computeEdgeMatrix() const {
     auto blocks = getBlocks();
     auto blockCount = getBlockCount();
     Matrix<size_t> edgeMatrix(blockCount, {blockCount, 0});
@@ -57,7 +57,7 @@ Matrix<size_t> RandomGraph::computeEdgeMatrix() const {
     return edgeMatrix;
 }
 
-std::vector<size_t> RandomGraph::computeEdgeCountsInBlocks() const {
+const std::vector<size_t> RandomGraph::computeEdgeCountsInBlocks() const {
     auto blockCount = getBlockCount();
     auto edgeMatrix = getEdgeMatrix();
     std::vector<size_t> edgeCounts(blockCount, 0);
@@ -70,7 +70,7 @@ std::vector<size_t> RandomGraph::computeEdgeCountsInBlocks() const {
     return edgeCounts;
 }
 
-std::vector<CounterMap<size_t>> RandomGraph::computeDegreeCountsInBlocks() const {
+const std::vector<CounterMap<size_t>> RandomGraph::computeDegreeCountsInBlocks() const {
     auto blockCount = getBlockCount();
     auto blocks = getBlocks();
     auto edgeMatrix = getEdgeMatrix();

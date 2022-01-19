@@ -43,21 +43,21 @@ public:
     const BlockSequence& getBlocks() const override { return m_randomGraphMCMC.getBlocks(); }
     const int getSize() const { return m_dynamics.getSize(); }
 
-    double getBetaPrior() const { return m_betaPrior; }
+    const double getBetaPrior() const { return m_betaPrior; }
     void setBetaPrior(double betaPrior) { m_betaPrior = betaPrior; }
 
-    double getBetaLikelihood() const { return m_betaLikelihood; }
+    const double getBetaLikelihood() const { return m_betaLikelihood; }
     void setBetaLikelihood(double betaLikelihood) { m_betaLikelihood = betaLikelihood; }
 
-    double getSampleGraphPriorProb() const { return m_sampleGraphPriorProb; }
+    const double getSampleGraphPriorProb() const { return m_sampleGraphPriorProb; }
     void setSampleGraphPriorProb(double sampleGraphPriorProb) { m_sampleGraphPriorProb = sampleGraphPriorProb; }
 
     const RandomGraphMCMC& getRandomGraphMCMC() const { return m_randomGraphMCMC; }
     const Dynamics& getDynamics() const { return m_dynamics; }
 
-    double getLogLikelihood() const override { return m_dynamics.getLogLikelihood(); }
-    double getLogPrior() const override { return m_dynamics.getLogPrior(); }
-    double getLogJoint() const override { return m_dynamics.getLogJoint(); }
+    const double getLogLikelihood() const override { return m_dynamics.getLogLikelihood(); }
+    const double getLogPrior() const override { return m_dynamics.getLogPrior(); }
+    const double getLogJoint() const override { return m_dynamics.getLogJoint(); }
     void sample() override {
         m_dynamics.sample();
         m_hasState=true;

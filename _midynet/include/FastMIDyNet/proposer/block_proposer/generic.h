@@ -19,7 +19,7 @@ class BlockGenericProposer: public BlockProposer {
             return {0, (*m_blocksPtr)[0], (*m_blocksPtr)[0], 0};
         }
         void setUp(const RandomGraph& randomGraph) override { m_blocksPtr = &randomGraph.getBlocks(); }
-        double getLogProposalProbRatio(const BlockMove&) const override { return 0;};
+        const double getLogProposalProbRatio(const BlockMove&) const override { return 0;};
         void checkSafety() const override { }
 };
 

@@ -18,20 +18,19 @@ using namespace FastMIDyNet;
 class DummyVertexCountPrior: public VertexCountPrior {
     public:
         using VertexCountPrior::VertexCountPrior;
-        void samplePriors() { m_blockCountPriorPtr->sample(); }
-        double getLogLikelihood() const { return 0.; }
+        void samplePriors() override { m_blockCountPriorPtr->sample(); }
+        const double getLogLikelihood() const override { return 0.; }
 
         void sampleState() {
             vector<size_t> vertexCount(getBlockCount(),1);
             vertexCount[0] = getSize() - getBlockCount() + 1;
             setState(vertexCount);
         }
-        double getLogLikelihoodFromState(const size_t& state) const { return state; }
-        double getLogPrior() { return 0; }
+        const double getLogPrior() { return 0; }
 
-        void checkSelfConsistency() const {}
+        void checkSelfConsistency() const override {}
         bool getIsProcessed() { return m_isProcessed; }
-        double getLogLikelihoodRatioFromBlockMove(const BlockMove& ) const { return 0.; }
+        const double getLogLikelihoodRatioFromBlockMove(const BlockMove& ) const override { return 0.; }
         void _createBlock(){ createBlock(); }
         void _destroyBlock(const BlockIndex& idx){ destroyBlock(idx); }
 };

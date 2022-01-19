@@ -16,12 +16,12 @@ class PyDynamics: public BaseClass{
 public:
     using BaseClass::BaseClass;
     /* Pure abstract methods */
-    double getTransitionProb(
+    const double getTransitionProb(
         VertexState prevVertexState,
         VertexState nextVertexState,
         VertexNeighborhoodState neighborhoodState
     ) const override {
-        PYBIND11_OVERRIDE_PURE(double, BaseClass, getTransitionProb, prevVertexState, nextVertexState, neighborhoodState);
+        PYBIND11_OVERRIDE_PURE(const double, BaseClass, getTransitionProb, prevVertexState, nextVertexState, neighborhoodState);
     }
 
     /* Abstract methods */
@@ -37,20 +37,20 @@ class PyBinaryDynamics: public PyDynamics<BaseClass>{
 public:
     using PyDynamics<BaseClass>::PyDynamics;
     /* Pure abstract methods */
-    double getActivationProb(const VertexNeighborhoodState& neighborState) const override {
-        PYBIND11_OVERRIDE_PURE(double, BaseClass, getActivationProb, neighborState);
+    const double getActivationProb(const VertexNeighborhoodState& neighborState) const override {
+        PYBIND11_OVERRIDE_PURE(const double, BaseClass, getActivationProb, neighborState);
     }
-    double getDeactivationProb(const VertexNeighborhoodState& neighborState) const override {
-        PYBIND11_OVERRIDE_PURE(double, BaseClass, getDeactivationProb, neighborState);
+    const double getDeactivationProb(const VertexNeighborhoodState& neighborState) const override {
+        PYBIND11_OVERRIDE_PURE(const double, BaseClass, getDeactivationProb, neighborState);
     }
     /* Abstract methods */
-    double getTransitionProb(
-        VertexState prevVertexState,
-        VertexState nextVertexState,
-        VertexNeighborhoodState neighborhoodState
-    ) const override {
-        PYBIND11_OVERRIDE(double, BaseClass, getTransitionProb, prevVertexState, nextVertexState, neighborhoodState);
-    }
+    // const double getTransitionProb(
+    //     VertexState prevVertexState,
+    //     VertexState nextVertexState,
+    //     VertexNeighborhoodState neighborhoodState
+    // ) const override {
+    //     PYBIND11_OVERRIDE(const double, BaseClass, getTransitionProb, prevVertexState, nextVertexState, neighborhoodState);
+    // }
 };
 
 }

@@ -13,23 +13,23 @@ class EdgeCountPrior: public Prior<size_t> {
     public:
         using Prior::Prior;
         void samplePriors() override {}
-        virtual double getLogLikelihoodFromState(const size_t&) const = 0;
-        virtual double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
-        double getLogPrior() const override { return 0; }
-        double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+        virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
+        virtual const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
+        const double getLogPrior() const override { return 0; }
+        const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
              return getLogLikelihoodFromState(getStateAfterGraphMove(move)) - getLogLikelihood();
         }
-        double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0; }
+        const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
 
-        double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
-        double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return 0; }
+        const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
+        const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
-        double getLogJointRatioFromGraphMove(const GraphMove& move) const {
+        const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
             double ratio = processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move); }, 0);
             return ratio;
         }
-        double getLogJointRatioFromBlockMove(const BlockMove& move) const { return 0; }
+        const double getLogJointRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
         void applyGraphMove(const GraphMove& move) {
             processRecursiveFunction( [&](){ setState(getStateAfterGraphMove(move)); } );
@@ -53,8 +53,8 @@ public:
     }
 
     void sampleState() override { };
-    double getLogLikelihoodFromState(const size_t& state) const override { if (state == m_state) return 0.; else return -INFINITY; };
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { if (move.addedEdges.size() == move.removedEdges.size()) return 0; else return -INFINITY;}
+    const double getLogLikelihoodFromState(const size_t& state) const override { if (state == m_state) return 0.; else return -INFINITY; };
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { if (move.addedEdges.size() == move.removedEdges.size()) return 0; else return -INFINITY;}
     void checkSelfConsistency() const override { };
 
 };
@@ -80,7 +80,7 @@ class EdgeCountPoissonPrior: public EdgeCountPrior{
             m_poissonDistribution = std::poisson_distribution<size_t>(mean);
         }
         void sampleState() override;
-        double getLogLikelihoodFromState(const size_t& state) const override;
+        const double getLogLikelihoodFromState(const size_t& state) const override;
         void checkSelfConsistency() const;
 
 

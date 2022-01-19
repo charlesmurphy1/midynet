@@ -171,13 +171,13 @@ void EdgeMatrixUniformPrior::sampleState() {
     }
 }
 
-double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
     double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
     double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState() + move.addedEdges.size() - move.removedEdges.size());
     return newLogLikelihood - currentLogLikelihood;
 }
 
-double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
     auto vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
 
     bool creatingBlock = move.nextBlockIdx == m_blockPriorPtr->getBlockCount();

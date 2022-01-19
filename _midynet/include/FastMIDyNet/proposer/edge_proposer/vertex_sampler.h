@@ -23,8 +23,8 @@ public:
     virtual void setUp(const MultiGraph&) = 0;
     virtual void update(const GraphMove&) { };
     virtual void update(const BlockMove&) { };
-    virtual double getVertexWeight(const BaseGraph::VertexIndex&) const = 0;
-    virtual double getTotalWeight() const = 0;
+    virtual const double getVertexWeight(const BaseGraph::VertexIndex&) const = 0;
+    virtual const double getTotalWeight() const = 0;
 
     bool setAcceptIsolated(bool accept) { return m_withIsolatedVertices = accept; }
     bool getAcceptIsolated() const { return m_withIsolatedVertices; }
@@ -47,8 +47,8 @@ public:
 
     BaseGraph::VertexIndex sample() const override { return m_vertexSampler.sample_ext_RNG(rng).first; }
     void setUp(const MultiGraph& graph) override;
-    double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override { return 1.; }
-    double getTotalWeight() const override { return m_vertexSampler.total_weight(); }
+    const double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override { return 1.; }
+    const double getTotalWeight() const override { return m_vertexSampler.total_weight(); }
 
     void checkSafety()const override {
         if (m_vertexSampler.size() == 0)
@@ -77,10 +77,10 @@ public:
     BaseGraph::VertexIndex sample() const override;
     void setUp(const MultiGraph& graph) override;
     void update(const GraphMove& move) override;
-    double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override {
+    const double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override {
         return m_degrees[vertexIdx];
     }
-    double getTotalWeight() const override { return 2 * m_edgeSampler.total_weight(); }
+    const double getTotalWeight() const override { return 2 * m_edgeSampler.total_weight(); }
     void checkSafety()const override {
         if (m_degrees.size() == 0)
             throw SafetyError("VertexDegreeSampler: unsafe vertex sampler since `m_degrees` is empty.");

@@ -17,7 +17,7 @@ namespace FastMIDyNet {
     class TestWilsonCowan: public::testing::Test{
     public:
         FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7);
-        FastMIDyNet::CowanDynamics dynamic = FastMIDyNet::CowanDynamics(graph, NUM_STEPS, NU, A, MU, ETA);
+        FastMIDyNet::CowanDynamics dynamic = FastMIDyNet::CowanDynamics(graph, NUM_STEPS, NU, A, MU, ETA, false);
     };
 
 

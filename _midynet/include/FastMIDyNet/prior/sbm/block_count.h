@@ -13,19 +13,19 @@ class BlockCountPrior: public Prior<size_t> {
     public:
         using Prior<size_t>::Prior;
         void samplePriors() override { }
-        virtual double getLogLikelihoodFromState(const size_t&) const = 0;
-        double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
-        double getLogPrior() const override { return 0; }
-        double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
-        double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+        virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
+        const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
+        const double getLogPrior() const override { return 0; }
+        const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
+        const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
             return getLogLikelihoodFromState(getStateAfterBlockMove(move)) - getLogLikelihood();
         }
 
-        double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
-        double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return 0; }
+        const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
+        const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
-        double getLogJointRatioFromGraphMove(const GraphMove& move) const { return 0; }
-        double getLogJointRatioFromBlockMove(const BlockMove& move) const {
+        const double getLogJointRatioFromGraphMove(const GraphMove& move) const { return 0; }
+        const double getLogJointRatioFromBlockMove(const BlockMove& move) const {
             auto ratio = processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move); }, 0);
             return ratio;
         }
@@ -53,11 +53,11 @@ public:
 
     void sampleState() override { }
 
-    double getLogLikelihoodFromState(const size_t& blockCount) const override{
+    const double getLogLikelihoodFromState(const size_t& blockCount) const override{
         if (blockCount != m_state) return -INFINITY;
         else return 0;
     }
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { if (move.addedBlocks == 0) return 0; else return -INFINITY; }
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { if (move.addedBlocks == 0) return 0; else return -INFINITY; }
 
     void checkSelfConsistency() const override { };
 
@@ -83,13 +83,13 @@ class BlockCountPoissonPrior: public BlockCountPrior{
             return *this;
         }
 
-        double getMean() const { return m_mean; }
+        const double getMean() const { return m_mean; }
         void setMean(double mean){
             m_mean = mean;
             m_poissonDistribution = std::poisson_distribution<size_t>(mean);
         }
         void sampleState() override;
-        double getLogLikelihoodFromState(const size_t& state) const override;
+        const double getLogLikelihoodFromState(const size_t& state) const override;
 
         void checkSelfConsistency() const override;
 };
@@ -111,8 +111,8 @@ class BlockCountUniformPrior: public BlockCountPrior{
             return *this;
         }
 
-        double getMin() const { return m_min; }
-        double getMax() const { return m_max; }
+        const double getMin() const { return m_min; }
+        const double getMax() const { return m_max; }
         void setMin(size_t min){
             m_min = min;
             checkMin();
@@ -128,7 +128,7 @@ class BlockCountUniformPrior: public BlockCountPrior{
             setMax(max);
         }
         void sampleState() override { setState(m_uniformDistribution(rng)); }
-        double getLogLikelihoodFromState(const size_t& state) const override{
+        const double getLogLikelihoodFromState(const size_t& state) const override{
             return -log(m_max - m_min);
         };
 

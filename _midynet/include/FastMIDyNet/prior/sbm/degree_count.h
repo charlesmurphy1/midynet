@@ -18,19 +18,19 @@ public:
 
 
     void samplePriors() override { m_edgeCountPrior.sample(); }
-    double getLogLikelihood() const { return getLogLikelihoodFromState(m_state); }
-    virtual double getLogLikelihoodFromState(const DegreeSequence&) const = 0;
-    double getLogPrior() const override { return m_edgeCountPrior.getLogJoint(); }
-    virtual double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const = 0;
-    double getLogJointRatio(const GraphMove& move) {
+    const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
+    virtual const double getLogLikelihoodFromState(const DegreeSequence&) const = 0;
+    const double getLogPrior() const override { return m_edgeCountPrior.getLogJoint(); }
+    virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const = 0;
+    const double getLogJointRatio(const GraphMove& move) {
         return processRecursiveFunction<double>( [&]() {
                 return getLogLikelihoodRatioFromGraphMove(move) + m_edgeCountPrior.getLogJointRatioFromGraphMove(move); },
                 0);
     }
-    double getLogJointRatio(const BlockMove& move) { return 0; }
+    const double getLogJointRatio(const BlockMove& move) { return 0; }
 
 
-    double getLogLikelihoodRatio(const BlockMove&) const { return 0; }
+    const double getLogLikelihoodRatio(const BlockMove&) const { return 0; }
     void applyMove(const BlockMove&) { }
     void computationFinished() const override { m_isProcessed = false; m_edgeCountPrior.computationFinished(); }
     virtual void checkSafety() const override{ }
@@ -39,8 +39,8 @@ public:
 
 class DegreeCountUniformPrior: public DegreeCountPrior {
 public:
-    double getLogLikelihoodFromState(size_t state) const;
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const;
+    const double getLogLikelihoodFromState(const DegreeSequence& state) const override;
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override;
     void applyGraphMove(const GraphMove&);
 
     void checkSelfConsistency() const;

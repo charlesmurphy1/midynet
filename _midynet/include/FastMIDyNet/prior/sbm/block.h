@@ -47,14 +47,14 @@ public:
     static std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&);
 
     /* MCMC methods */
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; };
-    virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const = 0;
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; };
+    virtual const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const = 0;
 
-    double getLogPriorRatioFromGraphMove(const GraphMove& move) { return 0; };
-    virtual double getLogPriorRatioFromBlockMove(const BlockMove& move) const = 0;
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) { return 0; };
+    virtual const double getLogPriorRatioFromBlockMove(const BlockMove& move) const = 0;
 
-    double getLogJointRatioFromGraphMove(const GraphMove& move) const { return 0; };
-    double getLogJointRatioFromBlockMove(const BlockMove& move) const {
+    const double getLogJointRatioFromGraphMove(const GraphMove& move) const { return 0; };
+    virtual const double getLogJointRatioFromBlockMove(const BlockMove& move) const {
         return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
     };
 
@@ -102,17 +102,14 @@ public:
     void sampleState() override { };
     void samplePriors() override { };
 
-    double getLogLikelihood() const override { return 0.; }
-    double getLogPrior() const override { return 0.; };
+    const double getLogLikelihood() const override { return 0.; }
+    const double getLogPrior() const override { return 0.; };
 
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override{
         if (move.prevBlockIdx != move.nextBlockIdx) return -INFINITY;
         else return 0.;
     }
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { return 0; }
-    double getLogJointRatioFromBlockMove(const BlockMove& move) const {
-        return processRecursiveConstFunction<double>( [&](){ return getLogLikelihoodRatioFromBlockMove(move); }, 0);
-    }
+    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { return 0; }
 
 
     void applyBlockMove(const BlockMove& move){
@@ -163,11 +160,11 @@ public:
     void sampleState() override ;
     void samplePriors() override { m_blockCountPriorPtr->sample(); }
 
-    double getLogLikelihood() const override ;
-    double getLogPrior() const override { return m_blockCountPriorPtr->getLogJoint(); };
+    const double getLogLikelihood() const override ;
+    const double getLogPrior() const override { return m_blockCountPriorPtr->getLogJoint(); };
 
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) const {
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
+    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override {
         return m_blockCountPriorPtr->getLogJointRatioFromBlockMove(move);
     };
 
@@ -235,11 +232,11 @@ public:
         m_vertexCountPriorPtr->sample();
     }
 
-    double getLogLikelihood() const override ;
-    double getLogPrior() const override { return m_vertexCountPriorPtr->getLogJoint(); }
+    const double getLogLikelihood() const override ;
+    const double getLogPrior() const override { return m_vertexCountPriorPtr->getLogJoint(); }
 
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) const {
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
+    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override{
         return m_vertexCountPriorPtr->getLogJointRatioFromBlockMove(move);
     };
 

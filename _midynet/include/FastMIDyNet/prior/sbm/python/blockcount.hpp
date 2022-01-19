@@ -18,12 +18,12 @@ class PyBlockCountPrior: public PyPrior<size_t, BlockCountPriorBaseClass> {
 public:
     using PyPrior<size_t, BlockCountPriorBaseClass>::PyPrior;
     /* Pure abstract methods */
-    double getLogLikelihoodFromState(const size_t& state) const override { PYBIND11_OVERRIDE_PURE(double, BlockCountPriorBaseClass, getLogLikelihoodFromState, state); }
+    const double getLogLikelihoodFromState(const size_t& state) const override { PYBIND11_OVERRIDE_PURE(const double, BlockCountPriorBaseClass, getLogLikelihoodFromState, state); }
 
     /* Overloaded abstract methods */
     void samplePriors() override { PYBIND11_OVERRIDE(void, BlockCountPriorBaseClass, samplePriors, ); }
-    double getLogLikelihood() const override { PYBIND11_OVERRIDE(double, BlockCountPriorBaseClass, getLogLikelihood, ); }
-    double getLogPrior() const override { PYBIND11_OVERRIDE(double, BlockCountPriorBaseClass, getLogPrior, ); }
+    const double getLogLikelihood() const override { PYBIND11_OVERRIDE(const double, BlockCountPriorBaseClass, getLogLikelihood, ); }
+    const double getLogPrior() const override { PYBIND11_OVERRIDE(const double, BlockCountPriorBaseClass, getLogPrior, ); }
 };
 
 }

@@ -47,19 +47,19 @@ public:
     const size_t& getBlockCount() const { return m_blockCountPriorPtr->getState(); }
 
     void samplePriors() override{ m_blockCountPriorPtr->sample(); }
-    double getLogPrior() const override{
+    const double getLogPrior() const override{
         return m_blockCountPriorPtr->getLogJoint();
     }
 
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove& ) const { return 0; }
-    virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove& ) const = 0;
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& ) const { return 0; }
+    virtual const double getLogLikelihoodRatioFromBlockMove(const BlockMove& ) const = 0;
 
-    double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_blockCountPriorPtr->getLogJointRatioFromBlockMove(move); }
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
+    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_blockCountPriorPtr->getLogJointRatioFromBlockMove(move); }
 
-    double getLogJointRatioFromGraphMove(const GraphMove& move) const { return 0; }
+    const double getLogJointRatioFromGraphMove(const GraphMove& move) const { return 0; }
 
-    double getLogJointRatioFromBlockMove(const BlockMove& move) const {
+    const double getLogJointRatioFromBlockMove(const BlockMove& move) const {
         return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0.);
     }
     void applyGraphMove(const GraphMove&) { };
@@ -92,10 +92,10 @@ public:
     using VertexCountPrior::VertexCountPrior;
     void sampleState() override;
 
-    double getLogLikelihood() const override { return getLogLikelihoodFromState(getSize(), getBlockCount()); }
+    const double getLogLikelihood() const override { return getLogLikelihoodFromState(getSize(), getBlockCount()); }
     void checkSelfConsistency() const override;
 
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
     static size_t getSizeFromState(const std::vector<size_t> state){
         size_t sum = 0;
         for(auto nr : state) sum += nr;
@@ -103,7 +103,7 @@ public:
     }
 
 protected:
-    double getLogLikelihoodFromState(size_t size, size_t blockCount) const { return -logBinomialCoefficient(size - 1, blockCount - 1);}
+    const double getLogLikelihoodFromState(size_t size, size_t blockCount) const { return -logBinomialCoefficient(size - 1, blockCount - 1);}
 
 };
 

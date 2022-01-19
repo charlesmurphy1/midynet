@@ -36,7 +36,7 @@ public:
             setEdgeMatrixPrior(edgeMatrixPrior);
         }
 
-    void sampleGraph () ;
+    void sampleGraph () override;
 
 
     void setGraph(const MultiGraph& graph) override{
@@ -78,18 +78,17 @@ public:
     void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>>&) const;
     void getDiffEdgeMatMapFromBlockMove(const BlockMove&, IntMap<std::pair<BlockIndex, BlockIndex>>&) const;
 
-    virtual double getLogLikelihood() const;
-    virtual double getLogPrior() const ;
-    double getLogJoint() const { return getLogLikelihood() + getLogPrior(); }
+    virtual const double getLogLikelihood() const override;
+    virtual const double getLogPrior() const override;
 
-    virtual double getLogLikelihoodRatioEdgeTerm (const GraphMove&) const ;
-    virtual double getLogLikelihoodRatioAdjTerm (const GraphMove&) const ;
+    virtual const double getLogLikelihoodRatioEdgeTerm (const GraphMove&) const;
+    virtual const double getLogLikelihoodRatioAdjTerm (const GraphMove&) const;
 
-    virtual double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
-    virtual double getLogLikelihoodRatioFromBlockMove (const BlockMove&) const override;
+    virtual const double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
+    virtual const double getLogLikelihoodRatioFromBlockMove (const BlockMove&) const override;
 
-    virtual double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
-    virtual double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
+    virtual const double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
+    virtual const double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
 
     virtual void applyGraphMove (const GraphMove&) override;
     virtual void applyBlockMove (const BlockMove&) override;
@@ -100,7 +99,7 @@ public:
     static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
     virtual void checkSelfConsistency() const ;
     virtual void checkSafety() const ;
-    virtual bool isCompatible(const MultiGraph& graph) const override{
+    virtual const bool isCompatible(const MultiGraph& graph) const override{
         if (not RandomGraph::isCompatible(graph)) return false;
         auto edgeMatrix = getEdgeMatrixFromGraph(graph, getBlocks());
         return edgeMatrix == getEdgeMatrix();

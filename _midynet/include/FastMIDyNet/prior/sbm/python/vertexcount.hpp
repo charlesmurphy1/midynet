@@ -19,11 +19,11 @@ class PyVertexCountPrior: public PyPrior<std::vector<size_t>, VertexCountPriorBa
 public:
     using PyPrior<std::vector<size_t>, VertexCountPriorBaseClass>::PyPrior;
     /* Pure abstract methods */
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(double, VertexCountPriorBaseClass, getLogLikelihoodRatioFromBlockMove, move); }
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, VertexCountPriorBaseClass, getLogLikelihoodRatioFromBlockMove, move); }
 
     /* Overloaded abstract methods */
     void samplePriors() override { PYBIND11_OVERRIDE(void, VertexCountPriorBaseClass, samplePriors, ); }
-    double getLogPrior() const override { PYBIND11_OVERRIDE(double, VertexCountPriorBaseClass, getLogPrior, ); }
+    const double getLogPrior() const override { PYBIND11_OVERRIDE(const double, VertexCountPriorBaseClass, getLogPrior, ); }
 };
 
 }

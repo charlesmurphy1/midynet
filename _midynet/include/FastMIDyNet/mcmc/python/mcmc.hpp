@@ -20,14 +20,14 @@ public:
     const std::vector<BlockIndex>& getBlocks() const override {
         PYBIND11_OVERRIDE_PURE(const std::vector<BlockIndex>&, BaseClass, getBlocks, );
     }
-    double getLogLikelihood() const override {
-        PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogLikelihood, );
+    const double getLogLikelihood() const override {
+        PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, );
     }
-    double getLogPrior() const override {
-        PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogPrior, );
+    const double getLogPrior() const override {
+        PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPrior, );
     }
-    double getLogJoint() const override {
-        PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogJoint, );
+    const double getLogJoint() const override {
+        PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogJoint, );
     }
     void sample() override {
         PYBIND11_OVERRIDE_PURE(void, BaseClass, sample, );

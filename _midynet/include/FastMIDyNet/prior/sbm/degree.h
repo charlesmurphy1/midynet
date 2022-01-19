@@ -61,20 +61,24 @@ public:
 
     void samplePriors() override { m_blockPriorPtr->sample(); m_edgeMatrixPriorPtr->sample(); }
 
-    double getLogPrior() const override { return m_blockPriorPtr->getLogJoint() + m_edgeMatrixPriorPtr->getLogJoint(); }
+    const double getLogPrior() const override { return m_blockPriorPtr->getLogJoint() + m_edgeMatrixPriorPtr->getLogJoint(); }
 
-    virtual double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
-    virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const = 0;
+    virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
+    virtual const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const = 0;
+    virtual const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_blockPriorPtr->getLogJointRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move); }
+    virtual const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move); }
 
-    double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_blockPriorPtr->getLogJointRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move); }
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move); }
 
-    double getLogJointRatioFromGraphMove(const GraphMove& move) {
-        return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move); }, 0);
+    virtual const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
+        return processRecursiveFunction<double>( [&]() {
+            return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
+        }, 0);
     }
 
-    double getLogJointRatioFromBlockMove(const BlockMove& move) {
-        return processRecursiveFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
+    virtual const double getLogJointRatioFromBlockMove(const BlockMove& move) const {
+        return processRecursiveFunction<double>( [&]() {
+            return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
+        }, 0);
     }
 
     void applyGraphMoveToState(const GraphMove&);
@@ -130,15 +134,13 @@ public:
     void sampleState() override { };
     void samplePriors() override { };
 
-    double getLogLikelihood() const override { return 0.; }
-    double getLogPrior() const override { return 0.; };
+    const double getLogLikelihood() const override { return 0.; }
+    const double getLogPrior() const override { return 0.; };
 
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const ;
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0.; }
-    double getLogJointRatioFromBlockMove(const BlockMove& move) const { return 0; }
-    double getLogJointRatioFromGraphMove(const GraphMove& move) const {
-        return getLogLikelihoodRatioFromGraphMove(move);
-    }
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override;
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override{ return 0.; }
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0.; };
+    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override{ return 0.; }
 
     void checkSelfConsistency() const override { };
     void checkSafety() const override {
@@ -156,9 +158,9 @@ public:
     using DegreePrior::DegreePrior;
     void sampleState() override;
 
-    double getLogLikelihood() const override;
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const;
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
+    const double getLogLikelihood() const override;
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const;
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
 };
 
 class DegreeHyperPrior: public DegreePrior{

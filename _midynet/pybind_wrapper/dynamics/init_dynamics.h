@@ -13,8 +13,9 @@ namespace FastMIDyNet{
 
 void initDynamicsBaseClass(py::module& m){
     py::class_<Dynamics, PyDynamics<>>(m, "Dynamics")
-        .def(py::init<RandomGraph&, size_t, size_t>(),
-            py::arg("random_graph"), py::arg("num_states"), py::arg("num_steps"))
+        .def(py::init<RandomGraph&, size_t, size_t, bool>(),
+            py::arg("random_graph"), py::arg("num_states"), py::arg("num_steps"),
+            py::arg("normalize")=true)
         .def("get_state", &Dynamics::getState)
         .def("get_past_states", &Dynamics::getPastStates)
         .def("get_future_states", &Dynamics::getFutureStates)
@@ -37,6 +38,7 @@ void initDynamicsBaseClass(py::module& m){
             py::arg("async")=false)
         .def("sample_graph", &Dynamics::sampleGraph)
         .def("get_random_state", &Dynamics::getRandomState)
+        .def("normalizeCoupling", &Dynamics::normalizeCoupling)
         .def("get_neighbors_state", &Dynamics::getNeighborsState,
             py::arg("state"))
         .def("get_vertex_neighbor_state", &Dynamics::getVertexNeighborsState,
@@ -66,8 +68,8 @@ void initDynamicsBaseClass(py::module& m){
 
 void initBinaryDynamicsBaseClass(py::module& m){
     py::class_<BinaryDynamics, Dynamics, PyBinaryDynamics<>>(m, "BinaryDynamics")
-        .def(py::init<RandomGraph&, size_t>(),
-            py::arg("random_graph"), py::arg("num_steps"))
+        .def(py::init<RandomGraph&, size_t, bool>(),
+            py::arg("random_graph"), py::arg("num_steps"), py::arg("normalize")=true)
         .def("get_activation_prob", &BinaryDynamics::getActivationProb, py::arg("neighbor_state"))
         .def("get_deactivation_prob", &BinaryDynamics::getDeactivationProb, py::arg("neighbor_state"));
 }

@@ -41,7 +41,7 @@ public:
     HingeFlipUniformProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
         HingeFlipProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
 
-    double getLogProposalProbRatio(const GraphMove&) const override{
+    const double getLogProposalProbRatio(const GraphMove&) const override{
         return 0.;
     }
 };
@@ -54,7 +54,7 @@ public:
         HingeFlipProposer(allowSelfLoops, allowMultiEdges),
         m_vertexDegreeSampler(shift){ m_vertexSamplerPtr = &m_vertexDegreeSampler; }
 
-    double getLogProposalProbRatio(const GraphMove& move) const override{
+    const double getLogProposalProbRatio(const GraphMove& move) const override{
         auto commonVertex = move.addedEdges[0].first;
         auto gainingVertex = move.addedEdges[0].second;
         auto losingVertex = move.removedEdges[0].second;

@@ -39,7 +39,7 @@ void BlockUniformProposer::setUp(const RandomGraph& randomGraph) {
     m_vertexDistribution = std::uniform_int_distribution<BaseGraph::VertexIndex>(0, randomGraph.getSize() - 1);
 }
 
-double BlockUniformProposer::getLogProposalProbRatio(const BlockMove& move) const {
+const double BlockUniformProposer::getLogProposalProbRatio(const BlockMove& move) const {
     if (creatingNewBlock(move.nextBlockIdx))
         return -log(m_blockCreationProbability) + log(1-m_blockCreationProbability) - log(*m_blockCountPtr);
     else if (destroyingBlock(move.prevBlockIdx, move.nextBlockIdx))

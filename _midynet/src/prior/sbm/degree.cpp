@@ -145,7 +145,7 @@ void DegreePrior::destroyBlock(const BlockIndex& blockIdx){
     m_degreeCountsInBlocks.erase(m_degreeCountsInBlocks.begin() + blockIdx);
 }
 
-double DegreeDeltaPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+const double DegreeDeltaPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
     CounterMap<BaseGraph::VertexIndex> map;
 
     for (auto edge : move.addedEdges){
@@ -186,7 +186,7 @@ void DegreeUniformPrior::sampleState(){
     setState(degreeSeq);
 }
 
-double DegreeUniformPrior::getLogLikelihood() const{
+const double DegreeUniformPrior::getLogLikelihood() const{
     double logLikelihood = 0;
     const vector<size_t>& edgeCountsInBlocks = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks();
     const vector<size_t>& vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
@@ -197,7 +197,7 @@ double DegreeUniformPrior::getLogLikelihood() const{
     return logLikelihood;
 }
 
-double DegreeUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const{
+const double DegreeUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const{
     const BlockSequence& blockSeq = m_blockPriorPtr->getState();
     IntMap<BlockIndex> diffEdgeCountsInBlocksMap;
     for (auto edge : move.addedEdges){
@@ -223,7 +223,7 @@ double DegreeUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& m
     return logLikelihoodRatio;
 
 }
-double DegreeUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const{
+const double DegreeUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const{
     const BlockSequence& blockSeq = m_blockPriorPtr->getState();
     IntMap<BlockIndex> diffEdgeCountsInBlocksMap;
     IntMap<BlockIndex> diffVertexCountsInBlocksMap;

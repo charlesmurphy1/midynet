@@ -20,8 +20,8 @@ class PyEdgeMatrixPrior: public PyPrior<std::vector<std::vector<size_t>>, EdgeMa
 public:
     using PyPrior<std::vector<std::vector<size_t>>, EdgeMatrixPriorBaseClass>::PyPrior;
     /* Pure abstract methods */
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(double, EdgeMatrixPriorBaseClass, getLogLikelihoodRatioFromGraphMove, move); }
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(double, EdgeMatrixPriorBaseClass, getLogLikelihoodRatioFromBlockMove, move); }
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, EdgeMatrixPriorBaseClass, getLogLikelihoodRatioFromGraphMove, move); }
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, EdgeMatrixPriorBaseClass, getLogLikelihoodRatioFromBlockMove, move); }
 
     /* Overloaded abstract methods */
 };

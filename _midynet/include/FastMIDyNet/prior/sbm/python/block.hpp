@@ -20,8 +20,8 @@ class PyBlockPrior: public PyPrior<std::vector<size_t>, BlockPriorBaseClass> {
 public:
     using PyPrior<std::vector<size_t>, BlockPriorBaseClass>::PyPrior;
     /* Pure abstract methods */
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BlockPriorBaseClass, getLogLikelihoodRatioFromBlockMove, move); }
-    double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BlockPriorBaseClass, getLogPriorRatioFromBlockMove, move); }
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BlockPriorBaseClass, getLogLikelihoodRatioFromBlockMove, move); }
+    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BlockPriorBaseClass, getLogPriorRatioFromBlockMove, move); }
     void applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE_PURE(void, BlockPriorBaseClass, applyBlockMove, move); }
 
     /* Overloaded abstract methods */

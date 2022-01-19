@@ -43,7 +43,7 @@ public:
         m_edgeMatrixUniformPrior.setEdgeCountPrior(edgeCountPrior);
     }
 
-    bool isCompatible(const MultiGraph& graph) const override{
+    const bool isCompatible(const MultiGraph& graph) const override{
         return RandomGraph::isCompatible(graph) and graph.getTotalEdgeNumber() == getEdgeCount();
     }
 };
@@ -94,18 +94,18 @@ public:
 
     void sampleGraph() override { setGraph(generateSER(m_size, getEdgeCount())); }
     void samplePriors() override { m_edgeCountPriorPtr->sample(); m_edgeMatrix[0][0] = getEdgeCount();}
-    double getLogLikelihood() const override { return logBinomialCoefficient( m_size * (m_size - 1), getEdgeCount()); }
-    double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint(); }
-    double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override{
+    const double getLogLikelihood() const override { return logBinomialCoefficient( m_size * (m_size - 1), getEdgeCount()); }
+    const double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint(); }
+    const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override{
         int edgeCountDiff = move.addedEdges.size() - move.removedEdges.size();
         return logBinomialCoefficient( m_size * (m_size - 1), getEdgeCount() + edgeCountDiff)
              - logBinomialCoefficient( m_size * (m_size - 1), getEdgeCount());
     };
-    double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const override { return 0; }
-    double getLogPriorRatioFromGraphMove (const GraphMove& move) const override {
+    const double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const override { return 0; }
+    const double getLogPriorRatioFromGraphMove (const GraphMove& move) const override {
         return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move);
     }
-    double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { return 0; }
+    const double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { return 0; }
     void applyGraphMove(const GraphMove& move) override {
         RandomGraph::applyGraphMove(move);
         m_edgeCountPriorPtr->applyGraphMove(move);
@@ -126,7 +126,7 @@ public:
         m_edgeCountPriorPtr->checkSafety();
     }
 
-    bool isCompatible(const MultiGraph& graph) const override{
+    bool const isCompatible(const MultiGraph& graph) const override{
         return RandomGraph::isCompatible(graph) and graph.getTotalEdgeNumber() == getEdgeCount();
 
     }

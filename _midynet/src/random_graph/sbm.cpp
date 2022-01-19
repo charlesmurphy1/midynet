@@ -31,7 +31,7 @@ void StochasticBlockModelFamily::samplePriors(){
     computationFinished();
 }
 
-double StochasticBlockModelFamily::getLogLikelihood() const{
+const double StochasticBlockModelFamily::getLogLikelihood() const{
     double logLikelihood = 0;
 
     const EdgeMatrix& edgeMat = getEdgeMatrix() ;
@@ -66,7 +66,7 @@ double StochasticBlockModelFamily::getLogLikelihood() const{
     return logLikelihood;
 };
 
-double StochasticBlockModelFamily::getLogPrior() const {
+const double StochasticBlockModelFamily::getLogPrior() const {
     double logPrior = m_blockPriorPtr->getLogJoint() + m_edgeMatrixPriorPtr->getLogJoint();
     computationFinished();
     return logPrior;
@@ -78,7 +78,7 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromEdgeMove( const Edge& edge
     diffEdgeMatMap.increment(getOrderedPair<BlockIndex>({blockSeq[orderedEdge.first], blockSeq[orderedEdge.second]}), counter);
 };
 
-double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const {
+const double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const {
     const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
@@ -120,7 +120,7 @@ void StochasticBlockModelFamily::getDiffAdjMatMapFromEdgeMove(
     diffAdjMatMap.increment({orderedEdge.first, orderedEdge.second}, counter);
 };
 
-double StochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (const GraphMove& move) const {
+const double StochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (const GraphMove& move) const {
     IntMap<pair<VertexIndex, VertexIndex>> diffAdjMatMap;
     double logLikelihoodRatioTerm = 0;
 
@@ -144,7 +144,7 @@ double StochasticBlockModelFamily::getLogLikelihoodRatioAdjTerm (const GraphMove
     return logLikelihoodRatioTerm;
 };
 
-double StochasticBlockModelFamily::getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const {
+const double StochasticBlockModelFamily::getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const {
     return getLogLikelihoodRatioEdgeTerm(move) + getLogLikelihoodRatioAdjTerm(move);
 }
 
@@ -166,7 +166,7 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove(
     }
 };
 
-double StochasticBlockModelFamily::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+const double StochasticBlockModelFamily::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
     const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
@@ -217,13 +217,13 @@ double StochasticBlockModelFamily::getLogLikelihoodRatioFromBlockMove(const Bloc
     return logLikelihoodRatio;
 };
 
-double StochasticBlockModelFamily::getLogPriorRatioFromGraphMove (const GraphMove& move) const {
+const double StochasticBlockModelFamily::getLogPriorRatioFromGraphMove (const GraphMove& move) const {
     double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromGraphMove(move);
     computationFinished();
     return logPriorRatio;
 };
 
-double StochasticBlockModelFamily::getLogPriorRatioFromBlockMove (const BlockMove& move) const {
+const double StochasticBlockModelFamily::getLogPriorRatioFromBlockMove (const BlockMove& move) const {
     double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromBlockMove(move);
     computationFinished();
     return logPriorRatio;

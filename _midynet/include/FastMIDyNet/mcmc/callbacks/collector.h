@@ -49,10 +49,10 @@ public:
     }
     void collect() override ;
     void clear() override { m_observedEdges.clear(); m_observedEdgesCount.clear(); m_observedEdgesMaxCount.clear();}
-    double getMarginalEntropy() ;
+    const double getMarginalEntropy() ;
     bool getTotalCount() const { return m_totalCount; }
     bool getEdgeObservationCount(BaseGraph::Edge edge) const { return m_observedEdges[edge]; }
-    double getEdgeCountProb(BaseGraph::Edge edge, size_t count) const ;
+    const double getEdgeCountProb(BaseGraph::Edge edge, size_t count) const ;
 
 };
 

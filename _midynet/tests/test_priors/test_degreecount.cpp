@@ -12,8 +12,8 @@ class DummyDegreeCountPrior: public FastMIDyNet::DegreeCountPrior {
         DegreeCountPrior(graphSize, edgeCountPrior){}
         void sampleState() { }
 
-        double getLogLikelihoodFromState(const FastMIDyNet::DegreeSequence& state) const { return 0; }
-        double getLogLikelihoodRatioFromGraphMove(const FastMIDyNet::GraphMove& move) const { return 0; }
+        const double getLogLikelihoodFromState(const FastMIDyNet::DegreeSequence& state) const { return 0; }
+        const double getLogLikelihoodRatioFromGraphMove(const FastMIDyNet::GraphMove& move) const { return 0; }
 
         void checkSelfConsistency() const {}
 };

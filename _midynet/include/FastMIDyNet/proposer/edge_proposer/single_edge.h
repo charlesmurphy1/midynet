@@ -40,7 +40,7 @@ public:
     SingleEdgeUniformProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
         SingleEdgeProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
 
-    double getLogProposalProbRatio(const GraphMove&move) const override{
+    const double getLogProposalProbRatio(const GraphMove&move) const override{
         double logProbability = 0;
 
         for (auto edge: move.removedEdges)
@@ -62,7 +62,7 @@ public:
         SingleEdgeProposer(allowSelfLoops, allowMultiEdges),
         m_vertexDegreeSampler(shift){ m_vertexSamplerPtr = &m_vertexDegreeSampler; }
 
-    double getLogProposalProbRatio(const GraphMove&move) const override{
+    const double getLogProposalProbRatio(const GraphMove&move) const override{
         double logProbability = 0;
 
         for (auto edge: move.removedEdges){

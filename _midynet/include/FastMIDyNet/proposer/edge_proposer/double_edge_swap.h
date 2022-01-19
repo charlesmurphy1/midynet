@@ -19,7 +19,7 @@ public:
     GraphMove proposeRawMove() const override;
     void setUp(const RandomGraph& randomGraph) override { EdgeProposer::setUp(randomGraph); setUp(randomGraph.getGraph()); }
     void setUp(const MultiGraph&);
-    double getLogProposalProbRatio(const GraphMove&) const override { return 0; }
+    const double getLogProposalProbRatio(const GraphMove&) const override { return 0; }
     void updateProbabilities(const GraphMove&) override;
 
     const sset::SamplableSet<BaseGraph::Edge>& getSamplableSet() { return m_edgeSamplableSet; }

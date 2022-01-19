@@ -12,14 +12,14 @@ class DegreeDynamics: public BinaryDynamics {
     double m_C;
 
     public:
-        DegreeDynamics(size_t numSteps, double C):
-                BinaryDynamics(numSteps), m_C(C) {}
-        DegreeDynamics(RandomGraph& random_graph, size_t numSteps, double C):
-                BinaryDynamics(random_graph, numSteps), m_C(C) {}
+        DegreeDynamics(size_t numSteps, double C, bool normalizeCoupling=true):
+                BinaryDynamics(numSteps, normalizeCoupling), m_C(C) {}
+        DegreeDynamics(RandomGraph& random_graph, size_t numSteps, double C, bool normalizeCoupling=true):
+                BinaryDynamics(random_graph, numSteps, normalizeCoupling), m_C(C) {}
 
-        double getActivationProb(const VertexNeighborhoodState& neighborhood_state) const;
-        double getDeactivationProb(const VertexNeighborhoodState& neighborhood_state) const;
-        double getC() const { return m_C; }
+        const double getActivationProb(const VertexNeighborhoodState& neighborhood_state) const override;
+        const double getDeactivationProb(const VertexNeighborhoodState& neighborhood_state) const override;
+        const double getC() const { return m_C; }
         void setC(double C) { m_C = C; }
 
     };

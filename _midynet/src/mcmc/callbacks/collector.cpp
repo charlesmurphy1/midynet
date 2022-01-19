@@ -33,14 +33,14 @@ void CollectEdgeMultiplicityOnSweep::collect(){
     }
 }
 
-double CollectEdgeMultiplicityOnSweep::getEdgeCountProb(BaseGraph::Edge edge, size_t count) const {
+const double CollectEdgeMultiplicityOnSweep::getEdgeCountProb(BaseGraph::Edge edge, size_t count) const {
     if (count == 0)
         return 1 - ((double)m_observedEdges.get(edge)) / ((double)m_totalCount);
     else
         return ((double)m_observedEdgesCount.get({edge, count})) / ((double)m_totalCount);
 }
 
-double CollectEdgeMultiplicityOnSweep::getMarginalEntropy() {
+const double CollectEdgeMultiplicityOnSweep::getMarginalEntropy() {
     double marginalEntropy = 0;
     for (auto edge : m_observedEdges){
         for (size_t count = 0; count <= m_observedEdgesMaxCount[edge.first]; ++count){

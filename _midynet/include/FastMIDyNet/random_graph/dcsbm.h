@@ -63,17 +63,17 @@ public:
     const DegreeSequence& getDegrees() const override { return m_degreePriorPtr->getState(); }
     const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override { return m_degreePriorPtr->getDegreeCountsInBlocks(); }
 
-    double getLogLikelihood() const override ;
-    double getLogPrior() const override ;
+    const double getLogLikelihood() const override ;
+    const double getLogPrior() const override ;
 
-    double getLogLikelihoodRatioEdgeTerm (const GraphMove&) const override;
-    double getLogLikelihoodRatioAdjTerm (const GraphMove&) const override;
+    const double getLogLikelihoodRatioEdgeTerm (const GraphMove&) const override;
+    const double getLogLikelihoodRatioAdjTerm (const GraphMove&) const override;
 
-    double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
-    double getLogLikelihoodRatioFromBlockMove (const BlockMove&) const override;
+    const double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
+    const double getLogLikelihoodRatioFromBlockMove (const BlockMove&) const override;
 
-    double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
-    double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
+    const double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
+    const double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
 
     void applyGraphMove (const GraphMove&) override;
     void applyBlockMove (const BlockMove&) override;
@@ -86,7 +86,7 @@ public:
 
     void checkSelfConsistency() const override;
     virtual void checkSafety() const override;
-    virtual bool isCompatible(const MultiGraph& graph) const override{
+    virtual const bool isCompatible(const MultiGraph& graph) const override{
         if (not StochasticBlockModelFamily::isCompatible(graph)) return false;
         auto degrees = getDegreesFromGraph(graph);
         return degrees == getDegrees();

@@ -54,7 +54,7 @@ void BlockPeixotoProposer::setUp(const RandomGraph& randomGraph) {
     m_vertexDistribution = std::uniform_int_distribution<BaseGraph::VertexIndex>(0, randomGraph.getSize() - 1);
 }
 
-double BlockPeixotoProposer::getLogProposalProb(const BlockMove& move) const {
+const double BlockPeixotoProposer::getLogProposalProb(const BlockMove& move) const {
     if ( move.addedBlocks == 1){
          return log(m_blockCreationProbability);
     } else if (m_graphPtr->getDegreeOfIdx(move.vertexIdx) == 0){
@@ -109,7 +109,7 @@ IntMap<BlockIndex> BlockPeixotoProposer::getEdgeCountsDiff(const BlockMove& move
      return edgeCountsDiff;
 }
 
-double BlockPeixotoProposer::getReverseLogProposalProb(const BlockMove& move) const {
+const double BlockPeixotoProposer::getReverseLogProposalProb(const BlockMove& move) const {
     if ( move.addedBlocks == -1){
          return log(m_blockCreationProbability);
     } else if (m_graphPtr->getDegreeOfIdx(move.vertexIdx) == 0){

@@ -55,19 +55,19 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
 
         void samplePriors() override { m_edgeCountPriorPtr->sample(); m_blockPriorPtr->sample(); }
 
-        double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint() + m_blockPriorPtr->getLogJoint(); }
+        const double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint() + m_blockPriorPtr->getLogJoint(); }
 
-        virtual double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
-        virtual double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const = 0;
+        virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
+        virtual const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const = 0;
 
-        double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move); }
-        double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromBlockMove(move) + m_blockPriorPtr->getLogJointRatioFromBlockMove(move); }
+        const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move); }
+        const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromBlockMove(move) + m_blockPriorPtr->getLogJointRatioFromBlockMove(move); }
 
-        double getLogJointRatioFromGraphMove(const GraphMove& move) const {
+        const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
             return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move); }, 0);
         }
 
-        double getLogJointRatioFromBlockMove(const BlockMove& move) const  {
+        const double getLogJointRatioFromBlockMove(const BlockMove& move) const  {
             return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
         }
 
@@ -106,11 +106,11 @@ class EdgeMatrixUniformPrior: public EdgeMatrixPrior {
 public:
     using EdgeMatrixPrior::EdgeMatrixPrior;
     void sampleState() override;
-    double getLogLikelihood() const override {
+    const double getLogLikelihood() const override {
         return getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
     }
-    double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override;
-    double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override;
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
 
 private:
     double getLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {

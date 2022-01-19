@@ -40,9 +40,9 @@ class BlockPeixotoProposer: public BlockProposer {
             return proposeMove(vertexIdx);
         }
         void setUp(const RandomGraph& randomGraph) override;
-        double getLogProposalProb(const BlockMove& move) const;
-        double getReverseLogProposalProb(const BlockMove& move) const;
-        double getLogProposalProbRatio(const BlockMove& move) const override{
+        const double getLogProposalProb(const BlockMove& move) const;
+        const double getReverseLogProposalProb(const BlockMove& move) const;
+        const double getLogProposalProbRatio(const BlockMove& move) const override{
             return getReverseLogProposalProb(move) - getLogProposalProb(move);
         };
         void checkSafety() const override {

@@ -111,7 +111,7 @@ void Dynamics::asyncUpdateState(int numUpdates){
     m_state = currentState;
 };
 
-double Dynamics::getLogLikelihood() const {
+const double Dynamics::getLogLikelihood() const {
     double log_likelihood = 0;
     vector<int> neighborState(getNumStates(), 0);
     int neighborIdx, edgeMultiplicity;
@@ -164,7 +164,7 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(
     }
 };
 
-double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const{
+const double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const{
     double logLikelihoodRatio = 0;
     set<size_t> verticesAffected;
     map<VertexIndex,VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
@@ -195,11 +195,11 @@ double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const
     return logLikelihoodRatio;
 }
 
-double Dynamics::getLogPriorRatioFromGraphMove(const GraphMove& move) const{
+const double Dynamics::getLogPriorRatioFromGraphMove(const GraphMove& move) const{
     return m_randomGraphPtr->getLogJointRatioFromGraphMove(move);
 }
 
-double Dynamics::getLogJointRatioFromGraphMove(const GraphMove& move) const{
+const double Dynamics::getLogJointRatioFromGraphMove(const GraphMove& move) const{
     return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
 }
 
