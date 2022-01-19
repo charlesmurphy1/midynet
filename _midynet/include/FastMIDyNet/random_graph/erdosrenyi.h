@@ -81,14 +81,18 @@ public:
     const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override {return m_degreeCounts; }
 
     void setGraph(const MultiGraph& graph) override{
-        m_edgeMatrix[0][0] = graph.getTotalEdgeNumber();
+        RandomGraph::setGraph(graph);
         m_degrees = graph.getDegrees();
         m_degreeCounts[0].clear();
         for (auto k : m_degrees)
             m_degreeCounts[0].increment(k);
-    };
+        #if DEBUG
+        checkSelfConsistency();
+        #endif
+    }
+
     void sampleGraph() override { setGraph(generateSER(m_size, getEdgeCount())); }
-    void samplePriors() override { m_edgeCountPriorPtr->sample(); }
+    void samplePriors() override { m_edgeCountPriorPtr->sample(); m_edgeMatrix[0][0] = getEdgeCount();}
     double getLogLikelihood() const override { return logBinomialCoefficient( m_size * (m_size - 1), getEdgeCount()); }
     double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint(); }
     double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override{
@@ -105,7 +109,7 @@ public:
         RandomGraph::applyGraphMove(move);
         m_edgeCountPriorPtr->applyGraphMove(move);
         #if DEBUG
-        checkSelfConsistency()
+        checkSelfConsistency();
         #endif
     }
     void checkSelfConsistency() const override {

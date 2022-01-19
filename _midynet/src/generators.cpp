@@ -257,7 +257,8 @@ MultiGraph generateSER(size_t size, size_t edgeCount){
     MultiGraph multigraph(size);
     for (auto vertexIdx : graph)
         for (auto neighbor: graph.getNeighboursOfIdx(vertexIdx))
-            multigraph.addEdgeIdx(vertexIdx, neighbor);
+            if (vertexIdx < neighbor)
+                multigraph.addEdgeIdx(vertexIdx, neighbor);
     return multigraph;
 }
 
