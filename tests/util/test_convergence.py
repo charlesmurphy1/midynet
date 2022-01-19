@@ -9,6 +9,8 @@ from _midynet.mcmc import DynamicsMCMC
 
 
 class TestMCMCConvergence(unittest.TestCase):
+    compute: bool = True
+
     def setUp(self):
         self.config = ExperimentConfig.default("test", "sis", "er")
         self.config.dynamics.set_value("infection_prob", [0.0, 0.1, 0.2, 0.3, 0.4, 0.5])
@@ -35,6 +37,8 @@ class TestMCMCConvergence(unittest.TestCase):
         )
 
     def test_generic(self):
+        if not compute:
+            return
         for c in self.config.sequence():
             conv = TestMCMCConvergence.setup_convergence(c)
             conv.mcmc.sample()
@@ -45,10 +49,9 @@ class TestMCMCConvergence(unittest.TestCase):
             inf_prob = c.dynamics.infection_prob
             plt.plot(x, collected, label=rf"$\alpha = {inf_prob}$")
 
-        plt.xlabel("Number of steps")
+        plt.xlabel("Number of MH steps")
         plt.ylabel("Hamming distance")
         plt.legend()
         plt.savefig(
             f"./tests/util/convergence_{self.config.dynamics.name}_{self.config.graph.name}.png"
         )
-        # self.D_MCMC.do_MH_sweep(burn=100)
