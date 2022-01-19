@@ -8,7 +8,7 @@
 7. Implementating ProposerFactory. [Done]
 8. Testing Experiment and ExperimentConfig. [Done]
 9. Finish implementating of ScriptManager and testing.[Done]
-10. Enumeration of graphs in C++ class. [WIP]
+10. Enumeration of graphs in C++ class.
 11. Exact methods for log evidence.
 12. Edge proposer preventing self-loops / multiedges.
 13. Erdos-Renyi / SBM for simple graphs.
