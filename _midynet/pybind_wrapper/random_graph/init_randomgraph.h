@@ -46,6 +46,7 @@ void initRandomGraphBaseClass(py::module& m){
         .def("apply_block_move", &RandomGraph::applyBlockMove, py::arg("move"))
         .def("check_self_consistency", &RandomGraph::checkSelfConsistency)
         .def("check_safety", &RandomGraph::checkSafety)
+        .def("is_compatible", &RandomGraph::isCompatible)
         ;
 }
 

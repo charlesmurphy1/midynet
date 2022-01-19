@@ -41,6 +41,7 @@ public:
     virtual const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const = 0;
     const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getBlocks()[vertexIdx]; }
     const size_t& getDegreeOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getDegrees()[vertexIdx]; }
+    virtual bool isCompatible(const MultiGraph& graph) const { return graph.getSize() == m_size; }
 
     size_t computeBlockCount() const ;
     std::vector<size_t> computeVertexCountsInBlocks() const ;

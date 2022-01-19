@@ -86,6 +86,11 @@ public:
 
     void checkSelfConsistency() const override;
     virtual void checkSafety() const override;
+    virtual bool isCompatible(const MultiGraph& graph) const override{
+        if (not StochasticBlockModelFamily::isCompatible(graph)) return false;
+        auto degrees = getDegreesFromGraph(graph);
+        return degrees == getDegrees();
+    }
 
 };
 

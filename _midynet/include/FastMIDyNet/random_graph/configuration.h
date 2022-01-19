@@ -43,6 +43,11 @@ public:
         m_degreePriorPtr->setBlockPrior(m_blockDeltaPrior);
         m_degreePriorPtr->setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
     }
+    bool isCompatible(const MultiGraph& graph) const override{
+        if (not RandomGraph::isCompatible(graph)) return false;
+        auto degrees = getDegreesFromGraph(graph);
+        return degrees == getDegrees();
+    }
 };
 
 }// end FastMIDyNet

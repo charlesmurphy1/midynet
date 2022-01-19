@@ -6,6 +6,7 @@
 #include <list>
 
 #include "BaseGraph/undirected_multigraph.h"
+#include "BaseGraph/algorithms/randomgraphs.h"
 #include "BaseGraph/types.h"
 
 #include "FastMIDyNet/types.h"
@@ -39,7 +40,9 @@ BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks,
         const EdgeMatrix& blockEdgeMatrix, const DegreeSequence& degrees);
 BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& vertexBlocks,
         const EdgeMatrix& blockEdgeMatrix);
-FastMIDyNet::MultiGraph generateCM(const DegreeSequence& degrees);
+MultiGraph generateCM(const DegreeSequence& degrees);
+
+MultiGraph generateSER(size_t size, size_t edgeCount);
 
 template<typename T>
 T pickElementUniformly(const std::vector<T>& sequence) {

@@ -252,4 +252,13 @@ FastMIDyNet::MultiGraph generateCM(const DegreeSequence& degrees) {
     return randomGraph;
 }
 
+MultiGraph generateSER(size_t size, size_t edgeCount){
+    auto graph = BaseGraph::generateErdosRenyiRandomGraph(size, edgeCount);
+    MultiGraph multigraph(size);
+    for (auto vertexIdx : graph)
+        for (auto neighbor: graph.getNeighboursOfIdx(vertexIdx))
+            multigraph.addEdgeIdx(vertexIdx, neighbor);
+    return multigraph;
+}
+
 } // namespace FastMIDyNet

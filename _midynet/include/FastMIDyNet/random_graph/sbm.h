@@ -99,6 +99,11 @@ public:
     static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
     virtual void checkSelfConsistency() const ;
     virtual void checkSafety() const ;
+    virtual bool isCompatible(const MultiGraph& graph) const override{
+        if (not RandomGraph::isCompatible(graph)) return false;
+        auto edgeMatrix = getEdgeMatrixFromGraph(graph, getBlocks());
+        return edgeMatrix == getEdgeMatrix();
+    };
 };
 
 }// end FastMIDyNet
