@@ -25,6 +25,13 @@ class DynamicsPredictionEntropy(Expectation):
 
 
 class DynamicsPredictionEntropyMetrics(ExpectationMetrics):
+    def __post_init__(self):
+        self.statistics = MCStatistics(
+            self.config.metrics.dynamics_predcition_entropy.get_value(
+                "error_type", "std"
+            )
+        )
+
     def eval(self, config: Config):
         dynamics_entropy = DynamicsPredictionEntropy(
             config=config,

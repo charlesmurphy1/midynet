@@ -15,12 +15,13 @@ __all__ = ["MetricsConfig", "MetricsCollectionConfig", "MetricsFactory"]
 class MetricsConfig(Config):
     @classmethod
     def monte_carlo(cls):
-        return cls(num_samples=100)
+        return cls(num_samples=100, error_type="confidence")
 
     @classmethod
     def mcmc(cls):
         obj = cls(
             num_sweeps=100,
+            error_type="confidence",
             method="meanfield",
             num_samples=100,
             burn_per_vertex=1,

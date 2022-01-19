@@ -30,6 +30,11 @@ class Predictability(Expectation):
 
 
 class PredictabilityMetrics(ExpectationMetrics):
+    def __post_init__(self):
+        self.statistics = MCStatistics(
+            self.config.metrics.predictability.get_value("error_type", "std")
+        )
+
     def eval(self, config: Config):
         predictability = Predictability(
             config=config,

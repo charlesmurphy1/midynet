@@ -31,6 +31,11 @@ class Reconstructability(Expectation):
 
 
 class ReconstructabilityMetrics(ExpectationMetrics):
+    def __post_init__(self):
+        self.statistics = MCStatistics(
+            self.config.metrics.reconstructability.get_value("error_type", "std")
+        )
+
     def eval(self, config: Config):
         reconstructability = Reconstructability(
             config=config,

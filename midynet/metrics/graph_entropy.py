@@ -22,6 +22,11 @@ class GraphEntropy(Expectation):
 
 
 class GraphEntropyMetrics(ExpectationMetrics):
+    def __post_init__(self):
+        self.statistics = MCStatistics(
+            self.config.metrics.graph_entropy.get_value("error_type", "std")
+        )
+
     def eval(self, config: Config):
         dynamics_entropy = GraphEntropy(
             config=config,

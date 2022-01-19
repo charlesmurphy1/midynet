@@ -32,6 +32,11 @@ class MutualInformation(Expectation):
 
 
 class MutualInformationMetrics(ExpectationMetrics):
+    def __post_init__(self):
+        self.statistics = MCStatistics(
+            self.config.metrics.mutualinfo.get_value("error_type", "std")
+        )
+
     def eval(self, config: Config):
         mutual_info = MutualInformation(
             config=config,

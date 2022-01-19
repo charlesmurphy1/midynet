@@ -314,6 +314,7 @@ class Config:
             key: key of the parameter to set.
             value: new value of the parameter.
         """
+        print(key, self.dict_copy().get(key))
         self.dict_copy().get(key).set_value(value)
         self.__reset_buffer__()
 

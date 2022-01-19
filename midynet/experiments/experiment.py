@@ -57,25 +57,25 @@ class Experiment:
         np.random.seed(self.seed)
         utility.seed(self.seed)
 
-        self.__tasks__ = [
-            "load",
+        self.__default_protocol__ = [
+            "clear",
             "compute_metrics",
             "save",
             "zip",
         ]
 
     # Run command
-    def run(self, tasks=None):
-        tasks = tasks or self.__tasks__
+    def run(self, protocol=None):
+        protocol = self.__default_protocol__ if protocol is None else protocol
 
         self.begin()
-        for t in tasks:
-            if t in self.__tasks__:
+        for t in protocol:
+            if t in self.__default_protocol__:
                 f = getattr(self, t)
                 f()
             else:
                 raise ValueError(
-                    f"{t} is an invalid task, possible tasks are `{self.__tasks__}`"
+                    f"{t} is an invalid task, possible tasks are `{self.__default_protocol__}`"
                 )
 
         self.end()

@@ -28,6 +28,13 @@ class GraphReconstructionEntropy(Expectation):
 
 
 class GraphReconstructionEntropyMetrics(ExpectationMetrics):
+    def __post_init__(self):
+        self.statistics = MCStatistics(
+            self.config.metrics.graph_reconstruction_entropy.get_value(
+                "error_type", "std"
+            )
+        )
+
     def eval(self, config: Config):
         reconstruction_entropy = GraphReconstructionEntropy(
             config=config,
