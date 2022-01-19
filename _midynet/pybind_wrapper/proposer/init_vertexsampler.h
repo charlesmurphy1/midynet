@@ -19,7 +19,8 @@ void initVertexSampler(py::module& m){
         .def("set_up", &VertexSampler::setUp, py::arg("graph"))
         .def("update", py::overload_cast<const GraphMove&>(&VertexSampler::update), py::arg("move"))
         .def("update", py::overload_cast<const BlockMove&>(&VertexSampler::update), py::arg("move"))
-        .def("get_log_proposer_ratio", &VertexSampler::getLogProposalProbRatio, py::arg("move"))
+        .def("get_vertex_weight", &VertexSampler::getVertexWeight, py::arg("vertex"))
+        .def("get_total_weight", &VertexSampler::getTotalWeight)
         .def("accept_isolated", &VertexSampler::setAcceptIsolated, py::arg("accept"))
         .def("accept_isolated", &VertexSampler::getAcceptIsolated)
         ;

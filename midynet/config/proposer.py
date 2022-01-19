@@ -16,23 +16,32 @@ __all__ = [
 class EdgeProposerConfig(Config):
     @classmethod
     def single_uniform(cls):
-        return cls(name="single_uniform")
+        return cls(name="single_uniform", allow_self_loops=True, allow_multiedges=True)
 
     @classmethod
     def single_degree(cls):
-        return cls(name="single_degree", shift=1)
+        return cls(
+            name="single_degree", allow_self_loops=True, allow_multiedges=True, shift=1
+        )
 
     @classmethod
     def hinge_flip_uniform(cls):
-        return cls(name="hinge_flip_uniform")
+        return cls(
+            name="hinge_flip_uniform", allow_self_loops=True, allow_multiedges=True
+        )
 
     @classmethod
     def hinge_flip_degree(cls):
-        return cls(name="hinge_flip_degree", shift=1)
+        return cls(
+            name="hinge_flip_degree",
+            allow_self_loops=True,
+            allow_multiedges=True,
+            shift=1,
+        )
 
     @classmethod
     def double_swap(cls):
-        return cls(name="double_swap")
+        return cls(name="double_swap", allow_self_loops=True, allow_multiedges=True)
 
 
 class BlockProposerConfig(Config):

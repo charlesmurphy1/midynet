@@ -22,7 +22,8 @@ public:
     virtual void setUp(const MultiGraph&) = 0;
     virtual void update(const GraphMove&) { };
     virtual void update(const BlockMove&) { };
-    virtual double getLogProposalProbRatio(const GraphMove&) const = 0;
+    virtual double getVertexWeight(const BaseGraph::VertexIndex&) const = 0;
+    virtual double getTotalWeight() const = 0;
 
     bool setAcceptIsolated(bool accept) { return m_withIsolatedVertices = accept; }
     bool getAcceptIsolated() const { return m_withIsolatedVertices; }
@@ -44,7 +45,8 @@ public:
 
     BaseGraph::VertexIndex sample() const override { return m_vertexSampler.sample_ext_RNG(rng).first; }
     void setUp(const MultiGraph& graph) override;
-    double getLogProposalProbRatio(const GraphMove&) const override { return 0.; }
+    double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override { return 1.; }
+    double getTotalWeight() const override { return m_vertexSampler.total_weight(); }
 
 };
 
@@ -53,6 +55,7 @@ private:
     sset::SamplableSet<BaseGraph::Edge> m_edgeSampler = sset::SamplableSet<BaseGraph::Edge> (1, 100);
     mutable std::bernoulli_distribution m_vertexChoiceDistribution = std::bernoulli_distribution(.5);
     double m_shift;
+    std::vector<size_t> m_degrees;
 public:
     VertexDegreeSampler(double shift=1):m_shift(shift){};
     VertexDegreeSampler(const VertexDegreeSampler& other):
@@ -67,7 +70,10 @@ public:
     BaseGraph::VertexIndex sample() const override;
     void setUp(const MultiGraph& graph) override;
     void update(const GraphMove& move) override;
-    double getLogProposalProbRatio(const GraphMove&) const override { return 0.; }
+    double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override {
+        return m_degrees[vertexIdx];
+    }
+    double getTotalWeight() const override { return 2 * m_edgeSampler.total_weight(); }
 };
 
 }/* FastMIDyNet */

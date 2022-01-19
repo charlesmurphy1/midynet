@@ -8,6 +8,8 @@
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/proposer/proposer.hpp"
 #include "FastMIDyNet/proposer/edge_proposer/edge_proposer.h"
+#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
+#include "FastMIDyNet/proposer/edge_proposer/single_edge.h"
 #include "FastMIDyNet/proposer/edge_proposer/vertex_sampler.h"
 #include "FastMIDyNet/proposer/block_proposer/block_proposer.h"
 #include "FastMIDyNet/random_graph/random_graph.h"
@@ -45,6 +47,26 @@ public:
     GraphMove proposeMove() const override { PYBIND11_OVERRIDE_PURE(GraphMove, BaseClass, proposeMove, ); }
 };
 
+template<typename BaseClass = HingeFlipProposer>
+class PyHingeFlipProposer: public PyEdgeProposer<BaseClass>{
+public:
+    using PyEdgeProposer<BaseClass>::PyEdgeProposer;
+    /* Pure abstract methods */
+    double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogProposalProbRatio, move); }
+
+    /* Abstract & overloaded methods */
+};
+
+template<typename BaseClass = SingleEdgeProposer>
+class PySingleEdgeProposer: public PyEdgeProposer<BaseClass>{
+public:
+    using PyEdgeProposer<BaseClass>::PyEdgeProposer;
+    /* Pure abstract methods */
+    double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogProposalProbRatio, move); }
+
+    /* Abstract & overloaded methods */
+};
+
 
 template<typename BaseClass = BlockProposer>
 class PyBlockProposer: public PyProposer<BlockMove, BaseClass>{
@@ -70,7 +92,8 @@ public:
     void setUp(const MultiGraph& graph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, graph) ;}
     void update(const GraphMove& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, update, move) ;}
     void update(const BlockMove& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, update, move) ;}
-    double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getLogProposalProbRatio, move) ;}
+    double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getVertexWeight, vertexIdx) ;}
+    double getTotalWeight() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getTotalWeight, ) ;}
 
     /* Abstract & overloaded methods */
 };

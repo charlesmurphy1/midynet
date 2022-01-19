@@ -16,9 +16,11 @@ GraphMove HingeFlipProposer::proposeRawMove() const {
     BaseGraph::Edge newEdge;
     if (m_flipOrientationDistribution(rng)) {
         newEdge = {edge.first, node};
+        edge = {edge.first, edge.second};
     }
     else {
         newEdge = {edge.second, node};
+        edge = {edge.second, edge.first};
     }
     return {{edge}, {newEdge}};
 };

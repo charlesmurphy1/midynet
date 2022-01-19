@@ -24,13 +24,4 @@ void SingleEdgeProposer::setUp(const MultiGraph& graph) {
     m_vertexSamplerPtr->setUp(graph);
 }
 
-double SingleEdgeProposer::getLogProposalProbRatio(const GraphMove& move) const {
-    double logProbability = 0;
-
-    for (auto edge: move.removedEdges)
-        if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 1)
-            logProbability += -log(.5);
-    return logProbability;
-}
-
 } // namespace FastMIDyNet

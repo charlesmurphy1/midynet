@@ -93,7 +93,10 @@ class RandomGraphConfig(Config):
     @classmethod
     def ser(cls, size: int = 100, edge_count: int = 250):
         edge_count = EdgeCountPriorConfig.auto(edge_count)
-        return cls.custom_er(name="ser", size=size, edge_count=edge_count)
+        obj = cls.custom_er(name="ser", size=size, edge_count=edge_count)
+        obj.edge_proposer.set_value("allow_self_loops", False)
+        obj.edge_proposer.set_value("allow_multiedges", False)
+        return obj
 
     @classmethod
     def custom_dcsbm(

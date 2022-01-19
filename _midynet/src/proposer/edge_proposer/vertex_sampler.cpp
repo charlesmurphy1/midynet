@@ -28,6 +28,7 @@ void VertexDegreeSampler::setUp(const MultiGraph& graph){
         for (auto neighbor: graph.getNeighboursOfIdx(vertex))
             if (vertex <= neighbor.vertexIndex)
                 m_edgeSampler.insert({vertex, neighbor.vertexIndex}, neighbor.label);
+    m_degrees = graph.getDegrees();
 }
 
 void VertexDegreeSampler::update(const GraphMove& move) {
@@ -38,15 +39,18 @@ void VertexDegreeSampler::update(const GraphMove& move) {
             m_edgeSampler.erase(edge);
         else
             m_edgeSampler.set_weight(edge, edgeWeight-1);
+        --m_degrees[edge.first];
+        --m_degrees[edge.second];
     }
 
     for (auto edge: move.addedEdges) {
         edge = getOrderedEdge(edge);
         if (m_edgeSampler.count(edge) == 0)
             m_edgeSampler.insert(edge, 1);
-        else {
+        else
             m_edgeSampler.set_weight(edge, round(m_edgeSampler.get_weight(edge))+1);
-        }
+        ++m_degrees[edge.first];
+        ++m_degrees[edge.second];
     }
 }
 

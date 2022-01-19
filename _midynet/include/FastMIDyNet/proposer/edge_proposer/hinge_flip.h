@@ -24,9 +24,8 @@ public:
     void setUp(const RandomGraph& randomGraph) override { setUp(randomGraph.getGraph()); }
     void setUp(const MultiGraph& graph);
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
-
-    double getLogProposalProbRatio(const GraphMove&) const override{ return 0; }
     void updateProbabilities(const GraphMove& move) override;
+    void updateProbabilities(const BlockMove& move) override { };
     void checkSafety() const override {
         if (m_vertexSamplerPtr == nullptr)
             throw SafetyError("HingeFlipProposer: unsafe proposer since `m_vertexSamplerPtr` is NULL.");
@@ -40,6 +39,10 @@ private:
 public:
     HingeFlipUniformProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
         HingeFlipProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
+
+    double getLogProposalProbRatio(const GraphMove&) const override{
+        return 0.;
+    }
 };
 
 class HingeFlipDegreeProposer: public HingeFlipProposer{
@@ -49,6 +52,14 @@ public:
     HingeFlipDegreeProposer(bool allowSelfLoops=true, bool allowMultiEdges=true, double shift=1):
         HingeFlipProposer(allowSelfLoops, allowMultiEdges),
         m_vertexDegreeSampler(shift){ m_vertexSamplerPtr = &m_vertexDegreeSampler; }
+
+    double getLogProposalProbRatio(const GraphMove& move) const override{
+        auto commonVertex = move.addedEdges[0].first;
+        auto gainingVertex = move.addedEdges[0].second;
+        auto losingVertex = move.removedEdges[0].second;
+        return log(m_vertexDegreeSampler.getVertexWeight(losingVertex) - 1)
+             - log(m_vertexDegreeSampler.getVertexWeight(gainingVertex));
+    }
 };
 
 } // namespace FastMIDyNet

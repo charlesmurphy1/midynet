@@ -30,7 +30,7 @@ void initEdgeProposer(py::module& m){
         .def(py::init<>()) ;
 
     /* Hinge flip proposers */
-    py::class_<HingeFlipProposer, EdgeProposer>(m, "HingeFlipProposer")
+    py::class_<HingeFlipProposer, EdgeProposer, PyHingeFlipProposer<>>(m, "HingeFlipProposer")
         .def(py::init<bool, bool>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true)
         .def("set_vertex_sampler", &HingeFlipProposer::setVertexSampler,
             py::arg("vertex_sampler")) ;
@@ -42,7 +42,7 @@ void initEdgeProposer(py::module& m){
         .def(py::init<bool, bool, size_t>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true, py::arg("shift")=1) ;
 
     /* Single edge proposers */
-    py::class_<SingleEdgeProposer, EdgeProposer>(m, "SingleEdgeProposer")
+    py::class_<SingleEdgeProposer, EdgeProposer, PySingleEdgeProposer<>>(m, "SingleEdgeProposer")
         .def(py::init<bool, bool>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true)
         .def("set_vertex_sampler", &SingleEdgeProposer::setVertexSampler, py::arg("vertex_sampler")) ;
 
