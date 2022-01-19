@@ -39,6 +39,8 @@ public:
     /* Abstract methods */
     void setUp() override { PYBIND11_OVERRIDE(void, BaseClass, setUp, ); }
     void tearDown() override { PYBIND11_OVERRIDE(void, BaseClass, tearDown, ); }
+    void checkSafety() const { PYBIND11_OVERRIDE(void, BaseClass, checkSafety, ); }
+
 };
 
 

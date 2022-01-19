@@ -42,7 +42,7 @@ public:
 
     void setGraph(const MultiGraph&);
     const MultiGraph& getGraph() const { return *m_graph; }
-    void setState(const DegreeSequence&) override;
+    virtual void setState(const DegreeSequence&) override;
 
     const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }
     BlockPrior& getBlockPriorRef() const { return *m_blockPriorPtr; }
@@ -110,20 +110,20 @@ class DegreeDeltaPrior: public DegreePrior{
 public:
     DegreeDeltaPrior(){}
     DegreeDeltaPrior(const DegreeSequence& degreeSeq):
-        DegreePrior(){ setDegrees(degreeSeq); }
+        DegreePrior(){ setState(degreeSeq); }
 
     DegreeDeltaPrior(const DegreeDeltaPrior& degreeDeltaPrior):
         DegreePrior() {
-            setDegrees(degreeDeltaPrior.getState());
+            setState(degreeDeltaPrior.getState());
         }
     virtual ~DegreeDeltaPrior(){}
     const DegreeDeltaPrior& operator=(const DegreeDeltaPrior& other){
-        this->setDegrees(other.getState());
+        this->setState(other.getState());
         return *this;
     }
 
 
-    void setDegrees(const DegreeSequence& degrees){
+    void setState(const DegreeSequence& degrees){
         m_degreeSeq = degrees;
         m_state = degrees;
     }
@@ -142,7 +142,6 @@ public:
 
     void checkSelfConsistency() const override { };
     void checkSafety() const override {
-        // DegreePrior::checkSafety();
         if (m_degreeSeq.size() == 0)
             throw SafetyError("DegreeDeltaPrior: unsafe prior since `m_degreeSeq` is empty.");
     }

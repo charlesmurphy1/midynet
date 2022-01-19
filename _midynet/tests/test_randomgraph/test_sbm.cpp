@@ -47,7 +47,7 @@ class TestStochasticBlockModelFamily: public::testing::Test{
         }
 
         BaseGraph::VertexIndex vertexIdx = 4;
-
+        
         StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(NUM_VERTICES);
         void SetUp() {
             randomGraph.setBlockPrior(blockPrior);

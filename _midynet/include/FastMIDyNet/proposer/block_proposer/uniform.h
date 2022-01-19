@@ -31,7 +31,7 @@ class BlockUniformProposer: public BlockProposer {
             auto vertexIdx = m_vertexDistribution(rng);
             return proposeMove(vertexIdx);
         }
-        void setUp(const RandomGraph& sbmGraph) override;
+        void setUp(const RandomGraph& randomGraph) override;
         double getLogProposalProbRatio(const BlockMove&) const override;
         void checkSafety() const override{
             if (m_blocksPtr == nullptr)

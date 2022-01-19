@@ -34,6 +34,7 @@ public:
         m_edgeMatrixUniformPrior(edgeCountPrior, m_blockDeltaPrior){
             setBlockPrior(m_blockDeltaPrior);
             setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
+
         }
 
     const EdgeCountPrior& getEdgeCountPrior(){ return m_edgeMatrixUniformPrior.getEdgeCountPrior(); }

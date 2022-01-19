@@ -39,6 +39,7 @@ void initMCMCBaseClass(py::module& m){
         .def("tear_down", &MCMC::tearDown)
         .def("do_metropolis_hastings_step", &MCMC::doMetropolisHastingsStep)
         .def("do_MH_sweep", &MCMC::doMHSweep, py::arg("burn")=1)
+        .def("check_safety", &MCMC::checkSafety)
         ;
 
     py::class_<RandomGraphMCMC, MCMC>(m, "RandomGraphMCMC")

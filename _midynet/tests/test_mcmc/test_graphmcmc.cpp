@@ -5,6 +5,9 @@
 
 #include "fixtures.hpp"
 #include "FastMIDyNet/mcmc/graph_mcmc.h"
+#include "FastMIDyNet/prior/sbm/block_count.h"
+#include "FastMIDyNet/prior/sbm/block.h"
+#include "FastMIDyNet/prior/sbm/edge_count.h"
 #include "FastMIDyNet/rng.h"
 
 
@@ -12,17 +15,21 @@ using namespace std;
 
 namespace FastMIDyNet{
 
-class TestStochasticBlockGraphMCMC: public::testing::Test{
+class TestRandomGraphMCMC: public::testing::Test{
 public:
 
-    DummyRandomGraph randomGraph = DummyRandomGraph(10);
+    BlockCountDeltaPrior blockCountPrior = {3};
+    BlockUniformHyperPrior blockPrior = {10, blockCountPrior};
+    EdgeCountDeltaPrior edgeCountPrior = {10};
+    EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
+    StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(10, blockPrior, edgeMatrixPrior);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
     BlockUniformProposer blockProposer = BlockUniformProposer();
     RandomGraphMCMC mcmc = RandomGraphMCMC(randomGraph, edgeProposer, blockProposer);
     void SetUp(){
-        seed(time(NULL));
         mcmc.sample();
         mcmc.setUp();
+        mcmc.checkSafety();
 
     }
     void TearDown(){
@@ -30,17 +37,8 @@ public:
     }
 };
 
-TEST_F(TestStochasticBlockGraphMCMC, doMetropolisHastingsStep){
-    auto blocksBefore = mcmc.getBlocks();
-    while ( not mcmc.isLastAccepted() || mcmc.getLastLogJointRatio() == 0 )
-        mcmc.doMetropolisHastingsStep();
-    auto blocksAfter = mcmc.getBlocks();
-
-    size_t numDiff = 0;
-    for (size_t i=0; i < blocksBefore.size(); ++i){
-        if (blocksBefore[i] != blocksAfter[i]) ++numDiff;
-    }
-    EXPECT_EQ(numDiff, 1);
+TEST_F(TestRandomGraphMCMC, doMetropolisHastingsStep){
+    mcmc.doMetropolisHastingsStep();
 }
 
 

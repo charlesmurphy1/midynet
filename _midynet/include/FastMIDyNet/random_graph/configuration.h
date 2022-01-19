@@ -34,6 +34,9 @@ public:
             setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
             setDegreePrior(degreePrior);
         }
+    const EdgeCountPrior& getEdgeCountPrior(){
+        return m_edgeMatrixUniformPrior.getEdgeCountPrior();
+    }
     void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){
         m_edgeMatrixUniformPrior.setEdgeCountPrior(edgeCountPrior);
     }

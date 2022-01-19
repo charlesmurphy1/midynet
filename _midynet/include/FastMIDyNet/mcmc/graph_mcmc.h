@@ -65,17 +65,10 @@ public:
     void sampleGraphOnly() { m_randomGraphPtr->sampleGraph(); m_hasState=true; }
 
     void setUp() override {
-        setUpProposers();
-        MCMC::setUp();
-    }
-
-    void setUpProposers() {
-        if (m_randomGraphPtr == nullptr)
-            throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_randomGraphPtr` is NULL.");
         m_edgeProposer.setUp(*m_randomGraphPtr);
         m_blockProposer.setUp(*m_randomGraphPtr);
+        MCMC::setUp();
     }
-
 
     const EdgeProposer& getEdgeProposer() const { return m_edgeProposer; }
     GraphMove proposeEdgeMove() const { return m_edgeProposer.proposeMove(); }
@@ -89,6 +82,15 @@ public:
     void updateProbabilitiesFromBlockMove(const BlockMove& move) { m_blockProposer.updateProbabilities(move); m_edgeProposer.updateProbabilities(move); }
 
     void doMetropolisHastingsStep() override ;
+
+    void checkSafety() const override {
+        if (m_randomGraphPtr == nullptr)
+            throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_randomGraphPtr` is NULL.");
+        m_randomGraphPtr->checkSafety();
+        m_edgeProposer.checkSafety();
+        m_blockProposer.checkSafety();
+    };
+
 
 };
 

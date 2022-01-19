@@ -90,14 +90,14 @@ public:
         BlockPrior(blockDeltaPrior.getSize()) { setState(blockDeltaPrior.getState()); }
     virtual ~BlockDeltaPrior(){}
     const BlockDeltaPrior& operator=(const BlockDeltaPrior& other){
-        this->setBlocks(other.getState());
+        this->setState(other.getState());
         return *this;
     }
 
 
-    void setBlocks(const BlockSequence& blocks){
+    void setState(const BlockSequence& blocks){
+        BlockPrior::setState(blocks);
         m_blockSeq = blocks;
-        setState(blocks);
     }
     void sampleState() override { };
     void samplePriors() override { };
@@ -121,6 +121,7 @@ public:
 
     void checkSelfConsistency() const override { };
     void checkSafety() const override {
+        // displayVector<size_t>(m_blockSeq);
         if (m_blockSeq.size() == 0)
             throw SafetyError("BlockDeltaPrior: unsafe prior since `m_blockSeq` is empty.");
     }

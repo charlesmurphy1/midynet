@@ -15,19 +15,19 @@ void DynamicsMCMC::doMetropolisHastingsStep() {
     else {
         m_lastMoveWasGraphMove = true;
         GraphMove move = m_randomGraphMCMC.proposeEdgeMove();
-        double logLikelihoodRatio = m_dynamics.getLogLikelihoodRatioFromGraphMove(move);
-        double logPriorRatio = m_dynamics.getLogPriorRatioFromGraphMove(move);
-        double LogProposalProbRatio = m_randomGraphMCMC.getLogProposalProbRatioFromGraphMove(move);
-
-        m_lastLogJointRatio = m_betaLikelihood * logLikelihoodRatio + m_betaPrior * logPriorRatio;
-        m_lastLogAcceptance = LogProposalProbRatio + m_lastLogJointRatio;
-
-        m_isLastAccepted = false;
-        if (m_uniform(rng) < exp(m_lastLogAcceptance)){
-            m_isLastAccepted = true;
-            m_dynamics.applyGraphMove(move);
-            m_randomGraphMCMC.updateProbabilitiesFromGraphMove(move);
-        }
+        // double logLikelihoodRatio = m_dynamics.getLogLikelihoodRatioFromGraphMove(move);
+        // double logPriorRatio = m_dynamics.getLogPriorRatioFromGraphMove(move);
+        // double LogProposalProbRatio = m_randomGraphMCMC.getLogProposalProbRatioFromGraphMove(move);
+        //
+        // m_lastLogJointRatio = m_betaLikelihood * logLikelihoodRatio + m_betaPrior * logPriorRatio;
+        // m_lastLogAcceptance = LogProposalProbRatio + m_lastLogJointRatio;
+        //
+        // m_isLastAccepted = false;
+        // if (m_uniform(rng) < exp(m_lastLogAcceptance)){
+        //     m_isLastAccepted = true;
+        //     m_dynamics.applyGraphMove(move);
+        //     m_randomGraphMCMC.updateProbabilitiesFromGraphMove(move);
+        // }
     }
 
 }

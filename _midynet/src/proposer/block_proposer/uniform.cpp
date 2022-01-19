@@ -1,5 +1,6 @@
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/proposer/block_proposer/uniform.h"
+#include "FastMIDyNet/utility/functions.h"
 #include <random>
 
 
@@ -18,14 +19,16 @@ BlockMove BlockUniformProposer::proposeMove(BaseGraph::VertexIndex movedVertex) 
         newBlock = *m_blockCountPtr;
         addedBlocks = 1;
     }
-    else {
-        newBlock = std::uniform_int_distribution<BlockIndex>(0, *m_blockCountPtr - 2)(rng);
-        if (newBlock >= currentBlock)
-            newBlock++;
+    else if (*m_blockCountPtr > 1) {
+        newBlock = std::uniform_int_distribution<BlockIndex>(0, *m_blockCountPtr - 1)(rng);
+    } else {
+        return {0, (*m_blocksPtr)[0], (*m_blocksPtr)[0], -1};
     }
+
     if (destroyingBlock(currentBlock, newBlock) && creatingNewBlock(newBlock)){
         return {0, (*m_blocksPtr)[0], (*m_blocksPtr)[0], -1};
     }
+
     return {movedVertex, currentBlock, newBlock, addedBlocks};
 }
 

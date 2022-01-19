@@ -30,8 +30,9 @@ protected:
 public:
     StochasticBlockModelFamily(size_t graphSize): RandomGraph(graphSize) { }
     StochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
-        RandomGraph(blockPrior.getSize()){
+        RandomGraph(graphSize){
             setBlockPrior(blockPrior);
+            m_blockPriorPtr->setSize(graphSize);
             setEdgeMatrixPrior(edgeMatrixPrior);
         }
 

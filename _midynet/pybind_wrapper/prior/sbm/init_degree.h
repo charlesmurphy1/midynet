@@ -31,7 +31,6 @@ void initDegreePrior(py::module& m){
     py::class_<DegreeDeltaPrior, DegreePrior>(m, "DegreeDeltaPrior")
         .def(py::init<>())
         .def(py::init<const DegreeSequence&>(), py::arg("degrees"))
-        .def("set_degrees", &DegreeDeltaPrior::setDegrees)
         ;
 
     py::class_<DegreeUniformPrior, DegreePrior>(m, "DegreeUniformPrior")

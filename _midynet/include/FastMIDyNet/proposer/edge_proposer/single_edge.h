@@ -20,7 +20,7 @@ protected:
 public:
     using EdgeProposer::EdgeProposer;
     GraphMove proposeRawMove() const override;
-    void setUp(const RandomGraph& randomGraph) override { setUp(randomGraph.getGraph()); }
+    void setUp(const RandomGraph& randomGraph) override { EdgeProposer::setUp(randomGraph); setUp(randomGraph.getGraph()); }
     void setUp(const MultiGraph&);
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     void updateProbabilities(const GraphMove& move) override { };

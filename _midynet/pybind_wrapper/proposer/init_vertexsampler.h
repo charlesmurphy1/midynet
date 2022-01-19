@@ -23,6 +23,7 @@ void initVertexSampler(py::module& m){
         .def("get_total_weight", &VertexSampler::getTotalWeight)
         .def("accept_isolated", &VertexSampler::setAcceptIsolated, py::arg("accept"))
         .def("accept_isolated", &VertexSampler::getAcceptIsolated)
+        .def("check_safety", &VertexSampler::checkSafety)
         ;
 
     py::class_<VertexUniformSampler, VertexSampler>(m, "VertexUniformSampler")

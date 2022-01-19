@@ -10,6 +10,7 @@
 
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/rng.h"
 
 namespace FastMIDyNet{
@@ -27,6 +28,7 @@ public:
 
     bool setAcceptIsolated(bool accept) { return m_withIsolatedVertices = accept; }
     bool getAcceptIsolated() const { return m_withIsolatedVertices; }
+    virtual void checkSafety() const {}
 };
 
 class VertexUniformSampler: public VertexSampler{
@@ -47,6 +49,11 @@ public:
     void setUp(const MultiGraph& graph) override;
     double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override { return 1.; }
     double getTotalWeight() const override { return m_vertexSampler.total_weight(); }
+
+    void checkSafety()const override {
+        if (m_vertexSampler.size() == 0)
+            throw SafetyError("VertexUniformSampler: unsafe vertex sampler since `m_vertexSampler` is empty.");
+    }
 
 };
 
@@ -74,6 +81,12 @@ public:
         return m_degrees[vertexIdx];
     }
     double getTotalWeight() const override { return 2 * m_edgeSampler.total_weight(); }
+    void checkSafety()const override {
+        if (m_degrees.size() == 0)
+            throw SafetyError("VertexDegreeSampler: unsafe vertex sampler since `m_degrees` is empty.");
+        if (m_edgeSampler.size() == 0)
+            throw SafetyError("VertexDegreeSampler: unsafe vertex sampler since `m_edgeSampler` is empty.");
+    }
 };
 
 }/* FastMIDyNet */

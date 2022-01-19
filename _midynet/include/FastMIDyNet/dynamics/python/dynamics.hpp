@@ -25,9 +25,9 @@ public:
     }
 
     /* Abstract methods */
-    const State getRandomState() override{
-        PYBIND11_OVERRIDE(const State, BaseClass, getRandomState, );
-    };
+    const State getRandomState() const override{ PYBIND11_OVERRIDE(const State, BaseClass, getRandomState, ); }
+
+    void checkSafety() const override{ PYBIND11_OVERRIDE(void, BaseClass, checkSafety, ); }
 
 
 };

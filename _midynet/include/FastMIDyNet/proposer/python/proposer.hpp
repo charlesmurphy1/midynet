@@ -96,6 +96,7 @@ public:
     double getTotalWeight() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, getTotalWeight, ) ;}
 
     /* Abstract & overloaded methods */
+    void checkSafety() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSafety, ) ;}
 };
 
 }

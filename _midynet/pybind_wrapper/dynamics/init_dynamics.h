@@ -60,6 +60,7 @@ void initDynamicsBaseClass(py::module& m){
             py::arg("move"))
         .def("apply_graph_move", &Dynamics::applyGraphMove,
             py::arg("move"))
+        .def("check_safety", &Dynamics::checkSafety)
         ;
 }
 

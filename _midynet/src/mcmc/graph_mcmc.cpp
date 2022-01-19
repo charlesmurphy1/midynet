@@ -14,7 +14,6 @@ void RandomGraphMCMC::doMetropolisHastingsStep() {
 
     m_lastLogJointRatio = m_betaLikelihood * logLikelihoodRatio + m_betaPrior * logPriorRatio;
     m_lastLogAcceptance = LogProposalProbRatio + m_lastLogJointRatio;
-
     m_isLastAccepted = false;
     if (m_uniform(rng) < exp(m_lastLogAcceptance)){
         m_isLastAccepted = true;

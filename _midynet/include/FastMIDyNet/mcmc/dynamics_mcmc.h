@@ -39,7 +39,7 @@ public:
     };
 
     const MultiGraph& getGraph() const override { return m_randomGraphMCMC.getGraph(); }
-    void setGraph(const MultiGraph& graph) { m_dynamics.setGraph(graph); m_randomGraphMCMC.setUpProposers(); }
+    void setGraph(const MultiGraph& graph) { m_dynamics.setGraph(graph); setUp(); }
     const BlockSequence& getBlocks() const override { return m_randomGraphMCMC.getBlocks(); }
     const int getSize() const { return m_dynamics.getSize(); }
 
@@ -74,6 +74,11 @@ public:
     }
 
     void doMetropolisHastingsStep() override ;
+
+    void checkSafety() const override {
+        m_dynamics.checkSafety();
+        m_randomGraphMCMC.checkSafety();
+    }
 };
 
 }

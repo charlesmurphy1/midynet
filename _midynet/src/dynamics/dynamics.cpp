@@ -32,7 +32,7 @@ void Dynamics::sampleState(const State& x0, bool async){
     }
 };
 
-const State Dynamics::getRandomState() {
+const State Dynamics::getRandomState() const{
     size_t N = m_randomGraphPtr->getSize();
     State rnd_state(N);
     uniform_int_distribution<int> dist(0, m_numStates - 1);
@@ -230,6 +230,21 @@ void Dynamics::applyGraphMove(const GraphMove& move){
         }
     }
     m_randomGraphPtr->applyGraphMove(move);
-};
+}
+
+void Dynamics::checkSafety() const {
+    if (m_randomGraphPtr == nullptr)
+        throw SafetyError("Dynamics: unsafe graph family since `m_randomGraphPtr` is empty.");
+    m_randomGraphPtr->checkSafety();
+
+    if (m_state.size() == 0)
+        throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
+    if (m_pastStateSequence.size() == 0)
+        throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
+    if (m_futureStateSequence.size() == 0)
+        throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
+    if (m_neighborsStateSequence.size() == 0)
+        throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
+}
 
 }

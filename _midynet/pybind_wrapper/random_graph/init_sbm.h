@@ -20,8 +20,11 @@ void initStochasticBlockModelFamily(py::module& m){
         .def(py::init<size_t, BlockPrior&, EdgeMatrixPrior&>(), py::arg("size"), py::arg("blocks"), py::arg("edge_matrix"))
         .def("get_block_of_idx", &StochasticBlockModelFamily::getBlockOfIdx,
             py::arg("idx"))
+        .def("get_block_prior", &StochasticBlockModelFamily::getBlockPrior)
         .def("set_block_prior", &StochasticBlockModelFamily::setBlockPrior)
-        .def("set_edge_matrix_prior", &StochasticBlockModelFamily::setEdgeMatrixPrior);
+        .def("get_edge_matrix_prior", &StochasticBlockModelFamily::getEdgeMatrixPrior)
+        .def("set_edge_matrix_prior", &StochasticBlockModelFamily::setEdgeMatrixPrior)
+        ;
 }
 
 void initErdosRenyiFamily(py::module& m){
