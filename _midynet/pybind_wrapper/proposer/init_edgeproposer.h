@@ -22,6 +22,9 @@ void initEdgeProposer(py::module& m){
         .def("set_up", &EdgeProposer::setUp, py::arg("random_graph"))
         .def("accept_isolated", &EdgeProposer::setAcceptIsolated, py::arg("accept"))
         .def("accept_isolated", &EdgeProposer::getLogProposalProbRatio)
+        .def("allow_self_loops", &EdgeProposer::allowSelfLoops)
+        .def("allow_multiedges", &EdgeProposer::allowMultiEdges)
+        .def("accept_isolated", &EdgeProposer::getLogProposalProbRatio)
         .def("update", py::overload_cast<const GraphMove&>(&EdgeProposer::updateProbabilities), py::arg("move"))
         .def("update", py::overload_cast<const BlockMove&>(&EdgeProposer::updateProbabilities), py::arg("move"));
 

@@ -42,6 +42,8 @@ public:
     virtual double getLogProposalProbRatio(const GraphMove& move) const = 0;
     virtual void updateProbabilities(const GraphMove& move) {};
     virtual void updateProbabilities(const BlockMove& move) {};
+    const bool& allowSelfLoops() const { return m_allowSelfLoops; }
+    const bool& allowMultiEdges() const { return m_allowMultiEdges; }
 
 };
 

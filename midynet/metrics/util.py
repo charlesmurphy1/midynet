@@ -75,7 +75,24 @@ def get_log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
 
 
 def get_log_evidence_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
-    raise NotImplementedError()
+    logevidence = []
+    original_graph = dynamicsMCMC.get_graph()
+    size = dynamicsMCMC.get_dynamics().get_size()
+    edge_proposer = dynamicsMCMC.get_random_graph_mcmc().get_edge_proposer()
+    graph = dynamicsMCMC.get_random_graph_mcmc().get_random_graph()
+    edge_count = graph.get_edge_count()
+    allow_self_loops = edge_proposer.allow_self_loops()
+    allow_multiedges = edge_proposer.allow_multiedges()
+
+    dynamicsMCMC.set_up()
+    for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
+        if graph.is_compatible(g):
+            dynamicsMCMC.set_graph(g)
+            logevidence.append(dynamicsMCMC.getLogJoint())
+    dynamicsMCMC.tear_down()
+
+    dynamicsMCMC.set_graph(original_graph)
+    return log_sum_exp(logevidence)
 
 
 def get_log_evidence_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
@@ -176,7 +193,27 @@ def get_log_posterior_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
 
 
 def get_log_posterior_exact_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
-    raise NotImplementedError()
+    original_graph = dynamicsMCMC.get_graph()
+    size = dynamicsMCMC.get_dynamics().get_size()
+    edge_proposer = dynamicsMCMC.get_random_graph_mcmc().get_edge_proposer()
+    graph = dynamicsMCMC.get_random_graph_mcmc().get_random_graph()
+    edge_count = graph.get_edge_count()
+    allow_self_loops = edge_proposer.allow_self_loops()
+    allow_multiedges = edge_proposer.allow_multiedges()
+
+    graph_callback = CollectEdgeMultiplicityOnSweep()
+    dynamicsMCMC.add_callback(graph_callback)
+    dynamicsMCMC.set_up()
+    for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
+        if graph.is_compatible(g):
+            dynamicsMCMC.set_graph(g)
+            graph_callback.collect()
+    logp = -graph_callback.get_marginal_entropy()  # -H(G|X)
+
+    dynamicsMCMC.tear_down()
+    dynamicsMCMC.pop_callback()
+
+    return logp
 
 
 def get_log_posterior(dynamicsMCMC: DynamicsMCMC, config: Config):
