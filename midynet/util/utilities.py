@@ -1,7 +1,12 @@
 import basegraph
+import itertools
 import networkx as nx
 import numpy as np
 import pathlib
+import typing
+
+import basegraph
+
 
 __all__ = [
     "clip",
@@ -10,6 +15,7 @@ __all__ = [
     "to_batch",
     "delete_path",
     "convert_basegraph_to_networkx",
+    "enumerate_all_graphs",
 ]
 
 
@@ -58,6 +64,50 @@ def delete_path(path: pathlib.Path):
 def convert_basegraph_to_networkx(g: basegraph.core.UndirectedMultigraph) -> nx.Graph:
     A = np.array(g.get_adjacency_matrix())
     return nx.from_numpy_array(A)
+
+
+def get_all_edges(size: int, allow_self_loops: bool = False) -> list[tuple[int, int]]:
+    if allow_self_loops:
+        return list(itertools.combinations_with_replacement(range(size), 2))
+    else:
+        return list(itertools.combinations(range(size), 2))
+
+
+def generate_all_edge_lists(
+    size: int,
+    edge_count: int,
+    allow_self_loops: bool = False,
+    allow_multiedges: bool = False,
+) -> typing.Generator[list[tuple[int, int]], None, None]:
+    all_edges = get_all_edges(size, allow_self_loops)
+
+    if allow_multiedges:
+        edge_list_generator = itertools.combinations_with_replacement(
+            all_edges, edge_count
+        )
+    else:
+        edge_list_generator = itertools.combinations(all_edges, edge_count)
+    for el in edge_list_generator:
+        yield list(el)
+
+
+def enumerate_all_graphs(
+    size: int,
+    edge_count: int,
+    allow_self_loops: bool = False,
+    allow_multiedges: bool = False,
+) -> typing.Generator[basegraph.core.UndirectedMultigraph, None, None]:
+    all_edge_lists = generate_all_edge_lists(
+        size,
+        edge_count,
+        allow_self_loops=allow_self_loops,
+        allow_multiedges=allow_multiedges,
+    )
+    for edge_list in all_edge_lists:
+        g = basegraph.core.UndirectedMultigraph(size)
+        for u, v in edge_list:
+            g.add_edge_idx(u, v)
+        yield g
 
 
 if __name__ == "__main__":
