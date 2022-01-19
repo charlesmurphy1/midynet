@@ -8,12 +8,12 @@
 7. Implementating ProposerFactory. [Done]
 8. Testing Experiment and ExperimentConfig. [Done]
 9. Finish implementating of ScriptManager and testing.[Done]
-10. Enumeration of graphs in C++ class.
-11. Exact methods for log evidence.
+10. Enumeration of graphs in C++ class. [Done in python]
+11. Exact methods for log evidence. [Done]
 12. Edge proposer preventing self-loops / multiedges. [Done]
 13. Erdos-Renyi / SBM for simple graphs. [Done]
 14. SBM-based edge proposers that dependents on the block structure.
-15. Correct log proposal in edge proposers.
+15. Correct log proposal in edge proposers. [Done]
 
 # Potential to-do list
 1. Hierarchical version of the stochastic block model (needs re-implementation of all SBM priors)
