@@ -276,3 +276,27 @@ TEST_F(TestDegreeCorrectedStochasticBlockModelFamily, getLogLikelihoodRatio_forB
     double logLikelihoodAfter = randomGraph.getLogLikelihood();
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
+
+
+
+TEST_F(TestDegreeCorrectedStochasticBlockModelFamily, isCompatible_forGraphSampledFromSBM_returnTrue){
+    randomGraph.sample();
+    auto g = randomGraph.getGraph();
+    EXPECT_TRUE(randomGraph.isCompatible(g));
+}
+
+TEST_F(TestDegreeCorrectedStochasticBlockModelFamily, isCompatible_forEmptyGraph_returnFalse){
+    MultiGraph g(0);
+    EXPECT_FALSE(randomGraph.isCompatible(g));
+}
+TEST_F(TestDegreeCorrectedStochasticBlockModelFamily, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
+    randomGraph.sample();
+    auto g = randomGraph.getGraph();
+    for (auto vertex: g){
+        for (auto neighbor: g.getNeighboursOfIdx(vertex)){
+            g.removeEdgeIdx(vertex, neighbor.vertexIndex);
+            break;
+        }
+    }
+    EXPECT_FALSE(randomGraph.isCompatible(g));
+}

@@ -46,6 +46,29 @@ TEST_F(TestErdosRenyiFamily, applyBlockMove_throwConsistencyError){
     EXPECT_THROW(randomGraph.applyBlockMove(move), ConsistencyError);
 }
 
+TEST_F(TestErdosRenyiFamily, isCompatible_forGraphSampledFromSBM_returnTrue){
+    randomGraph.sample();
+    auto g = randomGraph.getGraph();
+    EXPECT_TRUE(randomGraph.isCompatible(g));
+}
+
+TEST_F(TestErdosRenyiFamily, isCompatible_forEmptyGraph_returnFalse){
+    MultiGraph g(0);
+    EXPECT_FALSE(randomGraph.isCompatible(g));
+}
+
+TEST_F(TestErdosRenyiFamily, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
+    randomGraph.sample();
+    auto g = randomGraph.getGraph();
+    for (auto vertex: g){
+        for (auto neighbor: g.getNeighboursOfIdx(vertex)){
+            g.removeEdgeIdx(vertex, neighbor.vertexIndex);
+            break;
+        }
+    }
+    EXPECT_FALSE(randomGraph.isCompatible(g));
+}
+
 
 class TestSimpleErdosRenyiFamily: public::testing::Test{
     public:
@@ -53,7 +76,7 @@ class TestSimpleErdosRenyiFamily: public::testing::Test{
         SimpleErdosRenyiFamily randomGraph = SimpleErdosRenyiFamily(NUM_VERTICES, edgeCountPrior);
         void SetUp() {
             randomGraph.samplePriors();
-            std::cout << "Edge count: " << randomGraph.getEdgeCount() << std::endl; 
+            std::cout << "Edge count: " << randomGraph.getEdgeCount() << std::endl;
             randomGraph.sample();
         }
 };
@@ -81,9 +104,7 @@ TEST_F(TestSimpleErdosRenyiFamily, getLogLikelihoodRatioFromGraphMove_forAddedEd
     }
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBefore = randomGraph.getLogLikelihood();
-    std::cout << "Before: " << randomGraph.getEdgeCount() << std::endl;
     randomGraph.applyGraphMove(move);
-    std::cout << "After: " << randomGraph.getEdgeCount() << std::endl;
     double logLikelihoodAfter = randomGraph.getLogLikelihood();
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 
@@ -101,10 +122,31 @@ TEST_F(TestSimpleErdosRenyiFamily, getLogLikelihoodRatioFromGraphMove_forRemoved
 
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBefore = randomGraph.getLogLikelihood();
-    std::cout << "Before: " << randomGraph.getEdgeCount() << std::endl;
     randomGraph.applyGraphMove(move);
-    std::cout << "After: " << randomGraph.getEdgeCount() << std::endl;
     double logLikelihoodAfter = randomGraph.getLogLikelihood();
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 
+}
+
+TEST_F(TestSimpleErdosRenyiFamily, isCompatible_forGraphSampledFromSBM_returnTrue){
+    randomGraph.sample();
+    auto g = randomGraph.getGraph();
+    EXPECT_TRUE(randomGraph.isCompatible(g));
+}
+
+TEST_F(TestSimpleErdosRenyiFamily, isCompatible_forEmptyGraph_returnFalse){
+    MultiGraph g(0);
+    EXPECT_FALSE(randomGraph.isCompatible(g));
+}
+
+TEST_F(TestSimpleErdosRenyiFamily, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
+    randomGraph.sample();
+    auto g = randomGraph.getGraph();
+    for (auto vertex: g){
+        for (auto neighbor: g.getNeighboursOfIdx(vertex)){
+            g.removeEdgeIdx(vertex, neighbor.vertexIndex);
+            break;
+        }
+    }
+    EXPECT_FALSE(randomGraph.isCompatible(g));
 }
