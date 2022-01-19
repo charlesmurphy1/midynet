@@ -11,6 +11,7 @@ from midynet.util.degree_sequences import *
 from _midynet.random_graph import (
     StochasticBlockModelFamily,
     ErdosRenyiFamily,
+    SimpleErdosRenyiFamily,
     DegreeCorrectedStochasticBlockModelFamily,
     ConfigurationModelFamily,
 )
@@ -88,6 +89,11 @@ class RandomGraphConfig(Config):
     def er(cls, size: int = 100, edge_count: int = 250):
         edge_count = EdgeCountPriorConfig.auto(edge_count)
         return cls.custom_er(name="er", size=size, edge_count=edge_count)
+
+    @classmethod
+    def ser(cls, size: int = 100, edge_count: int = 250):
+        edge_count = EdgeCountPriorConfig.auto(edge_count)
+        return cls.custom_er(name="ser", size=size, edge_count=edge_count)
 
     @classmethod
     def custom_dcsbm(
@@ -282,6 +288,20 @@ class RandomGraphFactory(Factory):
     @staticmethod
     def build_er(config: RandomGraphConfig) -> ErdosRenyiFamily:
         return RandomGraphFactory.build_custom_er(config)
+
+    @staticmethod
+    def build_ser(config: RandomGraphConfig) -> ErdosRenyiFamily:
+        edge_count = EdgeCountPriorFactory.build(config.edge_count)
+        g = SimpleErdosRenyiFamily(config.size, edge_count)
+
+        return Wrapper(
+            g,
+            setup_func=lambda wrap, others: RandomGraphFactory.setUpER(
+                wrap,
+                others["edge_count"],
+            ),
+            edge_count=edge_count,
+        )
 
     @staticmethod
     def build_custom_dcsbm(

@@ -28,12 +28,14 @@ void initErdosRenyiFamily(py::module& m){
     py::class_<ErdosRenyiFamily, StochasticBlockModelFamily>(m, "ErdosRenyiFamily")
         .def(py::init<size_t>(), py::arg("size"))
         .def(py::init<size_t, EdgeCountPrior&>(), py::arg("size"), py::arg("edge_cout_prior"))
+        .def("get_edge_count_prior", &ErdosRenyiFamily::getEdgeCountPrior)
         .def("set_edge_count_prior", &ErdosRenyiFamily::setEdgeCountPrior)
     ;
 
     py::class_<SimpleErdosRenyiFamily, RandomGraph>(m, "SimpleErdosRenyiFamily")
         .def(py::init<size_t>(), py::arg("size"))
         .def(py::init<size_t, EdgeCountPrior&>(), py::arg("size"), py::arg("edge_cout_prior"))
+        .def("get_edge_count_prior", &SimpleErdosRenyiFamily::getEdgeCountPrior)
         .def("set_edge_count_prior", &SimpleErdosRenyiFamily::setEdgeCountPrior)
     ;
 }

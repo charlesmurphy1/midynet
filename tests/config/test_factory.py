@@ -109,7 +109,10 @@ class TestRandomGraphFactory(unittest.TestCase, TestFactory):
     good_configs = {
         RandomGraphConfig.uniform_sbm(100, 250, 10),
         RandomGraphConfig.hyperuniform_sbm(100, 250, 10),
+        RandomGraphConfig.er(100, 250),
+        RandomGraphConfig.ser(100, 250),
         RandomGraphConfig.er(100, 250.0),
+        RandomGraphConfig.ser(100, 250.0),
         RandomGraphConfig.uniform_dcsbm(100, 250, 10),
         RandomGraphConfig.uniform_cm(100, 250),
         RandomGraphConfig.poisson_cm(100, 250),

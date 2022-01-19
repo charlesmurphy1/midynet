@@ -36,6 +36,8 @@ public:
             setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
         }
 
+    const EdgeCountPrior& getEdgeCountPrior(){ return m_edgeMatrixUniformPrior.getEdgeCountPrior(); }
+    EdgeCountPrior& getEdgeCountPriorRef(){ return m_edgeMatrixUniformPrior.getEdgeCountPriorRef(); }
     void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){
         m_edgeMatrixUniformPrior.setEdgeCountPrior(edgeCountPrior);
     }
@@ -69,14 +71,14 @@ public:
         m_vertexCounts(1, graphSize),
         m_degrees(graphSize, 0)
         { setEdgeCountPrior(edgeCountPrior); }
-    const std::vector<BlockIndex>& getBlocks() const { return m_blocks; }
-    const size_t& getBlockCount() const { return m_blockCount; }
-    const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCounts; }
-    const Matrix<size_t>& getEdgeMatrix() const { return m_edgeMatrix; }
-    const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeCounts; }
-    const size_t& getEdgeCount() const { m_edgeCountPriorPtr->getState(); }
-    const std::vector<size_t>& getDegrees() const { return m_degrees; }
-    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const {return m_degreeCounts; }
+    const std::vector<BlockIndex>& getBlocks() const override { return m_blocks; }
+    const size_t& getBlockCount() const override { return m_blockCount; }
+    const std::vector<size_t>& getVertexCountsInBlocks() const override { return m_vertexCounts; }
+    const Matrix<size_t>& getEdgeMatrix() const override { return m_edgeMatrix; }
+    const std::vector<size_t>& getEdgeCountsInBlocks() const override { return m_edgeCounts; }
+    const size_t& getEdgeCount() const override { return m_edgeCountPriorPtr->getState(); }
+    const std::vector<size_t>& getDegrees() const override { return m_degrees; }
+    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override {return m_degreeCounts; }
 
     void setGraph(const MultiGraph& graph) override{
         m_edgeMatrix[0][0] = graph.getTotalEdgeNumber();
@@ -124,6 +126,8 @@ public:
 
     }
 
+    const EdgeCountPrior& getEdgeCountPrior(){ return *m_edgeCountPriorPtr; }
+    EdgeCountPrior& getEdgeCountPriorRef(){ return *m_edgeCountPriorPtr; }
     void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){ m_edgeCountPriorPtr = &edgeCountPrior; }
 
 };
