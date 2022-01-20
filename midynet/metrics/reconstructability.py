@@ -39,8 +39,8 @@ class ReconstructabilityMetrics(ExpectationMetrics):
     def eval(self, config: Config):
         reconstructability = Reconstructability(
             config=config,
-            num_procs=config.metrics.get_value("num_procs", 1),
-            seed=config.metrics.get_value("seed", int(time.time())),
+            num_procs=config.get_value("num_procs", 1),
+            seed=config.get_value("seed", int(time.time())),
         )
         samples = reconstructability.compute(
             config.metrics.get_value("num_samples", 10)

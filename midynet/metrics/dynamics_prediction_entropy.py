@@ -35,8 +35,8 @@ class DynamicsPredictionEntropyMetrics(ExpectationMetrics):
     def eval(self, config: Config):
         dynamics_entropy = DynamicsPredictionEntropy(
             config=config,
-            num_procs=config.metrics.get_value("num_procs", 1),
-            seed=config.metrics.get_value("seed", int(time.time())) + self.counter,
+            num_procs=config.get_value("num_procs", 1),
+            seed=config.get_value("seed", int(time.time())) + self.counter,
         )
         self.counter += len(self.config)
         samples = dynamics_entropy.compute(

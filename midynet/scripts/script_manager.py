@@ -26,59 +26,61 @@ def split_into_chunks(
 
 @dataclass
 class ScriptManager:
-    name: str
-    executable: str
-    exp: str = None
-    config: Config = field(repr=False, default_factory=Config)
-    config_array: list[Config] = field(repr=False, default_factory=list)
-    execution_command: str = field(repr=False, default="bash")
-    resources: dict[str, str] = field(repr=False, default_factory=dict)
-    resource_prefix: str = field(repr=False, default="#SBATCH")
-    path_to_scripts: pathlib.Path = field(repr=False, default_factory=pathlib.Path)
-    modules_to_load: list[str] = field(repr=False, default_factory=list)
-    env_to_load: str = field(repr=False, default=None)
+    executable: str = field(repr=True, init=True)
+    execution_command: str = field(repr=True, default="bash", init=True)
+    path_to_scripts: pathlib.Path = field(
+        repr=True, default_factory=pathlib.Path, init=True
+    )
 
     def __post_init__(self):
-        self.exp = self.config.name
-        self.config_array = [self.config]
         if isinstance(self.path_to_scripts, str):
             self.path_to_scripts = pathlib.Path(self.path_to_scripts)
         if not self.path_to_scripts.exists():
             self.path_to_scripts.mkdir()
 
-    def write_script(self, config: Config, tag: str):
-
+    def write_script(
+        self,
+        config: Config,
+        resources: dict = None,
+        resource_prefix: str = "#SBATCH",
+        tag: str = "generic",
+        modules_to_load: list[str] = None,
+        virtualenv: str = None,
+        extra_args: dict[str, str] = None,
+    ):
         script = "#!/bin/bash\n"
-        script += f"{self.resource_prefix} --job-name={self.name}\n"
-        for k, r in self.resources.items():
-            script += f"{self.resource_prefix} --{k}={r}\n"
+        resources = {} if resources is None else resources
+        for k, r in resources.items():
+            script += f"{resource_prefix} --{k}={r}\n"
+
         script += "\n"
-        script += (
-            f"module {' '.join(self.modules_to_load)}\n"
-            if len(self.modules_to_load) > 0
-            else ""
-        )
-        script += (
-            f"source {self.env_to_load}\n  \n" if self.env_to_load is not None else ""
-        )
+        if modules_to_load:
+            script += f"module {' '.join(modules_to_load)}\n"
+
+        if virtualenv:
+            script += f"source {virtualenv}\n  \n"
 
         path_to_config = self.path_to_scripts / f"{tag}-config.pickle"
-        script += f"{self.executable} {path_to_config}"
+        script += f"{self.executable} --path_to_config {path_to_config}"
+
+        extra_args = {} if extra_args is None else extra_args
+        for k, v in extra_args.items():
+            script += f" --{k} {v}"
 
         script += "\n \n"
-        if self.env_to_load is not None:
+        if virtualenv:
             script += "deactivate\n"
         return script
 
-    def set_up(self, config: Config, tag: str = None) -> int:
-        tag = f"{config.name}-{int(time.time())}" if tag is None else tag
+    def set_up(self, config: Config, **kwargs) -> int:
 
+        tag = kwargs.setdefault("tag", f"{config.name}-{int(time.time())}")
         path_to_config = self.path_to_scripts / f"{tag}-config.pickle"
         with path_to_config.open("wb") as f:
             config.save(path_to_config)
 
         path_to_script = self.path_to_scripts / f"{tag}.sh"
-        script = self.write_script(config, tag)
+        script = self.write_script(config, **kwargs)
         with path_to_script.open("w") as f:
             f.write(script)
         return tag
@@ -89,25 +91,37 @@ class ScriptManager:
         path_to_script.unlink()
         path_to_config.unlink()
 
-    def run(self):
-        for c in self.config_array:
-            tag = self.set_up(c)
+    def run(self, config: Config, **kwargs):
+        config = [config] if issubclass(config.__class__, Config) else config
+        for c in config:
+            tag = self.set_up(c, **kwargs)
             path_to_script = self.path_to_scripts / f"{tag}.sh"
             os.system(f"{self.execution_command} {path_to_script}")
             self.tear_down(tag)
 
-    def split_param(self, key: str, num_chunks: int = None):
-        new_config_array = []
-        for c in self.config_array:
-            p = c.get_param(key)
+    @staticmethod
+    def split_param(
+        configs, param_key: str, num_chunks: int = None, label_with="value"
+    ):
+        configs = [configs] if issubclass(configs.__class__, Config) else configs
+        splitted_configs = []
+        for c in configs:
+            p = c.get_param(param_key)
             if not p.is_sequenced():
-                new_config_array.append(c)
+                splitted_configs.append(c)
                 continue
-            for val in split_into_chunks(p.value, num_chunks):
+            for i, val in enumerate(split_into_chunks(p.value, num_chunks)):
                 new_config = c.deepcopy()
-                new_config.set_value(key, val)
-                new_config_array.append(new_config)
-        self.config_array = new_config_array
+                new_config.set_value(param_key, val)
+                if label_with == "value":
+                    new_config.set_value("name", new_config.name + "." + val)
+                elif isinstance(label_with, list):
+                    new_config.set_value("name", new_config.name + "." + label_with[i])
+                else:
+                    new_config.set_value("name", new_config.name + f".{i}")
+                new_config.set_value("path", new_config.path / new_config.name)
+                splitted_configs.append(new_config)
+        return splitted_configs
 
 
 if __name__ == "__main__":

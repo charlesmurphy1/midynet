@@ -57,7 +57,9 @@ def get_log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
     dynamicsMCMC.set_up()
     burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
     logp = []
-    for lb, ub in zip(config.beta_k[:-1], config.beta_k[1:]):
+
+    beta_k = np.linspace(0, 1, config.num_betas) ** config.exp_betas
+    for lb, ub in zip(beta_k[:-1], beta_k[1:]):
         dynamicsMCMC.set_beta_likelihood(lb)
         if config.reset_to_original:
             dynamicsMCMC.set_graph(g)

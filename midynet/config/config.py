@@ -314,7 +314,6 @@ class Config:
             key: key of the parameter to set.
             value: new value of the parameter.
         """
-        print(key, self.dict_copy().get(key))
         self.dict_copy().get(key).set_value(value)
         self.__reset_buffer__()
 
@@ -409,8 +408,8 @@ class Config:
         """
         path = pathlib.Path(path) if isinstance(path, str) else path
         with path.open(mode="rb") as f:
-            config = pickle.load(f)
-        return config
+            c = pickle.load(f)
+        return c
 
     def format(
         self,

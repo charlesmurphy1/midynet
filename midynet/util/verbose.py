@@ -20,6 +20,7 @@ class Verbose:
         if self.to_file:
             _file = open(self.filename, "w")
             _file.close()
+        self.counter = 0
 
     def __call__(self, msg, overwrite_last=False):
         if self.to_file:

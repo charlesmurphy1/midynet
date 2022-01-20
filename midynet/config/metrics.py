@@ -20,15 +20,16 @@ class MetricsConfig(Config):
     @classmethod
     def mcmc(cls):
         obj = cls(
-            num_sweeps=100,
+            num_sweeps=1000,
             error_type="confidence",
             method="meanfield",
             num_samples=100,
-            burn_per_vertex=1,
+            burn_per_vertex=100,
             reset_to_original=True,
             K=10,
+            num_betas=10,
+            exp_betas=0.5,
         )
-        obj.insert("beta_k", np.linspace(0, 1, 10).tolist(), force_non_sequence=True)
         return obj
 
     @classmethod

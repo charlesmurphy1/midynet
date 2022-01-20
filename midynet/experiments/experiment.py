@@ -37,7 +37,7 @@ class Experiment:
     def __post_init__(self):
         self.name = self.config.get_value("name", "exp")
         self.path = self.config.get_value("path", "./")
-        self.path.mkdir(exist_ok=True)
+        self.path.mkdir(exist_ok=True, parents=True)
 
         if isinstance(self.verbose, int):
             if self.verbose == 1 or self.verbose == 2:
@@ -58,15 +58,16 @@ class Experiment:
         utility.seed(self.seed)
 
         self.__default_protocol__ = [
-            "clear",
             "compute_metrics",
             "save",
             "zip",
         ]
 
     # Run command
-    def run(self, protocol=None):
+    def run(self, protocol=None, clean=True):
         protocol = self.__default_protocol__ if protocol is None else protocol
+        if clean:
+            self.clean()
 
         self.begin()
         for t in protocol:

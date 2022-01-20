@@ -14,8 +14,8 @@ class ExperimentConfig(Config):
         "graph",
         "metrics",
         "path",
-        "seed",
         "num_procs",
+        "seed",
     }
 
     @classmethod
@@ -26,8 +26,8 @@ class ExperimentConfig(Config):
         graph: str,
         metrics: list[str] = None,
         path: pathlib.Path = ".",
-        seed: int = None,
         num_procs: int = 1,
+        seed: int = None,
     ):
         obj = cls(name=name)
         obj.insert("dynamics", DynamicsConfig.auto(dynamics))
@@ -37,10 +37,15 @@ class ExperimentConfig(Config):
             MetricsCollectionConfig.auto(metrics if metrics is not None else []),
         )
         obj.insert(
-            "path", path if isinstance(path, pathlib.Path) else pathlib.Path(path)
+            "path",
+            path if isinstance(path, pathlib.Path) else pathlib.Path(path),
+            force_non_sequence=True,
+            unique=True,
         )
-        obj.insert("seed", seed if seed is not None else int(time.time()))
-        obj.insert("num_procs", num_procs)
+        obj.insert("num_procs", num_procs, force_non_sequence=True, unique=True)
+        obj.insert(
+            "seed", seed or int(time.time()), force_non_sequence=True, unique=True
+        )
 
         return obj
 

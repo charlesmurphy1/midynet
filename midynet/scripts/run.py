@@ -1,5 +1,6 @@
 import argparse
 import midynet
+from midynet.util.loggers import LoggerDict, TimeLogger, MemoryLogger
 
 
 def main():
@@ -13,10 +14,22 @@ def main():
         required=True,
     )
 
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        type=int,
+        metavar="VERBOSE",
+        required=False,
+        default=0,
+    )
+
     args = parser.parse_args()
     config = midynet.config.Config.load(args.path_to_config)
-    exp = midynet.Experiment(config)
-    exp.clean()
+    exp = midynet.experiments.Experiment(
+        config,
+        args.verbose,
+        loggers=LoggerDict(time=TimeLogger(), memory=MemoryLogger()),
+    )
     exp.run()
 
 

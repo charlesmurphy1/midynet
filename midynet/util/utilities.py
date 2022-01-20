@@ -1,6 +1,5 @@
 import basegraph
 import itertools
-import networkx as nx
 import numpy as np
 import pathlib
 import typing
@@ -14,7 +13,6 @@ __all__ = [
     "log_mean_exp",
     "to_batch",
     "delete_path",
-    "convert_basegraph_to_networkx",
     "enumerate_all_graphs",
 ]
 
@@ -61,9 +59,9 @@ def delete_path(path: pathlib.Path):
     path.rmdir()
 
 
-def convert_basegraph_to_networkx(g: basegraph.core.UndirectedMultigraph) -> nx.Graph:
-    A = np.array(g.get_adjacency_matrix())
-    return nx.from_numpy_array(A)
+# def convert_basegraph_to_networkx(g: basegraph.core.UndirectedMultigraph) -> nx.Graph:
+#     A = np.array(g.get_adjacency_matrix())
+#     return nx.from_numpy_array(A)
 
 
 def get_all_edges(size: int, allow_self_loops: bool = False) -> list[tuple[int, int]]:

@@ -1,26 +1,25 @@
+from __future__ import annotations
 import typing
 import importlib
 
 from basegraph.core import UndirectedMultigraph
 from _midynet.mcmc import DynamicsMCMC
-from midynet.util import convert_basegraph_to_networkx
 
 
 class MCMCConvergenceAnalysis:
-    if importlib.util.find_spec("netrd") is None:
-        message = (
-            f"The MCMCConvergenceAnalysis method cannot be used, "
-            + "because `netrd` is not installed."
-        )
-        raise NotImplementedError(message)
-    else:
-        from netrd.distance import BaseDistance
-
     def __init__(
         self,
         mcmc: DynamicsMCMC,
         distance: BaseDistance,
     ):
+        if importlib.util.find_spec("netrd") is None:
+            message = (
+                f"The MCMCConvergenceAnalysis method cannot be used, "
+                + "because `netrd` is not installed."
+            )
+            raise NotImplementedError(message)
+        else:
+            from netrd.distance import BaseDistance
         self.mcmc = mcmc
         self.distance = distance
         self.collected = []
@@ -35,3 +34,18 @@ class MCMCConvergenceAnalysis:
 
     def clear(self):
         self.collected.clear()
+
+    @staticmethod
+    def convert_basegraph_to_networkx(
+        g: basegraph.core.UndirectedMultigraph,
+    ) -> nx.Graph:
+        if importlib.util.find_spec("networkx") is None:
+            message = (
+                f"The MCMCConvergenceAnalysis method cannot be used, "
+                + "because `networkx` is not installed."
+            )
+            raise NotImplementedError(message)
+        else:
+            import networkx as nx
+        A = np.array(g.get_adjacency_matrix())
+        return nx.from_numpy_array(A)

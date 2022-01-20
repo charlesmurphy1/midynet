@@ -1,4 +1,3 @@
-import numpy as np
 import typing
 
 from typing import Union
@@ -28,8 +27,8 @@ class RandomGraphConfig(Config):
         cls,
         name: str,
         size: int,
-        blocks: Union[np.array, BlockPriorConfig],
-        edge_matrix: Union[np.array, EdgeMatrixPriorConfig],
+        blocks: BlockPriorConfig,
+        edge_matrix: EdgeMatrixPriorConfig,
     ):
         obj = cls(name=name, size=size)
         obj.insert("blocks", BlockPriorConfig.auto(blocks))
@@ -103,9 +102,9 @@ class RandomGraphConfig(Config):
         cls,
         name: str,
         size: int,
-        blocks: Union[np.array, BlockPriorConfig],
-        edge_matrix: Union[np.array, EdgeMatrixPriorConfig],
-        degrees: Union[np.array, DegreePriorConfig],
+        blocks: BlockPriorConfig,
+        edge_matrix: EdgeMatrixPriorConfig,
+        degrees: DegreePriorConfig,
     ):
         obj = cls(name=name, size=size)
         obj.insert("blocks", BlockPriorConfig.auto(blocks))

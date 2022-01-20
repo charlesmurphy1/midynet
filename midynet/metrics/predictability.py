@@ -38,8 +38,8 @@ class PredictabilityMetrics(ExpectationMetrics):
     def eval(self, config: Config):
         predictability = Predictability(
             config=config,
-            num_procs=config.metrics.get_value("num_procs", 1),
-            seed=config.metrics.get_value("seed", int(time.time())),
+            num_procs=config.get_value("num_procs", 1),
+            seed=config.get_value("seed", int(time.time())),
         )
         samples = predictability.compute(config.metrics.get_value("num_samples", 10))
         return self.statistics(samples)
