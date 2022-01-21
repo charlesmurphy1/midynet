@@ -14,6 +14,8 @@ else:
 PATH_TO_DATA = pathlib.Path(SPECS["path_to_data"])
 PATH_TO_RUN_EXEC = dict(run="python ../../midynet/scripts/run.py")
 PATH_TO_LOG = pathlib.Path("./log")
+if not PATH_TO_LOG.exists():
+    PATH_TO_LOG.mkdir()
 EXECUTION_COMMAND = SPECS["command"]
 
 

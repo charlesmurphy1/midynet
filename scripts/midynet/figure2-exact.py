@@ -15,6 +15,7 @@ def main():
         modules_to_load=SPECS["modules_to_load"],
         virtualenv=SPECS["virtualenv"],
         extra_args=dict(verbose=2),
+        teardown=False,
     )
 
 
