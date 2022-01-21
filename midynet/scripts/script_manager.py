@@ -118,8 +118,12 @@ class ScriptManager:
             for i, val in enumerate(split_into_chunks(p.value, num_chunks)):
                 new_config = c.deepcopy()
                 new_config.set_value(param_key, val)
+                if issubclass(val.__class__, Config):
+                    ext = val.name
+                else:
+                    ext = f"{val.name[0]}{val}"
                 if label_with == "value":
-                    new_config.set_value("name", new_config.name + "." + val)
+                    new_config.set_value("name", new_config.name + "." + ext)
                 elif isinstance(label_with, list):
                     new_config.set_value("name", new_config.name + "." + label_with[i])
                 else:

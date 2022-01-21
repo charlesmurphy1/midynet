@@ -166,6 +166,7 @@ class TestDynamicsEntropy(unittest.TestCase, TemplateTestMetrics):
         )
         self.config.metrics.dynamics_entropy.set_value("K", 2)
         self.config.metrics.dynamics_entropy.set_value("num_sweeps", 10)
+        self.config.metrics.dynamics_entropy.set_value("burn_per_vertex", 1)
 
 
 class TestDynamicsPredictionEntropy(unittest.TestCase, TemplateTestMetrics):
@@ -203,6 +204,7 @@ class TestGraphReconstructionEntropy(unittest.TestCase, TemplateTestMetrics):
         )
         self.config.metrics.graph_reconstruction_entropy.set_value("K", 2)
         self.config.metrics.graph_reconstruction_entropy.set_value("num_sweeps", 10)
+        self.config.metrics.graph_reconstruction_entropy.set_value("burn_per_vertex", 1)
 
 
 class TestReconstructability(unittest.TestCase, TemplateTestMetrics):
@@ -219,6 +221,7 @@ class TestReconstructability(unittest.TestCase, TemplateTestMetrics):
         )
         self.config.metrics.reconstructability.set_value("K", 2)
         self.config.metrics.reconstructability.set_value("num_sweeps", 10)
+        self.config.metrics.reconstructability.set_value("burn_per_vertex", 1)
 
 
 class TestPredictability(unittest.TestCase, TemplateTestMetrics):
@@ -233,6 +236,7 @@ class TestPredictability(unittest.TestCase, TemplateTestMetrics):
         )
         self.config.metrics.predictability.set_value("K", 2)
         self.config.metrics.predictability.set_value("num_sweeps", 10)
+        self.config.metrics.predictability.set_value("burn_per_vertex", 1)
 
 
 class TestMutualInformation(unittest.TestCase, TemplateTestMetrics):
@@ -247,6 +251,7 @@ class TestMutualInformation(unittest.TestCase, TemplateTestMetrics):
         )
         self.config.metrics.mutualinfo.set_value("K", 2)
         self.config.metrics.mutualinfo.set_value("num_sweeps", 10)
+        self.config.metrics.mutualinfo.set_value("burn_per_vertex", 1)
 
 
 if __name__ == "__main__":

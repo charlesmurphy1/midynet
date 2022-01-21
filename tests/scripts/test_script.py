@@ -23,39 +23,34 @@ class TestScriptManager(unittest.TestCase):
         self.script = scripts.ScriptManager(
             "test_script",
             "python run.py",
-            config=self.config,
-            resources=resources,
             path_to_scripts=f"./tests/scripts/test-dir",
-            env_to_load="./env/midynet-env/bin/activate",
-            modules_to_load=["g++", "mpi", "other_modules"],
         )
 
     def tearDown(self):
         self.script.path_to_scripts.rmdir()
 
     def test_write_script(self):
-        script = self.script.write_script(self.config, "test-007")
+        script = self.script.write_script(self.config, nametag="test-007", resources={})
         if self.display:
             print(script)
 
     def test_set_up_script(self):
-        tag = self.script.set_up(self.config)
-        path_to_config = self.script.path_to_scripts / f"{tag}-config.pickle"
+        nametag = self.script.set_up(self.config, tag=1)
+        path_to_config = self.script.path_to_scripts / f"{nametag}-config.pickle"
         self.assertTrue(path_to_config.exists())
         self.assertTrue(path_to_config.is_file())
 
-        path_to_script = self.script.path_to_scripts / f"{tag}.sh"
+        path_to_script = self.script.path_to_scripts / f"{nametag}.sh"
         self.assertTrue(path_to_script.exists())
         self.assertTrue(path_to_script.is_file())
         path_to_config.unlink()
         path_to_script.unlink()
 
     def test_tear_down_script(self):
-        tag = self.script.set_up(self.config)
-        path_to_config = self.script.path_to_scripts / f"{tag}-config.pickle"
-        path_to_script = self.script.path_to_scripts / f"{tag}.sh"
-
-        self.script.tear_down(tag)
+        nametag = self.script.set_up(self.config, tag=1)
+        path_to_config = self.script.path_to_scripts / f"{nametag}-config.pickle"
+        path_to_script = self.script.path_to_scripts / f"{nametag}.sh"
+        self.script.tear_down(nametag)
         self.assertFalse(path_to_config.exists())
         self.assertFalse(path_to_script.exists())
         self.assertTrue(self.script.path_to_scripts.exists())
@@ -67,10 +62,10 @@ class TestScriptManager(unittest.TestCase):
         if self.display:
             print(self.script.config.format())
 
-        self.script.split_param("dynamics")
+        configs = self.script.split_param(self.config, "dynamics")
 
-        if self.display or True:
-            for c in self.script.config_array:
+        if self.display:
+            for c in configs:
                 print(c.format())
 
 

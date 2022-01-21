@@ -17,8 +17,8 @@ class TestMetricsUtil(unittest.TestCase):
         self.config.graph.set_value("size", 4)
         self.config.graph.edge_count.set_value("state", 2)
         self.metrics_config = midynet.config.MetricsConfig.mcmc()
-        self.metrics_config.set_value("num_sweeps", 100)
-        self.metrics_config.set_value("burn_per_vertex", 10)
+        self.metrics_config.set_value("num_sweeps", 10)
+        self.metrics_config.set_value("burn_per_vertex", 1)
 
     def setup_mcmc(self):
         graph = RandomGraphFactory.build(self.config.graph)

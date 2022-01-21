@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from netrd.distance import Hamming
 from midynet.config import *
-from midynet.util import convert_basegraph_to_networkx, MCMCConvergenceAnalysis
+from midynet.util import MCMCConvergenceAnalysis
 from _midynet.mcmc import DynamicsMCMC
 
 
