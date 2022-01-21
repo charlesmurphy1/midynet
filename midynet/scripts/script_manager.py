@@ -91,13 +91,14 @@ class ScriptManager:
         path_to_script.unlink()
         path_to_config.unlink()
 
-    def run(self, config: Config, **kwargs):
+    def run(self, config: Config, teardown=True, **kwargs):
         config = [config] if issubclass(config.__class__, Config) else config
         for c in config:
             tag = self.set_up(c, **kwargs)
             path_to_script = self.path_to_scripts / f"{tag}.sh"
             os.system(f"{self.execution_command} {path_to_script}")
-            self.tear_down(tag)
+            if teardown:
+                self.tear_down(tag)
 
     @staticmethod
     def split_param(
