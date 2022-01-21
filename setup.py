@@ -204,13 +204,8 @@ setup(
         "scipy>=1.7.1",
         "psutil>=5.8.0",
         "tqdm>=4.56.0",
-<<<<<<< HEAD
         "basegraph==1.0.0",
         "SamplableSet>=2.0.0",
-=======
-        "basegraph",
-        "SamplableSet",
->>>>>>> 4a1c2887de4da208577996a9bb9edf3ef750eed3
     ],
     extras_require={"full": ["networkx", "netrd", "graph_tool"]},
     include_package_data=True,
