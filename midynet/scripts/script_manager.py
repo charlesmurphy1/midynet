@@ -43,7 +43,7 @@ class ScriptManager:
         config: Config,
         resources: dict = None,
         resource_prefix: str = "#SBATCH",
-        tag: str = "generic",
+        nametag: str = "generic",
         modules_to_load: list[str] = None,
         virtualenv: str = None,
         extra_args: dict[str, str] = None,
@@ -60,7 +60,7 @@ class ScriptManager:
         if virtualenv:
             script += f"source {virtualenv}\n  \n"
 
-        path_to_config = self.path_to_scripts / f"{tag}-config.pickle"
+        path_to_config = self.path_to_scripts / f"{nametag}-config.pickle"
         script += f"{self.executable} --path_to_config {path_to_config}"
 
         extra_args = {} if extra_args is None else extra_args
@@ -74,31 +74,35 @@ class ScriptManager:
 
     def set_up(self, config: Config, **kwargs) -> int:
 
-        tag = kwargs.setdefault("tag", f"{config.name}-{int(time.time())}")
-        path_to_config = self.path_to_scripts / f"{tag}-config.pickle"
+        nametag = f"{config.name}-{kwargs.pop('tag')}"
+        path_to_config = self.path_to_scripts / f"{nametag}-config.pickle"
         with path_to_config.open("wb") as f:
             config.save(path_to_config)
 
-        path_to_script = self.path_to_scripts / f"{tag}.sh"
-        script = self.write_script(config, **kwargs)
+        path_to_script = self.path_to_scripts / f"{nametag}.sh"
+        script = self.write_script(config, nametag=nametag, **kwargs)
         with path_to_script.open("w") as f:
             f.write(script)
-        return tag
+        return nametag
 
-    def tear_down(self, tag: int) -> None:
-        path_to_script = self.path_to_scripts / f"{tag}.sh"
-        path_to_config = self.path_to_scripts / f"{tag}-config.pickle"
+    def tear_down(self, nametag: int) -> None:
+        path_to_script = self.path_to_scripts / f"{nametag}.sh"
+        path_to_config = self.path_to_scripts / f"{nametag}-config.pickle"
         path_to_script.unlink()
         path_to_config.unlink()
 
     def run(self, config: Config, teardown=True, **kwargs):
         config = [config] if issubclass(config.__class__, Config) else config
+        # tag = kwargs.pop("tag")
+        tag = kwargs.pop("tag") if "tag" in kwargs else int(time.time())
+
         for c in config:
-            tag = self.set_up(c, **kwargs)
-            path_to_script = self.path_to_scripts / f"{tag}.sh"
+            nametag = self.set_up(c, tag=tag, **kwargs)
+            path_to_script = self.path_to_scripts / f"{nametag}.sh"
             os.system(f"{self.execution_command} {path_to_script}")
+            tag += 1
             if teardown:
-                self.tear_down(tag)
+                self.tear_down(nametag)
 
     @staticmethod
     def split_param(
