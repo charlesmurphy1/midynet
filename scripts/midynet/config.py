@@ -23,7 +23,7 @@ def config_figure2Exact(
     dynamics="sis", num_procs=4, time="24:00:00", mem=12, seed=None
 ):
     config = ExperimentConfig.default(
-        "figure2-exact",
+        f"figure2-exact-{dynamics}",
         dynamics,
         "ser",
         metrics=["mutualinfo"],
