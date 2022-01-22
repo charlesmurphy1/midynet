@@ -6,7 +6,7 @@ def main():
     config = get_config_test(num_procs=4, time="24:00:00", mem=12)
     script = midynet.scripts.ScriptManager(
         executable=PATH_TO_RUN_EXEC["run"],
-        execution_command=EXECUTION_COMMAND,
+        execution_command="bash",
         path_to_scripts="./scripts",
     )
     script.run(
