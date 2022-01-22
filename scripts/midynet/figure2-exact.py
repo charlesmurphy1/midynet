@@ -3,7 +3,7 @@ from config import *
 
 
 def main():
-    config = config_figure2Exact("sis", num_procs=4, time="24:00:00", mem=12)
+    config = config_figure2Exact("sis", num_procs=32, time="24:00:00", mem=12)
     script = midynet.scripts.ScriptManager(
         executable=PATH_TO_RUN_EXEC["run"],
         execution_command=EXECUTION_COMMAND,
