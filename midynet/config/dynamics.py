@@ -14,7 +14,7 @@ class DynamicsConfig(Config):
             self.set_value("infection_prob", coupling)
         elif self.name == "ising":
             self.set_value("coupling", coupling)
-        elif self.config.dynamics.name == "cowan":
+        elif self.name == "cowan":
             self.set_value("nu", coupling)
         else:
             message = f"Invalid entry {dynamics} for dynamics, expected ['sis', 'ising', 'cowan']."
