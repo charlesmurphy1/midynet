@@ -19,7 +19,37 @@ if not PATH_TO_LOG.exists():
 EXECUTION_COMMAND = SPECS["command"]
 
 
-def config_figure2Exact(
+def get_config_test(num_procs=4, time="1:00:00", mem=12, seed=1):
+    config = ExperimentConfig.default(
+        "test",
+        "sis",
+        "ser",
+        metrics=["mutualinfo", "graph_entropy"],
+        path=PATH_TO_DATA / "test",
+        num_procs=num_procs,
+        seed=seed,
+    )
+    N, E, T = 5, 5, 5
+    coupling = np.linspace(0, 3, 10)
+    config.graph.set_value("size", N)
+    config.graph.edge_count.set_value("state", E)
+    config.dynamics.set_value("num_steps", T)
+    config.dynamics.set_coupling(coupling)
+    config.metrics.mutualinfo.set_value("num_samples", 500 // num_procs * num_procs)
+    config.metrics.mutualinfo.set_value("method", "exact")
+    resources = {
+        "account": "def-aallard",
+        "time": time,
+        "mem": f"{mem}G",
+        "cpus-per-task": f"{num_procs}",
+        "job-name": f"{config.name}",
+        "output": PATH_TO_LOG / f"{config.name}.out",
+    }
+    config.insert("resources", resources, force_non_sequence=True, unique=True)
+    return config
+
+
+def get_config_figure2Exact(
     dynamics="sis", num_procs=4, time="24:00:00", mem=12, seed=None
 ):
     config = ExperimentConfig.default(
@@ -27,7 +57,7 @@ def config_figure2Exact(
         dynamics,
         "ser",
         metrics=["mutualinfo"],
-        path=PATH_TO_DATA / "figure2" / "exact",
+        path=PATH_TO_DATA / "figure2" / f"exact-{dynamics}",
         num_procs=num_procs,
         seed=seed,
     )
@@ -53,7 +83,9 @@ def config_figure2Exact(
     return config
 
 
-def config_figure2MCMC(dynamics="sis", num_procs=4, time="24:00:00", mem=12, seed=None):
+def get_config_figure2MCMC(
+    dynamics="sis", num_procs=4, time="24:00:00", mem=12, seed=None
+):
     config = ExperimentConfig.default(
         "figure2-mcmc",
         dynamics,
@@ -84,7 +116,7 @@ def config_figure2MCMC(dynamics="sis", num_procs=4, time="24:00:00", mem=12, see
     return config
 
 
-def config_figure2Large(
+def get_config_figure2Large(
     dynamics="sis", num_procs=4, time="24:00:00", mem=12, seed=None
 ):
     config = ExperimentConfig.default(

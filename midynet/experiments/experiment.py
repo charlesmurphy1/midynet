@@ -27,7 +27,7 @@ class Experiment:
     name: str = field(default="exp", init=False)
     path: pathlib.Path = field(default_factory=pathlib.Path, init=False)
     config_filename: str = field(repr=False, default="config.pickle", init=False)
-    log_filename: str = field(repr=False, default="log.pickle", init=False)
+    log_filename: str = field(repr=False, default="log.json", init=False)
     seed: int = field(repr=False, default_factory=lambda: int(time.time()), init=False)
     metrics: typing.Dict[str, Metrics] = field(
         repr=False, default_factory=dict, init=False
@@ -59,7 +59,6 @@ class Experiment:
         self.__default_protocol__ = [
             "compute_metrics",
             "save",
-            "zip",
         ]
 
     # Run command
@@ -109,8 +108,8 @@ class Experiment:
                 self.metrics[k].save(pathlib.Path(self.path) / f"{k}.pickle")
 
     def save(self):
-        self.config.save(self.path_data / self.config_filename)
-        self.loggers.save(self.path_data / self.log_filename)
+        self.config.save(self.path / self.config_filename)
+        self.loggers.save(self.path / self.log_filename)
         for k, m in self.metrics.items():
             m.save(pathlib.Path(self.path) / f"{k}.pickle")
 
