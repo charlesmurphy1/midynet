@@ -3,7 +3,7 @@ from config import *
 
 
 def main():
-    for dynamics in ["sis", "cowan", "ising"]:
+    for dynamics in ["cowan", "ising"]:
         config = get_config_figure2Exact(
             dynamics, num_procs=32, time="24:00:00", mem=12
         )
