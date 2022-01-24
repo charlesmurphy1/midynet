@@ -119,9 +119,11 @@ class ScriptManager:
                 new_config = c.deepcopy()
                 new_config.set_value(param_key, val)
                 if issubclass(val.__class__, Config):
-                    ext = val.name
+                    ext = f"{val.name}"
+                elif isinstance(val, str):
+                    ext = f"{val}"
                 else:
-                    ext = f"{val.name[0]}{val}"
+                    ext = f"{param_key.split('.')[-1]}{val}"
                 if label_with == "value":
                     new_config.set_value("name", new_config.name + "." + ext)
                 elif isinstance(label_with, list):

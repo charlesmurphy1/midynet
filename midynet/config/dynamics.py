@@ -48,8 +48,8 @@ class DynamicsConfig(Config):
     def cowan(
         cls,
         num_steps: int = 100,
-        nu: float = 7.0,
-        a: float = 1.0,
+        nu: float = 1.0,
+        a: float = 8.0,
         mu: float = 1.0,
         eta: float = 0.5,
         normalize: bool = True,
