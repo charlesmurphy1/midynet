@@ -157,7 +157,7 @@ def get_config_figure3Large(
 
 
 def get_config_figure4Nbinom(
-    dynamics="sis", num_procs=4, time="24:00:00", mem=12, seed=None
+    dynamics="sis", num_procs=4, time="48:00:00", mem=12, seed=None
 ):
     config = ExperimentConfig.default(
         f"figure4-nbinom-{dynamics}",
