@@ -163,7 +163,9 @@ class RandomGraphConfig(Config):
 
     @classmethod
     def poisson_cm(cls, size: int = 100, edge_count: int = 250):
-        obj = cls("poisson_cm", size=size, edge_count=edge_count)
+        obj = cls(
+            "poisson_cm", size=size, edge_count=EdgeCountPriorConfig.auto(edge_count)
+        )
         obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
         return obj
 
@@ -172,7 +174,7 @@ class RandomGraphConfig(Config):
         obj = cls(
             "nbinom_cm",
             size=size,
-            edge_count=edge_count,
+            edge_count=EdgeCountPriorConfig.auto(edge_count),
             heterogeneity=heterogeneity,
         )
         obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
@@ -388,13 +390,15 @@ class RandomGraphFactory(Factory):
 
     @staticmethod
     def build_poisson_cm(config: RandomGraphConfig) -> ConfigurationModelFamily:
-        degrees = poisson_degreeseq(config.size, 2 * config.edge_count / config.size)
+        degrees = poisson_degreeseq(
+            config.size, 2 * config.edge_count.state / config.size
+        )
         return RandomGraphFactory.build_fixed_custom_cm(degrees)
 
     @staticmethod
     def build_nbinom_cm(config: RandomGraphConfig) -> ConfigurationModelFamily:
         degrees = nbinom_degreeseq(
-            config.size, 2 * config.edge_count / config.size, config.heterogeneity
+            config.size, 2 * config.edge_count.state / config.size, config.heterogeneity
         )
         return RandomGraphFactory.build_fixed_custom_cm(degrees)
 
