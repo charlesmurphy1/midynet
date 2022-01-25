@@ -64,11 +64,16 @@ def get_config_figure2Exact(
     N = 5
     E = np.arange(1, int(N * (N - 1) / 2))
     T = [10, 25, 50, 100, 250, 500, 1000]
-    coupling = np.linspace(0, 4, 30)
+    if dynamics == "sis":
+        coupling = np.linspace(0, 1, 30)
+        config.dynamics.set_coupling(coupling)
+        config.dynamics.set_value("normalize", False)
+    else:
+        coupling = np.linspace(0, 4, 30)
+        config.dynamics.set_coupling(coupling)
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
-    config.dynamics.set_coupling(coupling)
     config.metrics.mutualinfo.set_value(
         "num_samples", max(1, 500 // num_procs) * num_procs
     )
