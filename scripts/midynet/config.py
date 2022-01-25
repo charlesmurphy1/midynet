@@ -104,11 +104,17 @@ def get_config_figure3Small(
     )
     N, E = 5, 5
     T = 10
-    coupling = np.linspace(0, 4, 30)
+
+    if dynamics == "sis":
+        coupling = np.linspace(0, 1, 30)
+        config.dynamics.set_coupling(coupling)
+        config.dynamics.set_value("normalize", False)
+    else:
+        coupling = np.linspace(0, 4, 30)
+        config.dynamics.set_coupling(coupling)
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
-    config.dynamics.set_coupling(coupling)
     config.metrics.mutualinfo.set_value(
         "num_samples", max(1, 100 // num_procs) * num_procs
     )
@@ -139,15 +145,21 @@ def get_config_figure3Large(
     )
     N, E = 100, 250
     T = 100
-    coupling = np.linspace(0, 4, 30)
+    if dynamics == "sis":
+        coupling = np.linspace(0, 1, 30)
+        config.dynamics.set_coupling(coupling)
+        config.dynamics.set_value("normalize", False)
+    else:
+        coupling = np.linspace(0, 4, 30)
+        config.dynamics.set_coupling(coupling)
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
-    config.dynamics.set_coupling(coupling)
     config.metrics.mutualinfo.set_value(
         "num_samples", max(1, 100 // num_procs) * num_procs
     )
     config.metrics.mutualinfo.set_value("method", ["meanfield", "annealed"])
+    config.metrics.mutualinfo.set_value("num_sweeps", 250)
 
     resources = {
         "account": "def-aallard",
@@ -195,8 +207,6 @@ def get_config_figure4Nbinom(
         "num_samples", max(1, 25 // num_procs) * num_procs
     )
     config.metrics.mutualinfo.set_value("method", "meanfield")
-    config.metrics.mutualinfo.set_value("burn_per_vertex", 25)
-    config.metrics.mutualinfo.set_value("num_sweeps", 100)
 
     resources = {
         "account": "def-aallard",
