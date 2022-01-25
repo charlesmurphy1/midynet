@@ -16,7 +16,7 @@ def main():
             resources=config.resources,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
-            extra_args=dict(verbose=1),
+            extra_args=dict(verbose=2),
         )
 
 
