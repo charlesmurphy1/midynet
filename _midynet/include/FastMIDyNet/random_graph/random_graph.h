@@ -31,6 +31,11 @@ public:
     }
 
     const int getSize() const { return m_size; }
+    const double getAverageDegree() const {
+        double avgDegree = 2 * (double) getEdgeCount();
+        avgDegree /= (double) getSize();
+        return avgDegree;
+    }
     virtual const std::vector<BlockIndex>& getBlocks() const = 0;
     virtual const size_t& getBlockCount() const = 0;
     virtual const std::vector<size_t>& getVertexCountsInBlocks() const = 0;

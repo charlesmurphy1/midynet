@@ -24,7 +24,7 @@ class DynamicsEntropy(Expectation):
         random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
 
         mcmc = DynamicsMCMC(dynamics, random_graph_mcmc.get_wrap())
-        mcmc.sample()
+        dynamics.sample()
         hx = -get_log_evidence(mcmc, self.config.metrics.dynamics_entropy)
         return hx
 

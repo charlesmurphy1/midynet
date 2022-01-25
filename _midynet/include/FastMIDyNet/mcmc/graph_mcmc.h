@@ -61,8 +61,6 @@ public:
     const double getLogLikelihood() const override { return m_randomGraphPtr->getLogLikelihood(); }
     const double getLogPrior() const override { return m_randomGraphPtr->getLogPrior(); }
     const double getLogJoint() const override { return m_randomGraphPtr->getLogJoint(); }
-    void sample() override { m_randomGraphPtr->sample(); m_hasState=true; }
-    void sampleGraphOnly() { m_randomGraphPtr->sampleGraph(); m_hasState=true; }
 
     void setUp() override {
         m_edgeProposer.setUp(*m_randomGraphPtr);

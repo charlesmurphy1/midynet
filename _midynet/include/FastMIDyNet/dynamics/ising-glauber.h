@@ -20,10 +20,10 @@ class IsingGlauberDynamics: public BinaryDynamics {
         const double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
         const double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
         const double getCoupling() const {
-            if (m_normalizeCoupling)
-                return m_couplingConstant / (2 * m_randomGraphPtr->getEdgeCount() / m_randomGraphPtr->getSize());
-            else
+            if (not m_normalizeCoupling)
                 return m_couplingConstant;
+            double coupling = m_couplingConstant / m_randomGraphPtr->getAverageDegree();
+            return coupling;
         }
         void setCoupling(double couplingConstant) { m_couplingConstant = couplingConstant; }
 };

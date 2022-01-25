@@ -59,31 +59,48 @@ class EdgeProposerFactory(Factory):
     def build_single_uniform(
         config: EdgeProposerConfig,
     ) -> proposer.edge_proposer.SingleEdgeUniformProposer:
-        return proposer.edge_proposer.SingleEdgeUniformProposer()
+        return proposer.edge_proposer.SingleEdgeUniformProposer(
+            allow_self_loops=config.allow_self_loops,
+            allow_multiedges=config.allow_multiedges,
+        )
 
     @staticmethod
     def build_single_degree(
         config: EdgeProposerConfig,
     ) -> proposer.edge_proposer.SingleEdgeDegreeProposer:
-        return proposer.edge_proposer.SingleEdgeDegreeProposer(config.shift)
+        return proposer.edge_proposer.SingleEdgeDegreeProposer(
+            config.shift,
+            allow_self_loops=config.allow_self_loops,
+            allow_multiedges=config.allow_multiedges,
+        )
 
     @staticmethod
     def build_hinge_flip_uniform(
         config: EdgeProposerConfig,
     ) -> proposer.edge_proposer.HingeFlipUniformProposer:
-        return proposer.edge_proposer.HingeFlipUniformProposer()
+        return proposer.edge_proposer.HingeFlipUniformProposer(
+            allow_self_loops=config.allow_self_loops,
+            allow_multiedges=config.allow_multiedges,
+        )
 
     @staticmethod
     def build_hinge_flip_degree(
         config: EdgeProposerConfig,
     ) -> proposer.edge_proposer.HingeFlipDegreeProposer:
-        return proposer.edge_proposer.HingeFlipDegreeProposer(config.shift)
+        return proposer.edge_proposer.HingeFlipDegreeProposer(
+            config.shift,
+            allow_self_loops=config.allow_self_loops,
+            allow_multiedges=config.allow_multiedges,
+        )
 
     @staticmethod
     def build_double_swap(
         config: EdgeProposerConfig,
     ) -> proposer.edge_proposer.DoubleEdgeSwapProposer:
-        return proposer.edge_proposer.DoubleEdgeSwapProposer()
+        return proposer.edge_proposer.DoubleEdgeSwapProposer(
+            allow_self_loops=config.allow_self_loops,
+            allow_multiedges=config.allow_multiedges,
+        )
 
 
 class BlockProposerFactory(Factory):

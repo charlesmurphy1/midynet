@@ -90,7 +90,7 @@ class MetricsCollectionConfig(Config):
 class MetricsFactory(Factory):
     @classmethod
     def build(cls, config: ExperimentConfig) -> typing.Any:
-        if config.unmet_requirements() and not isinstance(config, str):
+        if issubclass(type(config), Config) and config.unmet_requirements():
             raise MissingRequirementsError(config)
         options = {
             k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"

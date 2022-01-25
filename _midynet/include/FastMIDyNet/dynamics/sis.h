@@ -38,10 +38,12 @@ public:
         const double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
 
         const double getInfectionProb() const {
-            if (m_normalizeCoupling)
-                return m_infectionProb / (2 * m_randomGraphPtr->getEdgeCount() / m_randomGraphPtr->getSize());
-            else
+            if (not m_normalizeCoupling)
                 return m_infectionProb;
+            double infProb = m_infectionProb / m_randomGraphPtr->getAverageDegree();
+            if (infProb > 1 - 1E-5)
+                return 1 - 1E-5;
+            return infProb;
         }
         void setInfectionProb(double infectionProb) { m_infectionProb = infectionProb; }
         const double getRecoveryProb() const { return m_recoveryProb; }

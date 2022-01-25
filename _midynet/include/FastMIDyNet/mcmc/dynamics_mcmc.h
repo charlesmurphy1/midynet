@@ -58,21 +58,6 @@ public:
     const double getLogLikelihood() const override { return m_dynamics.getLogLikelihood(); }
     const double getLogPrior() const override { return m_dynamics.getLogPrior(); }
     const double getLogJoint() const override { return m_dynamics.getLogJoint(); }
-    void sample() override {
-        m_dynamics.sample();
-        m_hasState=true;
-    }
-    void sampleState() {
-        m_dynamics.sampleState();
-        m_hasState=true;
-    }
-    void sampleGraph() {
-        m_dynamics.sampleGraph();
-    }
-    void sampleGraphOnly() {
-        m_randomGraphMCMC.sampleGraphOnly();
-    }
-
     void doMetropolisHastingsStep() override ;
 
     void checkSafety() const override {

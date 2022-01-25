@@ -1,4 +1,5 @@
 import time
+import numpy as np
 from collections import defaultdict
 from dataclasses import dataclass, field
 
@@ -23,10 +24,10 @@ class MutualInformation(Expectation):
         dynamics.set_random_graph(graph.get_wrap())
         random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
         mcmc = DynamicsMCMC(dynamics, random_graph_mcmc.get_wrap())
-        mcmc.sample()
+        dynamics.sample()
+        hg = -dynamics.get_log_prior()
+        hxg = -dynamics.get_log_likelihood()
         hx = -get_log_evidence(mcmc, self.config.metrics.mutualinfo)
-        hg = -mcmc.get_log_prior()
-        hxg = -mcmc.get_log_likelihood()
         hgx = hg + hxg - hx
         return {"hx": hx, "hg": hg, "hxg": hxg, "hgx": hgx}
 
@@ -43,7 +44,9 @@ class MutualInformationMetrics(ExpectationMetrics):
             num_procs=config.get_value("num_procs", 1),
             seed=config.get_value("seed", int(time.time())),
         )
-        samples = mutual_info.compute(config.metrics.get_value("num_samples", 10))
+        samples = mutual_info.compute(
+            config.metrics.mutualinfo.get_value("num_samples", 10)
+        )
         sample_dict = defaultdict(list)
         for s in samples:
             for k, v in s.items():

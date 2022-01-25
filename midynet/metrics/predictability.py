@@ -22,7 +22,7 @@ class Predictability(Expectation):
         dynamics.set_random_graph(graph.get_wrap())
         random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
         mcmc = DynamicsMCMC(dynamics, random_graph_mcmc.get_wrap())
-        mcmc.sample()
+        dynamics.sample()
         hxg = -dynamics.get_log_likelihood()
         hx = -get_log_evidence(mcmc, self.config.metrics.predictability)
 

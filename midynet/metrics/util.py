@@ -87,7 +87,9 @@ def get_log_evidence_exact(dynamicsMCMC: DynamicsMCMC, config: Config):
     allow_multiedges = edge_proposer.allow_multiedges()
 
     dynamicsMCMC.set_up()
+    counter = 0
     for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
+        counter += 1
         if graph.is_compatible(g):
             dynamicsMCMC.set_graph(g)
             logevidence.append(dynamicsMCMC.get_log_joint())

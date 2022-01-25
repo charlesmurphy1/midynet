@@ -36,7 +36,6 @@ class Experiment:
     def __post_init__(self):
         self.name = self.config.get_value("name", "exp")
         self.path = self.config.get_value("path", "./")
-        self.path.mkdir(exist_ok=True, parents=True)
 
         if isinstance(self.verbose, int):
             if self.verbose == 1 or self.verbose == 2:
@@ -52,10 +51,6 @@ class Experiment:
         if isinstance(self.loggers, dict):
             self.loggers = LoggerDict(**self.loggers)
 
-        random.seed(self.seed)
-        np.random.seed(self.seed)
-        utility.seed(self.seed)
-
         self.__default_protocol__ = [
             "compute_metrics",
             "save",
@@ -64,10 +59,8 @@ class Experiment:
     # Run command
     def run(self, protocol=None, clean=True):
         protocol = self.__default_protocol__ if protocol is None else protocol
-        if clean:
-            self.clean()
 
-        self.begin()
+        self.begin(clean)
         for t in protocol:
             if t in self.__default_protocol__:
                 f = getattr(self, t)
@@ -79,7 +72,14 @@ class Experiment:
 
         self.end()
 
-    def begin(self):
+    def begin(self, clean=True):
+        self.path.mkdir(exist_ok=True, parents=True)
+        random.seed(self.seed)
+        np.random.seed(self.seed)
+        utility.seed(self.seed)
+        if clean:
+            self.clean()
+
         self.loggers.on_task_begin()
         self.verbose(f"---Experiment {self.name}---")
         if "time" in self.loggers.keys():
@@ -114,15 +114,19 @@ class Experiment:
             m.save(pathlib.Path(self.path) / f"{k}.pickle")
 
     def load(self):
+        self.metrics = MetricsFactory.build(self.config)
         for k in self.config.metrics.metrics_names:
-            self.metrics[k] = MetricsFactory.build(k)
             self.metrics[k].load(pathlib.Path(self.path) / f"{k}.pickle")
         self.loggers.load(self.path / self.log_filename)
 
     @classmethod
-    def load_from_file(cls, name: str, path: pathlib.Path):
-        config = Config.load(path)
-        exp = cls(name, config=config, path=path)
+    def load_from_file(cls, path: pathlib.Path):
+        path = pathlib.Path(path) if not isinstance(path, pathlib.Path) else path
+        abs_path = path.resolve()
+        config = Config.load(abs_path)
+        config.set_value("path", abs_path.parents[0])
+        print(config.format())
+        exp = cls(config=config)
         exp.load()
         return exp
 

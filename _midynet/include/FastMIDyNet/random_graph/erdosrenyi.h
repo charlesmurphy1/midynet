@@ -94,12 +94,12 @@ public:
 
     void sampleGraph() override { setGraph(generateSER(m_size, getEdgeCount())); }
     void samplePriors() override { m_edgeCountPriorPtr->sample(); m_edgeMatrix[0][0] = getEdgeCount();}
-    const double getLogLikelihood() const override { return logBinomialCoefficient( m_size * (m_size - 1), getEdgeCount()); }
+    const double getLogLikelihood() const override { return -logBinomialCoefficient( m_size * (m_size - 1) / 2, getEdgeCount()); }
     const double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint(); }
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override{
         int edgeCountDiff = move.addedEdges.size() - move.removedEdges.size();
-        return logBinomialCoefficient( m_size * (m_size - 1), getEdgeCount() + edgeCountDiff)
-             - logBinomialCoefficient( m_size * (m_size - 1), getEdgeCount());
+        return -logBinomialCoefficient( m_size * (m_size - 1) / 2, getEdgeCount() + edgeCountDiff)
+               +logBinomialCoefficient( m_size * (m_size - 1) / 2, getEdgeCount());
     };
     const double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const override { return 0; }
     const double getLogPriorRatioFromGraphMove (const GraphMove& move) const override {

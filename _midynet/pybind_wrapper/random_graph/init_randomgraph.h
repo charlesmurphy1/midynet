@@ -23,6 +23,7 @@ void initRandomGraphBaseClass(py::module& m){
         .def("get_edge_matrix", &RandomGraph::getEdgeMatrix)
         .def("get_edge_counts", &RandomGraph::getEdgeCountsInBlocks)
         .def("get_edge_count", &RandomGraph::getEdgeCount)
+        .def("get_average_degree", &RandomGraph::getAverageDegree)
         .def("get_degrees", &RandomGraph::getDegrees)
         .def("get_degree_of_idx", &RandomGraph::getDegreeOfIdx, py::arg("vertex_idx"))
         .def("get_degree_counts", &RandomGraph::getDegreeCountsInBlocks)

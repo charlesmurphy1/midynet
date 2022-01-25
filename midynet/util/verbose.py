@@ -1,6 +1,8 @@
 import numpy as np
 import tqdm
 import time
+import pathlib
+import typing
 
 
 from datetime import datetime
@@ -9,20 +11,24 @@ __all__ = ["Verbose"]
 
 
 class Verbose:
-    def __init__(self, filename=None, verbose_type=0, progress_bar=None):
-        self.filename = filename
+    def __init__(
+        self,
+        filename: pathlib.Path = None,
+        verbose_type: int = 0,
+        progress_bar: typing.Callable = None,
+    ):
         self.to_file = filename is not None
+        self.filename = (
+            pathlib.Path(filename) if isinstance(filename, str) else filename
+        )
         self.verbose_type = verbose_type
         self.last_line = None
         self.reset()
 
         self.pb_template = tqdm.tqdm if progress_bar is None else progress_bar
-        if self.to_file:
-            _file = open(self.filename, "w")
-            _file.close()
         self.counter = 0
 
-    def __call__(self, msg, overwrite_last=False):
+    def __call__(self, msg: str, overwrite_last: bool = False):
         if self.to_file:
             self.save_msg(msg, overwrite_last)
         if self.verbose_type != 0:
@@ -32,23 +38,24 @@ class Verbose:
     def __repr__(self):
         return f"Verbose(type={self.verbose_type})"
 
-    def save_msg(self, msg, overwrite_last=False):
+    def save_msg(self, msg: str, overwrite_last: bool = False):
         if overwrite_last:
-            _file = open(self.filename, "r")
-            lines = _file.readlines()
-            lines[-1] = msg
-            _file = open(self.filename, "w")
-            _file.writelines(lines)
-            _file.close()
-        else:
-            _file = open(self.filename, "a")
-            _file.write(f"{msg}\n")
-            _file.close()
+            with self.filename.open("r") as readf:
+                lines = readf.readlines()
+                lines[-1] = msg
+            with self.filename.open("w") as writef:
+                writef.writelines(lines)
+                writef.close()
+            return
+        mode = "a" if self.filename.exists() else "w"
+        with self.filename.open(mode) as writef:
+            writef.write(f"{msg}\n")
+            writef.close()
 
-    def print_msg(self, msg):
+    def print_msg(self, msg: str):
         print(msg)
 
-    def progress_msg(self, show_progress=True, show_time=True):
+    def progress_msg(self, show_progress: bool = True, show_time: bool = True):
         msg = ""
         if show_progress:
             if self.total is not None:
@@ -71,7 +78,7 @@ class Verbose:
             self.progress_msg()
             self.prev = time.time()
 
-    def end_progress(self, show_time=True):
+    def end_progress(self, show_time: bool = True):
         msg = ""
         if show_time:
             t = np.sum(self.times_per_step)
@@ -79,7 +86,9 @@ class Verbose:
         self(msg, overwrite_last=True)
         self.reset()
 
-    def init_progress(self, name, iterable=None, total=None):
+    def init_progress(
+        self, name: str, iterable: typing.Iterable = None, total: int = None
+    ):
         self.pbar_name = name
         self.total = None
         self(name)
@@ -108,7 +117,7 @@ class Verbose:
         self.times_per_steps = None
 
     @staticmethod
-    def format_time(t, short=False):
+    def format_time(t, short: bool = False):
         d = np.ceil(t // 60 // 60 // 24).astype("int")
         t -= d * 60 * 60 * 24
         h = np.ceil(t // 60 // 60).astype("int")
