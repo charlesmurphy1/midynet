@@ -190,6 +190,8 @@ def get_config_figure4Nbinom(
         "num_samples", max(1, 25 // num_procs) * num_procs
     )
     config.metrics.mutualinfo.set_value("method", "meanfield")
+    config.metrics.mutualinfo.set_value("burn_per_vertex", 25)
+    config.metrics.mutualinfo.set_value("num_sweeps", 100)
 
     resources = {
         "account": "def-aallard",
