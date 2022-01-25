@@ -35,7 +35,7 @@ def get_config_test(num_procs=4, time="1:00:00", mem=12, seed=1):
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
     config.dynamics.set_coupling(coupling)
-    config.metrics.mutualinfo.set_value("num_samples", 500 // num_procs * num_procs)
+    config.metrics.mutualinfo.set_value("num_samples", 1000 // num_procs * num_procs)
     config.metrics.mutualinfo.set_value("method", "exact")
     resources = {
         "account": "def-aallard",
