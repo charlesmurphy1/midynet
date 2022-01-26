@@ -13,9 +13,11 @@ class TestMCMCConvergence(unittest.TestCase):
 
     def setUp(self):
         self.config = ExperimentConfig.default("test", "sis", "er")
+        self.config.graph.set_value("size", 5)
+        self.config.graph.edge_count.set_value("state", 5)
         self.config.dynamics.set_value("infection_prob", [0.0, 0.1, 0.2, 0.3, 0.4, 0.5])
-        self.num_samples = 500
-        self.numsteps_between_samples = 100
+        self.num_samples = 50
+        self.numsteps_between_samples = 25
 
     @staticmethod
     def setup_convergence(config):
@@ -24,7 +26,8 @@ class TestMCMCConvergence(unittest.TestCase):
         d.set_random_graph(g.get_wrap())
         g_mcmc = RandomGraphMCMCFactory.build(config.graph)
         mcmc = DynamicsMCMC(d, g_mcmc.get_wrap())
-        mcmc.sample()
+        d.sample()
+        d.sample_graph()
         mcmc.set_up()
         distance = Hamming()
         return Wrapper(
@@ -37,13 +40,10 @@ class TestMCMCConvergence(unittest.TestCase):
         )
 
     def test_generic(self):
-        if not compute:
+        if not self.compute:
             return
         for c in self.config.sequence():
             conv = TestMCMCConvergence.setup_convergence(c)
-            conv.mcmc.sample()
-            conv.mcmc.sample_graph()
-            conv.mcmc.set_up()
             collected = conv.collect(self.num_samples, self.numsteps_between_samples)
             x = np.arange(self.num_samples) * self.numsteps_between_samples
             inf_prob = c.dynamics.infection_prob

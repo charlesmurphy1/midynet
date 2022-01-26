@@ -1,4 +1,5 @@
 from __future__ import annotations
+import numpy as np
 import typing
 import importlib
 
@@ -25,10 +26,10 @@ class MCMCConvergenceAnalysis:
         self.collected = []
 
     def collect(self, num_samples=100, numsteps_between_samples=10):
-        original_graph = convert_basegraph_to_networkx(self.mcmc.get_graph())
+        original_graph = self.convert_basegraph_to_networkx(self.mcmc.get_graph())
         for i in range(num_samples):
             self.mcmc.do_MH_sweep(numsteps_between_samples)
-            current_graph = convert_basegraph_to_networkx(self.mcmc.get_graph())
+            current_graph = self.convert_basegraph_to_networkx(self.mcmc.get_graph())
             self.collected.append(self.distance.dist(original_graph, current_graph))
         return self.collected
 
