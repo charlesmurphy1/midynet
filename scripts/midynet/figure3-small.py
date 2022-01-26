@@ -12,7 +12,7 @@ def main():
         )
         ais_config, mf_config = script.split_param(config, "metrics.mutualinfo.method")
 
-        mf_config.resources["time"] = "00:05:00"
+        mf_config.resources["time"] = "01:00:00"
         script.run(
             mf_config,
             resources=mf_config.resources,
@@ -22,7 +22,7 @@ def main():
             teardown=False,
         )
 
-        ais_config.resources["time"] = "00:15:00"
+        ais_config.resources["time"] = "04:00:00"
         script.run(
             ais_config,
             resources=ais_config.resources,

@@ -116,9 +116,10 @@ def get_config_figure3Small(
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
     config.metrics.mutualinfo.set_value(
-        "num_samples", max(1, 100 // num_procs) * num_procs
+        "num_samples", max(1, 1000 // num_procs) * num_procs
     )
     config.metrics.mutualinfo.set_value("method", ["meanfield", "annealed"])
+
     resources = {
         "account": "def-aallard",
         "time": time,
@@ -159,7 +160,6 @@ def get_config_figure3Large(
         "num_samples", max(1, 100 // num_procs) * num_procs
     )
     config.metrics.mutualinfo.set_value("method", ["meanfield", "annealed"])
-    config.metrics.mutualinfo.set_value("num_sweeps", 250)
 
     resources = {
         "account": "def-aallard",
