@@ -57,7 +57,7 @@ def get_config_figure2Exact(
         dynamics,
         "ser",
         metrics=["mutualinfo"],
-        path=PATH_TO_DATA / "figure2" / f"exact-{dynamics}",
+        path=PATH_TO_DATA / "figure2-test" / f"exact-{dynamics}",
         num_procs=num_procs,
         seed=seed,
     )
@@ -65,11 +65,11 @@ def get_config_figure2Exact(
     E = np.arange(1, int(N * (N - 1) / 2))
     T = [10, 25, 50, 100, 250, 500, 1000]
     if dynamics == "sis":
-        coupling = np.linspace(0, 1, 30)
+        coupling = np.linspace(0, 1, 100)
         config.dynamics.set_coupling(coupling)
         config.dynamics.set_value("normalize", False)
     else:
-        coupling = np.linspace(0, 4, 30)
+        coupling = np.linspace(0, 4, 100)
         config.dynamics.set_coupling(coupling)
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
