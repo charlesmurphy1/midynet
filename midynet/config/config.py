@@ -4,6 +4,7 @@ import itertools
 import pathlib
 import pickle
 import typing
+import tqdm
 
 
 from typing import Any, Callable
@@ -393,7 +394,7 @@ class Config:
         Args:
             path (optional): path where the :obj:`Config` is saved. Defaults to 'config.pickle'.
         """
-        path = pathlib.Path(path) if path is str else path
+        path = pathlib.Path(path) if isinstance(path, str) else path
         with path.open(mode="wb") as f:
             pickle.dump(self, f)
         return path
@@ -473,7 +474,7 @@ class Config:
             s += f"{prefix}{suffix}"
         return s
 
-    def merge_with(self, other: Config) -> None:
+    def merge_with(self, other: Config, verbose=1) -> None:
         """
         Merge config with other :obj:`Config`.
 
@@ -482,7 +483,12 @@ class Config:
         """
 
         other.__reset_buffer__()
+        counter = 0
+        size = len(other)
+        if verbose:
+            pbar = tqdm.tqdm(range(size), f"Merging {self.name} with {other.name}")
         for config in other.__generate_sequence__():
+            counter += 1
             if config.is_subconfig(self):
                 continue
             for key, value in config.items():
@@ -496,7 +502,7 @@ class Config:
                         found = False
                         for sub in self.get_value(key):
                             if sub.name == value.value.name:
-                                sub.merge_with(value.value)
+                                sub.merge_with(value.value, verbose=0)
                                 found = True
                                 break
                         if not found:
@@ -505,12 +511,16 @@ class Config:
                         if value.value.name != self.get_value(key).name:
                             self.get_param(key).add_value(config.get_value(key))
                         else:
-                            self.get_value(key).merge_with(config.get_value(key))
+                            self.get_value(key).merge_with(
+                                config.get_value(key), verbose=0
+                            )
                 else:
                     if self.get_param(key).is_sequenced() or value.is_sequenced():
                         self.get_param(key).add_values(value.value)
                     else:
                         self.get_param(key).add_value(value.value)
+            if verbose:
+                pbar.update()
         self.__reset_buffer__()
 
     # Methods that involve cache

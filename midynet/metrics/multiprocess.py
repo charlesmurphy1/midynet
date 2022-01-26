@@ -3,8 +3,6 @@ import numpy as np
 import time
 from dataclasses import dataclass, field
 
-from .statistics import MCStatistics
-
 __all__ = ["MultiProcess", "Expectation"]
 
 

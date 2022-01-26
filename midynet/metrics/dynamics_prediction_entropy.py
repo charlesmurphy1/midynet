@@ -5,7 +5,8 @@ from dataclasses import dataclass, field
 from midynet.config import *
 from _midynet import utility
 from .multiprocess import MultiProcess, Expectation
-from .metrics import ExpectationMetrics
+from .statistics import Statistics
+from .metrics import Metrics
 
 __all__ = ["DynamicsPredictionEntropy", "DynamicsPredictionEntropyMetrics"]
 
@@ -24,14 +25,7 @@ class DynamicsPredictionEntropy(Expectation):
         return hxg
 
 
-class DynamicsPredictionEntropyMetrics(ExpectationMetrics):
-    def __post_init__(self):
-        self.statistics = MCStatistics(
-            self.config.metrics.dynamics_predcition_entropy.get_value(
-                "error_type", "std"
-            )
-        )
-
+class DynamicsPredictionEntropyMetrics(Metrics):
     def eval(self, config: Config):
         dynamics_entropy = DynamicsPredictionEntropy(
             config=config,
@@ -42,7 +36,10 @@ class DynamicsPredictionEntropyMetrics(ExpectationMetrics):
         samples = dynamics_entropy.compute(
             config.metrics.dynamics_prediction_entropy.get_value("num_samples", 10)
         )
-        return self.statistics(samples)
+
+        return Statistics.compute(
+            samples, error_type=config.metrics.dynamics_prediction_entropy.error_type
+        )
 
 
 if __name__ == "__main__":

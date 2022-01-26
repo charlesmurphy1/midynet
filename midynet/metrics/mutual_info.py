@@ -7,7 +7,8 @@ from midynet.config import *
 from _midynet import utility
 from _midynet.mcmc import DynamicsMCMC
 from .multiprocess import MultiProcess, Expectation
-from .metrics import ExpectationMetrics
+from .metrics import Metrics
+from .statistics import Statistics
 from .util import get_log_evidence
 
 __all__ = ["MutualInformation", "MutualInformationMetrics"]
@@ -32,12 +33,7 @@ class MutualInformation(Expectation):
         return {"hx": hx, "hg": hg, "hxg": hxg, "hgx": hgx}
 
 
-class MutualInformationMetrics(ExpectationMetrics):
-    def __post_init__(self):
-        self.statistics = MCStatistics(
-            self.config.metrics.mutualinfo.get_value("error_type", "std")
-        )
-
+class MutualInformationMetrics(Metrics):
     def eval(self, config: Config):
         mutual_info = MutualInformation(
             config=config,
@@ -51,8 +47,11 @@ class MutualInformationMetrics(ExpectationMetrics):
         for s in samples:
             for k, v in s.items():
                 sample_dict[k].append(v)
-        result_dict = {k: self.statistics(v) for k, v in sample_dict.items()}
-        return {f"{k}-{kk}": vv for k, v in result_dict.items() for kk, vv in v.items()}
+        res = {
+            k: Statistics.compute(v, error_type=config.metrics.mutualinfo.error_type)
+            for k, v in sample_dict.items()
+        }
+        return {f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()}
 
 
 if __name__ == "__main__":

@@ -5,7 +5,8 @@ from midynet.config import *
 from _midynet import utility
 from _midynet.mcmc import DynamicsMCMC
 from .multiprocess import MultiProcess, Expectation
-from .metrics import ExpectationMetrics
+from .metrics import Metrics
+from .statistics import Statistics
 from .util import get_log_posterior
 
 __all__ = ["Reconstructability", "ReconstructabilityMetrics"]
@@ -30,12 +31,7 @@ class Reconstructability(Expectation):
         return (hg - hgx) / hg
 
 
-class ReconstructabilityMetrics(ExpectationMetrics):
-    def __post_init__(self):
-        self.statistics = MCStatistics(
-            self.config.metrics.reconstructability.get_value("error_type", "std")
-        )
-
+class ReconstructabilityMetrics(Metrics):
     def eval(self, config: Config):
         reconstructability = Reconstructability(
             config=config,
@@ -43,9 +39,11 @@ class ReconstructabilityMetrics(ExpectationMetrics):
             seed=config.get_value("seed", int(time.time())),
         )
         samples = reconstructability.compute(
-            config.metrics.get_value("num_samples", 10)
+            config.metrics.reconstructability.get_value("num_samples", 10)
         )
-        return self.statistics(samples)
+        return Statistics.compute(
+            samples, error_type=config.metrics.reconstructability.error_type
+        )
 
 
 if __name__ == "__main__":

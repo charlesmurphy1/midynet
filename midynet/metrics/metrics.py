@@ -8,9 +8,8 @@ from dataclasses import dataclass, field
 
 from midynet.config import Config
 from midynet.util import Verbose
-from .statistics import MCStatistics
 
-__all__ = ["Metrics", "ExpectationMetrics"]
+__all__ = ["Metrics"]
 
 
 @dataclass
@@ -45,7 +44,7 @@ class Metrics:
         self.data = self.format(raw_data)
         self.tear_down()
 
-    def format(self, data: np.ndarray) -> np.array:
+    def format(self, data: dict) -> np.array:
         formatted_data = {}
         for name, data_in_name in data.items():
             formatted_data[name] = {}
@@ -140,13 +139,6 @@ class Metrics:
             message = "Cannot get flat index, config not found."
             raise ValueError(message)
         return self.config.hash_dict()[name].index(h)
-
-
-@dataclass
-class ExpectationMetrics(Metrics):
-    statistics: MCStatistics = field(
-        repr=False, default_factory=lambda: MCStatistics("std")
-    )
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import pathlib
 
 from palettable.palette import Palette
 from cycler import cycler
@@ -26,6 +27,31 @@ def hex_to_rgb(value):
 
 def rgb_to_hex(rgb):
     return "#%02x%02x%02x" % rgb
+
+
+def setup_dir(path: pathlib.Path = "."):
+    path = pathlib.Path(path) if isinstance(path, str) else path
+    path_to_svg = path / "svg"
+    path_to_svg.mkdir(exist_ok=True, parents=True)
+    path_to_pdf = path / "pdf"
+    path_to_pdf.mkdir(exist_ok=True, parents=True)
+    path_to_png = path / "png"
+    path_to_png.mkdir(exist_ok=True, parents=True)
+
+
+def clean_dir(path: pathlib.Path = ".", prefix: str = None):
+    path = pathlib.Path(path) if isinstance(path, str) else path
+    path_to_svg = path / "svg"
+    path_to_pdf = path / "pdf"
+    path_to_png = path / "png"
+    for path_to in [path / "svg", path / "pdf", path / "png"]:
+        for local, subpaths, files in os.walk(path_to):
+            for f in files:
+                print(local, f)
+                name = f.split(".")[0]
+                if prefix is None or prefix == name[: len(prefix)]:
+                    p = pathlib.Path(local) / f
+                    p.unlink()
 
 
 locations = {

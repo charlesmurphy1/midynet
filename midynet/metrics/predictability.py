@@ -5,7 +5,8 @@ from midynet.config import *
 from _midynet import utility
 from _midynet.mcmc import DynamicsMCMC
 from .multiprocess import MultiProcess, Expectation
-from .metrics import ExpectationMetrics
+from .metrics import Metrics
+from .statistics import Statistics
 from .util import get_log_evidence
 
 __all__ = ["Predictability", "PredictabilityMetrics"]
@@ -29,20 +30,19 @@ class Predictability(Expectation):
         return (hx - hxg) / hx
 
 
-class PredictabilityMetrics(ExpectationMetrics):
-    def __post_init__(self):
-        self.statistics = MCStatistics(
-            self.config.metrics.predictability.get_value("error_type", "std")
-        )
-
+class PredictabilityMetrics(Metrics):
     def eval(self, config: Config):
         predictability = Predictability(
             config=config,
             num_procs=config.get_value("num_procs", 1),
             seed=config.get_value("seed", int(time.time())),
         )
-        samples = predictability.compute(config.metrics.get_value("num_samples", 10))
-        return self.statistics(samples)
+        samples = predictability.compute(
+            config.metrics.predictability.get_value("num_samples", 10)
+        )
+        return Statistics.compute(
+            samples, error_type=config.metrics.predictability.error_type
+        )
 
 
 if __name__ == "__main__":

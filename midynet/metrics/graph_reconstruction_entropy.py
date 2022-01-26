@@ -5,7 +5,8 @@ from midynet.config import *
 from _midynet import utility
 from _midynet.mcmc import DynamicsMCMC
 from .multiprocess import MultiProcess, Expectation
-from .metrics import ExpectationMetrics
+from .metrics import Metrics
+from .statistics import Statistics
 from .util import get_log_posterior
 
 __all__ = ["GraphReconstructionEntropy", "GraphReconstructionEntropyMetrics"]
@@ -27,14 +28,7 @@ class GraphReconstructionEntropy(Expectation):
         return hgx
 
 
-class GraphReconstructionEntropyMetrics(ExpectationMetrics):
-    def __post_init__(self):
-        self.statistics = MCStatistics(
-            self.config.metrics.graph_reconstruction_entropy.get_value(
-                "error_type", "std"
-            )
-        )
-
+class GraphReconstructionEntropyMetrics(Metrics):
     def eval(self, config: Config):
         reconstruction_entropy = GraphReconstructionEntropy(
             config=config,
@@ -42,9 +36,12 @@ class GraphReconstructionEntropyMetrics(ExpectationMetrics):
             seed=config.get_value("seed", int(time.time())),
         )
         samples = reconstruction_entropy.compute(
-            config.metrics.get_value("num_samples", 10)
+            config.metrics.graph_reconstruction_entropy.get_value("num_samples", 10)
         )
-        return self.statistics(samples)
+
+        return Statistics.compute(
+            samples, error_type=config.metrics.graph_reconstruction_entropy.error_type
+        )
 
 
 if __name__ == "__main__":

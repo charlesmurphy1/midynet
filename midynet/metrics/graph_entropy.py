@@ -4,7 +4,8 @@ from dataclasses import dataclass, field
 from midynet.config import *
 from _midynet import utility
 from .multiprocess import MultiProcess, Expectation
-from .metrics import ExpectationMetrics
+from .statistics import Statistics
+from .metrics import Metrics
 
 __all__ = ["GraphEntropy", "GraphEntropyMetrics"]
 
@@ -21,20 +22,20 @@ class GraphEntropy(Expectation):
         return hg
 
 
-class GraphEntropyMetrics(ExpectationMetrics):
-    def __post_init__(self):
-        self.statistics = MCStatistics(
-            self.config.metrics.graph_entropy.get_value("error_type", "std")
-        )
-
+class GraphEntropyMetrics(Metrics):
     def eval(self, config: Config):
         dynamics_entropy = GraphEntropy(
             config=config,
             num_procs=config.get_value("num_procs", 1),
             seed=config.get_value("seed", int(time.time())),
         )
-        samples = dynamics_entropy.compute(config.metrics.get_value("num_samples", 10))
-        return self.statistics(samples)
+        samples = dynamics_entropy.compute(
+            config.metrics.graph_entropy.get_value("num_samples", 10)
+        )
+
+        return Statistics.compute(
+            samples, error_type=config.metrics.graph_entropy.error_type
+        )
 
 
 if __name__ == "__main__":

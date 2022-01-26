@@ -125,7 +125,6 @@ class Experiment:
         abs_path = path.resolve()
         config = Config.load(abs_path)
         config.set_value("path", abs_path.parents[0])
-        print(config.format())
         exp = cls(config=config)
         exp.load()
         return exp
@@ -151,14 +150,14 @@ class Experiment:
     def merge(
         cls,
         name: str,
-        path: pathlib.Path = None,
+        path: pathlib.Path = ".",
         destination: pathlib.Path = None,
         prefix="",
         prohibited=None,
         config_filename="config.pickle",
     ):
-        path = pathlib.Path() if path is None else path
-        destination = pathlib.Path(name) if destination is None else destination / name
+        path = pathlib.Path(path) if isinstance(path, str) else path
+        destination = path / name if destination is None else destination / name
         prohibited = [] if prohibited is None else prohibited
         others = []
         config = None
@@ -170,20 +169,18 @@ class Experiment:
 
                 if f == config_filename:
                     c = Config.load(pathlib.Path(local) / f)
-                    others.append(
-                        cls.load_from_file(f"{name}_{counter}", pathlib.Path(local))
-                    )
+                    others.append(cls.load_from_file(pathlib.Path(local) / f))
                     if config is None:
                         config = c
                         config.set_value("name", name)
                     else:
                         config.merge_with(c)
-
-        exp = cls(name, config, destination, config_filename=config_filename)
-        for k in exp.config.metrics.names:
-            exp.metrics[k] = MetricsFactory.build(k)
-            for other in others:
-                exp.metrics[k].merge_with(other.metrics[k])
+        config.set_value("path", destination)
+        exp = cls(config)
+        # for k in exp.config.metrics.names:
+        #     exp.metrics[k] = MetricsFactory.build(k)
+        #     for other in others:
+        #         exp.metrics[k].merge_with(other.metrics[k])
         return exp
 
 
