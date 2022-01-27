@@ -30,7 +30,7 @@ void initVerbose(py::module& m){
     /* LogJointRatioVerbose classes */
     py::class_<LogJointRatioVerbose, PyLogJointRatioVerbose<>>(m, "LogJointRatioVerbose")
         .def(py::init<>())
-        .def("update_saved_ratio", &LogJointRatioVerbose::updateSavedRatio);
+        .def("update_saved", &LogJointRatioVerbose::updateSaved);
 
     py::class_<MinimumLogJointRatioVerbose, Verbose>(m, "MinimumLogJointRatioVerbose")
         .def(py::init<>());
@@ -39,6 +39,15 @@ void initVerbose(py::module& m){
         .def(py::init<>());
 
     py::class_<MeanLogJointRatioVerbose, Verbose>(m, "MeanLogJointRatioVerbose")
+        .def(py::init<>());
+
+    py::class_<MinimumLogAcceptationVerbose, Verbose>(m, "MinimumLogAcceptationVerbose")
+        .def(py::init<>());
+
+    py::class_<MaximumLogAcceptationVerbose, Verbose>(m, "MaximumLogAcceptationVerbose")
+        .def(py::init<>());
+
+    py::class_<MeanLogAcceptationVerbose, Verbose>(m, "MeanLogAcceptationVerbose")
         .def(py::init<>());
 
     /* VerboseDisplay classes */

@@ -18,7 +18,10 @@ class Statistics:
         return Statistics(copy.deepcopy(self.__data__))
 
     def __getitem__(self, key):
-        return {k: v[key] for k, v in self.__data__.items()}
+        if isinstance(key, str) and key in self.__data__:
+            return self.__data__[key]
+        else:
+            return {k: v[key] for k, v in self.__data__.items()}
 
     def __add__(self, other):
         data = self.copy().__data__

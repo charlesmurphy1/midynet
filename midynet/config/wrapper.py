@@ -16,6 +16,9 @@ class Wrapper:
     def get_others(self):
         return self.__others__
 
+    def get_other(self, key):
+        return self.__others__[key]
+
     def __repr__(self):
         return f"Wrapper({repr(self.__wrapped__)})"
 

@@ -15,13 +15,28 @@ void DynamicsMCMC::doMetropolisHastingsStep() {
     else {
         m_lastMoveWasGraphMove = true;
         GraphMove move = m_randomGraphMCMC.proposeEdgeMove();
+
         double logLikelihoodRatio = m_dynamics.getLogLikelihoodRatioFromGraphMove(move);
+        if (m_betaLikelihood == 0)
+            logLikelihoodRatio = 0;
+        else
+            logLikelihoodRatio *= m_betaLikelihood;
+
         double logPriorRatio = m_dynamics.getLogPriorRatioFromGraphMove(move);
+        if (m_betaPrior == 0)
+            logPriorRatio = 0;
+        else
+            logPriorRatio *= m_betaPrior;
+
+
         double LogProposalProbRatio = m_randomGraphMCMC.getLogProposalProbRatioFromGraphMove(move);
 
-        m_lastLogJointRatio = m_betaLikelihood * logLikelihoodRatio + m_betaPrior * logPriorRatio;
-        m_lastLogAcceptance = LogProposalProbRatio + m_lastLogJointRatio;
+        m_lastLogJointRatio = logLikelihoodRatio + logPriorRatio;
 
+        if (logLikelihoodRatio == -INFINITY or logPriorRatio == -INFINITY)
+            m_lastLogAcceptance = -INFINITY;
+        else
+            m_lastLogAcceptance = LogProposalProbRatio + m_lastLogJointRatio;
         m_isLastAccepted = false;
         if (m_uniform(rng) < exp(m_lastLogAcceptance)){
             m_isLastAccepted = true;

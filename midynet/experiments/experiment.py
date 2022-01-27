@@ -119,16 +119,6 @@ class Experiment:
             self.metrics[k].load(pathlib.Path(self.path) / f"{k}.pickle")
         self.loggers.load(self.path / self.log_filename)
 
-    @classmethod
-    def load_from_file(cls, path: pathlib.Path):
-        path = pathlib.Path(path) if not isinstance(path, pathlib.Path) else path
-        abs_path = path.resolve()
-        config = Config.load(abs_path)
-        config.set_value("path", abs_path.parents[0])
-        exp = cls(config=config)
-        exp.load()
-        return exp
-
     #
     # @classmethod
     # def unzip(cls, path_to_zip, destination=None):
@@ -145,6 +135,16 @@ class Experiment:
     def clean(self):
         for p in self.path.iterdir():
             delete_path(p)
+
+    @classmethod
+    def load_from_file(cls, path: pathlib.Path):
+        path = pathlib.Path(path) if not isinstance(path, pathlib.Path) else path
+        abs_path = path.resolve()
+        config = Config.load(abs_path)
+        config.set_value("path", abs_path.parents[0])
+        exp = cls(config=config)
+        exp.load()
+        return exp
 
     @classmethod
     def merge(

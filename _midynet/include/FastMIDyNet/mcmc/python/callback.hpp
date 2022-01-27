@@ -61,7 +61,7 @@ class PyLogJointRatioVerbose: public PyVerbose<BaseClass>{
 public:
     using PyVerbose<BaseClass>::PyVerbose;
     /* Pure abstract methods */
-    double updateSavedRatio() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, updateSavedRatio, ); }
+    double updateSaved() const override { PYBIND11_OVERRIDE_PURE(double, BaseClass, updateSaved, ); }
 
     /* Abstract methods */
     std::string getMessage() const override { PYBIND11_OVERRIDE(std::string, BaseClass, getMessage, ); }

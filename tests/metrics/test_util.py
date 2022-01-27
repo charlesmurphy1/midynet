@@ -26,7 +26,7 @@ class TestMetricsUtil(unittest.TestCase):
         dynamics.set_random_graph(graph.get_wrap())
         graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
         mcmc = DynamicsMCMC(dynamics, graph_mcmc.get_wrap())
-        mcmc.sample()
+        dynamics.sample()
         mcmc.set_up()
         return midynet.config.Wrapper(
             mcmc, dynamics=dynamics, graph=graph, graph_mcmc=graph_mcmc

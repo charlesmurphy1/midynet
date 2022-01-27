@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <chrono>
+#include <math.h>
 #include "FastMIDyNet/mcmc/mcmc.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "callback.h"
@@ -13,21 +14,22 @@ namespace FastMIDyNet{
 
 class Verbose: public CallBack{
 protected:
-    std::string name;
+    std::string m_name;
 public:
-    const std::string& getName() const { return name; }
+    Verbose(std::string name="Verbose"):m_name(name){}
+    const std::string& getName() const { return m_name; }
     virtual std::string getMessage() const = 0;
 };
 
 class TimerVerbose: public Verbose{
 protected:
-    std::string name = "Time";
     std::chrono::time_point<std::chrono::steady_clock> m_start, m_end;
 public:
+    TimerVerbose():Verbose("Time"){};
     std::string getMessage() const{
         std::stringstream message;
         message.precision(4);
-        message << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(m_end - m_start).count();
+        message << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(m_end - m_start).count() << " ms";
         return message.str();
     }
     void onSweepBegin() {
@@ -40,24 +42,24 @@ public:
 
 class SuccessCounterVerbose: public Verbose{
 protected:
-    std::string name = "Success";
     size_t m_numberOfSuccesses;
 public:
+    SuccessCounterVerbose():Verbose("Success"){};
     void onSweepBegin(){ m_numberOfSuccesses = 0; }
     void onStepEnd(){ if ( m_mcmcPtr->isLastAccepted() ) ++m_numberOfSuccesses; }
     std::string getMessage() const{
         std::stringstream message;
         message.precision(4);
-        message << "Failure: " << m_numberOfSuccesses;
+        message << "Success: " << m_numberOfSuccesses;
         return message.str();
     }
 };
 
 class FailureCounterVerbose: public Verbose{
 protected:
-    std::string name = "Failure";
     size_t m_numberOfFailure;
 public:
+    FailureCounterVerbose():Verbose("Failure"){};
     void onSweepBegin(){ m_numberOfFailure = 0; }
     void onStepEnd(){ if ( not m_mcmcPtr->isLastAccepted() ) ++m_numberOfFailure; }
     std::string getMessage() const{
@@ -72,23 +74,27 @@ class LogJointRatioVerbose: public Verbose{
 protected:
     double m_savedLogJointRatio;
 public:
-    virtual double updateSavedRatio() const = 0;
-    void onStepEnd(){ m_savedLogJointRatio = updateSavedRatio(); }
+    LogJointRatioVerbose(std::string name="dS"):Verbose(name){};
+    virtual double updateSaved() const = 0;
+    void onStepEnd(){
+        m_savedLogJointRatio = updateSaved();
+    }
     std::string getMessage() const{
         std::stringstream message;
         message.precision(6);
-        message << name << ": " << m_savedLogJointRatio;
+        message << m_name << ": " << m_savedLogJointRatio;
         return message.str();
     }
 };
 
 class MinimumLogJointRatioVerbose: public LogJointRatioVerbose{
-protected:
-    std::string name = "min(dS)";
 public:
+    MinimumLogJointRatioVerbose():LogJointRatioVerbose("min(dS)"){};
     void onBegin(){ m_savedLogJointRatio = INFINITY; }
-    double updateSavedRatio() const {
-        if (m_mcmcPtr->getLastLogJointRatio() < m_savedLogJointRatio)
+    double updateSaved() const {
+        if (m_mcmcPtr->getLastLogJointRatio() < m_savedLogJointRatio and
+            m_mcmcPtr->getLastLogJointRatio() != -INFINITY and
+            m_mcmcPtr->getLastLogJointRatio() != INFINITY)
             return m_mcmcPtr->getLastLogJointRatio();
         else
             return m_savedLogJointRatio;
@@ -96,12 +102,13 @@ public:
 };
 
 class MaximumLogJointRatioVerbose: public LogJointRatioVerbose{
-protected:
-    std::string name = "max(dS)";
 public:
+    MaximumLogJointRatioVerbose():LogJointRatioVerbose("max(dS)"){};
     void onBegin(){ m_savedLogJointRatio = -INFINITY; }
-    double updateSavedRatio() const {
-        if (m_mcmcPtr->getLastLogJointRatio() > m_savedLogJointRatio)
+    double updateSaved() const {
+        if (m_mcmcPtr->getLastLogJointRatio() > m_savedLogJointRatio and
+            m_mcmcPtr->getLastLogJointRatio() != -INFINITY and
+            m_mcmcPtr->getLastLogJointRatio() != INFINITY)
             return m_mcmcPtr->getLastLogJointRatio();
         else
             return m_savedLogJointRatio;
@@ -109,13 +116,64 @@ public:
 };
 
 class MeanLogJointRatioVerbose: public LogJointRatioVerbose{
-protected:
-    std::string name = "mean(dS)";
 public:
+    MeanLogJointRatioVerbose():LogJointRatioVerbose("mean(dS)"){};
     void onBegin(){ m_savedLogJointRatio = 0; }
-    double updateSavedRatio() const {
+    double updateSaved() const {
         size_t numSteps = m_mcmcPtr->getNumSteps();
-        return (m_savedLogJointRatio * (numSteps - 1) + m_mcmcPtr->getLastLogJointRatio()) / (numSteps);
+        if (m_mcmcPtr->getLastLogJointRatio() == -INFINITY or
+            m_mcmcPtr->getLastLogJointRatio() == INFINITY)
+            return m_savedLogJointRatio;
+        double newMean = (m_savedLogJointRatio * (numSteps - 1) + m_mcmcPtr->getLastLogJointRatio()) / (numSteps);
+        if ( isnan(newMean) )
+            return m_savedLogJointRatio;
+        else
+            return newMean;
+    }
+};
+
+class MinimumLogAcceptationVerbose: public LogJointRatioVerbose{
+public:
+    MinimumLogAcceptationVerbose():LogJointRatioVerbose("min(acc_p)"){};
+    void onBegin(){ m_savedLogJointRatio = INFINITY; }
+    double updateSaved() const {
+        if (m_mcmcPtr->getLastLogAcceptance() < m_savedLogJointRatio and
+            m_mcmcPtr->getLastLogAcceptance() != -INFINITY and
+            m_mcmcPtr->getLastLogAcceptance() != INFINITY)
+            return m_mcmcPtr->getLastLogAcceptance();
+        else
+            return m_savedLogJointRatio;
+    }
+};
+
+class MaximumLogAcceptationVerbose: public LogJointRatioVerbose{
+public:
+    MaximumLogAcceptationVerbose():LogJointRatioVerbose("max(acc_p)"){};
+    void onBegin(){ m_savedLogJointRatio = -INFINITY; }
+    double updateSaved() const {
+        if (m_mcmcPtr->getLastLogAcceptance() > m_savedLogJointRatio and
+            m_mcmcPtr->getLastLogAcceptance() != -INFINITY and
+            m_mcmcPtr->getLastLogAcceptance() != INFINITY)
+            return m_mcmcPtr->getLastLogAcceptance();
+        else
+            return m_savedLogJointRatio;
+    }
+};
+
+class MeanLogAcceptationVerbose: public LogJointRatioVerbose{
+public:
+    MeanLogAcceptationVerbose():LogJointRatioVerbose("mean(acc_p)"){};
+    void onBegin(){ m_savedLogJointRatio = 0; }
+    double updateSaved() const {
+        size_t numSteps = m_mcmcPtr->getNumSteps();
+        if (m_mcmcPtr->getLastLogAcceptance() == -INFINITY or
+            m_mcmcPtr->getLastLogAcceptance() == INFINITY)
+            return m_savedLogJointRatio;
+        double newMean = (m_savedLogJointRatio * (numSteps - 1) + m_mcmcPtr->getLastLogAcceptance()) / (numSteps);
+        if ( isnan(newMean) )
+            return m_savedLogJointRatio;
+        else
+            return newMean;
     }
 };
 

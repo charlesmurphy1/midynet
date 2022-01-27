@@ -6,7 +6,7 @@ std::string VerboseDisplay::getMessage() const {
     std::stringstream message;
     message << "Sweep " << m_mcmcPtr->getNumSweeps() << ": ";
     for (auto v : m_verboseVec){
-        message << v->getName() << "= " << v->getMessage() << " ";
+        message << v->getMessage() << " ";
     }
     return message.str();
 }
