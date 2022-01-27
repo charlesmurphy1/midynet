@@ -44,7 +44,7 @@ class TestGenericMetrics(unittest.TestCase):
         print(f"meanfield H(X): {hx}")
 
         metrics.set_value("method", "annealed")
-        metrics.set_value("num_betas", 20)
+        metrics.set_value("num_betas", 10)
         metrics.set_value("exp_betas", 0.5)
         hx = midynet.metrics.util.get_log_evidence(mcmc, metrics)
         print(f"annealed H(X): {hx}")

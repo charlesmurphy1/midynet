@@ -50,7 +50,7 @@ def get_log_evidence_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
     )
 
 
-def get_log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
+def get_log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config, verbose=0):
     callback = CollectLikelihoodOnSweep()
     g = dynamicsMCMC.get_graph()
     dynamicsMCMC.add_callback(callback)
@@ -61,22 +61,16 @@ def get_log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):
 
     beta_k = np.linspace(0, 1, config.num_betas) ** config.exp_betas
     for lb, ub in zip(beta_k[:-1], beta_k[1:]):
+        if verbose:
+            print(f"beta: {lb}")
         dynamicsMCMC.set_beta_likelihood(lb)
         if config.reset_to_original:
             dynamicsMCMC.set_graph(g)
         for i in range(config.num_sweeps):
             dynamicsMCMC.do_MH_sweep(burn=burn)
-        # print("beta_k: ", lb)
-        # print("OG Log P(X|G): ", og_likelihood)
-        # print("Log P(X|G): ", log_mean_exp(callback.get_log_likelihoods()))
-        # print(
-        #     "(bk - bk-1) Log P(X|G): ",
-        #     (ub - lb) * log_mean_exp(callback.get_log_likelihoods()),
-        # )
         logp_k = (ub - lb) * np.array(callback.get_log_likelihoods())
         logp.append(log_mean_exp(logp_k))
         callback.clear()
-    # print(logp)
     dynamicsMCMC.tear_down()
     dynamicsMCMC.pop_callback()
     dynamicsMCMC.set_graph(g)
