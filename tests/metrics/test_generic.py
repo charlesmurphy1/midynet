@@ -11,8 +11,8 @@ class TestGenericMetrics(unittest.TestCase):
         )
         self.config.dynamics.set_value("num_steps", 100)
         self.config.dynamics.set_value("coupling", 4)
-        self.config.graph.set_value("size", 5)
-        self.config.graph.edge_count.set_value("state", 5)
+        self.config.graph.set_value("size", 100)
+        self.config.graph.edge_count.set_value("state", 250)
 
     def setup_mcmc(self):
         graph = RandomGraphFactory.build(self.config.graph)
@@ -22,8 +22,6 @@ class TestGenericMetrics(unittest.TestCase):
         mcmc = midynet.mcmc.DynamicsMCMC(dynamics, graph_mcmc.get_wrap())
         verbose = MCMCVerboseFactory.build("console")
         callback = midynet.mcmc.callbacks.CollectLikelihoodOnSweep()
-        # mcmc.add_callback(verbose.get_wrap())
-        # mcmc.add_callback(callback)
         dynamics.sample()
         mcmc.set_up()
         return Wrapper(
@@ -31,24 +29,25 @@ class TestGenericMetrics(unittest.TestCase):
             dynamics=dynamics,
             graph=graph,
             graph_mcmc=graph_mcmc,
-            # verbose=verbose,
-            # callback=callback,
         )
 
     def test_generic(self):
         mcmc = self.setup_mcmc()
         metrics = MetricsConfig.mcmc()
-        metrics.set_value("method", "exact")
-        print(metrics.format())
+        metrics.set_value("num_sweeps", 1000)
+        # metrics.set_value("method", "exact")
+        # hx = midynet.metrics.util.get_log_evidence(mcmc, metrics)
+        # print(f"exact H(X): {hx}")
+
+        metrics.set_value("method", "meanfield")
         hx = midynet.metrics.util.get_log_evidence(mcmc, metrics)
-        print(hx)
+        print(f"meanfield H(X): {hx}")
 
         metrics.set_value("method", "annealed")
         metrics.set_value("num_betas", 20)
         metrics.set_value("exp_betas", 0.5)
-        print(metrics.format())
         hx = midynet.metrics.util.get_log_evidence(mcmc, metrics)
-        print(hx)
+        print(f"annealed H(X): {hx}")
 
 
 if __name__ == "__main__":

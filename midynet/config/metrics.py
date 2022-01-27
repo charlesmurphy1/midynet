@@ -20,7 +20,7 @@ class MetricsConfig(Config):
     @classmethod
     def mcmc(cls):
         obj = cls(
-            num_sweeps=250,
+            num_sweeps=1000,
             error_type="confidence",
             method="meanfield",
             num_samples=100,
