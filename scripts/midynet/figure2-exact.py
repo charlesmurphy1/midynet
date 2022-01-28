@@ -5,7 +5,7 @@ from config import *
 def main():
     for dynamics in ["sis", "ising", "cowan"]:
         config = get_config_figure2Exact(
-            dynamics, num_procs=32, time="1:00:00", mem=12
+            dynamics, num_procs=32, time="5:00:00", mem=12
         )
         script = midynet.scripts.ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
