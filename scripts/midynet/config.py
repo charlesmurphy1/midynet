@@ -187,7 +187,7 @@ def get_config_figure4Nbinom(
         num_procs=num_procs,
     )
     N, E = 100, 250
-    T = [10, 100, 1000]
+    T = [10, 100]
     h = np.linspace(0.001, 5, 20)
     if dynamics == "sis" or dynamics == "ising":
         coupling = np.unique(

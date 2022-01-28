@@ -3,7 +3,7 @@ from config import *
 
 
 def main():
-    for dynamics in ["sis", "cowan", "ising"]:
+    for dynamics in ["ising"]:
         config = get_config_figure4Nbinom(dynamics, num_procs=32, mem=12)
         script = midynet.scripts.ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
