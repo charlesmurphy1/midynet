@@ -79,7 +79,7 @@ public:
     void updateProbabilitiesFromGraphMove(const GraphMove& move) { m_blockProposer.updateProbabilities(move); m_edgeProposer.updateProbabilities(move); }
     void updateProbabilitiesFromBlockMove(const BlockMove& move) { m_blockProposer.updateProbabilities(move); m_edgeProposer.updateProbabilities(move); }
 
-    void doMetropolisHastingsStep() override ;
+    bool doMetropolisHastingsStep() override ;
 
     void checkSafety() const override {
         if (m_randomGraphPtr == nullptr)

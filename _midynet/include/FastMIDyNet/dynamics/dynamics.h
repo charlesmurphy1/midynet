@@ -36,8 +36,8 @@ protected:
     void updateNeighborStateMapFromEdgeMove(
         BaseGraph::Edge,
         int direction,
-        std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&,
-        std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&
+        std::unordered_map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&,
+        std::unordered_map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&
     ) const ;
 public:
     explicit Dynamics(size_t numStates, size_t numSteps, bool normalizeCoupling=true):

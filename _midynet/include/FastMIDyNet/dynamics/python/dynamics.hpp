@@ -37,20 +37,13 @@ class PyBinaryDynamics: public PyDynamics<BaseClass>{
 public:
     using PyDynamics<BaseClass>::PyDynamics;
     /* Pure abstract methods */
-    const double getActivationProb(const VertexNeighborhoodState& neighborState) const override {
-        PYBIND11_OVERRIDE_PURE(const double, BaseClass, getActivationProb, neighborState);
+    const double computeActivationProb(const VertexNeighborhoodState& neighborState) const override {
+        PYBIND11_OVERRIDE_PURE(const double, BaseClass, computeActivationProb, neighborState);
     }
-    const double getDeactivationProb(const VertexNeighborhoodState& neighborState) const override {
-        PYBIND11_OVERRIDE_PURE(const double, BaseClass, getDeactivationProb, neighborState);
+    const double computeDeactivationProb(const VertexNeighborhoodState& neighborState) const override {
+        PYBIND11_OVERRIDE_PURE(const double, BaseClass, computeDeactivationProb, neighborState);
     }
     /* Abstract methods */
-    // const double getTransitionProb(
-    //     VertexState prevVertexState,
-    //     VertexState nextVertexState,
-    //     VertexNeighborhoodState neighborhoodState
-    // ) const override {
-    //     PYBIND11_OVERRIDE(const double, BaseClass, getTransitionProb, prevVertexState, nextVertexState, neighborhoodState);
-    // }
 };
 
 }

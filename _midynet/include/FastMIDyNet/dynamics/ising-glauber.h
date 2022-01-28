@@ -12,13 +12,13 @@ class IsingGlauberDynamics: public BinaryDynamics {
     double m_couplingConstant;
 
     public:
-        IsingGlauberDynamics(size_t numSteps, double couplingConstant, bool normalizeCoupling=true):
-            BinaryDynamics(numSteps, normalizeCoupling), m_couplingConstant(couplingConstant) {}
-        IsingGlauberDynamics(RandomGraph& randomGraph, size_t numSteps, double couplingConstant, bool normalizeCoupling=true):
-            BinaryDynamics(randomGraph, numSteps, normalizeCoupling), m_couplingConstant(couplingConstant) {}
+        IsingGlauberDynamics(size_t numSteps, double couplingConstant, bool normalizeCoupling=true, bool cache=false):
+            BinaryDynamics(numSteps, normalizeCoupling, cache), m_couplingConstant(couplingConstant) {}
+        IsingGlauberDynamics(RandomGraph& randomGraph, size_t numSteps, double couplingConstant, bool normalizeCoupling=true, bool cache=false):
+            BinaryDynamics(randomGraph, numSteps, normalizeCoupling, cache), m_couplingConstant(couplingConstant) {}
 
-        const double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
-        const double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
+        const double computeActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
+        const double computeDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
         const double getCoupling() const {
             if (not m_normalizeCoupling)
                 return m_couplingConstant;

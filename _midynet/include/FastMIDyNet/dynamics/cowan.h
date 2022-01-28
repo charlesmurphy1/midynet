@@ -16,14 +16,14 @@ private:
     double m_eta;
 
 public:
-    CowanDynamics(size_t numSteps, double nu, double a=1, double mu=1, double eta=0.5, bool normalizeCoupling=true):
-        BinaryDynamics(numSteps, normalizeCoupling), m_a(a), m_nu(nu), m_mu(mu), m_eta(eta) {}
+    CowanDynamics(size_t numSteps, double nu, double a=1, double mu=1, double eta=0.5, bool normalizeCoupling=true, bool cache=false):
+        BinaryDynamics(numSteps, normalizeCoupling, cache), m_a(a), m_nu(nu), m_mu(mu), m_eta(eta) {}
     CowanDynamics(RandomGraph& randomGraph, size_t numSteps, double nu,
-                  double a=1, double mu=1, double eta=0.5, bool normalizeCoupling=true):
-        BinaryDynamics(randomGraph, numSteps, normalizeCoupling), m_a(a), m_nu(nu), m_mu(mu), m_eta(eta) {}
+                  double a=1, double mu=1, double eta=0.5, bool normalizeCoupling=true, bool cache=false):
+        BinaryDynamics(randomGraph, numSteps, normalizeCoupling, cache), m_a(a), m_nu(nu), m_mu(mu), m_eta(eta) {}
 
-    const double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
-    const double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
+    const double computeActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
+    const double computeDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
     const double getA() const { return m_a; }
     void setA(double a) { m_a = a; }
     const double getNu() const {

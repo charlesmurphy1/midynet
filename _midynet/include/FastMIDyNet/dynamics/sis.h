@@ -18,8 +18,9 @@ public:
                     double infectionProb,
                     double recoveryProb=0.5,
                     double autoInfectionProb=1e-6,
-                    bool normalizeCoupling=true) :
-            BinaryDynamics(numSteps, normalizeCoupling),
+                    bool normalizeCoupling=true,
+                    bool cache=false) :
+            BinaryDynamics(numSteps, normalizeCoupling, cache),
             m_infectionProb(infectionProb),
             m_recoveryProb(recoveryProb),
             m_autoInfectionProb(autoInfectionProb)  { }
@@ -28,14 +29,15 @@ public:
                     double infectionProb,
                     double recoveryProb=0.5,
                     double autoInfectionProb=1e-6,
-                    bool normalizeCoupling=true) :
-            BinaryDynamics(randomGraph, numSteps, normalizeCoupling),
+                    bool normalizeCoupling=true,
+                    bool cache=false) :
+            BinaryDynamics(randomGraph, numSteps, normalizeCoupling, cache),
             m_infectionProb(infectionProb),
             m_recoveryProb(recoveryProb),
             m_autoInfectionProb(autoInfectionProb)  { }
 
-        const double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
-        const double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
+        const double computeActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
+        const double computeDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
 
         const double getInfectionProb() const {
             if (not m_normalizeCoupling)
