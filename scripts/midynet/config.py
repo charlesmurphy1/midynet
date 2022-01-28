@@ -188,15 +188,15 @@ def get_config_figure4Nbinom(
     )
     N, E = 100, 250
     T = [10, 100, 1000]
-    h = np.linspace(0.001, 5, 40)
+    h = np.linspace(0.001, 5, 20)
     if dynamics == "sis" or dynamics == "ising":
         coupling = np.unique(
-            np.concatenate([np.linspace(0, 1, 20), np.linspace(1, 4, 20)])
+            np.concatenate([np.linspace(0, 1, 10), np.linspace(1, 4, 10)])
         )
     elif dynamics == "cowan":
         coupling = np.unique(
             np.concatenate(
-                [np.linspace(0, 1, 10), np.linspace(1, 2, 20), np.linspace(2, 4, 10)]
+                [np.linspace(0, 1, 5), np.linspace(1, 2, 10), np.linspace(2, 4, 5)]
             )
         )
     config.graph.set_value("size", N)
@@ -208,6 +208,8 @@ def get_config_figure4Nbinom(
         "num_samples", max(1, 25 // num_procs) * num_procs
     )
     config.metrics.mutualinfo.set_value("method", "meanfield")
+    config.metrics.mutualinfo.set_value("num_sweeps", 200)
+    config.metrics.mutualinfo.set_value("burn_per_vertex", 15)
 
     resources = {
         "account": "def-aallard",

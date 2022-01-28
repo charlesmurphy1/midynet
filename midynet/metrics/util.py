@@ -35,7 +35,8 @@ def get_log_evidence_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
     dynamicsMCMC.set_up()
     burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
     for i in range(config.num_sweeps):
-        dynamicsMCMC.do_MH_sweep(burn=burn)
+        s, f = dynamicsMCMC.do_MH_sweep(burn=burn)
+
     logp = -np.array(callback.get_log_likelihoods())
 
     dynamicsMCMC.tear_down()

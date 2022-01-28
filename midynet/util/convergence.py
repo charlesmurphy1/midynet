@@ -26,9 +26,11 @@ class MCMCConvergenceAnalysis:
         self.collected = []
 
     def collect(self, num_samples=100, numsteps_between_samples=10):
+
         original_graph = self.convert_basegraph_to_networkx(self.mcmc.get_graph())
+
         for i in range(num_samples):
-            self.mcmc.do_MH_sweep(numsteps_between_samples)
+            s, f = self.mcmc.do_MH_sweep(numsteps_between_samples)
             current_graph = self.convert_basegraph_to_networkx(self.mcmc.get_graph())
             self.collected.append(self.distance.dist(original_graph, current_graph))
         return self.collected

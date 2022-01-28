@@ -12,11 +12,13 @@ class TestMCMCConvergence(unittest.TestCase):
     compute: bool = True
 
     def setUp(self):
-        self.config = ExperimentConfig.default("test", "sis", "er")
-        self.config.graph.set_value("size", 5)
-        self.config.graph.edge_count.set_value("state", 5)
-        self.config.dynamics.set_value("infection_prob", [0.0, 0.1, 0.2, 0.3, 0.4, 0.5])
-        self.num_samples = 50
+        self.config = ExperimentConfig.default("test", "sis", "nbinom_cm")
+        self.config.graph.set_value("size", 100)
+        self.config.graph.edge_count.set_value("state", 250)
+        self.config.graph.set_value("heterogeneity", 1.0)
+        self.config.dynamics.set_value("num_steps", 1000)
+        self.config.dynamics.set_value("infection_prob", [0.0, 0.1, 0.2, 0.5, 0.9])
+        self.num_samples = 100
         self.numsteps_between_samples = 25
 
     @staticmethod
@@ -42,6 +44,9 @@ class TestMCMCConvergence(unittest.TestCase):
     def test_generic(self):
         if not self.compute:
             return
+        import time
+
+        t = time.time()
         for c in self.config.sequence():
             conv = TestMCMCConvergence.setup_convergence(c)
             collected = conv.collect(self.num_samples, self.numsteps_between_samples)
@@ -52,6 +57,7 @@ class TestMCMCConvergence(unittest.TestCase):
         plt.xlabel("Number of MH steps")
         plt.ylabel("Hamming distance")
         plt.legend()
-        plt.savefig(
-            f"./tests/util/convergence_{self.config.dynamics.name}_{self.config.graph.name}.png"
-        )
+        plt.show()
+        # plt.savefig(
+        #     f"./tests/util/convergence_{self.config.dynamics.name}_{self.config.graph.name}.png"
+        # )
