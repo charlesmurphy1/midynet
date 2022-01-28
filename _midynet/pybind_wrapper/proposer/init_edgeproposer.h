@@ -30,7 +30,7 @@ void initEdgeProposer(py::module& m){
 
     /* Double edge swap proposers */
     py::class_<DoubleEdgeSwapProposer, EdgeProposer>(m, "DoubleEdgeSwapProposer")
-        .def(py::init<>()) ;
+        .def(py::init<bool, bool>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true);
 
     /* Hinge flip proposers */
     py::class_<HingeFlipProposer, EdgeProposer, PyHingeFlipProposer<>>(m, "HingeFlipProposer")
