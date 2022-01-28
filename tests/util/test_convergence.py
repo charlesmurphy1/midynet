@@ -12,12 +12,12 @@ class TestMCMCConvergence(unittest.TestCase):
     compute: bool = True
 
     def setUp(self):
-        self.config = ExperimentConfig.default("test", "sis", "nbinom_cm")
+        self.config = ExperimentConfig.default("test", "cowan", "nbinom_cm")
         self.config.graph.set_value("size", 100)
         self.config.graph.edge_count.set_value("state", 250)
         self.config.graph.set_value("heterogeneity", 1.0)
         self.config.dynamics.set_value("num_steps", 1000)
-        self.config.dynamics.set_value("infection_prob", [0.0, 0.1, 0.2, 0.5, 0.9])
+        self.config.dynamics.set_coupling([0.0, 0.1, 0.2, 0.5, 0.9])
         self.num_samples = 100
         self.numsteps_between_samples = 25
 
@@ -51,9 +51,9 @@ class TestMCMCConvergence(unittest.TestCase):
             conv = TestMCMCConvergence.setup_convergence(c)
             collected = conv.collect(self.num_samples, self.numsteps_between_samples)
             x = np.arange(self.num_samples) * self.numsteps_between_samples
-            inf_prob = c.dynamics.infection_prob
+            inf_prob = c.dynamics.nu
             plt.plot(x, collected, label=rf"$\alpha = {inf_prob}$")
-
+        print(f"Computation time: {time.time() - t}")
         plt.xlabel("Number of MH steps")
         plt.ylabel("Hamming distance")
         plt.legend()

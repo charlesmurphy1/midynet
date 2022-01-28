@@ -20,7 +20,7 @@ def get_log_evidence_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config):
     for k in range(config.K):
         logp_k = []
         for m in range(config.num_sweeps):
-            dynamicsMCMC.sample_graph()
+            dynamicsMCMC.get_dynamics().sample_graph()
             logp_k.append(dynamicsMCMC.get_log_likelihood())
         logp.append(log_mean_exp(logp_k))
     dynamicsMCMC.set_graph(g)

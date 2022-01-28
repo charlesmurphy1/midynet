@@ -474,7 +474,7 @@ class Config:
             s += f"{prefix}{suffix}"
         return s
 
-    def merge_with(self, other: Config, verbose=1) -> None:
+    def merge_with(self, other: Config, verbose=0) -> None:
         """
         Merge config with other :obj:`Config`.
 
