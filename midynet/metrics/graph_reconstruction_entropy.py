@@ -22,7 +22,13 @@ class GraphReconstructionEntropy(Expectation):
         dynamics = DynamicsFactory.build(self.config.dynamics)
         dynamics.set_random_graph(graph.get_wrap())
         random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
-        mcmc = DynamicsMCMC(dynamics, random_graph_mcmc.get_wrap())
+        mcmc = DynamicsMCMC(
+            dynamics,
+            random_graph_mcmc.get_wrap(),
+            1,
+            1,
+            self.config.graph.sample_graph_prior_prob,
+        )
         dynamics.sample()
         hgx = -get_log_posterior(mcmc, self.config.metrics.graph_reconstruction_entropy)
         return hgx

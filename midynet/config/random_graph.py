@@ -38,6 +38,8 @@ class RandomGraphConfig(Config):
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("block_proposer", BlockProposerConfig.peixoto())
+        obj.insert("sample_graph_prior_prob", 0.5)
+
         return obj
 
     @classmethod
@@ -71,6 +73,7 @@ class RandomGraphConfig(Config):
         obj.insert("blocks", BlockPriorConfig.delta(block_count))
         obj.insert("edge_matrix", EdgeMatrixPriorConfig.uniform(edge_count))
         obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
+        obj.insert("sample_graph_prior_prob", 0.0)
         return obj
 
     @classmethod
@@ -82,6 +85,7 @@ class RandomGraphConfig(Config):
             obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
+        obj.insert("sample_graph_prior_prob", 0.0)
         return obj
 
     @classmethod
@@ -95,6 +99,7 @@ class RandomGraphConfig(Config):
         obj = cls.custom_er(name="ser", size=size, edge_count=edge_count)
         obj.edge_proposer.set_value("allow_self_loops", False)
         obj.edge_proposer.set_value("allow_multiedges", False)
+        obj.insert("sample_graph_prior_prob", 0.0)
         return obj
 
     @classmethod
@@ -117,6 +122,7 @@ class RandomGraphConfig(Config):
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("block_proposer", BlockProposerConfig.peixoto())
+        obj.insert("sample_graph_prior_prob", 0.5)
         return obj
 
     @classmethod
@@ -159,6 +165,7 @@ class RandomGraphConfig(Config):
             obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
+        obj.insert("sample_graph_prior_prob", 0.0)
         return obj
 
     @classmethod
