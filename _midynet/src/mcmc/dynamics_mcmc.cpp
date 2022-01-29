@@ -4,7 +4,7 @@
 
 namespace FastMIDyNet{
 
-bool DynamicsMCMC::doMetropolisHastingsStep() {
+bool DynamicsMCMC::doMetropolisHastingsStep(bool verbose=0) {
     if (m_uniform(rng) < m_sampleGraphPriorProb){
         m_lastMoveWasGraphMove = false;
         m_randomGraphMCMC.doMetropolisHastingsStep();
@@ -14,22 +14,32 @@ bool DynamicsMCMC::doMetropolisHastingsStep() {
     }
     else {
         m_lastMoveWasGraphMove = true;
+        if (verbose)
+            std::cout << "proposing move" << std::endl;
         GraphMove move = m_randomGraphMCMC.proposeEdgeMove();
-
+        if (verbose)
+            move.display();
         double logLikelihoodRatio = m_dynamics.getLogLikelihoodRatioFromGraphMove(move);
         if (m_betaLikelihood == 0)
             logLikelihoodRatio = 0;
         else
             logLikelihoodRatio *= m_betaLikelihood;
-
+        if (verbose)
+            std::cout << "logLikelihoodRatio = " << logLikelihoodRatio << std::endl;
         double logPriorRatio = m_dynamics.getLogPriorRatioFromGraphMove(move);
         if (m_betaPrior == 0)
             logPriorRatio = 0;
         else
             logPriorRatio *= m_betaPrior;
+        if (verbose)
+            std::cout << "logPriorRatio = " << logPriorRatio << std::endl;
 
 
         double LogProposalProbRatio = m_randomGraphMCMC.getLogProposalProbRatioFromGraphMove(move);
+
+        if (verbose)
+            std::cout << "LogProposalProbRatio = " << LogProposalProbRatio << std::endl;
+
 
         m_lastLogJointRatio = logLikelihoodRatio + logPriorRatio;
 
@@ -38,11 +48,18 @@ bool DynamicsMCMC::doMetropolisHastingsStep() {
         else
             m_lastLogAcceptance = LogProposalProbRatio + m_lastLogJointRatio;
         m_isLastAccepted = false;
+
+        if (verbose):
+            std::cout << "Trying out move" << std::endl;
         if (m_uniform(rng) < exp(m_lastLogAcceptance)){
+            if (verbose):
+                std::cout << "move accepted" << std::endl;
             m_isLastAccepted = true;
             m_dynamics.applyGraphMove(move);
             m_randomGraphMCMC.updateProbabilitiesFromGraphMove(move);
         }
+        if (verbose):
+            std::cout << "finish" << std::endl;
         return m_isLastAccepted;
     }
 
