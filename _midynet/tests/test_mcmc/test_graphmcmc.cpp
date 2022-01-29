@@ -27,7 +27,7 @@ public:
     BlockUniformProposer blockProposer = BlockUniformProposer();
     RandomGraphMCMC mcmc = RandomGraphMCMC(randomGraph, edgeProposer, blockProposer);
     void SetUp(){
-        randomGraph.sample();
+        mcmc.sample();
         mcmc.setUp();
         mcmc.checkSafety();
 

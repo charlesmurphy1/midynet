@@ -49,8 +49,8 @@ public:
 
     virtual void setUp() { m_callBacks.setUp(this); m_numSteps = m_numSweeps = 0; }
     virtual void tearDown() { m_callBacks.tearDown(); m_numSteps = m_numSweeps = 0; }
-    virtual bool doMetropolisHastingsStep() = 0;
-    std::tuple<size_t, size_t> doMHSweep(size_t burn=1);
+    virtual void doMetropolisHastingsStep() = 0;
+    void doMHSweep(size_t burn=1);
     virtual void checkSafety() const { };
 
 

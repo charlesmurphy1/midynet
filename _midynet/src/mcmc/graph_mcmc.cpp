@@ -5,7 +5,7 @@
 
 namespace FastMIDyNet{
 
-bool RandomGraphMCMC::doMetropolisHastingsStep() {
+void RandomGraphMCMC::doMetropolisHastingsStep() {
     BlockMove move = m_blockProposer.proposeMove();
     double dS = 0;
     double logLikelihoodRatio = m_randomGraphPtr->getLogLikelihoodRatioFromBlockMove(move);
@@ -34,7 +34,6 @@ bool RandomGraphMCMC::doMetropolisHastingsStep() {
         m_randomGraphPtr->applyBlockMove(move);
         m_blockProposer.updateProbabilities(move);
     }
-    return m_isLastAccepted;
 }
 
 }

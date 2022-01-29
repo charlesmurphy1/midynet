@@ -1,6 +1,6 @@
 #include <chrono>
 #include <cmath>
-#include <unordered_map>
+#include <map>
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/dynamics/dynamics.h"
@@ -141,8 +141,8 @@ const std::vector<double> Dynamics::getTransitionProbs(VertexState prevVertexSta
 void Dynamics::updateNeighborStateMapFromEdgeMove(
     BaseGraph::Edge edge,
     int counter,
-    unordered_map<VertexIndex, VertexNeighborhoodStateSequence>& prevNeighborMap,
-    unordered_map<VertexIndex, VertexNeighborhoodStateSequence>& nextNeighborMap) const{
+    map<VertexIndex, VertexNeighborhoodStateSequence>& prevNeighborMap,
+    map<VertexIndex, VertexNeighborhoodStateSequence>& nextNeighborMap) const{
     VertexIndex v = edge.first, u = edge.second;
 
 
@@ -167,7 +167,7 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(
 const double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const{
     double logLikelihoodRatio = 0;
     set<size_t> verticesAffected;
-    unordered_map<VertexIndex,VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
+    map<VertexIndex,VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
 
     size_t v, u;
     for (const auto& edge : move.addedEdges){
@@ -206,7 +206,7 @@ const double Dynamics::getLogJointRatioFromGraphMove(const GraphMove& move) cons
 
 void Dynamics::applyGraphMove(const GraphMove& move){
     set<VertexIndex> verticesAffected;
-    unordered_map<VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
+    map<VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
     VertexNeighborhoodStateSequence neighborState(m_numSteps);
     size_t v, u;
     for (const auto& edge : move.addedEdges){

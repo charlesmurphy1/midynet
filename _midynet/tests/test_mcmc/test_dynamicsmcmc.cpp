@@ -30,7 +30,7 @@ public:
     DynamicsMCMC mcmc = DynamicsMCMC(dynamics, graphmcmc, 1., 1., 0.);
     void SetUp(){
         seed(time(NULL));
-        dynamics.sample();
+        mcmc.sample();
         mcmc.setUp();
         mcmc.checkSafety();
 

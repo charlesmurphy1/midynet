@@ -4,7 +4,7 @@
 
 namespace FastMIDyNet{
 
-bool DynamicsMCMC::doMetropolisHastingsStep() {
+void DynamicsMCMC::doMetropolisHastingsStep() {
     if (m_uniform(rng) < m_sampleGraphPriorProb){
         m_lastMoveWasGraphMove = false;
         m_randomGraphMCMC.doMetropolisHastingsStep();
@@ -43,7 +43,6 @@ bool DynamicsMCMC::doMetropolisHastingsStep() {
             m_dynamics.applyGraphMove(move);
             m_randomGraphMCMC.updateProbabilitiesFromGraphMove(move);
         }
-        return m_isLastAccepted;
     }
 
 }

@@ -4,11 +4,8 @@
 namespace FastMIDyNet {
 
 
-const double BinaryDynamics::getTransitionProb(
-        VertexState prevVertexState,
-        VertexState nextVertexState,
-        VertexNeighborhoodState neighborhoodState
-    ) const {
+const double BinaryDynamics::getTransitionProb(VertexState prevVertexState, VertexState nextVertexState,
+        VertexNeighborhoodState neighborhoodState) const {
     double p;
     if ( prevVertexState == 0 ) {
         p = getActivationProb(neighborhoodState);

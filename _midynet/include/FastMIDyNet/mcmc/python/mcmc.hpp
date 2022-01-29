@@ -29,8 +29,8 @@ public:
     const double getLogJoint() const override {
         PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogJoint, );
     }
-    bool doMetropolisHastingsStep() override {
-        PYBIND11_OVERRIDE_PURE(bool, BaseClass, doMetropolisHastingsStep, );
+    void doMetropolisHastingsStep() override {
+        PYBIND11_OVERRIDE_PURE(void, BaseClass, doMetropolisHastingsStep, );
     }
 
     /* Abstract methods */

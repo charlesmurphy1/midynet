@@ -68,8 +68,8 @@ void initDynamicsBaseClass(py::module& m){
 
 void initBinaryDynamicsBaseClass(py::module& m){
     py::class_<BinaryDynamics, Dynamics, PyBinaryDynamics<>>(m, "BinaryDynamics")
-        .def(py::init<RandomGraph&, size_t, bool, bool>(),
-            py::arg("random_graph"), py::arg("num_steps"), py::arg("normalize")=true, py::arg("cache")=false)
+        .def(py::init<RandomGraph&, size_t, bool>(),
+            py::arg("random_graph"), py::arg("num_steps"), py::arg("normalize")=true)
         .def("get_activation_prob", &BinaryDynamics::getActivationProb, py::arg("neighbor_state"))
         .def("get_deactivation_prob", &BinaryDynamics::getDeactivationProb, py::arg("neighbor_state"));
 }
