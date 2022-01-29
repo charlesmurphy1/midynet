@@ -4,7 +4,8 @@
 
 namespace FastMIDyNet{
 
-bool DynamicsMCMC::doMetropolisHastingsStep(bool verbose=0) {
+bool DynamicsMCMC::doMetropolisHastingsStep() {
+    bool verbose=1;
     if (m_uniform(rng) < m_sampleGraphPriorProb){
         m_lastMoveWasGraphMove = false;
         m_randomGraphMCMC.doMetropolisHastingsStep();
