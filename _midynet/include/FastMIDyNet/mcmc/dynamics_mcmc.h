@@ -58,7 +58,7 @@ public:
     const double getLogLikelihood() const override { return m_dynamics.getLogLikelihood(); }
     const double getLogPrior() const override { return m_dynamics.getLogPrior(); }
     const double getLogJoint() const override { return m_dynamics.getLogJoint(); }
-    void doMetropolisHastingsStep() override ;
+    bool doMetropolisHastingsStep() override ;
 
     void checkSafety() const override {
         m_dynamics.checkSafety();
