@@ -174,6 +174,8 @@ class RandomGraphConfig(Config):
             "poisson_cm", size=size, edge_count=EdgeCountPriorConfig.auto(edge_count)
         )
         obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
+        obj.insert("sample_graph_prior_prob", 0.0)
+
         return obj
 
     @classmethod
@@ -185,6 +187,8 @@ class RandomGraphConfig(Config):
             heterogeneity=heterogeneity,
         )
         obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
+        obj.insert("sample_graph_prior_prob", 0.0)
+
         return obj
 
     @classmethod
