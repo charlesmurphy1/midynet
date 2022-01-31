@@ -10,9 +10,21 @@ def main():
             execution_command=EXECUTION_COMMAND,
             path_to_scripts="./scripts",
         )
-        all_configs = script.split_param(config, "dynamics.num_steps")
+        config10, config100 = script.split_param(config, "dynamics.num_steps")
+
+        config10.resources["time"] = "10:00:00"
         script.run(
-            all_configs,
+            config10,
+            resources=config.resources,
+            modules_to_load=SPECS["modules_to_load"],
+            virtualenv=SPECS["virtualenv"],
+            extra_args=dict(verbose=2),
+            teardown=False,
+        )
+
+        config100.resources["time"] = "24:00:00"
+        script.run(
+            config100,
             resources=config.resources,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
