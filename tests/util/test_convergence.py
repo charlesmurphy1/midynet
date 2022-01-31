@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import matplotlib.pyplot as plt
 
-from netrd.distance import Hamming
+from netrd.distance import Hamming, Frobenius
 from midynet.config import *
 from midynet.util import MCMCConvergenceAnalysis
 from _midynet.mcmc import DynamicsMCMC
@@ -12,14 +12,16 @@ class TestMCMCConvergence(unittest.TestCase):
     compute: bool = True
 
     def setUp(self):
-        self.config = ExperimentConfig.default("test", "cowan", "nbinom_cm")
-        self.config.graph.set_value("size", 100)
-        self.config.graph.edge_count.set_value("state", 250)
-        self.config.graph.set_value("heterogeneity", 1.0)
+        self.config = ExperimentConfig.default("test", "ising", "nbinom_cm")
+        self.config.graph.set_value("size", 50)
+        self.config.graph.edge_count.set_value("state", 100)
+        self.config.graph.set_value("sample_graph_prior_prob", 0.0)
+        self.config.graph.set_value("heterogeneity", 0.001)
         self.config.dynamics.set_value("num_steps", 1000)
-        self.config.dynamics.set_coupling([0.0, 0.1, 0.2, 0.5, 0.9])
-        self.num_samples = 100
-        self.numsteps_between_samples = 25
+        self.config.dynamics.set_coupling([0.0, 0.5])
+        self.num_samples = 1000
+        self.numsteps_between_samples = 5
+        print(self.config.format())
 
     @staticmethod
     def setup_convergence(config):
@@ -27,11 +29,13 @@ class TestMCMCConvergence(unittest.TestCase):
         d = DynamicsFactory.build(config.dynamics)
         d.set_random_graph(g.get_wrap())
         g_mcmc = RandomGraphMCMCFactory.build(config.graph)
-        mcmc = DynamicsMCMC(d, g_mcmc.get_wrap())
+        mcmc = DynamicsMCMC(
+            d, g_mcmc.get_wrap(), 1, 1, config.graph.sample_graph_prior_prob
+        )
         d.sample()
         d.sample_graph()
         mcmc.set_up()
-        distance = Hamming()
+        distance = Frobenius()
         return Wrapper(
             MCMCConvergenceAnalysis(mcmc, distance),
             D_MCMC=mcmc,
@@ -47,15 +51,21 @@ class TestMCMCConvergence(unittest.TestCase):
         import time
 
         t = time.time()
+        distance = None
         for c in self.config.sequence():
             conv = TestMCMCConvergence.setup_convergence(c)
-            collected = conv.collect(self.num_samples, self.numsteps_between_samples)
+            collected = conv.collect(
+                burn=500,
+                num_samples=self.num_samples,
+                numsteps_between_samples=self.numsteps_between_samples,
+            )
             x = np.arange(self.num_samples) * self.numsteps_between_samples
-            inf_prob = c.dynamics.nu
+            inf_prob = c.dynamics.coupling
             plt.plot(x, collected, label=rf"$\alpha = {inf_prob}$")
+            distance = conv.get_other("distance") if distance is None else distance
         print(f"Computation time: {time.time() - t}")
         plt.xlabel("Number of MH steps")
-        plt.ylabel("Hamming distance")
+        plt.ylabel(f"{distance.__class__.__name__} distance")
         plt.legend()
         plt.show()
         # plt.savefig(

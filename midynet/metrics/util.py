@@ -34,6 +34,7 @@ def get_log_evidence_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
     dynamicsMCMC.add_callback(callback)
     dynamicsMCMC.set_up()
     burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
+    s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
     for i in range(config.num_sweeps):
         s, f = dynamicsMCMC.do_MH_sweep(burn=burn)
 
@@ -67,6 +68,7 @@ def get_log_evidence_annealed(dynamicsMCMC: DynamicsMCMC, config: Config, verbos
         dynamicsMCMC.set_beta_likelihood(lb)
         if config.reset_to_original:
             dynamicsMCMC.set_graph(g)
+        s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
         for i in range(config.num_sweeps):
             dynamicsMCMC.do_MH_sweep(burn=burn)
         logp_k = (ub - lb) * np.array(callback.get_log_likelihoods())
@@ -144,6 +146,7 @@ def get_log_posterior_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
     dynamicsMCMC.add_callback(graph_callback)
     dynamicsMCMC.set_up()
     burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
+    s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
     for i in range(config.num_sweeps):
         dynamicsMCMC.do_MH_sweep(burn=burn)
     logp = -graph_callback.get_marginal_entropy()  # -H(G|X)

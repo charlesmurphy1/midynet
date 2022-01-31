@@ -5,6 +5,7 @@ import importlib
 
 from basegraph.core import UndirectedMultigraph
 from _midynet.mcmc import DynamicsMCMC
+from _midynet.utility import get_edge_list
 
 
 class MCMCConvergenceAnalysis:
@@ -25,10 +26,18 @@ class MCMCConvergenceAnalysis:
         self.distance = distance
         self.collected = []
 
-    def collect(self, num_samples=100, numsteps_between_samples=10):
+    def collect(
+        self,
+        burn=1000,
+        num_samples=100,
+        numsteps_between_samples=10,
+        numsteps_between_resets=None,
+    ):
 
         original_graph = self.convert_basegraph_to_networkx(self.mcmc.get_graph())
 
+        s, f = self.mcmc.do_MH_sweep(burn)
+        numsteps = 0
         for i in range(num_samples):
             s, f = self.mcmc.do_MH_sweep(numsteps_between_samples)
             current_graph = self.convert_basegraph_to_networkx(self.mcmc.get_graph())
@@ -40,7 +49,7 @@ class MCMCConvergenceAnalysis:
 
     @staticmethod
     def convert_basegraph_to_networkx(
-        g: basegraph.core.UndirectedMultigraph,
+        bs_graph: basegraph.core.UndirectedMultigraph,
     ) -> nx.Graph:
         if importlib.util.find_spec("networkx") is None:
             message = (
@@ -50,5 +59,7 @@ class MCMCConvergenceAnalysis:
             raise NotImplementedError(message)
         else:
             import networkx as nx
-        A = np.array(g.get_adjacency_matrix())
-        return nx.from_numpy_array(A)
+        nx_graph = nx.MultiGraph()
+        nx_graph.add_nodes_from(range(bs_graph.get_size()))
+        nx_graph.add_edges_from(get_edge_list(bs_graph))
+        return nx_graph
