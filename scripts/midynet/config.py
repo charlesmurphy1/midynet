@@ -175,7 +175,7 @@ def get_config_figure3Large(
 
 
 def get_config_figure4Nbinom(
-    dynamics="sis", num_procs=4, time="48:00:00", mem=12, seed=None
+    dynamics="sis", num_procs=4, time="24:00:00", mem=12, seed=None
 ):
     config = ExperimentConfig.default(
         f"figure4-nbinom-{dynamics}",
@@ -205,11 +205,10 @@ def get_config_figure4Nbinom(
     config.dynamics.set_value("num_steps", T)
     config.dynamics.set_coupling(coupling)
     config.metrics.mutualinfo.set_value(
-        "num_samples", max(1, 25 // num_procs) * num_procs
+        "num_samples", max(1, 32 // num_procs) * num_procs
     )
     config.metrics.mutualinfo.set_value("method", "meanfield")
     config.metrics.mutualinfo.set_value("num_sweeps", 200)
-    config.metrics.mutualinfo.set_value("burn_per_vertex", 15)
 
     resources = {
         "account": "def-aallard",
