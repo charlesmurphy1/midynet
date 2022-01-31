@@ -79,6 +79,16 @@ BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge& edge) {
     return {edge.second, edge.first};
 }
 
+std::list<BaseGraph::Edge> getEdgeList(const MultiGraph& graph){
+    std::list<BaseGraph::Edge> edgeList;
+    for (auto vertex : graph)
+        for (auto neighbor : graph.getNeighboursOfIdx(vertex))
+            if (vertex < neighbor.vertexIndex)
+                for (size_t l=0; l < neighbor.label; ++l)
+                    edgeList.push_back({vertex, neighbor.vertexIndex});
+    return edgeList;
+}
+
 void assertValidProbability(double probability) {
     if (probability > 1 || probability < 0)
         throw ConsistencyError("Probability " + std::to_string(probability) + " is not between 0 and 1.");

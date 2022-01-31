@@ -51,6 +51,8 @@ BaseGraph::Edge getOrderedEdge(const BaseGraph::Edge&);
 inline size_t choose2(size_t n) { return n*(n-1)/2; }
 std::pair<size_t, size_t> getUndirectedPairFromIndex(size_t index, size_t n);
 
+std::list<BaseGraph::Edge> getEdgeList(const MultiGraph& graph);
+
 template<typename T>
 T sumElementsOfMatrix(Matrix<T> mat, T init){
     T sum = init;
@@ -94,6 +96,8 @@ void displayVector(const std::vector<T>& vec, std::string name="v"){
     }
     std::cout << "]" << std::endl;
 }
+
+
 
 
 } // namespace FastMIDyNet
