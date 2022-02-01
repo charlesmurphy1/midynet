@@ -29,7 +29,7 @@
     "beluga":{
         "path_to_data": "/home/murphy9/projects/def-aallard/murphy9/data/midynet-data/",
         "path_to_script": "/home/murphy9/codes/midynet/midynet/scripts",
-        "modules_to_load": ["StdEnv/2020", "gcc/9", "graph-tool", "python/3.9", "scipy-stack"],
+        "modules_to_load": ["python/3.9", "scipy-stack"],
         "virtualenv": "/home/murphy9/.midynet-env/bin/activate",
         "account": "def-aallard",
         "command": "sbatch",
@@ -38,7 +38,7 @@
     "graham":{
         "path_to_data": "/home/murphy9/projects/def-aallard/murphy9/data/midynet-data/",
         "path_to_script": "/home/murphy9/codes/midynet/midynet/scripts",
-        "modules_to_load": ["StdEnv/2020", "gcc/9", "graph-tool", "python/3.9", "scipy-stack"],
+        "modules_to_load": ["python/3.9", "scipy-stack"],
         "virtualenv": "/home/murphy9/.midynet-env/bin/activate",
         "account": "def-aallard",
         "command": "sbatch",
@@ -47,7 +47,7 @@
     "cedar":{
         "path_to_data": "/home/murphy9/projects/def-aallard/murphy9/data/midynet-data/",
         "path_to_script": "/home/murphy9/scratch/codes/midynet/midynet/scripts",
-        "modules_to_load": ["StdEnv/2020", "gcc/9", "graph-tool", "python/3.9", "scipy-stack"],
+        "modules_to_load": ["python/3.9", "scipy-stack"],
         "virtualenv": "/home/murphy9/.midynet-env/bin/activate",
         "account": "def-aallard",
         "command": "sbatch",
