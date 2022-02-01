@@ -30,7 +30,7 @@ def mcmc(config):
     dynamics = DynamicsFactory.build(config.dynamics)
     dynamics.set_random_graph(graph.get_wrap())
     graph_mcmc = RandomGraphMCMCFactory.build(config.graph)
-    mcmc = DynamicsMCMC(dynamics, graph_mcmc.get_wrap())
+    mcmc = DynamicsMCMC(dynamics, graph_mcmc.get_wrap(), 1, 1, 0)
     dynamics.sample()
     mcmc.set_up()
     return Wrapper(mcmc, dynamics=dynamics, graph=graph, graph_mcmc=graph_mcmc)
