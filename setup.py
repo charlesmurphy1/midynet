@@ -196,7 +196,7 @@ setup(
     long_description="",
     packages=setuptools.find_packages(),
     ext_modules=ext_modules,
-    python_requires="~=3.9",
+    python_requires=">=3.6",
     setup_requires=["pybind11>=2.3"],
     install_requires=[
         "pybind11>=2.3",
