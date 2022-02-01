@@ -1,77 +1,99 @@
 import numpy as np
-import unittest
+import pytest
+import pathlib
 
 from midynet.experiments import Experiment
 from midynet.config import ExperimentConfig
 from midynet.util.loggers import MemoryLogger, TimeLogger
 
 
-class TestExperimentBaseClass(unittest.TestCase):
-    display: bool = False
+DISPLAY = False
 
-    def setUp(self):
-        self.config = ExperimentConfig.default(
-            "test",
-            "sis",
-            "er",
-            metrics=["dynamics_prediction_entropy", "graph_entropy"],
-            path="./tests/experiments/test-dir",
-            num_procs=4,
-            seed=1,
-        )
-        coupling = np.linspace(0, 0.5, 2).tolist()
-        self.config.set_value("dynamics.infection_prob", coupling)
-        self.config.set_value("dynamics.recovery_prob", 0.5)
-        self.config.set_value("dynamics.num_steps", 100)
-        self.config.set_value("graph.size", 10)
-        self.config.set_value("graph.edge_count.state", [0, 5])
-        self.config.set_value("metrics.dynamics_prediction_entropy.num_samples", 5)
 
-        self.exp = Experiment(
-            self.config,
-            verbose=0,
-            loggers={"memory": MemoryLogger(), "time": TimeLogger()},
-        )
-        self.exp.begin()
+@pytest.fixture
+def experiment():
+    config = ExperimentConfig.default(
+        "test",
+        "sis",
+        "er",
+        metrics=["dynamics_prediction_entropy", "graph_entropy"],
+        path="./testing/experiments/test-dir",
+        num_procs=4,
+        seed=1,
+    )
+    coupling = np.linspace(0, 0.5, 2).tolist()
+    config.set_value("dynamics.infection_prob", coupling)
+    config.set_value("dynamics.recovery_prob", 0.5)
+    config.set_value("dynamics.num_steps", 100)
+    config.set_value("graph.size", 10)
+    config.set_value("graph.edge_count.state", [0, 5])
+    config.set_value("metrics.dynamics_prediction_entropy.num_samples", 5)
 
-    def tearDown(self):
-        self.exp.path.rmdir()
+    exp = Experiment(
+        config,
+        verbose=0,
+        loggers={"memory": MemoryLogger(), "time": TimeLogger()},
+    )
+    exp.begin()
+    return exp
 
-    def test_config(self):
-        if self.display:
-            print(self.exp.config.format())
 
-    def test_run(self):
-        pass
+@pytest.fixture(autouse=True)
+def tear_down(experiment):
+    yield
+    path = experiment.path
+    path.rmdir()  # testing/experiments/test-dir
+    path = path.parent
+    path.rmdir()  # testing/experiments
+    path = path.parent
+    path.rmdir()  # testing
 
-    def test_begin(self):
-        pass
 
-    def test_end(self):
-        pass
+def test_config(experiment):
+    if DISPLAY:
+        print(experiment.config.format())
 
-    def test_compute_metrics(self):
-        self.exp.compute_metrics()
-        for n in self.config.metrics.metrics_names:
-            (self.exp.path / f"{n}.pickle").unlink()
 
-    def test_save(self):
-        pass
+def test_run(experiment):
+    pass
 
-    def test_load(self):
-        pass
 
-    def test_load_from_file(self):
-        pass
+def test_begin(experiment):
+    pass
 
-    def test_unzip(self):
-        pass
 
-    def test_clean(self):
-        pass
+def test_end(experiment):
+    pass
 
-    def test_merge(self):
-        pass
+
+def test_compute_metrics(experiment):
+    experiment.compute_metrics()
+    for n in experiment.config.metrics.metrics_names:
+        (experiment.path / f"{n}.pickle").unlink()
+
+
+def test_save(experiment):
+    pass
+
+
+def test_load(experiment):
+    pass
+
+
+def test_load_from_file(experiment):
+    pass
+
+
+def test_unzip(experiment):
+    pass
+
+
+def test_clean(experiment):
+    pass
+
+
+def test_merge(experiment):
+    pass
 
 
 if __name__ == "__main__":

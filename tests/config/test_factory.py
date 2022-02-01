@@ -1,170 +1,300 @@
-import midynet as md
-import unittest
-
-from dataclasses import dataclass, field
-from typing import Type
+import pytest
 
 from midynet.config import *
 
-
-class TestFactory:
-    factory: Type[Factory]
-    good_configs: list[Config] = []
-    missing_configs: list[Config] = []
-    unavailable_configs: list[Config] = []
-    run_sample: bool = False
-
-    def obj_testing(self, obj):
-        pass
-
-    def test_build_good_config(self):
-        for c in self.good_configs:
-            obj = self.factory.build(c)
-            self.obj_testing(obj)
-
-    def test_build_missing_config(self):
-        for c in self.missing_configs:
-            with self.assertRaises(OptionError):
-                self.factory.build(c)
-
-    def test_build_unavailable_config(self):
-        for c in self.unavailable_configs:
-            with self.assertRaises(NotImplementedError):
-                self.factory.build(c)
-
-
-class TestEdgeCountPriorFactory(unittest.TestCase, TestFactory):
-    factory = EdgeCountPriorFactory
-    good_configs = [
+edge_count_setup = [
+    pytest.param(
         EdgeCountPriorConfig.delta(5),
+        EdgeCountPriorFactory,
+        lambda obj: obj.sample(),
+        id="edge_count.delta",
+    ),
+    pytest.param(
         EdgeCountPriorConfig.poisson(5),
-    ]
-    missing_configs = [Config(name="missing")]
-    run_sample: bool = False
+        EdgeCountPriorFactory,
+        lambda obj: obj.sample(),
+        id="edge_count.poisson",
+    ),
+]
 
-    def obj_testing(self, obj):
-        obj.sample()
-
-
-class TestBlockCountPriorFactory(unittest.TestCase, TestFactory):
-    factory = BlockCountPriorFactory
-    good_configs = [
+block_count_setup = [
+    pytest.param(
         BlockCountPriorConfig.delta(5),
+        BlockCountPriorFactory,
+        lambda obj: obj.sample(),
+        id="block_count.delta",
+    ),
+    pytest.param(
         BlockCountPriorConfig.poisson(5),
+        BlockCountPriorFactory,
+        lambda obj: obj.sample(),
+        id="block_count.poisson",
+    ),
+    pytest.param(
         BlockCountPriorConfig.uniform(5),
-    ]
-    missing_configs = [Config(name="missing")]
+        BlockCountPriorFactory,
+        lambda obj: obj.sample(),
+        id="block_count.uniform",
+    ),
+]
 
-    def obj_testing(self, obj):
-        obj.sample()
-
-
-class TestBlockPriorFactory(unittest.TestCase, TestFactory):
-    factory = BlockPriorFactory
-    good_configs = [
+block_setup = [
+    pytest.param(
         BlockPriorConfig.delta([0, 0, 0, 0, 0, 1, 1, 1, 1, 1]),
+        BlockPriorFactory,
+        lambda obj: obj.sample(),
+        id="block.delta",
+    ),
+    pytest.param(
         BlockPriorConfig.uniform(),
+        BlockPriorFactory,
+        lambda obj: obj.sample(),
+        id="block.uniform",
+    ),
+    pytest.param(
         BlockPriorConfig.hyperuniform(),
-    ]
-    missing_configs = [Config(name="missing")]
+        BlockPriorFactory,
+        lambda obj: obj.sample(),
+        id="block.uniform",
+    ),
+]
 
-    def obj_testing(self, obj):
-        obj.sample()
+
+def sample_edge_matrix(obj):
+    c = BlockPriorConfig.uniform()
+    c.block_count.max = 10
+    b = BlockPriorFactory.build(BlockPriorConfig.uniform())
+    obj.set_block_prior(b.get_wrap())
+    obj.sample()
 
 
-class TestEdgeMatrixPriorFactory(unittest.TestCase, TestFactory):
-    factory = EdgeMatrixPriorFactory
-    good_configs = [
+edge_matrix_setup = [
+    pytest.param(
         EdgeMatrixPriorConfig.uniform(10),
-    ]
-
-    def obj_testing(self, obj):
-        c = BlockPriorConfig.uniform()
-        c.block_count.max = 10
-        self.b = BlockPriorFactory.build(BlockPriorConfig.uniform())
-        obj.set_block_prior(self.b.get_wrap())
-        obj.sample()
+        EdgeMatrixPriorFactory,
+        sample_edge_matrix,
+        id="edge_matrix.uniform",
+    ),
+]
 
 
-class TestDegreePriorFactory(unittest.TestCase, TestFactory):
-    factory = DegreePriorFactory
-    good_configs = [
+def sample_degrees(obj):
+    b = BlockPriorFactory.build(BlockPriorConfig.uniform())
+    b.set_size(100)
+
+    e = EdgeMatrixPriorFactory.build(EdgeMatrixPriorConfig.uniform(250))
+    e.set_block_prior(b.get_wrap())
+
+    obj.set_block_prior(b.get_wrap())
+    obj.set_edge_matrix_prior(e.get_wrap())
+    obj.sample()
+
+
+degrees_setup = [
+    pytest.param(
         DegreePriorConfig.uniform(),
-    ]
-    unavailable_configs = [DegreePriorConfig.hyperuniform()]
+        DegreePriorFactory,
+        sample_degrees,
+        id="degree.uniform",
+    ),
+]
 
-    def setUp_object(self, obj):
-        self.b = BlockPriorFactory.build(BlockPriorConfig.uniform(100))
-
-        self.e = EdgeMatrixPriorFactory.build(EdgeMatrixPriorConfig.uniform(250))
-        self.e.set_block_prior(self.b.get_wrap())
-
-        obj.set_block_prior(self.b.get_wrap())
-        obj.set_edge_matrix_prior(self.e.get_wrap())
-        obj.sample()
-
-
-class TestRandomGraphFactory(unittest.TestCase, TestFactory):
-    factory = RandomGraphFactory
-    good_configs = {
+random_graph_setup = [
+    pytest.param(
         RandomGraphConfig.uniform_sbm(100, 250, 10),
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="sbm.uniform",
+    ),
+    pytest.param(
         RandomGraphConfig.hyperuniform_sbm(100, 250, 10),
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="sbm.hyperuniform",
+    ),
+    pytest.param(
         RandomGraphConfig.er(100, 250),
-        RandomGraphConfig.ser(100, 250),
-        RandomGraphConfig.er(100, 250.0),
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="er.delta",
+    ),
+    pytest.param(
         RandomGraphConfig.ser(100, 250.0),
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="er.poisson",
+    ),
+    pytest.param(
+        RandomGraphConfig.ser(100, 250),
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="ser",
+    ),
+    pytest.param(
         RandomGraphConfig.uniform_dcsbm(100, 250, 10),
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="dcsbm.uniform",
+    ),
+    pytest.param(
         RandomGraphConfig.uniform_cm(100, 250),
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="cm.uniform",
+    ),
+    pytest.param(
         RandomGraphConfig.poisson_cm(100, 250),
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="cm.poisson",
+    ),
+    pytest.param(
         RandomGraphConfig.nbinom_cm(100, 250, 0.2),
-    }
-    missing_configs = [Config(name="missing")]
-    unavailable_configs = [
-        RandomGraphConfig.hyperuniform_dcsbm(100, 250, 10),
-        RandomGraphConfig.hyperuniform_cm(100, 250),
-    ]
-
-    def obj_testing(self, obj):
-        obj.sample()
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="cm.nbinom",
+    ),
+]
 
 
-class TestDynamicsFactory(unittest.TestCase, TestFactory):
-    factory = DynamicsFactory
-    good_configs = {
+def sample_dynamics(obj):
+    c = RandomGraphConfig.er(10, 25)
+    g = RandomGraphFactory.build(c)
+    obj.set_random_graph(g.get_wrap())
+    obj.set_num_steps(10)
+    obj.sample()
+
+
+dynamics_setup = {
+    pytest.param(
         DynamicsConfig.ising(),
+        DynamicsFactory,
+        sample_dynamics,
+        id="ising",
+    ),
+    pytest.param(
         DynamicsConfig.sis(),
+        DynamicsFactory,
+        sample_dynamics,
+        id="sis",
+    ),
+    pytest.param(
         DynamicsConfig.cowan(),
+        DynamicsFactory,
+        sample_dynamics,
+        id="cowan",
+    ),
+    pytest.param(
         DynamicsConfig.degree(),
-    }
+        DynamicsFactory,
+        sample_dynamics,
+        id="degree",
+    ),
+}
 
-    def obj_testing(self, obj):
-        c = RandomGraphConfig.er(10, 25)
-        g = RandomGraphFactory.build(c)
-        obj.set_random_graph(g.get_wrap())
-        obj.set_num_steps(10)
-        obj.sample()
-
-
-class TestRandomGraphMCMCFactory(unittest.TestCase, TestFactory):
-
-    factory = RandomGraphMCMCFactory
-    good_configs = {
+random_graph_mcmc_setup = [
+    pytest.param(
         RandomGraphConfig.uniform_sbm(100, 250, 10),
-        RandomGraphConfig.er(100, 250.0),
+        RandomGraphMCMCFactory,
+        lambda obj: None,
+        id="mcmc.sbm.uniform",
+    ),
+    pytest.param(
+        RandomGraphConfig.hyperuniform_sbm(100, 250, 10),
+        RandomGraphMCMCFactory,
+        lambda obj: None,
+        id="mcmc.sbm.hyperuniform",
+    ),
+    pytest.param(
         RandomGraphConfig.er(100, 250),
+        RandomGraphMCMCFactory,
+        lambda obj: None,
+        id="mcmc.er.delta",
+    ),
+    pytest.param(
+        RandomGraphConfig.ser(100, 250.0),
+        RandomGraphMCMCFactory,
+        lambda obj: None,
+        id="mcmc.er.poisson",
+    ),
+    pytest.param(
+        RandomGraphConfig.ser(100, 250),
+        RandomGraphMCMCFactory,
+        lambda obj: None,
+        id="mcmc.ser",
+    ),
+    pytest.param(
         RandomGraphConfig.uniform_dcsbm(100, 250, 10),
+        RandomGraphMCMCFactory,
+        lambda obj: None,
+        id="mcmc.dcsbm.uniform",
+    ),
+    pytest.param(
         RandomGraphConfig.uniform_cm(100, 250),
+        RandomGraphMCMCFactory,
+        lambda obj: None,
+        id="mcmc.cm.uniform",
+    ),
+    pytest.param(
         RandomGraphConfig.poisson_cm(100, 250),
-        RandomGraphConfig.nbinom_cm(100, 250, 1),
-    }
+        RandomGraphMCMCFactory,
+        lambda obj: None,
+        id="mcmc.cm.poisson",
+    ),
+    pytest.param(
+        RandomGraphConfig.nbinom_cm(100, 250, 0.2),
+        RandomGraphMCMCFactory,
+        lambda obj: None,
+        id="mcmc.cm.nbinom",
+    ),
+]
+
+metrics_setup = [
+    pytest.param(
+        ExperimentConfig.default("test", "ising", "er", metrics=["dynamics_entropy"]),
+        MetricsFactory,
+        lambda obj: None,
+        id="metrics",
+    )
+]
 
 
-class TestMetricsFactory(unittest.TestCase, TestFactory):
-    factory = MetricsFactory
-    good_configs = {
-        ExperimentConfig.default("test", "ising", "er", metrics=["dynamics_entropy"])
-    }
+@pytest.mark.parametrize(
+    "config, factory, run",
+    [
+        *edge_count_setup,
+        *block_count_setup,
+        *block_setup,
+        *edge_matrix_setup,
+        *degrees_setup,
+        *random_graph_setup,
+        *dynamics_setup,
+        *random_graph_mcmc_setup,
+        *metrics_setup,
+    ],
+)
+def test_build_from_config(config, factory, run):
+    obj = factory.build(config)
+
+
+@pytest.mark.parametrize(
+    "config, factory, run",
+    [
+        *edge_count_setup,
+        *block_count_setup,
+        *block_setup,
+        *edge_matrix_setup,
+        *degrees_setup,
+        *random_graph_setup,
+        *dynamics_setup,
+        *random_graph_mcmc_setup,
+        *metrics_setup,
+    ],
+)
+def test_run_after_creation(config, factory, run):
+    obj = factory.build(config)
+    run(obj)
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pass

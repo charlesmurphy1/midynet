@@ -1,84 +1,87 @@
-import unittest
-
 import midynet
+import pytest
 
 from midynet.config import *
 from _midynet.mcmc import DynamicsMCMC
 
+DISPLAY = False
 
-class TestMetricsUtil(unittest.TestCase):
-    display: bool = False
 
-    def setUp(self):
-        self.config = midynet.config.ExperimentConfig.default(
-            name="test", dynamics="sis", graph="er"
-        )
-        self.config.dynamics.set_value("num_steps", 5)
-        self.config.graph.set_value("size", 4)
-        self.config.graph.edge_count.set_value("state", 2)
-        self.metrics_config = midynet.config.MetricsConfig.mcmc()
-        self.metrics_config.set_value("num_sweeps", 10)
-        self.metrics_config.set_value("burn_per_vertex", 1)
+@pytest.fixture
+def config():
+    c = ExperimentConfig.default(name="test", dynamics="sis", graph="er")
+    c.dynamics.set_value("num_steps", 5)
+    c.graph.set_value("size", 4)
+    c.graph.edge_count.set_value("state", 2)
+    return c
 
-    def setup_mcmc(self):
-        graph = RandomGraphFactory.build(self.config.graph)
-        dynamics = DynamicsFactory.build(self.config.dynamics)
-        dynamics.set_random_graph(graph.get_wrap())
-        graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
-        mcmc = DynamicsMCMC(dynamics, graph_mcmc.get_wrap())
-        dynamics.sample()
-        mcmc.set_up()
-        return midynet.config.Wrapper(
-            mcmc, dynamics=dynamics, graph=graph, graph_mcmc=graph_mcmc
-        )
 
-    def test_log_evidence_arithmetic(self):
-        mcmc = self.setup_mcmc()
-        self.metrics_config.set_value("method", "arithmetic")
-        logp = midynet.metrics.util.get_log_evidence(mcmc, self.metrics_config)
-        if self.display:
-            print("arithmetic", logp)
+@pytest.fixture
+def metrics_config():
+    c = MetricsConfig.mcmc()
+    c.set_value("num_sweeps", 10)
+    c.set_value("burn_per_vertex", 1)
+    return c
 
-    def test_log_evidence_harmonic(self):
-        mcmc = self.setup_mcmc()
-        self.metrics_config.set_value("method", "harmonic")
-        logp = midynet.metrics.util.get_log_evidence(mcmc, self.metrics_config)
 
-        if self.display:
-            print("harmonic", logp)
+@pytest.fixture
+def mcmc(config):
+    graph = RandomGraphFactory.build(config.graph)
+    dynamics = DynamicsFactory.build(config.dynamics)
+    dynamics.set_random_graph(graph.get_wrap())
+    graph_mcmc = RandomGraphMCMCFactory.build(config.graph)
+    mcmc = DynamicsMCMC(dynamics, graph_mcmc.get_wrap())
+    dynamics.sample()
+    mcmc.set_up()
+    return Wrapper(mcmc, dynamics=dynamics, graph=graph, graph_mcmc=graph_mcmc)
 
-    def test_log_evidence_annealed(self):
-        mcmc = self.setup_mcmc()
-        self.metrics_config.set_value("method", "annealed")
-        logp = midynet.metrics.util.get_log_evidence(mcmc, self.metrics_config)
 
-        if self.display:
-            print("annealed", logp)
+def test_log_evidence_arithmetic(mcmc, metrics_config):
+    metrics_config.set_value("method", "arithmetic")
+    logp = midynet.metrics.util.get_log_evidence(mcmc, metrics_config)
+    if DISPLAY:
+        print("arithmetic", logp)
 
-    def test_log_evidence_meanfield(self):
-        mcmc = self.setup_mcmc()
-        self.metrics_config.set_value("method", "meanfield")
-        logp = midynet.metrics.util.get_log_evidence(mcmc, self.metrics_config)
 
-        if self.display:
-            print("meanfield", logp)
+def test_log_evidence_harmonic(mcmc, metrics_config):
+    metrics_config.set_value("method", "harmonic")
+    logp = midynet.metrics.util.get_log_evidence(mcmc, metrics_config)
 
-    def test_log_evidence_exact(self):
-        mcmc = self.setup_mcmc()
-        self.metrics_config.set_value("method", "exact")
-        logp = midynet.metrics.util.get_log_evidence(mcmc, self.metrics_config)
+    if DISPLAY:
+        print("harmonic", logp)
 
-        if self.display:
-            print("exact", logp)
 
-    def test_log_evidence_exact_meanfield(self):
-        mcmc = self.setup_mcmc()
-        self.metrics_config.set_value("method", "exact_meanfield")
-        logp = midynet.metrics.util.get_log_evidence(mcmc, self.metrics_config)
+def test_log_evidence_annealed(mcmc, metrics_config):
+    metrics_config.set_value("method", "annealed")
+    logp = midynet.metrics.util.get_log_evidence(mcmc, metrics_config)
 
-        if self.display:
-            print("exact_meanfield", logp)
+    if DISPLAY:
+        print("annealed", logp)
+
+
+def test_log_evidence_meanfield(mcmc, metrics_config):
+    metrics_config.set_value("method", "meanfield")
+    logp = midynet.metrics.util.get_log_evidence(mcmc, metrics_config)
+
+    if DISPLAY:
+        print("meanfield", logp)
+
+
+def test_log_evidence_exact(mcmc, metrics_config):
+    metrics_config.set_value("method", "exact")
+    logp = midynet.metrics.util.get_log_evidence(mcmc, metrics_config)
+
+    if DISPLAY:
+        print("exact", logp)
+
+
+def test_log_evidence_exact_meanfield(mcmc, metrics_config):
+    metrics_config.set_value("method", "exact_meanfield")
+    logp = midynet.metrics.util.get_log_evidence(mcmc, metrics_config)
+
+    if DISPLAY:
+        print("exact_meanfield", logp)
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pass

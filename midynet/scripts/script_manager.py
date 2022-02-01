@@ -36,7 +36,7 @@ class ScriptManager:
         if isinstance(self.path_to_scripts, str):
             self.path_to_scripts = pathlib.Path(self.path_to_scripts)
         if not self.path_to_scripts.exists():
-            self.path_to_scripts.mkdir()
+            self.path_to_scripts.mkdir(exist_ok=True, parents=True)
 
     def write_script(
         self,
