@@ -55,7 +55,7 @@ class ScriptManager:
 
         script += "\n"
         if modules_to_load:
-            script += f"module {' '.join(modules_to_load)}\n"
+            script += f"module load {' '.join(modules_to_load)}\n"
 
         if virtualenv:
             script += f"source {virtualenv}\n  \n"
