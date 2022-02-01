@@ -1,7 +1,8 @@
 import multiprocessing as mp
-import numpy as np
 import time
 from dataclasses import dataclass, field
+
+import numpy as np
 
 __all__ = ["MultiProcess", "Expectation"]
 

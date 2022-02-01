@@ -1,11 +1,9 @@
-import basegraph
 import itertools
-import numpy as np
 import pathlib
 import typing
 
 import basegraph
-
+import numpy as np
 
 __all__ = [
     "clip",

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from _midynet import proposer
+
 from .config import Config
 from .factory import Factory
 from .wrapper import Wrapper
-from _midynet import proposer
 
 __all__ = [
     "EdgeProposerConfig",

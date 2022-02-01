@@ -1,5 +1,3 @@
-from _midynet.prior import sbm
-
 __all__ = ["Wrapper"]
 
 

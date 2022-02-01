@@ -1,11 +1,10 @@
+import pathlib
+import time
+import typing
+from datetime import datetime
+
 import numpy as np
 import tqdm
-import time
-import pathlib
-import typing
-
-
-from datetime import datetime
 
 __all__ = ["Verbose"]
 

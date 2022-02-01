@@ -1,10 +1,10 @@
-import numpy as np
 import pathlib
 import pickle
 import typing
 from collections import defaultdict
 from dataclasses import dataclass, field
 
+import numpy as np
 
 from midynet.config import Config
 from midynet.util import Verbose

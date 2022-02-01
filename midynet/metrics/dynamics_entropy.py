@@ -1,12 +1,14 @@
 import time
-import numpy as np
 from dataclasses import dataclass, field
 
-from midynet.config import *
-from _midynet import utility
+import numpy as np
 from _midynet.mcmc import DynamicsMCMC
-from .multiprocess import MultiProcess, Expectation
+
+from _midynet import utility
+from midynet.config import *
+
 from .metrics import Metrics
+from .multiprocess import Expectation, MultiProcess
 from .statistics import Statistics
 from .util import get_log_evidence
 

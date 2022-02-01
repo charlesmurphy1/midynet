@@ -1,6 +1,6 @@
 import psutil
-
 from numpy import mean, round
+
 from .logger import Logger
 
 __all__ = ["MemoryLogger"]

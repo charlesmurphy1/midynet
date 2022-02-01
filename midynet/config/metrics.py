@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-import numpy as np
 import typing
+
+import numpy as np
+
+from midynet.metrics import *
 
 from .config import Config
 from .factory import Factory, OptionError
 from .wrapper import Wrapper
-
-from midynet.metrics import *
 
 __all__ = ["MetricsConfig", "MetricsCollectionConfig", "MetricsFactory"]
 

@@ -1,20 +1,23 @@
-import numpy as np
 import os
 import pathlib
 import pickle
 import random
 import time
 import typing
+from dataclasses import dataclass, field
+
+import numpy as np
+
+from _midynet import utility
+from midynet.config import Config, MetricsFactory
+from midynet.metrics import Metrics
+from midynet.util import (LoggerDict, MemoryLogger, TimeLogger, Verbose,
+                          delete_path)
 
 # import shutil
 # import zipfile
 
-from dataclasses import dataclass, field
 
-from midynet.config import Config, MetricsFactory
-from midynet.metrics import Metrics
-from midynet.util import Verbose, LoggerDict, TimeLogger, MemoryLogger, delete_path
-from _midynet import utility
 
 __all__ = ["Experiment"]
 

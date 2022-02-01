@@ -1,8 +1,8 @@
-import midynet
 import pytest
-
-from midynet.config import *
 from _midynet.mcmc import DynamicsMCMC
+
+import midynet
+from midynet.config import *
 
 DISPLAY = False
 

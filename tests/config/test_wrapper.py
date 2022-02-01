@@ -1,7 +1,7 @@
 import pytest
+from _midynet.prior import sbm
 
 from midynet.config import *
-from _midynet.prior import sbm
 
 
 @pytest.fixture

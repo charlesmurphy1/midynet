@@ -1,12 +1,13 @@
-import pytest
-import numpy as np
-import matplotlib.pyplot as plt
 import time
 
-from netrd.distance import Hamming, Frobenius
+import matplotlib.pyplot as plt
+import numpy as np
+import pytest
+from _midynet.mcmc import DynamicsMCMC
+from netrd.distance import Frobenius, Hamming
+
 from midynet.config import *
 from midynet.util import MCMCConvergenceAnalysis
-from _midynet.mcmc import DynamicsMCMC
 
 
 @pytest.fixture

@@ -1,11 +1,11 @@
-import numpy as np
-import pytest
 import pathlib
 
-from midynet.experiments import Experiment
-from midynet.config import ExperimentConfig
-from midynet.util.loggers import MemoryLogger, TimeLogger
+import numpy as np
+import pytest
 
+from midynet.config import ExperimentConfig
+from midynet.experiments import Experiment
+from midynet.util.loggers import MemoryLogger, TimeLogger
 
 DISPLAY = False
 

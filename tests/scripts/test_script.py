@@ -1,9 +1,10 @@
-import pytest
-import pathlib
 import os
+import pathlib
 
-from midynet.config import *
+import pytest
+
 from midynet import scripts
+from midynet.config import *
 
 DISPLAY = False
 

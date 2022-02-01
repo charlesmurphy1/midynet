@@ -1,11 +1,12 @@
 import time
 from dataclasses import dataclass, field
 
-from midynet.config import *
 from _midynet import utility
-from .multiprocess import MultiProcess, Expectation
-from .statistics import Statistics
+from midynet.config import *
+
 from .metrics import Metrics
+from .multiprocess import Expectation, MultiProcess
+from .statistics import Statistics
 
 __all__ = ["GraphEntropy", "GraphEntropyMetrics"]
 

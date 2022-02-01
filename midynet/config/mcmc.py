@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from .config import Config
-
-from .factory import Factory, OptionError
-from .wrapper import Wrapper
-from .proposer import *
 from _midynet.proposer.block_proposer import BlockGenericProposer
+
 from _midynet import mcmc
+
+from .config import Config
+from .factory import Factory, OptionError
+from .proposer import *
+from .wrapper import Wrapper
 
 __all__ = ["RandomGraphMCMCFactory", "MCMCVerboseFactory"]
 

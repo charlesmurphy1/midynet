@@ -1,5 +1,6 @@
-import midynet
 from config import *
+
+import midynet
 
 
 def main():

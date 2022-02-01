@@ -1,9 +1,10 @@
 import json
-import numpy as np
 import os
 import pathlib
-from midynet.config import ExperimentConfig
 
+import numpy as np
+
+from midynet.config import ExperimentConfig
 
 SPECS = json.load(open("specs.json", "r"))
 if os.getenv("SERVER_NAME") in SPECS:

@@ -1,12 +1,11 @@
-import h5py
-
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 import pathlib
 
-from palettable.palette import Palette
+import h5py
+import matplotlib.pyplot as plt
+import numpy as np
 from cycler import cycler
+from palettable.palette import Palette
 
 __all__ = [
     "hex_to_rgb",

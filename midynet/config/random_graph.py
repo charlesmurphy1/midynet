@@ -1,20 +1,19 @@
 import typing
-
 from typing import Union
+
+from _midynet.prior import sbm
+from _midynet.random_graph import (ConfigurationModelFamily,
+                                   DegreeCorrectedStochasticBlockModelFamily,
+                                   ErdosRenyiFamily, SimpleErdosRenyiFamily,
+                                   StochasticBlockModelFamily)
+
+from midynet.util.degree_sequences import *
+
 from .config import Config
 from .factory import Factory
-from .wrapper import Wrapper
 from .prior import *
 from .proposer import *
-from midynet.util.degree_sequences import *
-from _midynet.random_graph import (
-    StochasticBlockModelFamily,
-    ErdosRenyiFamily,
-    SimpleErdosRenyiFamily,
-    DegreeCorrectedStochasticBlockModelFamily,
-    ConfigurationModelFamily,
-)
-from _midynet.prior import sbm
+from .wrapper import Wrapper
 
 __all__ = ["RandomGraphConfig", "RandomGraphFactory"]
 

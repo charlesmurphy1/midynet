@@ -1,12 +1,14 @@
-import numpy as np
 import time
 from dataclasses import dataclass, field
 
-from midynet.config import *
+import numpy as np
+
 from _midynet import utility
-from .multiprocess import MultiProcess, Expectation
-from .statistics import Statistics
+from midynet.config import *
+
 from .metrics import Metrics
+from .multiprocess import Expectation, MultiProcess
+from .statistics import Statistics
 
 __all__ = ["DynamicsPredictionEntropy", "DynamicsPredictionEntropyMetrics"]
 

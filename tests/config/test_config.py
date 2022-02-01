@@ -1,8 +1,9 @@
-import midynet as md
 import pathlib
 import typing
+
 import pytest
 
+import midynet as md
 from midynet.config import *
 
 DISPLAY = True

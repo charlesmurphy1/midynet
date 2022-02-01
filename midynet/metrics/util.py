@@ -1,15 +1,13 @@
 import importlib
+
 import numpy as np
+from _midynet.mcmc import DynamicsMCMC, RandomGraphMCMC
+from _midynet.mcmc.callbacks import (CollectEdgeMultiplicityOnSweep,
+                                     CollectLikelihoodOnSweep,
+                                     CollectPartitionOnSweep)
 
 from midynet.config import *
-from midynet.util import log_mean_exp, log_sum_exp, enumerate_all_graphs
-from _midynet.mcmc import DynamicsMCMC, RandomGraphMCMC
-from _midynet.mcmc.callbacks import (
-    CollectLikelihoodOnSweep,
-    CollectEdgeMultiplicityOnSweep,
-    CollectPartitionOnSweep,
-)
-
+from midynet.util import enumerate_all_graphs, log_mean_exp, log_sum_exp
 
 __all__ = ["get_log_evidence", "get_log_posterior"]
 
@@ -165,11 +163,8 @@ def get_log_posterior_meanfield_sbm(dynamicsMCMC: DynamicsMCMC, config: Config):
         )
         raise NotImplementedError(message)
     else:
-        from graph_tool.inference import (
-            PartitionModeState,
-            ModeClusterState,
-            mcmc_equilibriate,
-        )
+        from graph_tool.inference import (ModeClusterState, PartitionModeState,
+                                          mcmc_equilibriate)
 
         graph_callback = CollectEdgeMultiplicityOnSweep()
         partition_callback = CollectPartitionOnSweep()

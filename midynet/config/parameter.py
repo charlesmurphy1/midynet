@@ -1,7 +1,6 @@
-import typing
 import copy
 import pathlib
-
+import typing
 from dataclasses import dataclass, field
 
 __all__ = ["Parameter"]
@@ -17,7 +16,7 @@ class Parameter:
     sort_sequence: bool = field(repr=True, default=True)
     is_config: bool = False
     __cache__: bool = field(repr=False, default=True)
-    __self_hash__: int = field(repr=False, default=None)
+    __self_hash__: typing.Optional[int] = field(repr=False, default=None)
 
     @property
     def datatype(self) -> typing.Any:

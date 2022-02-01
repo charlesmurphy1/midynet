@@ -1,11 +1,12 @@
 from __future__ import annotations
-import numpy as np
-import typing
-import importlib
 
-from basegraph.core import UndirectedMultigraph
+import importlib
+import typing
+
+import numpy as np
 from _midynet.mcmc import DynamicsMCMC
 from _midynet.utility import get_edge_list
+from basegraph.core import UndirectedMultigraph
 
 
 class MCMCConvergenceAnalysis:

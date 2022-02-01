@@ -1,6 +1,7 @@
 import argparse
+
 import midynet
-from midynet.util.loggers import LoggerDict, TimeLogger, MemoryLogger
+from midynet.util.loggers import LoggerDict, MemoryLogger, TimeLogger
 
 
 def main():

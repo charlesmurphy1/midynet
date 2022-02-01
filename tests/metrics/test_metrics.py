@@ -1,11 +1,12 @@
-import numpy as np
 import pathlib
-import pytest
 from dataclasses import dataclass
 
+import numpy as np
+import pytest
+
 import midynet
-from midynet.config import *
 from midynet import metrics
+from midynet.config import *
 
 
 @dataclass

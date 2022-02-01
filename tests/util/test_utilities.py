@@ -1,8 +1,9 @@
-import pytest
 import math
 
-from midynet.util import enumerate_all_graphs
+import pytest
 from _midynet.utility import log_binom, log_multiset
+
+from midynet.util import enumerate_all_graphs
 
 
 def test_enumerate_all_simple_graphs_of_3_vertices_and_3_edges():

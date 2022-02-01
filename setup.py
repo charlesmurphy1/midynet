@@ -1,9 +1,9 @@
-from setuptools import setup, Extension
-from setuptools.command.build_ext import build_ext
-import sys
 import os
-import setuptools
+import sys
 
+import setuptools
+from setuptools import Extension, setup
+from setuptools.command.build_ext import build_ext
 
 exec(open("./midynet/metadata.py").read())
 

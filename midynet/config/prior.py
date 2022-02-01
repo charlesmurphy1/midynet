@@ -1,9 +1,10 @@
 from typing import Any, Callable, Dict
 
+from _midynet.prior import sbm
+
 from .config import Config
 from .factory import Factory, UnavailableOption
 from .wrapper import Wrapper
-from _midynet.prior import sbm
 
 __all__ = [
     "EdgeCountPriorConfig",

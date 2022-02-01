@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 import copy
 import itertools
 import pathlib
 import pickle
 import typing
-import tqdm
-
-
-from typing import Any, Callable
 from collections import defaultdict
+from typing import Any, Callable, Optional
+
+# import tqdm
+
 from .parameter import Parameter
 
 __all__ = ["Config"]
@@ -47,6 +48,7 @@ class Config:
         self.__hash_dict__ = None
         self.__subnames__ = {}
         self.__sequence__ = None
+        self.__self_hash__ = -1
         self.__named_sequence__ = {}
         self.insert("name", name, unique=True)
         for k, v in kwargs.items():
@@ -97,34 +99,30 @@ class Config:
         return len(self.sequence())
 
     @classmethod
-    def __auto__(cls, config_type, *others, **kwargs) -> Config:
-        if config_type in cls.__dict__ and isinstance(
-            getattr(cls, config_type), Callable
-        ):
+    def __auto__(cls, config_type: str, *others, **kwargs) -> Config:
+        if config_type in cls.__dict__:
             return getattr(cls, config_type)(*others, **kwargs)
-        elif isinstance(config_type, cls):
-            return config_type
         else:
             message = f"Invalid config type `{type(config_type)}` for auto build of object `{cls.__name__}`."
             raise TypeError(message)
 
-    def __gt__(self, other):
+    def __gt__(self, other: Config):
         return len(self) > len(other)
 
-    def __ge__(self, other):
+    def __ge__(self, other: Config):
         return len(self) >= len(other)
 
-    def __le__(self, other):
+    def __le__(self, other: Config):
         return len(self) <= len(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Config):
         return len(self) < len(other)
 
     def __hash__(self) -> int:
         """
         Hash value of `self`.
         """
-        if self.__self_hash__ is None:
+        if self.__self_hash__ == -1:
             h = self.__compute_hash__()
             if self.__cache__:
                 self.__self_hash__ = h
@@ -132,7 +130,7 @@ class Config:
                 return h
         return self.__self_hash__
 
-    def __compute_hash__(self):
+    def __compute_hash__(self) -> int:
         if not self.is_sequenced():
             params = []
             for k, v in self.dict_copy().items():
@@ -287,7 +285,7 @@ class Config:
         self.__parameters__.pop(key)
         self.__reset_buffer__()
 
-    def get_param(self, key: str, default: Any = None) -> Parameter:
+    def get_param(self, key: str) -> Parameter:
         """
         Returns the parameter associated with a key.
 
@@ -295,9 +293,9 @@ class Config:
             key: key of the parameter to get.
             default (optional): Returned value if `key` is not in `self`. Defaults to None.
         """
-        return self.dict_copy().get(key, default)
+        return self.dict_copy()[key]
 
-    def get_value(self, key: str, default: Any = None) -> typing.Any:
+    def get_value(self, key: str) -> typing.Any:
         """
         Returns the value associated with the parameter `key`.
 
@@ -305,7 +303,7 @@ class Config:
             key: key of the parameter to get.
             default (optional): Returned value if `key` is not in `self`. Defaults to None.
         """
-        return self.get_param(key).value if key in self else default
+        return self.get_param(key).value
 
     def set_value(self, key: str, value: Any) -> None:
         """
@@ -315,8 +313,10 @@ class Config:
             key: key of the parameter to set.
             value: new value of the parameter.
         """
-        self.dict_copy().get(key).set_value(value)
-        self.__reset_buffer__()
+        param = self.dict_copy().get(key)
+        if param is not None:
+            param.set_value(value)
+            self.__reset_buffer__()
 
     # Copying methods
 
@@ -415,10 +415,10 @@ class Config:
     def format(
         self,
         prefix: str = "",
-        name_prefix: str = "",
-        endline="\n",
-        suffix="end",
-        forbid: list = None,
+        name_prefix: Optional[str] = "",
+        endline: str = "\n",
+        suffix: str = "end",
+        forbid: Optional[typing.Iterable[str]] = None,
     ) -> str:
         """
         Returns a string representation of the configuration, useful for debug.
@@ -451,7 +451,7 @@ class Config:
                         prefix=prefix + f"|\t",
                         name_prefix=f"{c.name}{self.separator}",
                         endline=endline,
-                        suffix=None,
+                        suffix="",
                     )
                     ss = ss.split(":")[1:]
                     ss = "".join(ss)[2:]
@@ -485,8 +485,8 @@ class Config:
         other.__reset_buffer__()
         counter = 0
         size = len(other)
-        if verbose:
-            pbar = tqdm.tqdm(range(size), f"Merging {self.name} with {other.name}")
+        # if verbose:
+        #     pbar = tqdm.tqdm(range(size), f"Merging {self.name} with {other.name}")
         for config in other.__generate_sequence__():
             counter += 1
             if config.is_subconfig(self):
@@ -519,8 +519,8 @@ class Config:
                         self.get_param(key).add_values(value.value)
                     else:
                         self.get_param(key).add_value(value.value)
-            if verbose:
-                pbar.update()
+            # if verbose:
+            #     pbar.update()
         self.__reset_buffer__()
 
     # Methods that involve cache
@@ -581,7 +581,7 @@ class Config:
         self.__scanned_values__ = None
         self.__sequence_size__ = None
         self.__hash_dict__ = None
-        self.__self_hash__ = None
+        self.__self_hash__ = -1
         self.__subnames__ = {}
         self.__sequence__ = None
         self.__named_sequence__ = {}
@@ -634,7 +634,7 @@ class Config:
                 for k, v in c.items(recursively=True):
                     if not v.unique and not v.is_config:
                         counter[c.name][k][v.value] += 1
-            keys = {k: [] for k in self.names()}
+            keys: typing.Dict[str, list[str]] = {k: [] for k in self.names()}
             for name, counter_dict in counter.items():
                 for k, c in counter_dict.items():
                     if len(c) > 1:

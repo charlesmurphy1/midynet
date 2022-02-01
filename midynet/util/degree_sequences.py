@@ -1,9 +1,8 @@
 import numpy as np
-
+from scipy.interpolate import interp1d
 from scipy.optimize import bisect
 from scipy.special import loggamma
-from scipy.interpolate import interp1d
-from scipy.stats import poisson, nbinom
+from scipy.stats import nbinom, poisson
 
 __all__ = [
     "generate_degseq",

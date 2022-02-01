@@ -1,8 +1,7 @@
 import os
 import pathlib
-import typing
 import time
-
+import typing
 from dataclasses import dataclass, field
 
 from midynet.config import *
