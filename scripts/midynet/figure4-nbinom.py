@@ -15,7 +15,7 @@ def main():
         config10.resources["time"] = "10:00:00"
         script.run(
             config10,
-            resources=config.resources,
+            resources=config10.resources,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
             extra_args=dict(verbose=2),
@@ -25,7 +25,7 @@ def main():
         config100.resources["time"] = "24:00:00"
         script.run(
             config100,
-            resources=config.resources,
+            resources=config100.resources,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
             extra_args=dict(verbose=2),
