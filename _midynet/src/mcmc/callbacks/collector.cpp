@@ -43,19 +43,11 @@ const double CollectEdgeMultiplicityOnSweep::getEdgeCountProb(BaseGraph::Edge ed
 const double CollectEdgeMultiplicityOnSweep::getMarginalEntropy() {
     double marginalEntropy = 0;
     for (auto edge : m_observedEdges){
-        std::cout << "edge (" << edge.first.first << ", " << edge.first.second << "): ";
         for (size_t count = 0; count <= m_observedEdgesMaxCount[edge.first]; ++count){
             double p = getEdgeCountProb(edge.first, count);
-            std::cout << count << " / " << m_observedEdgesMaxCount[edge.first] << " (n=";
-            if (count == 0)
-                std::cout << m_totalCount - m_observedEdges.get(edge.first);
-            else
-                std::cout << m_observedEdgesCount.get({edge.first, count});
-            std::cout << ", p=" << p << ", N=" << m_totalCount << ")\t";
             if (p > 0)
                 marginalEntropy -= p * log(p);
         }
-        std::cout << std::endl;
     }
     return marginalEntropy;
 }

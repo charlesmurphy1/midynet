@@ -40,27 +40,11 @@ bool DynamicsMCMC::doMetropolisHastingsStep() {
         m_isLastAccepted = false;
 
         double r = m_uniform(rng), p = exp(m_lastLogAcceptance);
-        std::cout << "step: " << m_numSteps;
-        std::cout << "\t random: " << r;
-        std::cout << "\t p: " << p;
-        std::cout << "\t Accept: " << m_lastLogAcceptance;
-        std::cout << "\t Likelihood: " << logLikelihoodRatio;
-        std::cout << "\t Prior: " << logPriorRatio;
-        std::cout << "\t Prop: " << logProposalProbRatio;
-
         if (r < p){
             m_isLastAccepted = true;
             m_dynamics.applyGraphMove(move);
             m_randomGraphMCMC.updateProbabilitiesFromGraphMove(move);
         }
-        std::cout << "\t Do move: ";
-        if (m_isLastAccepted)
-            std::cout << "Y";
-        else
-            std::cout << "N";
-        std::cout << std::endl;
-        std::cout << std::endl;
-
         return m_isLastAccepted;
     }
 
