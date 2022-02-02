@@ -1,21 +1,32 @@
-import typing
-from typing import Union
+from typing import Union, Optional
 
 from _midynet.prior import sbm
-from _midynet.random_graph import (ConfigurationModelFamily,
-                                   DegreeCorrectedStochasticBlockModelFamily,
-                                   ErdosRenyiFamily, SimpleErdosRenyiFamily,
-                                   StochasticBlockModelFamily)
+from _midynet.random_graph import (
+    ConfigurationModelFamily,
+    DegreeCorrectedStochasticBlockModelFamily,
+    ErdosRenyiFamily,
+    SimpleErdosRenyiFamily,
+    StochasticBlockModelFamily,
+)
 
-from midynet.util.degree_sequences import *
+from midynet.util.degree_sequences import poisson_degreeseq, nbinom_degreeseq
 
 from .config import Config
-from .factory import Factory
-from .prior import *
-from .proposer import *
+from .factory import Factory, UnavailableOption
+from .prior import (
+    EdgeCountPriorConfig,
+    BlockPriorConfig,
+    EdgeMatrixPriorConfig,
+    DegreePriorConfig,
+    EdgeCountPriorFactory,
+    BlockPriorFactory,
+    EdgeMatrixPriorFactory,
+    DegreePriorFactory,
+)
+from .proposer import EdgeProposerConfig, BlockProposerConfig
 from .wrapper import Wrapper
 
-__all__ = ["RandomGraphConfig", "RandomGraphFactory"]
+__all__ = ("RandomGraphConfig", "RandomGraphFactory")
 
 
 class RandomGraphConfig(Config):
@@ -33,7 +44,9 @@ class RandomGraphConfig(Config):
         obj.insert("blocks", BlockPriorConfig.auto(blocks))
         obj.insert("edge_matrix", EdgeMatrixPriorConfig.auto(edge_matrix))
         if obj.edge_matrix.edge_count.name == "delta":
-            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
+            obj.insert(
+                "edge_proposer", EdgeProposerConfig.hinge_flip_uniform()
+            )
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("block_proposer", BlockProposerConfig.peixoto())
@@ -43,7 +56,10 @@ class RandomGraphConfig(Config):
 
     @classmethod
     def uniform_sbm(
-        cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
+        cls,
+        size: int = 100,
+        edge_count: Union[int, float] = 250,
+        block_count_max: Optional[Union[int, float]] = None,
     ):
         blocks = BlockPriorConfig.uniform()
         blocks = BlockPriorConfig.uniform()
@@ -53,7 +69,10 @@ class RandomGraphConfig(Config):
 
     @classmethod
     def hyperuniform_sbm(
-        cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
+        cls,
+        size: int = 100,
+        edge_count: Union[int, float] = 250,
+        block_count_max: Optional[Union[int, float]] = None,
     ):
         blocks = BlockPriorConfig.hyperuniform()
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
@@ -81,19 +100,21 @@ class RandomGraphConfig(Config):
         obj.insert("edge_count", EdgeCountPriorConfig.auto(edge_count))
 
         if obj.edge_count.name == "delta":
-            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
+            obj.insert(
+                "edge_proposer", EdgeProposerConfig.hinge_flip_uniform()
+            )
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("sample_graph_prior_prob", 0.0)
         return obj
 
     @classmethod
-    def er(cls, size: int = 100, edge_count: int = 250):
+    def er(cls, size: int = 100, edge_count: Union[int, float] = 250):
         edge_count = EdgeCountPriorConfig.auto(edge_count)
         return cls.custom_er(name="er", size=size, edge_count=edge_count)
 
     @classmethod
-    def ser(cls, size: int = 100, edge_count: int = 250):
+    def ser(cls, size: int = 100, edge_count: Union[int, float] = 250):
         edge_count = EdgeCountPriorConfig.auto(edge_count)
         obj = cls.custom_er(name="ser", size=size, edge_count=edge_count)
         obj.edge_proposer.set_value("allow_self_loops", False)
@@ -117,7 +138,9 @@ class RandomGraphConfig(Config):
         if obj.degrees.name == "delta":
             obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
         elif obj.edge_matrix.edge_count.name == "delta":
-            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
+            obj.insert(
+                "edge_proposer", EdgeProposerConfig.hinge_flip_uniform()
+            )
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("block_proposer", BlockProposerConfig.peixoto())
@@ -126,18 +149,26 @@ class RandomGraphConfig(Config):
 
     @classmethod
     def uniform_dcsbm(
-        cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
+        cls,
+        size: int = 100,
+        edge_count: Union[int, float] = 250,
+        block_count_max: Optional[Union[int, float]] = None,
     ):
         blocks = BlockPriorConfig.uniform()
         blocks.block_count.set_value("max", block_count_max)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         degrees = DegreePriorConfig.uniform()
 
-        return cls.custom_dcsbm("uniform_dcsbm", size, blocks, edge_matrix, degrees)
+        return cls.custom_dcsbm(
+            "uniform_dcsbm", size, blocks, edge_matrix, degrees
+        )
 
     @classmethod
     def hyperuniform_dcsbm(
-        cls, size: int = 100, edge_count: int = 250, block_count_max: int = None
+        cls,
+        size: int = 100,
+        edge_count: Union[int, float] = 250,
+        block_count_max: Optional[Union[int, float]] = None,
     ):
         blocks = BlockPriorConfig.hyperuniform()
         blocks.block_count.set_value("max", block_count_max)
@@ -161,16 +192,20 @@ class RandomGraphConfig(Config):
         if obj.degrees.name == "delta":
             obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
         elif obj.edge_count.name == "delta":
-            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
+            obj.insert(
+                "edge_proposer", EdgeProposerConfig.hinge_flip_uniform()
+            )
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("sample_graph_prior_prob", 0.0)
         return obj
 
     @classmethod
-    def poisson_cm(cls, size: int = 100, edge_count: int = 250):
+    def poisson_cm(cls, size: int = 100, edge_count: Union[int, float] = 250):
         obj = cls(
-            "poisson_cm", size=size, edge_count=EdgeCountPriorConfig.auto(edge_count)
+            "poisson_cm",
+            size=size,
+            edge_count=EdgeCountPriorConfig.auto(edge_count),
         )
         obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
         obj.insert("sample_graph_prior_prob", 0.0)
@@ -178,7 +213,12 @@ class RandomGraphConfig(Config):
         return obj
 
     @classmethod
-    def nbinom_cm(cls, size: int = 100, edge_count: int = 250, heterogeneity: int = 0):
+    def nbinom_cm(
+        cls,
+        size: int = 100,
+        edge_count: Union[int, float] = 250,
+        heterogeneity: int = 0,
+    ):
         obj = cls(
             "nbinom_cm",
             size=size,
@@ -191,13 +231,15 @@ class RandomGraphConfig(Config):
         return obj
 
     @classmethod
-    def uniform_cm(cls, size: int = 100, edge_count: int = 250):
+    def uniform_cm(cls, size: int = 100, edge_count: Union[int, float] = 250):
         edge_count = EdgeCountPriorConfig.auto(edge_count)
         degrees = DegreePriorConfig.uniform()
         return cls.custom_cm("uniform_cm", size, edge_count, degrees)
 
     @classmethod
-    def hyperuniform_cm(cls, size: int = 100, edge_count: int = 250):
+    def hyperuniform_cm(
+        cls, size: int = 100, edge_count: Union[int, float] = 250
+    ):
         edge_count = EdgeCountPriorConfig.auto(edge_count)
         degrees = DegreePriorConfig.hyperuniform()
         return cls.custom_cm("hyperuniform_cm", size, edge_count, degrees)
@@ -399,7 +441,9 @@ class RandomGraphFactory(Factory):
         )
 
     @staticmethod
-    def build_poisson_cm(config: RandomGraphConfig) -> ConfigurationModelFamily:
+    def build_poisson_cm(
+        config: RandomGraphConfig,
+    ) -> ConfigurationModelFamily:
         degrees = poisson_degreeseq(
             config.size, 2 * config.edge_count.state / config.size
         )
@@ -408,16 +452,22 @@ class RandomGraphFactory(Factory):
     @staticmethod
     def build_nbinom_cm(config: RandomGraphConfig) -> ConfigurationModelFamily:
         degrees = nbinom_degreeseq(
-            config.size, 2 * config.edge_count.state / config.size, config.heterogeneity
+            config.size,
+            2 * config.edge_count.state / config.size,
+            config.heterogeneity,
         )
         return RandomGraphFactory.build_fixed_custom_cm(degrees)
 
     @staticmethod
-    def build_uniform_cm(config: RandomGraphConfig) -> ConfigurationModelFamily:
+    def build_uniform_cm(
+        config: RandomGraphConfig,
+    ) -> ConfigurationModelFamily:
         return RandomGraphFactory.build_custom_cm(config)
 
     @staticmethod
-    def build_hyperuniform_cm(config: RandomGraphConfig) -> ConfigurationModelFamily:
+    def build_hyperuniform_cm(
+        config: RandomGraphConfig,
+    ) -> ConfigurationModelFamily:
         return RandomGraphFactory.build_custom_cm(config)
 
 

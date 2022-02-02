@@ -1,19 +1,20 @@
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-
-import numpy as np
 from _midynet.mcmc import DynamicsMCMC
-
 from _midynet import utility
-from midynet.config import *
-
+from midynet.config import (
+    Config,
+    DynamicsFactory,
+    RandomGraphFactory,
+    RandomGraphMCMCFactory,
+)
 from .metrics import Metrics
-from .multiprocess import Expectation, MultiProcess
+from .multiprocess import Expectation
 from .statistics import Statistics
 from .util import get_log_evidence
 
-__all__ = ["MutualInformation", "MutualInformationMetrics"]
+__all__ = ("MutualInformation", "MutualInformationMetrics")
 
 
 @dataclass
@@ -56,10 +57,14 @@ class MutualInformationMetrics(Metrics):
             for k, v in s.items():
                 sample_dict[k].append(v)
         res = {
-            k: Statistics.compute(v, error_type=config.metrics.mutualinfo.error_type)
+            k: Statistics.compute(
+                v, error_type=config.metrics.mutualinfo.error_type
+            )
             for k, v in sample_dict.items()
         }
-        return {f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()}
+        return {
+            f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()
+        }
 
 
 if __name__ == "__main__":

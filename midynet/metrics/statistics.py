@@ -2,7 +2,7 @@ import copy
 
 import numpy as np
 
-__all__ = ["Statistics"]
+__all__ = ("Statistics",)
 
 
 class Statistics:
@@ -119,7 +119,8 @@ class Statistics:
             return np.mean(samples)
         else:
             raise ValueError(
-                f"Error_type `{error_type}` is invalid. Valid choices are `['std', 'percentile', 'confidence']`."
+                f"Error_type `{error_type}` is invalid. Valid choices"
+                + "are `['std', 'percentile', 'confidence']`."
             )
 
     @staticmethod
@@ -132,7 +133,8 @@ class Statistics:
             return np.mean(samples) - np.percentile(samples, 5)
         else:
             raise ValueError(
-                f"Error_type `{error_type}` is invalid. Valid choices are `['std', 'percentile', 'confidence']`."
+                f"Error_type `{error_type}` is invalid. Valid choices"
+                + "are `['std', 'percentile', 'confidence']`."
             )
 
     @staticmethod
@@ -145,7 +147,8 @@ class Statistics:
             return np.percentile(samples, 95) - np.mean(samples)
         else:
             raise ValueError(
-                f"Error_type `{error_type}` is invalid. Valid choices are `['std', 'percentile', 'confidence']`."
+                f"Error_type `{error_type}` is invalid. Valid choices"
+                + "are `['std', 'percentile', 'confidence']`."
             )
 
     @classmethod

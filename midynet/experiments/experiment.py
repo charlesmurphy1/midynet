@@ -1,23 +1,19 @@
 import os
+import numpy as np
 import pathlib
-import pickle
 import random
 import time
 import typing
+
 from dataclasses import dataclass, field
-
-import numpy as np
-
 from _midynet import utility
 from midynet.config import Config, MetricsFactory
 from midynet.metrics import Metrics
-from midynet.util import (LoggerDict, MemoryLogger, TimeLogger, Verbose,
-                          delete_path)
-
-# import shutil
-# import zipfile
-
-
+from midynet.util import (
+    LoggerDict,
+    Verbose,
+    delete_path,
+)
 
 __all__ = ["Experiment"]
 
@@ -26,12 +22,18 @@ __all__ = ["Experiment"]
 class Experiment:
     config: Config = field(repr=False, init=True)
     verbose: Verbose = field(default_factory=Verbose, init=True)
-    loggers: LoggerDict = field(repr=False, default_factory=LoggerDict, init=True)
+    loggers: LoggerDict = field(
+        repr=False, default_factory=LoggerDict, init=True
+    )
     name: str = field(default="exp", init=False)
     path: pathlib.Path = field(default_factory=pathlib.Path, init=False)
-    config_filename: str = field(repr=False, default="config.pickle", init=False)
+    config_filename: str = field(
+        repr=False, default="config.pickle", init=False
+    )
     log_filename: str = field(repr=False, default="log.json", init=False)
-    seed: int = field(repr=False, default_factory=lambda: int(time.time()), init=False)
+    seed: int = field(
+        repr=False, default_factory=lambda: int(time.time()), init=False
+    )
     metrics: typing.Dict[str, Metrics] = field(
         repr=False, default_factory=dict, init=False
     )
@@ -48,7 +50,10 @@ class Experiment:
             else:
                 self.verbose = Verbose(verbose_type=self.verbose)
         elif not isinstance(self.verbose, Verbose):
-            message = f"Invalid type `{type(self.verbose)}` for verbose, expect `[int, Verbose]`."
+            message = (
+                f"Invalid type `{type(self.verbose)}` for verbose,"
+                + "expect `[int, Verbose]`."
+            )
             raise TypeError(message)
 
         if isinstance(self.loggers, dict):
@@ -70,7 +75,8 @@ class Experiment:
                 f()
             else:
                 raise ValueError(
-                    f"{t} is an invalid task, possible tasks are `{self.__default_protocol__}`"
+                    f"{t} is an invalid task,"
+                    + f"possible tasks are `{self.__default_protocol__}`"
                 )
 
         self.end()
@@ -122,26 +128,15 @@ class Experiment:
             self.metrics[k].load(pathlib.Path(self.path) / f"{k}.pickle")
         self.loggers.load(self.path / self.log_filename)
 
-    #
-    # @classmethod
-    # def unzip(cls, path_to_zip, destination=None):
-    #     zip = zipfile.ZipFile(path_to_zip, mode="r")
-    #     path_to_data, _ = os.path.split(zip.namelist()[0])
-    #     destination = destination or "."
-    #     zip.extractall(path=destination)
-    #     cls = cls.from_file(os.path.join(path_to_data, "config.pickle"))
-    #     cls.path_to_data = path_to_data
-    #     cls.load()
-    #     shutil.rmtree(path_to_data)
-    #     return cls
-
     def clean(self):
         for p in self.path.iterdir():
             delete_path(p)
 
     @classmethod
     def load_from_file(cls, path: pathlib.Path):
-        path = pathlib.Path(path) if not isinstance(path, pathlib.Path) else path
+        path = (
+            pathlib.Path(path) if not isinstance(path, pathlib.Path) else path
+        )
         abs_path = path.resolve()
         config = Config.load(abs_path)
         config.set_value("path", abs_path.parents[0])
@@ -160,11 +155,12 @@ class Experiment:
         config_filename="config.pickle",
     ):
         path = pathlib.Path(path) if isinstance(path, str) else path
-        destination = path / name if destination is None else destination / name
+        destination = (
+            path / name if destination is None else destination / name
+        )
         prohibited = [] if prohibited is None else prohibited
         others = []
         config = None
-        counter = 0
         for local, subpaths, files in os.walk(path):
             if local in prohibited:
                 continue
@@ -180,10 +176,6 @@ class Experiment:
                         config.merge_with(c)
         config.set_value("path", destination)
         exp = cls(config)
-        # for k in exp.config.metrics.names:
-        #     exp.metrics[k] = MetricsFactory.build(k)
-        #     for other in others:
-        #         exp.metrics[k].merge_with(other.metrics[k])
         return exp
 
 

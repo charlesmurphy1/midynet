@@ -3,7 +3,7 @@ from numpy import mean, round
 
 from .logger import Logger
 
-__all__ = ["MemoryLogger"]
+__all__ = ("MemoryLogger",)
 
 
 class MemoryLogger(Logger):
@@ -18,7 +18,8 @@ class MemoryLogger(Logger):
             self.factor = 1024 ** 3
         else:
             raise ValueError(
-                f"`{unit}` is an invalid unit, valid units are `[b, kb, mb, gb]`"
+                f"`{unit}` is an invalid unit, valid units are"
+                + "`[b, kb, mb, gb]`."
             )
         Logger.__init__(self)
 

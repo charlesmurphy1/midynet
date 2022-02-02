@@ -5,7 +5,9 @@ from midynet.util.loggers import LoggerDict, MemoryLogger, TimeLogger
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run a meta-experiment for midyet.")
+    parser = argparse.ArgumentParser(
+        description="Run a meta-experiment for midyet."
+    )
     parser.add_argument(
         "--path_to_config",
         "-c",

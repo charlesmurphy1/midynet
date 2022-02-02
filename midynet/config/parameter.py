@@ -1,9 +1,8 @@
-import copy
 import pathlib
 import typing
 from dataclasses import dataclass, field
 
-__all__ = ["Parameter"]
+__all__ = ("Parameter",)
 
 
 @dataclass(order=True)
@@ -23,7 +22,9 @@ class Parameter:
         return self.infer_type(self.value)
 
     def get_sequence(self, values):
-        if not issubclass(type(values), typing.Iterable) or isinstance(values, str):
+        if not issubclass(type(values), typing.Iterable) or isinstance(
+            values, str
+        ):
             seq = [values]
         else:
             seq = values.copy()
@@ -57,7 +58,9 @@ class Parameter:
 
     def set_value(self, value):
         value = value.value if issubclass(type(value), Parameter) else value
-        if issubclass(type(value), typing.Iterable) and not isinstance(value, str):
+        if issubclass(type(value), typing.Iterable) and not isinstance(
+            value, str
+        ):
             value = self.get_sequence(value)
         self.value = value
         self.__reset_buffer__()

@@ -6,13 +6,13 @@ import pathlib
 import pickle
 import typing
 from collections import defaultdict
-from typing import Any, Callable, Optional
+from typing import Any, Optional, Dict
 
 # import tqdm
 
 from .parameter import Parameter
 
-__all__ = ["Config"]
+__all__ = ("Config",)
 
 
 class Config:
@@ -27,11 +27,15 @@ class Config:
     """ Set of unique parameter names. """
 
     __cache__: bool = True
-    """ Cache the generated sequences, makes the lookup faster at the expense of more memory. """
+    """
+    Cache the generated sequences, makes the lookup faster
+    at the expense of more memory.
+    """
 
     def __init__(self, name="config", **kwargs):
         """
-        Base config class containing and managing the parameters of an experiment set up.
+        Base config class containing and managing the parameters of an
+        experiment set up.
 
         Operators:
             __str__, __repr__, __contains__, __getattr__, __getitem__, __len__,
@@ -55,7 +59,8 @@ class Config:
             self.insert(
                 k,
                 v,
-                unique=k in self.unique_parameters or self.unique_parameters == {"all"},
+                unique=k in self.unique_parameters
+                or self.unique_parameters == {"all"},
             )
 
     def __str__(self) -> str:
@@ -103,7 +108,10 @@ class Config:
         if config_type in cls.__dict__:
             return getattr(cls, config_type)(*others, **kwargs)
         else:
-            message = f"Invalid config type `{type(config_type)}` for auto build of object `{cls.__name__}`."
+            message = (
+                f"Invalid config type `{type(config_type)}` for"
+                + f"auto build of object `{cls.__name__}`."
+            )
             raise TypeError(message)
 
     def __gt__(self, other: Config):
@@ -150,7 +158,9 @@ class Config:
         Args:
             args: input for constructing an instance of `Config`.
         """
-        if not isinstance(config_type, typing.Iterable) or isinstance(config_type, str):
+        if not isinstance(config_type, typing.Iterable) or isinstance(
+            config_type, str
+        ):
             return cls.__auto__(config_type, *others, **kwargs)
         else:
             return [cls.__auto__(c, *others, **kwargs) for c in config_type]
@@ -159,9 +169,10 @@ class Config:
         """
         Keys of the parameters.
         Args:
-            recursively:    if `True`, recursvely returns the keys of all parameters
-                            in `self`, else returns only the parameters directly
-                            owned by `self`. Defaults to `False`.
+            recursively:    if `True`, recursvely returns the keys of all
+                            parameters in `self`, else returns only the
+                            parameters directly owned by `self`.
+                            Defaults to `False`.
         Returns:
             keys of the parameters.
         """
@@ -173,9 +184,10 @@ class Config:
         """
         Values of the parameters.
         Args:
-            recursively:    if `True`, recursvely returns the values of all parameters
-                            in `self`, else returns only the parameters directly
-                            owned by `self.` Defaults to `False`.
+            recursively:    if `True`, recursvely returns the values of all
+                            parameters in `self`, else returns only the
+                            parameters directly owned by `self.`
+                            Defaults to `False`.
         Returns:
             values of the parameters.
         """
@@ -187,9 +199,10 @@ class Config:
         """
         Items of the parameter dict.
         Args:
-            recursively:    if `True`, recursvely returns the items of all parameters
-                            in `self`, else returns only the parameters directly
-                            owned by `self.` Defaults to `False`.
+            recursively:    if `True`, recursvely returns the items of all
+                            parameters in `self`, else returns only the
+                            parameters directly owned by `self.`
+                            Defaults to `False`.
         Returns:
             items of the parameters.
         """
@@ -205,7 +218,8 @@ class Config:
 
     def is_sequenced(self) -> bool:
         """
-        Check whether `self` contains sequenced parameters, otherwise returns False.
+        Check whether `self` contains sequenced parameters,
+        otherwise returns False.
         """
         for v in self.values(True):
             if v.is_sequenced():
@@ -217,7 +231,8 @@ class Config:
 
     def is_equivalent(self, other: Config) -> bool:
         """
-        Check whether `self` generated the same set of configurations with `other`, otherwise returns False.
+        Check whether `self` generated the same set of configurations with
+        `other`, otherwise returns False.
         Args:
             other:  other configuration to compare with
         """
@@ -230,7 +245,8 @@ class Config:
 
     def is_subset(self, other: Config) -> bool:
         """
-        Check whether `self` generates a set of the configurations generated by `other`, otherwise returns False.
+        Check whether `self` generates a set of the configurations generated
+        by `other`, otherwise returns False.
 
         Args:
             other:  other configuration to compare with
@@ -242,7 +258,8 @@ class Config:
 
     def is_subconfig(self, other: Config) -> bool:
         """
-        Check whether `self`, which not be sequenced, is generated by `other`, otherwise returns False.
+        Check whether `self`, which not be sequenced, is generated by `other`,
+        otherwise returns False.
 
         Args:
             other:  other configuration to compare with
@@ -291,7 +308,8 @@ class Config:
 
         Args:
             key: key of the parameter to get.
-            default (optional): Returned value if `key` is not in `self`. Defaults to None.
+            default (optional): Returned value if `key` is not in `self`.
+            Defaults to None.
         """
         return self.dict_copy()[key]
 
@@ -301,7 +319,8 @@ class Config:
 
         Args:
             key: key of the parameter to get.
-            default (optional): Returned value if `key` is not in `self`. Defaults to None.
+            default (optional): Returned value if `key` is not in `self`.
+            Defaults to None.
         """
         return self.get_param(key).value
 
@@ -320,15 +339,19 @@ class Config:
 
     # Copying methods
 
-    def dict_copy(self, prefix="", recursively=True) -> typing.Dict[str, Parameter]:
+    def dict_copy(
+        self, prefix: Optional[str] = "", recursively: Optional[bool] = True
+    ) -> Dict[str, Parameter]:
         copy = {}
         """
-        Generates a dictionary representation of the configuration, that looks up
-        recursively the parameters values (if `recursively` is True).
+        Generates a dictionary representation of the configuration, that looks
+        up recursively the parameters values (if `recursively` is True).
 
         Args:
-            prefix (optional): prefix of each key in the returned :obj:`dict`. Default is empty.
-            recursvely: whether the dictionary include the parameters of all configs or not. Defaults to `True`.
+            prefix (optional): prefix of each key in the returned :obj:`dict`.
+                               Default is empty.
+            recursvely: whether the dictionary include the parameters of all
+                        configs or not. Defaults to `True`.
         """
 
         for k, v in self.items():
@@ -336,18 +359,21 @@ class Config:
             if v.is_config and recursively:
                 if v.is_sequenced():
                     for vv in v.value:
-                        copy[f"{prefix}{k}{self.separator}{vv.name}"] = Parameter(
-                            name=v.name, value=vv, unique=v.unique
-                        )
+                        copy[
+                            f"{prefix}{k}{self.separator}{vv.name}"
+                        ] = Parameter(name=v.name, value=vv, unique=v.unique)
                         copy.update(
                             vv.dict_copy(
-                                prefix=f"{prefix}{k}{self.separator}{vv.name}{self.separator}",
+                                prefix=f"{prefix}{k}{self.separator}"
+                                + f"{vv.name}{self.separator}",
                                 recursively=recursively,
                             )
                         )
                 else:
                     copy.update(
-                        v.value.dict_copy(prefix=f"{prefix}{k}{self.separator}")
+                        v.value.dict_copy(
+                            prefix=f"{prefix}{k}{self.separator}"
+                        )
                     )
         return copy
 
@@ -392,7 +418,8 @@ class Config:
         Saves the configuration in a pickle format.
 
         Args:
-            path (optional): path where the :obj:`Config` is saved. Defaults to 'config.pickle'.
+            path (optional): path where the :obj:`Config` is saved.
+            Defaults to 'config.pickle'.
         """
         path = pathlib.Path(path) if isinstance(path, str) else path
         with path.open(mode="wb") as f:
@@ -400,12 +427,16 @@ class Config:
         return path
 
     @staticmethod
-    def load(path: typing.Union[str, pathlib.Path] = "config.pickle") -> Config:
+    def load(
+        path: typing.Union[str, pathlib.Path] = "config.pickle"
+    ) -> Config:
         """
-        Loads a configuration from a pickle format and returns the associated configuration.
+        Loads a configuration from a pickle format and returns the associated
+        configuration.
 
         Args:
-            path (optional): path where to find the :obj:`Config` to load. Defaults to 'config.pickle'.
+            path (optional): path where to find the :obj:`Config` to load.
+            Defaults to 'config.pickle'.
         """
         path = pathlib.Path(path) if isinstance(path, str) else path
         with path.open(mode="rb") as f:
@@ -424,15 +455,19 @@ class Config:
         Returns a string representation of the configuration, useful for debug.
 
         Args:
-            prefix (optional): string put in front of each line.  Default is empty.
-            name_prefix (optional): string put in front of each parameter.  Default is empty.
-            endline (optional): string put at the end of each line. Default is standard end line.
-            suffix (optional): string put at the end of the format. Default is 'end'.
+            prefix (optional): string put in front of each line.
+            Default is empty.
+            name_prefix (optional): string put in front of each parameter.
+            Default is empty.
+            endline (optional): string put at the end of each line.
+            Default is standard end line.
+            suffix (optional): string put at the end of the format.
+            Default is 'end'.
             forbid (optional): parameters to forbid. Default is None.
 
         Notes:
-            The prefix and name_prefix are used to format the :obj:`Config` recursively, and therefore
-            should not be used in general.
+            The prefix and name_prefix are used to format the :obj:`Config`
+            recursively, and therefore should not be used in general.
         """
         s = f"{prefix}{self.__class__.__name__}(name=`{self.name}`): \n"
 
@@ -448,7 +483,7 @@ class Config:
 
                 for i, c in enumerate(v.value):
                     ss = c.format(
-                        prefix=prefix + f"|\t",
+                        prefix=prefix + "|\t",
                         name_prefix=f"{c.name}{self.separator}",
                         endline=endline,
                         suffix="",
@@ -469,7 +504,9 @@ class Config:
                 else:
                     s += ss[0] + "\n"
             else:
-                s += f"{prefix}|\t{name_prefix}{v.name} = {v.format()}{endline}"
+                s += (
+                    f"{prefix}|\t{name_prefix}{v.name} = {v.format()}{endline}"
+                )
         if suffix is not None and len(self.items()) > 0:
             s += f"{prefix}{suffix}"
         return s
@@ -484,9 +521,11 @@ class Config:
 
         other.__reset_buffer__()
         counter = 0
-        size = len(other)
+        # size = len(other)
         # if verbose:
-        #     pbar = tqdm.tqdm(range(size), f"Merging {self.name} with {other.name}")
+        #     pbar = tqdm.tqdm(
+        #         range(size), f"Merging {self.name} with {other.name}"
+        #     )
         for config in other.__generate_sequence__():
             counter += 1
             if config.is_subconfig(self):
@@ -509,13 +548,18 @@ class Config:
                             self.get_param(key).add_value(value.value)
                     else:
                         if value.value.name != self.get_value(key).name:
-                            self.get_param(key).add_value(config.get_value(key))
+                            self.get_param(key).add_value(
+                                config.get_value(key)
+                            )
                         else:
                             self.get_value(key).merge_with(
                                 config.get_value(key), verbose=0
                             )
                 else:
-                    if self.get_param(key).is_sequenced() or value.is_sequenced():
+                    if (
+                        self.get_param(key).is_sequenced()
+                        or value.is_sequenced()
+                    ):
                         self.get_param(key).add_values(value.value)
                     else:
                         self.get_param(key).add_value(value.value)
@@ -529,8 +573,8 @@ class Config:
         self, only: str = None
     ) -> typing.Generator[Config, None, None]:
         """
-        Generates a sequence of the non-sequenced configurations, whose name is `only`,
-        derived from `self`.
+        Generates a sequence of the non-sequenced configurations,
+        whose name is `only`, derived from `self`.
 
         Args:
             only: name of the :obj:`Configs` to generate.
@@ -559,7 +603,9 @@ class Config:
                     config.get_param(k).force_non_sequence = self.get_param(
                         k
                     ).force_non_sequence
-                    config.get_param(k).sort_sequence = self.get_param(k).sort_sequence
+                    config.get_param(k).sort_sequence = self.get_param(
+                        k
+                    ).sort_sequence
                 if config.is_sequenced():
                     for c in config.__generate_sequence__():
                         name = self.subname(c)
@@ -574,7 +620,8 @@ class Config:
 
     def __reset_buffer__(self) -> None:
         """
-        Resets the buffer of the variables contained by `self`. If `cache` is False, it does nothing.
+        Resets the buffer of the variables contained by `self`.
+        If `cache` is False, it does nothing.
         """
         self.__names__ = None
         self.__scanned_keys__ = None
@@ -623,18 +670,20 @@ class Config:
                     ext += self.separator + s
         return self.name + ext
 
-    def scanned_keys(self) -> typing.Dict[str, list]:
+    def scanned_keys(self) -> Dict[str, list]:
         """
-        Dictionary containing as keys all subnames and as values the keys associated
-        with the sequenced parameters.
+        Dictionary containing as keys all subnames and as values the keys
+        associated with the sequenced parameters.
         """
         if self.__scanned_keys__ is None:
-            counter = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+            counter = defaultdict(
+                lambda: defaultdict(lambda: defaultdict(int))
+            )
             for c in self.sequence():
                 for k, v in c.items(recursively=True):
                     if not v.unique and not v.is_config:
                         counter[c.name][k][v.value] += 1
-            keys: typing.Dict[str, list[str]] = {k: [] for k in self.names()}
+            keys: Dict[str, list[str]] = {k: [] for k in self.names()}
             for name, counter_dict in counter.items():
                 for k, c in counter_dict.items():
                     if len(c) > 1:
@@ -643,7 +692,7 @@ class Config:
 
         return self.__scanned_keys__
 
-    def scanned_values(self) -> typing.Dict[str, typing.Dict[str, list]]:
+    def scanned_values(self) -> Dict[str, Dict[str, list]]:
         """
         Dictionary containing as keys all subnames and, as values, dictionaries
         that contain the values of the sequenced parameters.
@@ -665,10 +714,10 @@ class Config:
                     return values
         return self.__scanned_values__
 
-    def hash_dict(self) -> typing.Dict[str, list[int]]:
+    def hash_dict(self) -> Dict[str, list[int]]:
         """
-        Dictionary containing as keys all subnames and, as value, the hash of all
-        subconfigurations associated with the correspônding subname.
+        Dictionary containing as keys all subnames and, as value, the hash of
+        all subconfigurations associated with the correspônding subname.
         """
         if self.__hash_dict__ is None:
             hash_dict = defaultdict(list)
@@ -711,7 +760,9 @@ class Config:
         """
         if hash(config) not in self.__subnames__:
             if self.__cache__:
-                self.__subnames__[hash(config)] = self.__compute_subname__(config)
+                self.__subnames__[hash(config)] = self.__compute_subname__(
+                    config
+                )
             else:
                 return self.__compute_subname__(config)
         return self.__subnames__[hash(config)]

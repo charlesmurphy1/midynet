@@ -1,18 +1,19 @@
 import time
 from dataclasses import dataclass, field
-
-import numpy as np
 from _midynet.mcmc import DynamicsMCMC
-
 from _midynet import utility
-from midynet.config import *
-
+from midynet.config import (
+    Config,
+    RandomGraphFactory,
+    DynamicsFactory,
+    RandomGraphMCMCFactory,
+)
+from .multiprocess import Expectation
 from .metrics import Metrics
-from .multiprocess import Expectation, MultiProcess
 from .statistics import Statistics
 from .util import get_log_evidence
 
-__all__ = ["DynamicsEntropy", "DynamicsEntropyMetrics"]
+__all__ = ("DynamicsEntropy", "DynamicsEntropyMetrics")
 
 
 @dataclass

@@ -1,7 +1,7 @@
 import json
 import pathlib
 
-__all__ = ["Logger", "LoggerDict"]
+__all__ = ("Logger", "LoggerDict")
 
 
 class Logger:
@@ -46,16 +46,16 @@ class LoggerDict:
         return self.loggers.items()
 
     def on_task_begin(self):
-        for l in self.values():
-            l.on_task_begin()
+        for logger in self.values():
+            logger.on_task_begin()
 
     def on_task_end(self):
-        for l in self.values():
-            l.on_task_end()
+        for logger in self.values():
+            logger.on_task_end()
 
     def on_task_update(self, stepname=None):
-        for l in self.values():
-            l.on_task_update(stepname)
+        for logger in self.values():
+            logger.on_task_update(stepname)
 
     def save(self, path: pathlib.Path):
         log_dict = {}

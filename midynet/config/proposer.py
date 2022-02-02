@@ -4,31 +4,37 @@ from _midynet import proposer
 
 from .config import Config
 from .factory import Factory
-from .wrapper import Wrapper
 
-__all__ = [
+__all__ = (
     "EdgeProposerConfig",
     "BlockProposerConfig",
     "EdgeProposerFactory",
     "BlockProposerFactory",
-]
+)
 
 
 class EdgeProposerConfig(Config):
     @classmethod
     def single_uniform(cls):
-        return cls(name="single_uniform", allow_self_loops=True, allow_multiedges=True)
+        return cls(
+            name="single_uniform", allow_self_loops=True, allow_multiedges=True
+        )
 
     @classmethod
     def single_degree(cls):
         return cls(
-            name="single_degree", allow_self_loops=True, allow_multiedges=True, shift=1
+            name="single_degree",
+            allow_self_loops=True,
+            allow_multiedges=True,
+            shift=1,
         )
 
     @classmethod
     def hinge_flip_uniform(cls):
         return cls(
-            name="hinge_flip_uniform", allow_self_loops=True, allow_multiedges=True
+            name="hinge_flip_uniform",
+            allow_self_loops=True,
+            allow_multiedges=True,
         )
 
     @classmethod
@@ -42,7 +48,9 @@ class EdgeProposerConfig(Config):
 
     @classmethod
     def double_swap(cls):
-        return cls(name="double_swap", allow_self_loops=True, allow_multiedges=True)
+        return cls(
+            name="double_swap", allow_self_loops=True, allow_multiedges=True
+        )
 
 
 class BlockProposerConfig(Config):
@@ -109,7 +117,9 @@ class BlockProposerFactory(Factory):
     def build_uniform(
         config: BlockProposerConfig,
     ) -> proposer.block_proposer.BlockUniformProposer:
-        return proposer.block_proposer.BlockUniformProposer(config.create_new_block)
+        return proposer.block_proposer.BlockUniformProposer(
+            config.create_new_block
+        )
 
     @staticmethod
     def build_peixoto(

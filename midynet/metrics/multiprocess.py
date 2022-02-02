@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-__all__ = ["MultiProcess", "Expectation"]
+__all__ = ("MultiProcess", "Expectation")
 
 
 @dataclass

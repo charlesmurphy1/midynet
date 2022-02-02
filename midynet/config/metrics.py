@@ -1,16 +1,11 @@
 from __future__ import annotations
-
 import typing
-
-import numpy as np
-
-from midynet.metrics import *
-
+import midynet.metrics
+from typing import Union
 from .config import Config
-from .factory import Factory, OptionError
-from .wrapper import Wrapper
+from .factory import Factory, OptionError, MissingRequirementsError
 
-__all__ = ["MetricsConfig", "MetricsCollectionConfig", "MetricsFactory"]
+__all__ = ("MetricsConfig", "MetricsCollectionConfig", "MetricsFactory")
 
 
 class MetricsConfig(Config):
@@ -78,38 +73,52 @@ class MetricsConfig(Config):
 
 
 class MetricsCollectionConfig(Config):
-    unique_parameters: list[str] = {"name", "metrics_names", "num_procs", "seed"}
+    unique_parameters: list[str] = {
+        "name",
+        "metrics_names",
+        "num_procs",
+        "seed",
+    }
 
     @classmethod
     def auto(cls, config_types: typing.Union[str, list[str]]):
         if isinstance(config_types, str):
             config_types = [config_types]
         obj = cls(**{a: MetricsConfig.auto(a) for a in config_types})
-        obj.insert("metrics_names", config_types, force_non_sequence=True, unique=True)
+        obj.insert(
+            "metrics_names", config_types, force_non_sequence=True, unique=True
+        )
         return obj
 
 
 class MetricsFactory(Factory):
     @classmethod
-    def build(cls, config: ExperimentConfig) -> typing.Any:
+    def build(
+        cls, config: Union[MetricsConfig, MetricsCollectionConfig]
+    ) -> midynet.metrics.Metrics:
         if issubclass(type(config), Config) and config.unmet_requirements():
             raise MissingRequirementsError(config)
         options = {
-            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
+            k[6:]: getattr(cls, k)
+            for k in cls.__dict__.keys()
+            if k[:6] == "build_"
         }
-        if isinstance(config.metrics, MetricsConfig):
-            if config.metrics.name in options:
+        if isinstance(config, MetricsConfig):
+            if config.name in options:
                 return options[config.name](config)
             else:
-                raise OptionError(actual=config.name, expected=list(options.keys()))
-        elif isinstance(config.metrics, MetricsCollectionConfig):
-            names = config.metrics.metrics_names
+                raise OptionError(
+                    actual=config.name, expected=list(options.keys())
+                )
+        elif isinstance(config, MetricsCollectionConfig):
             metrics = {}
             for name in config.metrics.metrics_names:
                 if name in options:
                     metrics[name] = options[name](config)
                 else:
-                    raise OptionError(actual=name, expected=list(options.keys()))
+                    raise OptionError(
+                        actual=name, expected=list(options.keys())
+                    )
             return metrics
         else:
             message = (
@@ -120,31 +129,31 @@ class MetricsFactory(Factory):
 
     @staticmethod
     def build_dynamics_entropy(config: MetricsCollectionConfig):
-        return DynamicsEntropyMetrics(config)
+        return midynet.metrics.DynamicsEntropyMetrics(config)
 
     @staticmethod
     def build_dynamics_prediction_entropy(config: MetricsCollectionConfig):
-        return DynamicsPredictionEntropyMetrics(config)
+        return midynet.metrics.DynamicsPredictionEntropyMetrics(config)
 
     @staticmethod
     def build_predictability(config: MetricsCollectionConfig):
-        return PredictabilityMetrics(config)
+        return midynet.metrics.PredictabilityMetrics(config)
 
     @staticmethod
     def build_graph_entropy(config: MetricsCollectionConfig):
-        return GraphEntropyMetrics(config)
+        return midynet.metrics.GraphEntropyMetrics(config)
 
     @staticmethod
     def build_graph_reconstruction_entropy(config: MetricsCollectionConfig):
-        return GraphReconstructionEntropyMetrics(config)
+        return midynet.metrics.GraphReconstructionEntropyMetrics(config)
 
     @staticmethod
     def build_reconstructability(config: MetricsCollectionConfig):
-        return ReconstructabilityMetrics(config)
+        return midynet.metrics.ReconstructabilityMetrics(config)
 
     @staticmethod
     def build_mutualinfo(config: MetricsCollectionConfig):
-        return MutualInformationMetrics(config)
+        return midynet.metrics.MutualInformationMetrics(config)
 
 
 if __name__ == "__main__":

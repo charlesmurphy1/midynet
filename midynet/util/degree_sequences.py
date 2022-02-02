@@ -4,13 +4,13 @@ from scipy.optimize import bisect
 from scipy.special import loggamma
 from scipy.stats import nbinom, poisson
 
-__all__ = [
+__all__ = (
     "generate_degseq",
     "bnbinomial",
     "poisson_degreeseq",
     "scalefree_degreeseq",
     "nbinom_degreeseq",
-]
+)
 
 
 def generate_degseq(xk, pk, size):

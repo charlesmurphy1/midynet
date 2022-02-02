@@ -9,7 +9,7 @@ import numpy as np
 from midynet.config import Config
 from midynet.util import Verbose
 
-__all__ = ["Metrics"]
+__all__ = ("Metrics",)
 
 
 @dataclass
@@ -31,7 +31,9 @@ class Metrics:
 
     def compute(self, verbose=Verbose()) -> None:
         self.set_up()
-        pb = verbose.init_progress(self.__class__.__name__, total=len(self.config))
+        pb = verbose.init_progress(
+            self.__class__.__name__, total=len(self.config)
+        )
         raw_data = defaultdict(lambda: defaultdict(list))
         for c in self.config.sequence():
             val = self.eval(c)
@@ -50,11 +52,16 @@ class Metrics:
             formatted_data[name] = {}
             for key, value in data_in_name.items():
                 formatted_data[name][key] = np.empty(
-                    [len(v) for v in self.config.scanned_values()[name].values()]
+                    [
+                        len(v)
+                        for v in self.config.scanned_values()[name].values()
+                    ]
                 )
 
                 if formatted_data[name][key].shape == ():
-                    formatted_data[name][key] = formatted_data[name][key].reshape(1)
+                    formatted_data[name][key] = formatted_data[name][
+                        key
+                    ].reshape(1)
                 formatted_data[name][key][:] = np.nan
 
                 for i, c in enumerate(self.config.named_sequence(name)):
@@ -109,10 +116,14 @@ class Metrics:
             for key in self.data[self_name].keys():
                 if c.is_subconfig(self.config):
                     index = self.get_config_flat_index(c, name=self_name)
-                    merged_flat[name][key].append(self_flat[self_name][key][index])
+                    merged_flat[name][key].append(
+                        self_flat[self_name][key][index]
+                    )
                 elif c.is_subconfig(other.config):
                     index = other.get_config_flat_index(c, name=other_name)
-                    merged_flat[name][key].append(other_flat[other_name][key][index])
+                    merged_flat[name][key].append(
+                        other_flat[other_name][key][index]
+                    )
                 else:
                     merged_flat[name][key].append(np.nan)
 

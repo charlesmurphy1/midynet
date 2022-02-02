@@ -1,13 +1,11 @@
 import os
 import pathlib
 
-import h5py
 import matplotlib.pyplot as plt
-import numpy as np
 from cycler import cycler
 from palettable.palette import Palette
 
-__all__ = [
+__all__ = (
     "hex_to_rgb",
     "rgb_to_hex",
     "palettes",
@@ -15,13 +13,15 @@ __all__ = [
     "linestyles",
     "cycle",
     "label_plot",
-]
+)
 
 
 def hex_to_rgb(value):
     value = value.lstrip("#")
     lv = len(value)
-    return tuple(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
+    return tuple(
+        int(value[i: i + lv // 3], 16) for i in range(0, lv, lv // 3)
+    )
 
 
 def rgb_to_hex(rgb):
@@ -40,9 +40,6 @@ def setup_dir(path: pathlib.Path = "."):
 
 def clean_dir(path: pathlib.Path = ".", prefix: str = None):
     path = pathlib.Path(path) if isinstance(path, str) else path
-    path_to_svg = path / "svg"
-    path_to_pdf = path / "pdf"
-    path_to_png = path / "png"
     for path_to in [path / "svg", path / "pdf", path / "png"]:
         for local, subpaths, files in os.walk(path_to):
             for f in files:
@@ -83,7 +80,9 @@ for k in hex_colors.keys():
     cm = [rgb_colors["white"][0], *rgb_colors[k], rgb_colors["black"][0]]
     if k != "black" and k != "white":
         palettes[k + "s"] = Palette(k + "s", "sequential", cm)
-        palettes["inv_" + k + "s"] = Palette("inv_" + k + "s", "sequential", cm[::-1])
+        palettes["inv_" + k + "s"] = Palette(
+            "inv_" + k + "s", "sequential", cm[::-1]
+        )
 
 for i, k in enumerate(["light", "med", "dark"]):
     cm = [
@@ -126,7 +125,9 @@ def label_plot(ax, label, loc="center center", fontsize=18, box=None):
     elif isinstance(loc, str):
         h, v, va, ha = locations[loc]
     if isinstance(box, bool):
-        box = dict(boxstyle="round", color="white", alpha=0.75) if box else None
+        box = (
+            dict(boxstyle="round", color="white", alpha=0.75) if box else None
+        )
 
     ax.text(
         h,

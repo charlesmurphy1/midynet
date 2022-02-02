@@ -1,16 +1,16 @@
 import time
 from dataclasses import dataclass, field
-
-import numpy as np
-
 from _midynet import utility
-from midynet.config import *
-
+from midynet.config import (
+    Config,
+    RandomGraphFactory,
+    DynamicsFactory,
+)
+from .multiprocess import Expectation
 from .metrics import Metrics
-from .multiprocess import Expectation, MultiProcess
 from .statistics import Statistics
 
-__all__ = ["DynamicsPredictionEntropy", "DynamicsPredictionEntropyMetrics"]
+__all__ = ("DynamicsPredictionEntropy", "DynamicsPredictionEntropyMetrics")
 
 
 @dataclass
@@ -36,11 +36,14 @@ class DynamicsPredictionEntropyMetrics(Metrics):
         )
         self.counter += len(self.config)
         samples = dynamics_entropy.compute(
-            config.metrics.dynamics_prediction_entropy.get_value("num_samples", 10)
+            config.metrics.dynamics_prediction_entropy.get_value(
+                "num_samples", 10
+            )
         )
 
         return Statistics.compute(
-            samples, error_type=config.metrics.dynamics_prediction_entropy.error_type
+            samples,
+            error_type=config.metrics.dynamics_prediction_entropy.error_type,
         )
 
 

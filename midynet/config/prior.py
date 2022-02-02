@@ -1,12 +1,10 @@
-from typing import Any, Callable, Dict
-
 from _midynet.prior import sbm
 
 from .config import Config
 from .factory import Factory, UnavailableOption
 from .wrapper import Wrapper
 
-__all__ = [
+__all__ = (
     "EdgeCountPriorConfig",
     "BlockCountPriorConfig",
     "BlockPriorConfig",
@@ -17,7 +15,7 @@ __all__ = [
     "BlockPriorFactory",
     "EdgeMatrixPriorFactory",
     "DegreePriorFactory",
-]
+)
 
 
 class EdgeCountPriorConfig(Config):
@@ -33,13 +31,13 @@ class EdgeCountPriorConfig(Config):
     @classmethod
     def delta(cls, edge_count: int = 0):
         if edge_count < 0:
-            raise ValueError(f"`edge_count` must be non-negative")
+            raise ValueError("`edge_count` must be non-negative")
         return cls(name="delta", state=edge_count)
 
     @classmethod
     def poisson(cls, mean: float = 0):
         if mean < 0:
-            raise ValueError(f"`mean` must be non-negative")
+            raise ValueError("`mean` must be non-negative")
         return cls(name="poisson", mean=mean)
 
 
@@ -59,13 +57,15 @@ class BlockCountPriorConfig(Config):
     @classmethod
     def delta(cls, block_count: int):
         if block_count < 1:
-            raise ValueError(f"`block_count` must be greater than or equal to 1.")
+            raise ValueError(
+                "`block_count` must be greater than or equal to 1."
+            )
         return cls(name="delta", state=block_count)
 
     @classmethod
     def poisson(cls, mean: float = 1):
         if mean < 0:
-            raise ValueError(f"`mean` must be non-negative.")
+            raise ValueError("`mean` must be non-negative.")
         return cls(name="poisson", mean=mean)
 
     @classmethod
@@ -73,9 +73,9 @@ class BlockCountPriorConfig(Config):
         if min is not None and max is None:
             min, max = 1, min
         if min < 1:
-            raise ValueError(f"`min` must be greater than or equal to 1.")
+            raise ValueError("`min` must be greater than or equal to 1.")
         elif min > max:
-            raise ValueError(f"`max` must be greater than or equal to `min`.")
+            raise ValueError("`max` must be greater than or equal to `min`.")
         return cls(name="uniform", min=min, max=max)
 
 
@@ -115,7 +115,9 @@ class BlockPriorConfig(Config):
 class EdgeMatrixPriorConfig(Config):
     @classmethod
     def uniform(cls, edge_count):
-        return cls(name="uniform", edge_count=EdgeCountPriorConfig.auto(edge_count))
+        return cls(
+            name="uniform", edge_count=EdgeCountPriorConfig.auto(edge_count)
+        )
 
 
 class DegreePriorConfig(Config):
@@ -149,7 +151,9 @@ class EdgeCountPriorFactory(Factory):
         return sbm.EdgeCountDeltaPrior(config.get_value("state", 0))
 
     @staticmethod
-    def build_poisson(config: EdgeCountPriorConfig) -> sbm.EdgeCountPoissonPrior:
+    def build_poisson(
+        config: EdgeCountPriorConfig,
+    ) -> sbm.EdgeCountPoissonPrior:
         return sbm.EdgeCountPoissonPrior(config.get_value("mean", 0))
 
 

@@ -1,8 +1,13 @@
-from typing import Any, Callable, Dict
+from typing import Any
 
 from .config import Config
 
-__all__ = ["UnavailableOption", "OptionError", "MissingRequirementsError", "Factory"]
+__all__ = (
+    "UnavailableOption",
+    "OptionError",
+    "MissingRequirementsError",
+    "Factory",
+)
 
 
 def UnavailableOption(name):
@@ -26,7 +31,8 @@ class MissingRequirementsError(Exception):
         if config is None:
             message = (
                 f"Requirements `{config.unmet_requirements()}` of object "
-                + f"`{config.__class__.__name__}` are missing and needs to be defined."
+                + f"`{config.__class__.__name__}` are missing and"
+                + "needs to be defined."
             )
         else:
             message = ""
@@ -39,7 +45,9 @@ class Factory:
         if config.unmet_requirements():
             raise MissingRequirementsError(config)
         options = {
-            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
+            k[6:]: getattr(cls, k)
+            for k in cls.__dict__.keys()
+            if k[:6] == "build_"
         }
         name = config.name
         if name in options:

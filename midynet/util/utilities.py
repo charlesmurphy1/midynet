@@ -5,14 +5,14 @@ import typing
 import basegraph
 import numpy as np
 
-__all__ = [
+__all__ = (
     "clip",
     "log_sum_exp",
     "log_mean_exp",
     "to_batch",
     "delete_path",
     "enumerate_all_graphs",
-]
+)
 
 
 def clip(x, xmin=0, xmax=1):
@@ -57,12 +57,9 @@ def delete_path(path: pathlib.Path):
     path.rmdir()
 
 
-# def convert_basegraph_to_networkx(g: basegraph.core.UndirectedMultigraph) -> nx.Graph:
-#     A = np.array(g.get_adjacency_matrix())
-#     return nx.from_numpy_array(A)
-
-
-def get_all_edges(size: int, allow_self_loops: bool = False) -> list[tuple[int, int]]:
+def get_all_edges(
+    size: int, allow_self_loops: bool = False
+) -> list[tuple[int, int]]:
     if allow_self_loops:
         return list(itertools.combinations_with_replacement(range(size), 2))
     else:

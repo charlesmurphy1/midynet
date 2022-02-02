@@ -2,7 +2,7 @@ from datetime import datetime
 
 from .logger import Logger
 
-__all__ = ["TimeLogger"]
+__all__ = ("TimeLogger",)
 
 
 class TimeLogger(Logger):

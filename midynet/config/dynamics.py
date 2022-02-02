@@ -2,9 +2,8 @@ from _midynet import dynamics
 
 from .config import Config
 from .factory import Factory
-from .wrapper import Wrapper
 
-__all__ = ["DynamicsConfig", "DynamicsFactory"]
+__all__ = ("DynamicsConfig", "DynamicsFactory")
 
 
 class DynamicsConfig(Config):
@@ -18,13 +17,24 @@ class DynamicsConfig(Config):
         elif self.name == "cowan":
             self.set_value("nu", coupling)
         else:
-            message = f"Invalid entry {dynamics} for dynamics, expected ['sis', 'ising', 'cowan']."
+            message = (
+                f"Invalid entry {dynamics} for dynamics,"
+                + "expected ['sis', 'ising', 'cowan']."
+            )
             raise ValueError(message)
 
     @classmethod
-    def ising(cls, num_steps: int = 100, coupling: float = 1.0, normalize: bool = True):
+    def ising(
+        cls,
+        num_steps: int = 100,
+        coupling: float = 1.0,
+        normalize: bool = True,
+    ):
         return cls(
-            name="ising", num_steps=num_steps, coupling=coupling, normalize=normalize
+            name="ising",
+            num_steps=num_steps,
+            coupling=coupling,
+            normalize=normalize,
         )
 
     @classmethod

@@ -1,4 +1,4 @@
-__all__ = ["Wrapper"]
+__all__ = ("Wrapper",)
 
 
 class Wrapper:

@@ -4,7 +4,7 @@ import time
 import typing
 from dataclasses import dataclass, field
 
-from midynet.config import *
+from midynet.config import Config
 
 __all__ = ["ScriptManager"]
 
@@ -20,7 +20,7 @@ def split_into_chunks(
     d, r = divmod(len(container), num_chunks)
     for i in range(num_chunks):
         si = (d + 1) * (i if i < r else r) + d * (0 if i < r else i - r)
-        yield container[si : si + (d + 1 if i < r else d)]
+        yield container[si: si + (d + 1 if i < r else d)]
 
 
 @dataclass
@@ -107,7 +107,9 @@ class ScriptManager:
     def split_param(
         configs, param_key: str, num_chunks: int = None, label_with="value"
     ):
-        configs = [configs] if issubclass(configs.__class__, Config) else configs
+        configs = (
+            [configs] if issubclass(configs.__class__, Config) else configs
+        )
         splitted_configs = []
         for c in configs:
             p = c.get_param(param_key)
@@ -126,7 +128,9 @@ class ScriptManager:
                 if label_with == "value":
                     new_config.set_value("name", new_config.name + "." + ext)
                 elif isinstance(label_with, list):
-                    new_config.set_value("name", new_config.name + "." + label_with[i])
+                    new_config.set_value(
+                        "name", new_config.name + "." + label_with[i]
+                    )
                 else:
                     new_config.set_value("name", new_config.name + f".{i}")
                 new_config.set_value("path", new_config.path / new_config.name)

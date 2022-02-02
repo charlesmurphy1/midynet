@@ -1,9 +1,14 @@
 import pathlib
 import time
 
-from midynet.config import *
+from midynet.config import (
+    Config,
+    DynamicsConfig,
+    RandomGraphConfig,
+    MetricsCollectionConfig,
+)
 
-__all__ = ["ExperimentConfig"]
+__all__ = ("ExperimentConfig",)
 
 
 class ExperimentConfig(Config):
@@ -33,7 +38,9 @@ class ExperimentConfig(Config):
         obj.insert("graph", RandomGraphConfig.auto(graph))
         obj.insert(
             "metrics",
-            MetricsCollectionConfig.auto(metrics if metrics is not None else []),
+            MetricsCollectionConfig.auto(
+                metrics if metrics is not None else []
+            ),
         )
         obj.insert(
             "path",
@@ -41,9 +48,14 @@ class ExperimentConfig(Config):
             force_non_sequence=True,
             unique=True,
         )
-        obj.insert("num_procs", num_procs, force_non_sequence=True, unique=True)
         obj.insert(
-            "seed", seed or int(time.time()), force_non_sequence=True, unique=True
+            "num_procs", num_procs, force_non_sequence=True, unique=True
+        )
+        obj.insert(
+            "seed",
+            seed or int(time.time()),
+            force_non_sequence=True,
+            unique=True,
         )
 
         return obj

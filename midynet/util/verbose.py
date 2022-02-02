@@ -1,7 +1,6 @@
 import pathlib
 import time
 import typing
-from datetime import datetime
 
 import numpy as np
 import tqdm
@@ -65,7 +64,10 @@ class Verbose:
             t = np.mean(self.times_per_step)
             total = t * self.total
             remaining = t * self.total - np.sum(self.times_per_step)
-            msg += f" Time: {Verbose.format_time(total - remaining, short=True)} / {Verbose.format_time(total, short=True)}"
+            msg += (
+                f" Time: {Verbose.format_time(total - remaining, short=True)}"
+                + f"/ {Verbose.format_time(total, short=True)}"
+            )
 
         if self.to_file:
             self.save_msg(msg, overwrite_last=self.iteration != 0)

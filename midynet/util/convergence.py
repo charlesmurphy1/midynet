@@ -3,26 +3,20 @@ from __future__ import annotations
 import importlib
 import typing
 
-import numpy as np
+import basegraph
+import networkx as nx
 from _midynet.mcmc import DynamicsMCMC
 from _midynet.utility import get_edge_list
-from basegraph.core import UndirectedMultigraph
+
+__all__ = ("MCMCConvergenceAnalysis",)
 
 
 class MCMCConvergenceAnalysis:
     def __init__(
         self,
         mcmc: DynamicsMCMC,
-        distance: BaseDistance,
+        distance: typing.Callable,
     ):
-        if importlib.util.find_spec("netrd") is None:
-            message = (
-                f"The MCMCConvergenceAnalysis method cannot be used, "
-                + "because `netrd` is not installed."
-            )
-            raise NotImplementedError(message)
-        else:
-            from netrd.distance import BaseDistance
         self.mcmc = mcmc
         self.distance = distance
         self.collected = []
@@ -35,14 +29,19 @@ class MCMCConvergenceAnalysis:
         numsteps_between_resets=None,
     ):
 
-        original_graph = self.convert_basegraph_to_networkx(self.mcmc.get_graph())
+        original_graph = self.convert_basegraph_to_networkx(
+            self.mcmc.get_graph()
+        )
 
         s, f = self.mcmc.do_MH_sweep(burn)
-        numsteps = 0
         for i in range(num_samples):
             s, f = self.mcmc.do_MH_sweep(numsteps_between_samples)
-            current_graph = self.convert_basegraph_to_networkx(self.mcmc.get_graph())
-            self.collected.append(self.distance.dist(original_graph, current_graph))
+            current_graph = self.convert_basegraph_to_networkx(
+                self.mcmc.get_graph()
+            )
+            self.collected.append(
+                self.distance.dist(original_graph, current_graph)
+            )
         return self.collected
 
     def clear(self):
@@ -54,7 +53,7 @@ class MCMCConvergenceAnalysis:
     ) -> nx.Graph:
         if importlib.util.find_spec("networkx") is None:
             message = (
-                f"The MCMCConvergenceAnalysis method cannot be used, "
+                "The MCMCConvergenceAnalysis method cannot be used, "
                 + "because `networkx` is not installed."
             )
             raise NotImplementedError(message)
