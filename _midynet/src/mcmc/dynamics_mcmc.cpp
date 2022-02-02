@@ -41,7 +41,7 @@ bool DynamicsMCMC::doMetropolisHastingsStep() {
 
         double r = m_uniform(rng), p = exp(m_lastLogAcceptance);
         std::cout << "step: " << m_numSteps;
-        std::cout << "random: " << r;
+        std::cout << "\t random: " << r;
         std::cout << "\t p: " << p;
         std::cout << "\t Accept: " << m_lastLogAcceptance;
         std::cout << "\t Likelihood: " << logLikelihoodRatio;
@@ -58,6 +58,7 @@ bool DynamicsMCMC::doMetropolisHastingsStep() {
             std::cout << "Y";
         else
             std::cout << "N";
+        std::cout << std::endl;
         std::cout << std::endl;
 
         return m_isLastAccepted;

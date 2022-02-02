@@ -37,12 +37,14 @@ void initDynamics(py::module& m){
         .def("set_eta", &CowanDynamics::setEta, py::arg("eta"));
 
     py::class_<DegreeDynamics, BinaryDynamics>(m, "DegreeDynamics")
-        .def(py::init<size_t, double, bool>(),
-            py::arg("num_steps"), py::arg("C"), py::arg("normalize")=true)
-        .def(py::init<RandomGraph&, size_t, double>(),
-            py::arg("random_graph"), py::arg("num_steps"), py::arg("C"))
+        .def(py::init<size_t, double, double>(),
+            py::arg("num_steps"), py::arg("C"), py::arg("epsilon")=1e-6)
+        .def(py::init<RandomGraph&, size_t, double, double>(),
+            py::arg("random_graph"), py::arg("num_steps"), py::arg("C"), py::arg("epsilon")=1e-6)
         .def("get_c", &DegreeDynamics::getC)
-        .def("set_c", &DegreeDynamics::setC, py::arg("c"));
+        .def("set_c", &DegreeDynamics::setC, py::arg("c"))
+        .def("get_epsilon", &DegreeDynamics::getEpsilon)
+        .def("set_epsilon", &DegreeDynamics::setEpsilon, py::arg("epsilon"));
 
     py::class_<IsingGlauberDynamics, BinaryDynamics>(m, "IsingGlauberDynamics")
         .def(py::init<size_t, double, bool>(),

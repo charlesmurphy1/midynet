@@ -55,6 +55,7 @@ public:
     const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { return 0; }
     const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { return 0; }
 
+
 };
 
 class DummyDynamics: public Dynamics{
@@ -67,6 +68,13 @@ class DummyDynamics: public Dynamics{
             VertexState nextVertexState,
             VertexNeighborhoodState vertexNeighborhoodState
         ) const { return 1. / getNumStates(); }
+
+        void updateNeighborStateMapFromEdgeMove(
+            BaseGraph::Edge edge,
+            int direction,
+            std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&prev,
+            std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&next
+        ) const { Dynamics::updateNeighborStateMapFromEdgeMove(edge, direction, prev, next); }
 };
 
 static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){

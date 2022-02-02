@@ -37,6 +37,39 @@ TEST_F(TestDegreeDynamics, getDeactivationProb_forEachStateTransition_returnCorr
         );
 }
 
+TEST_F(TestDegreeDynamics, afterSample_getCorrectNeighborState){
+    dynamics.sample();
+    auto past = dynamics.getPastStates();
+    auto expectedNeighborState = dynamics.getNeighborStates();
+
+    for(size_t t=0; t<dynamics.getNumSteps(); ++t){
+        for (auto vertex : dynamics.getGraph()){
+            std::vector<size_t> actualNeighborState(dynamics.getNumStates(), 0);
+            for (auto neighbor : dynamics.getGraph().getNeighboursOfIdx(vertex)){
+                actualNeighborState[past[t][neighbor.vertexIndex]]+= neighbor.label;
+            }
+            for (size_t s=0 ; s< dynamics.getNumStates(); ++s)
+                EXPECT_EQ(actualNeighborState[s], expectedNeighborState[t][vertex][s]);
+        }
+    }
+}
+
+TEST_F(TestDegreeDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
+    dynamics.sample();
+    auto past = dynamics.getPastStates();
+    auto future = dynamics.getFutureStates();
+    auto neighborState = dynamics.getNeighborStates();
+
+    double expected = dynamics.getLogLikelihood();
+    double actual = 0;
+    for(size_t t=0; t<dynamics.getNumSteps(); ++t){
+        for (auto vertex : dynamics.getGraph()){
+            actual += log(dynamics.getTransitionProb(past[t][vertex], future[t][vertex], neighborState[t][vertex]));
+        }
+    }
+    EXPECT_NEAR(expected, actual, 1E-6);
+}
+
 TEST_F(TestDegreeDynamics, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
     dynamics.sample();
     edgeProposer.setUp(graph);
