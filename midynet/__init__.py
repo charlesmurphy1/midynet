@@ -1,16 +1,16 @@
 import _midynet
-import midynet.metadata
+from midynet import metadata
+from midynet import util
+from midynet import config
+from midynet import metrics
+from midynet import experiments
+from midynet import scripts
 from _midynet import dynamics, mcmc, prior, proposer, random_graph
 
 from .metadata import __version__
 
 _midynet.utility.seedWithTime()
 
-import midynet.util
-import midynet.config
-import midynet.metrics
-import midynet.experiments
-import midynet.scripts
 
 __all__ = (
     "config",
@@ -23,4 +23,6 @@ __all__ = (
     "metrics",
     "experiments",
     "scripts",
+    "metadata",
+    "__version__"
 )
