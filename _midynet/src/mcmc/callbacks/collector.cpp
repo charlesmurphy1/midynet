@@ -20,10 +20,10 @@ void CollectEdgeMultiplicityOnSweep::collect(){
     ++m_totalCount;
     const MultiGraph& graph = m_mcmcPtr->getGraph();
 
-    for ( auto idx : graph){
-        for (auto neighbor : graph.getNeighboursOfIdx(idx)){
-            if (neighbor.vertexIndex > idx){
-                auto edge = getOrderedPair<BaseGraph::VertexIndex>({idx, neighbor.vertexIndex});
+    for ( auto vertex : graph){
+        for (auto neighbor : graph.getNeighboursOfIdx(vertex)){
+            if (vertex <= neighbor.vertexIndex){
+                auto edge = getOrderedPair<BaseGraph::VertexIndex>({vertex, neighbor.vertexIndex});
                 m_observedEdges.increment(edge);
                 m_observedEdgesCount.increment({edge, neighbor.label});
                 if (neighbor.label > m_observedEdgesMaxCount[edge])
@@ -35,7 +35,7 @@ void CollectEdgeMultiplicityOnSweep::collect(){
 
 const double CollectEdgeMultiplicityOnSweep::getEdgeCountProb(BaseGraph::Edge edge, size_t count) const {
     if (count == 0)
-        return 1 - ((double)m_observedEdges.get(edge)) / ((double)m_totalCount);
+        return 1.0 - ((double)m_observedEdges.get(edge)) / ((double)m_totalCount);
     else
         return ((double)m_observedEdgesCount.get({edge, count})) / ((double)m_totalCount);
 }
@@ -43,11 +43,19 @@ const double CollectEdgeMultiplicityOnSweep::getEdgeCountProb(BaseGraph::Edge ed
 const double CollectEdgeMultiplicityOnSweep::getMarginalEntropy() {
     double marginalEntropy = 0;
     for (auto edge : m_observedEdges){
+        std::cout << "edge (" << edge.first.first << ", " << edge.first.second << "): ";
         for (size_t count = 0; count <= m_observedEdgesMaxCount[edge.first]; ++count){
             double p = getEdgeCountProb(edge.first, count);
+            std::cout << count << " / " << m_observedEdgesMaxCount[edge.first] << " (n=";
+            if (count == 0)
+                std::cout << m_totalCount - m_observedEdges.get(edge.first);
+            else
+                std::cout << m_observedEdgesCount.get({edge.first, count});
+            std::cout << ", p=" << p << ", N=" << m_totalCount << ")\t";
             if (p > 0)
                 marginalEntropy -= p * log(p);
         }
+        std::cout << std::endl;
     }
     return marginalEntropy;
 }

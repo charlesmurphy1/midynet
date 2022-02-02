@@ -57,7 +57,9 @@ void initVerbose(py::module& m){
         .def("get_message", &VerboseDisplay::getMessage)
         .def("write_message", py::overload_cast<std::string>(&VerboseDisplay::writeMessage),
             py::arg("message"))
-        .def("write_message", py::overload_cast<>(&VerboseDisplay::writeMessage));
+        .def("write_message", py::overload_cast<>(&VerboseDisplay::writeMessage))
+        .def("get_step", &VerboseDisplay::getStep)
+        .def("set_step", &VerboseDisplay::setStep);
 
     py::class_<VerboseToConsole, VerboseDisplay>(m, "VerboseToConsole")
         .def(py::init<>())

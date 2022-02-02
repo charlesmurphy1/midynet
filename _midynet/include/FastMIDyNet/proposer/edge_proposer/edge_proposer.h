@@ -19,7 +19,7 @@ protected:
     bool m_withIsolatedVertices = true;
     const MultiGraph* m_graphPtr = nullptr;
     bool isSelfLoop(BaseGraph::Edge edge) const { return edge.first == edge.second; }
-    bool isExistingEdge(BaseGraph::Edge edge) const { return m_graphPtr->getEdgeMultiplicityIdx(edge) > 1;}
+    bool isExistingEdge(BaseGraph::Edge edge) const { return m_graphPtr->getEdgeMultiplicityIdx(edge) >= 1;}
 public:
     using Proposer<GraphMove>::Proposer;
     EdgeProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):

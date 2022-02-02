@@ -25,10 +25,10 @@ void Dynamics::sampleState(const State& x0, bool async){
 
     for (size_t t = 0; t < m_numSteps; t++) {
         m_pastStateSequence.push_back(m_state);
+        m_neighborsStateSequence.push_back(getNeighborsState(m_state));
         if (async) { asyncUpdateState(getSize()); }
         else { syncUpdateState(); }
         m_futureStateSequence.push_back(m_state);
-        m_neighborsStateSequence.push_back(getNeighborsState(m_state));
     }
 };
 

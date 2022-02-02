@@ -34,7 +34,8 @@ void VerboseDisplay::onSweepBegin() {
 }
 void VerboseDisplay::onSweepEnd() {
     for (auto v : m_verboseVec) v->onSweepEnd();
-    writeMessage();
+    if (m_mcmcPtr->getNumSweeps() % m_step == 0)
+        writeMessage();
 }
 
 }

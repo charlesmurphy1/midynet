@@ -180,12 +180,16 @@ public:
 class VerboseDisplay: public CallBack{
 protected:
     std::vector<Verbose*> m_verboseVec;
+    size_t m_step;
+    size_t m_numSweeps;
 public:
-    VerboseDisplay(std::vector<Verbose*> verboseVec={}): m_verboseVec(verboseVec){}
+    VerboseDisplay(std::vector<Verbose*> verboseVec={}): m_verboseVec(verboseVec), m_step(1){}
 
     std::string getMessage() const;
     virtual void writeMessage(std::string message) = 0;
     void writeMessage() { writeMessage(getMessage()); }
+    size_t getStep() { return m_step; }
+    void setStep(size_t step) { m_step = step; }
     void setUp(MCMC* mcmcPtr) ;
     void tearDown() ;
     virtual void onBegin() ;

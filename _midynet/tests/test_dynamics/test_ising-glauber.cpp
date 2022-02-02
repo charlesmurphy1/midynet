@@ -2,6 +2,8 @@
 #include <list>
 
 #include "FastMIDyNet/dynamics/ising-glauber.h"
+#include "FastMIDyNet/random_graph/erdosrenyi.h"
+#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
 #include "fixtures.hpp"
 
 namespace FastMIDyNet{
@@ -15,7 +17,9 @@ static inline double sigmoid(double x) {
 
 class TestIsingGlauber: public::testing::Test{
 public:
-    FastMIDyNet::DummyRandomGraph graph = FastMIDyNet::DummyRandomGraph(7);
+    EdgeCountDeltaPrior edgeCountPrior = {10};
+    ErdosRenyiFamily graph = ErdosRenyiFamily(10, edgeCountPrior);
+    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
     FastMIDyNet::IsingGlauberDynamics dynamics = FastMIDyNet::IsingGlauberDynamics(graph, NUM_STEPS, COUPLING_CONSTANT, false);
 };
 
@@ -36,6 +40,18 @@ TEST_F(TestIsingGlauber, getDeactivationProb_forEachStateTransition_returnCorrec
             dynamics.getDeactivationProb(neighborState)
         );
     }
+}
+
+TEST_F(TestIsingGlauber, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
+    dynamics.sample();
+    edgeProposer.setUp(graph);
+    auto graphMove = edgeProposer.proposeMove();
+    double ratio = dynamics.getLogLikelihoodRatioFromGraphMove(graphMove);
+    double logLikelihoodBefore = dynamics.getLogLikelihood();
+    dynamics.applyGraphMove(graphMove);
+    double logLikelihoodAfter = dynamics.getLogLikelihood();
+
+    EXPECT_NEAR(ratio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
 }

@@ -3,12 +3,14 @@
 
 namespace FastMIDyNet{
 
-const double DegreeDynamics::getActivationProb(const VertexNeighborhoodState& neighborhood_state) const{
-    return (neighborhood_state[0] + neighborhood_state[1])/m_C;
+const double DegreeDynamics::getActivationProb(const VertexNeighborhoodState& neighborhoodState) const{
+    double p = (neighborhoodState[0] + neighborhoodState[1]) / m_C;
+    return (1 - m_epsilon) * p + m_epsilon;
 }
 
-const double DegreeDynamics::getDeactivationProb(const VertexNeighborhoodState& neighborhood_state) const{
-    return 1 - (neighborhood_state[0] + neighborhood_state[1])/m_C;
+const double DegreeDynamics::getDeactivationProb(const VertexNeighborhoodState& neighborhoodState) const{
+    double q = 1 - getActivationProb(neighborhoodState);
+    return q;
 }
 
 } // FastMIDyNet
