@@ -18,3 +18,5 @@ compile_commands.json
 fast-midynet.sublime-project
 fast-midynet.sublime-workspace
 dist/
+*.coverage
+*.tox
