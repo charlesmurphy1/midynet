@@ -82,8 +82,6 @@ ext_modules = [
             "./_midynet/SamplableSet/src",
         ],
         sources=[
-            "./_midynet/base_graph/src/",
-            "./_midynet/SamplableSet/src/",
             "./_midynet/src/rng.cpp",
             "./_midynet/src/exceptions.cpp",
             "./_midynet/src/generators.cpp",
