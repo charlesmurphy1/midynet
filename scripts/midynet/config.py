@@ -36,7 +36,7 @@ def get_config_test(num_procs=4, time="1:00:00", mem=12, seed=1):
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
     config.dynamics.set_coupling(coupling)
-    config.metrics.mutualinfo.set_value("num_samples", 1000 // num_procs * num_procs)
+    config.metrics.mutualinfo.set_value("num_samples", 1000)
     config.metrics.mutualinfo.set_value("method", "exact")
     resources = {
         "account": "def-aallard",
@@ -75,9 +75,7 @@ def get_config_figure2Exact(
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
-    config.metrics.mutualinfo.set_value(
-        "num_samples", max(1, 1000 // num_procs) * num_procs
-    )
+    config.metrics.mutualinfo.set_value("num_samples", 1000)
     config.metrics.mutualinfo.set_value("method", "exact")
     resources = {
         "account": "def-aallard",
@@ -104,7 +102,7 @@ def get_config_figure3Small(
         num_procs=num_procs,
     )
     N, E = 5, 5
-    T = 10
+    T = 100
 
     if dynamics == "sis":
         coupling = np.linspace(0, 1, 30)
@@ -116,9 +114,7 @@ def get_config_figure3Small(
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
-    config.metrics.mutualinfo.set_value(
-        "num_samples", max(1, 1000 // num_procs) * num_procs
-    )
+    config.metrics.mutualinfo.set_value("num_samples", 1000)
     config.metrics.mutualinfo.set_value("method", ["meanfield", "annealed"])
 
     resources = {
@@ -157,9 +153,7 @@ def get_config_figure3Large(
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
-    config.metrics.mutualinfo.set_value(
-        "num_samples", max(1, 32 // num_procs) * num_procs
-    )
+    config.metrics.mutualinfo.set_value("num_samples", 32)
     config.metrics.mutualinfo.set_value("num_sweeps", 1000)
     config.metrics.mutualinfo.set_value("method", ["meanfield", "annealed"])
 
@@ -197,7 +191,11 @@ def get_config_figure4Nbinom(
     elif dynamics == "cowan":
         coupling = np.unique(
             np.concatenate(
-                [np.linspace(0, 1, 5), np.linspace(1, 2, 10), np.linspace(2, 4, 5)]
+                [
+                    np.linspace(0, 1, 5),
+                    np.linspace(1, 2, 10),
+                    np.linspace(2, 4, 5),
+                ]
             )
         )
     config.graph.set_value("size", N)
@@ -205,9 +203,7 @@ def get_config_figure4Nbinom(
     config.graph.set_value("heterogeneity", h)
     config.dynamics.set_value("num_steps", T)
     config.dynamics.set_coupling(coupling)
-    config.metrics.mutualinfo.set_value(
-        "num_samples", max(1, 32 // num_procs) * num_procs
-    )
+    config.metrics.mutualinfo.set_value("num_samples", 32)
     config.metrics.mutualinfo.set_value("method", "meanfield")
     config.metrics.mutualinfo.set_value("num_sweeps", 200)
 

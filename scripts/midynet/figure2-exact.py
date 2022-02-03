@@ -1,6 +1,10 @@
-from config import *
-
-import midynet
+from config import (
+    get_config_figure2Exact,
+    PATH_TO_RUN_EXEC,
+    EXECUTION_COMMAND,
+    SPECS,
+)
+from midynet.scripts import ScriptManager
 
 
 def main():
@@ -8,7 +12,7 @@ def main():
         config = get_config_figure2Exact(
             dynamics, num_procs=32, time="5:00:00", mem=12
         )
-        script = midynet.scripts.ScriptManager(
+        script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
             path_to_scripts="./scripts",

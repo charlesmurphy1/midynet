@@ -42,7 +42,7 @@ def get_log_evidence_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
     dynamicsMCMC.tear_down()
     dynamicsMCMC.pop_callback()
     dynamicsMCMC.set_graph(g)
-    return -log_mean_exp(logp)
+    return log_mean_exp(logp)
 
 
 def get_log_evidence_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
@@ -148,12 +148,17 @@ def get_log_posterior_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config):
 
 def get_log_posterior_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
     graph_callback = CollectEdgeMultiplicityOnSweep()
+    # verbose = MCMCVerboseFactory.build_console()
     dynamicsMCMC.add_callback(graph_callback)
+    # dynamicsMCMC.add_callback(verbose.get_wrap())
     dynamicsMCMC.set_up()
     burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
     s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
+
     for i in range(config.num_sweeps):
-        dynamicsMCMC.do_MH_sweep(burn=burn)
+        _s, _f = dynamicsMCMC.do_MH_sweep(burn=burn)
+        s += _s
+        f += _f
     logp = -graph_callback.get_marginal_entropy()  # -H(G|X)
 
     dynamicsMCMC.tear_down()

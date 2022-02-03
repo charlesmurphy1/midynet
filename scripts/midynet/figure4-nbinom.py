@@ -1,12 +1,17 @@
-from config import *
+from config import (
+    get_config_figure4Nbinom,
+    PATH_TO_RUN_EXEC,
+    EXECUTION_COMMAND,
+    SPECS,
+)
 
-import midynet
+from midynet.scripts import ScriptManager
 
 
 def main():
     for dynamics in ["ising"]:
         config = get_config_figure4Nbinom(dynamics, num_procs=32, mem=12)
-        script = midynet.scripts.ScriptManager(
+        script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
             path_to_scripts="./scripts",

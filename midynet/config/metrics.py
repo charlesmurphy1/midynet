@@ -1,7 +1,6 @@
 from __future__ import annotations
 import typing
 import midynet.metrics
-from typing import Union
 from .config import Config
 from .factory import Factory, OptionError, MissingRequirementsError
 
@@ -93,9 +92,7 @@ class MetricsCollectionConfig(Config):
 
 class MetricsFactory(Factory):
     @classmethod
-    def build(
-        cls, config: Union[MetricsConfig, MetricsCollectionConfig]
-    ) -> midynet.metrics.Metrics:
+    def build(cls, config: Config) -> midynet.metrics.Metrics:
         if issubclass(type(config), Config) and config.unmet_requirements():
             raise MissingRequirementsError(config)
         options = {
@@ -103,27 +100,29 @@ class MetricsFactory(Factory):
             for k in cls.__dict__.keys()
             if k[:6] == "build_"
         }
-        if isinstance(config, MetricsConfig):
-            if config.name in options:
-                return options[config.name](config)
+        metrics = config.metrics
+        if isinstance(metrics, MetricsConfig):
+            if metrics.name in options:
+                return options[metrics.name](config)
             else:
                 raise OptionError(
-                    actual=config.name, expected=list(options.keys())
+                    actual=metrics.name, expected=list(options.keys())
                 )
-        elif isinstance(config, MetricsCollectionConfig):
-            metrics = {}
-            for name in config.metrics.metrics_names:
+        elif isinstance(metrics, MetricsCollectionConfig):
+            collections = {}
+            for name in metrics.metrics_names:
                 if name in options:
-                    metrics[name] = options[name](config)
+                    collections[name] = options[name](config)
                 else:
                     raise OptionError(
                         actual=name, expected=list(options.keys())
                     )
-            return metrics
+            return collections
         else:
             message = (
                 f"Invalid type {type(config)} for building metrics,"
-                + "expected types `[MetricsConfig, MetricsCollectionConfig]`."
+                + "must contain type"
+                + "`[MetricsConfig, MetricsCollectionConfig]`."
             )
             raise TypeError(message)
 

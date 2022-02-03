@@ -6,7 +6,7 @@ import pathlib
 import pickle
 import typing
 from collections import defaultdict
-from typing import Any, Optional, Dict
+from typing import Any, Dict, Optional, Union
 
 # import tqdm
 
@@ -104,9 +104,13 @@ class Config:
         return len(self.sequence())
 
     @classmethod
-    def __auto__(cls, config_type: str, *others, **kwargs) -> Config:
+    def __auto__(
+        cls, config_type: Union[str, Config], *others, **kwargs
+    ) -> Config:
         if config_type in cls.__dict__:
             return getattr(cls, config_type)(*others, **kwargs)
+        elif isinstance(config_type, cls):
+            return config_type
         else:
             message = (
                 f"Invalid config type `{type(config_type)}` for"
@@ -313,7 +317,7 @@ class Config:
         """
         return self.dict_copy()[key]
 
-    def get_value(self, key: str) -> typing.Any:
+    def get_value(self, key: str, default: Optional[Any] = None) -> Any:
         """
         Returns the value associated with the parameter `key`.
 
@@ -322,7 +326,7 @@ class Config:
             default (optional): Returned value if `key` is not in `self`.
             Defaults to None.
         """
-        return self.get_param(key).value
+        return self.get_param(key).value if key in self else default
 
     def set_value(self, key: str, value: Any) -> None:
         """

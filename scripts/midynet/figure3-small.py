@@ -1,18 +1,24 @@
-from config import *
+from config import (
+    get_config_figure3Small,
+    PATH_TO_RUN_EXEC,
+    EXECUTION_COMMAND,
+    SPECS,
+)
 
-import midynet
+from midynet.scripts import ScriptManager
 
 
 def main():
-    for dynamics in ["sis", "cowan", "ising"]:
+    for dynamics in ["sis", "ising", "cowan"]:
         config = get_config_figure3Small(dynamics, num_procs=32, mem=12)
-        script = midynet.scripts.ScriptManager(
+        script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
             path_to_scripts="./scripts",
         )
-        ais_config, mf_config = script.split_param(config, "metrics.mutualinfo.method")
-
+        ais_config, mf_config = script.split_param(
+            config, "metrics.mutualinfo.method"
+        )
         mf_config.resources["time"] = "01:00:00"
         script.run(
             mf_config,

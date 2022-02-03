@@ -42,6 +42,11 @@ class ExperimentConfig(Config):
                 metrics if metrics is not None else []
             ),
         )
+        for m in obj.metrics.metrics_names:
+            ns = obj.metrics.get_value(m).num_samples
+            obj.metrics.get_value(m).set_value(
+                "num_samples", max(1, ns // num_procs) * num_procs
+            )
         obj.insert(
             "path",
             path if isinstance(path, pathlib.Path) else pathlib.Path(path),

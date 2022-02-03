@@ -1,6 +1,7 @@
 import time
-from collections import defaultdict
+
 from dataclasses import dataclass, field
+from collections import defaultdict
 from _midynet.mcmc import DynamicsMCMC
 from _midynet import utility
 from midynet.config import (
