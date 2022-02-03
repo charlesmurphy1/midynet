@@ -1,5 +1,8 @@
+from __future__ import annotations
 import pathlib
 import time
+
+from typing import List, Optional, Union
 
 from midynet.config import (
     Config,
@@ -28,11 +31,11 @@ class ExperimentConfig(Config):
         name: str,
         dynamics: str,
         graph: str,
-        metrics: list[str] = None,
-        path: pathlib.Path = ".",
+        metrics: Optional[List[str]] = None,
+        path: Union[str, pathlib.Path] = ".",
         num_procs: int = 1,
-        seed: int = None,
-    ):
+        seed: Optional[int] = None,
+    ) -> ExperimentConfig:
         obj = cls(name=name)
         obj.insert("dynamics", DynamicsConfig.auto(dynamics))
         obj.insert("graph", RandomGraphConfig.auto(graph))

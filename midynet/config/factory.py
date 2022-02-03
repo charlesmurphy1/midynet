@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from .config import Config
 
@@ -10,13 +10,15 @@ __all__ = (
 )
 
 
-def UnavailableOption(name):
+def UnavailableOption(name: str) -> None:
     message = f"Option of name '{name}' are currently unavailable."
     raise NotImplementedError(message)
 
 
 class OptionError(Exception):
-    def __init__(self, actual: str = None, expected: str = None):
+    def __init__(
+        self, actual: Optional[str] = None, expected: Optional[Any] = None
+    ):
         if actual is None:
             return
         message = f"Option '{actual}' is invalid."
@@ -27,8 +29,8 @@ class OptionError(Exception):
 
 
 class MissingRequirementsError(Exception):
-    def __init__(self, config: Config = None):
-        if config is None:
+    def __init__(self, config: Optional[Config] = None):
+        if config is not None:
             message = (
                 f"Requirements `{config.unmet_requirements()}` of object "
                 + f"`{config.__class__.__name__}` are missing and"

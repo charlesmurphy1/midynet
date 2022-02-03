@@ -2,8 +2,8 @@ from __future__ import annotations
 from typing import Any
 from _midynet.proposer.block_proposer import BlockGenericProposer
 from _midynet import mcmc
+from .config import Config
 from .factory import Factory, OptionError, MissingRequirementsError
-from .random_graph import RandomGraphConfig
 from .proposer import EdgeProposerFactory, BlockProposerFactory
 from .wrapper import Wrapper
 
@@ -12,7 +12,7 @@ __all__ = ("RandomGraphMCMCFactory", "MCMCVerboseFactory")
 
 class RandomGraphMCMCFactory(Factory):
     @classmethod
-    def build(cls, config: RandomGraphConfig) -> Any:
+    def build(cls, config: Config, *args: Any, **kwargs: Any) -> Any:
         if config.unmet_requirements():
             raise MissingRequirementsError(config)
         edge_proposer = EdgeProposerFactory.build(config.edge_proposer)
@@ -31,7 +31,7 @@ class RandomGraphMCMCFactory(Factory):
 
 class MCMCVerboseFactory(Factory):
     @classmethod
-    def build(cls, name: str, **kwargs) -> Any:
+    def build(cls, name: str, **kwargs: Any) -> Any:
         options = {
             k[6:]: getattr(cls, k)
             for k in cls.__dict__.keys()
