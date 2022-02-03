@@ -156,8 +156,12 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(
     for (size_t t = 0; t < m_numSteps; t++) {
         uState = m_pastStateSequence[t][u];
         vState = m_pastStateSequence[t][v];
-        nextNeighborMap[u][t][vState] += counter;
-        nextNeighborMap[v][t][uState] += counter;
+        if (u == v)
+            nextNeighborMap[u][t][uState] += counter;
+        else{
+            nextNeighborMap[u][t][vState] += counter;
+            nextNeighborMap[v][t][uState] += counter;
+        }
         if (nextNeighborMap[v][t][uState] < 0 or nextNeighborMap[u][t][vState] < 0)
             throw std::logic_error("Negative values!");
     }
@@ -186,12 +190,9 @@ const double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move)
 
 
     for (const auto& idx: verticesAffected){
-        std::string prev, next;
         for (size_t t = 0; t < m_numSteps; t++) {
             logLikelihoodRatio += log(getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], nextNeighborMap[idx][t]));
-            prev += std::to_string(getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], prevNeighborMap[idx][t])) + ", ";
             logLikelihoodRatio -= log(getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], prevNeighborMap[idx][t]));
-            next += std::to_string(getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], nextNeighborMap[idx][t])) + ", ";
         }
     }
 
