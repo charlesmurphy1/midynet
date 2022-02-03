@@ -1,0 +1,7 @@
+pybind11>=2.3
+numpy>=1.20.3
+scipy>=1.7.1
+psutil>=5.8.0
+tqdm>=4.56.0
+basegraph==1.0.0
+SamplableSet>=2.0.0

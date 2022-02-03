@@ -1,13 +1,14 @@
 import os
+import pathlib
 import sys
 
 import setuptools
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
-exec(open("./midynet/metadata.py").read())
-
-# __version__ = "1.0.0"
+# MIDYNET_ROOT = os.path.dirname(os.path.abspath(__file__))
+# for x in os.walk(MIDYNET_ROOT):
+#     print(x)
 
 
 class get_pybind_include(object):
@@ -28,26 +29,28 @@ class get_pybind_include(object):
 
 def find_compiled_basegraph(build_path):
     if not os.path.isdir(build_path) or os.listdir(build_path) == []:
-        raise RuntimeError(
-            "Submodule BaseGraph was not compiled."
-        )
-
-    basegraph_lib_path = None
+        raise RuntimeError("Submodule BaseGraph was not compiled.")
+    lib_path = None
     for extension in [".a"]:
         if os.path.isfile(
             os.path.join(build_path, "libBaseGraph" + extension)
         ):
-            basegraph_lib_path = os.path.join(
-                build_path, "libBaseGraph" + extension
-            )
+            lib_path = os.path.join(build_path, "libBaseGraph" + extension)
             break
 
-    if basegraph_lib_path is None:
+    if lib_path is None:
         raise RuntimeError(
             f'Could not find libBaseGraph in "{build_path}".'
             + "Verify that the library is compiled."
         )
-    return basegraph_lib_path
+    return lib_path
+
+
+def find_compiled_SamplableSet(build_path):
+    if not os.path.isdir(build_path) or os.listdir(build_path) == []:
+        raise RuntimeError("Submodule SamplableSet was not compiled.")
+    lib_path = os.path.join(build_path, "libsamplableset.a")
+    return lib_path
 
 
 def find_files_recursively(path, ext=[]):
@@ -79,6 +82,8 @@ ext_modules = [
             "./_midynet/SamplableSet/src",
         ],
         sources=[
+            "./_midynet/base_graph/src/",
+            "./_midynet/SamplableSet/src/",
             "./_midynet/src/rng.cpp",
             "./_midynet/src/exceptions.cpp",
             "./_midynet/src/generators.cpp",
@@ -117,10 +122,7 @@ ext_modules = [
         language="c++",
         extra_objects=[
             find_compiled_basegraph("./_midynet/base_graph/build"),
-            os.path.join(
-                os.getcwd(),
-                "./_midynet/SamplableSet/src/build/libsamplableset.a",
-            ),
+            find_compiled_SamplableSet("./_midynet/SamplableSet/src/build"),
         ],
     ),
 ]
@@ -197,36 +199,8 @@ class BuildExt(build_ext):
         build_ext.build_extensions(self)
 
 
-# setup(
-#     name="midynet",
-#     version=__version__,
-#     author=__author__,
-#     author_email=__email__,
-#     url="https://github.com/charlesmurphy1/fast-midynet",
-#     license=__license__,
-#     description="A package for the analysis of stochastic processes on random graphs.",
-#     long_description="",
-#     packages=setuptools.find_packages(),
-#     ext_modules=ext_modules,
-#     python_requires=">=3.6",
-#     setup_requires=["pybind11>=2.3"],
-#     install_requires=[
-#         "pybind11>=2.3",
-#         "numpy>=1.20.3",
-#         "scipy>=1.7.1",
-#         "psutil>=5.8.0",
-#         "tqdm>=4.56.0",
-#         "basegraph==1.0.0",
-#         "SamplableSet>=2.0.0",
-#     ],
-#     extras_require={"full": ["networkx", "netrd", "graph_tool"]},
-#     include_package_data=True,
-#     cmdclass={"build_ext": BuildExt},
-#     zip_safe=False,
-# )
-
 setup(
-    version=__version__,
+    version=0.1,
     ext_modules=ext_modules,
     extras_require={"full": ["networkx", "netrd", "graph_tool"]},
     include_package_data=True,
