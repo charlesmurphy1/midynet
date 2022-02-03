@@ -205,7 +205,7 @@ def get_config_figure4Nbinom(
     config.dynamics.set_coupling(coupling)
     config.metrics.mutualinfo.set_value("num_samples", 32)
     config.metrics.mutualinfo.set_value("method", "meanfield")
-    config.metrics.mutualinfo.set_value("num_sweeps", 1000)
+    config.metrics.mutualinfo.set_value("num_sweeps", 200)
 
     resources = {
         "account": "def-aallard",
