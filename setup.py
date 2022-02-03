@@ -7,7 +7,6 @@ from setuptools.command.build_ext import build_ext
 
 exec(open("./midynet/metadata.py").read())
 
-print(__version__, __author__)
 # __version__ = "1.0.0"
 
 
@@ -30,18 +29,23 @@ class get_pybind_include(object):
 def find_compiled_basegraph(build_path):
     if not os.path.isdir(build_path) or os.listdir(build_path) == []:
         raise RuntimeError(
-            'Submodule BaseGraph was not compiled. Run:\n\t"cd base_graph && mkdir build && cd build && cmake .. && make && cd ../../".'
+            "Submodule BaseGraph was not compiled."
         )
 
     basegraph_lib_path = None
     for extension in [".a"]:
-        if os.path.isfile(os.path.join(build_path, "libBaseGraph" + extension)):
-            basegraph_lib_path = os.path.join(build_path, "libBaseGraph" + extension)
+        if os.path.isfile(
+            os.path.join(build_path, "libBaseGraph" + extension)
+        ):
+            basegraph_lib_path = os.path.join(
+                build_path, "libBaseGraph" + extension
+            )
             break
 
     if basegraph_lib_path is None:
         raise RuntimeError(
-            f'Could not find libBaseGraph in "{build_path}". Verify that the library is compiled.'
+            f'Could not find libBaseGraph in "{build_path}".'
+            + "Verify that the library is compiled."
         )
     return basegraph_lib_path
 
@@ -51,7 +55,8 @@ def find_files_recursively(path, ext=[]):
         ext = [ext]
     elif not isinstance(ext, list):
         raise TypeError(
-            f"type `{type(exp)}` for extension is incorrect, expect `str` or `list`."
+            f"type `{type(ext)}` for extension is incorrect,"
+            + "expect `str` or `list`."
         )
     file_list = []
 
@@ -113,7 +118,8 @@ ext_modules = [
         extra_objects=[
             find_compiled_basegraph("./_midynet/base_graph/build"),
             os.path.join(
-                os.getcwd(), "./_midynet/SamplableSet/src/build/libsamplableset.a"
+                os.getcwd(),
+                "./_midynet/SamplableSet/src/build/libsamplableset.a",
             ),
         ],
     ),
@@ -148,7 +154,9 @@ def cpp_flag(compiler):
         if has_flag(compiler, flag):
             return flag
 
-    raise RuntimeError("Unsupported compiler -- at least C++11 support " "is needed!")
+    raise RuntimeError(
+        "Unsupported compiler -- at least C++11 support " "is needed!"
+    )
 
 
 class BuildExt(build_ext):
@@ -173,42 +181,54 @@ class BuildExt(build_ext):
         opts = self.c_opts.get(ct, [])
         link_opts = self.l_opts.get(ct, [])
         if ct == "unix":
-            opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
+            opts.append(
+                '-DVERSION_INFO="%s"' % self.distribution.get_version()
+            )
             opts.append(cpp_flag(self.compiler))
             if has_flag(self.compiler, "-fvisibility=hidden"):
                 opts.append("-fvisibility=hidden")
         elif ct == "msvc":
-            opts.append('/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version())
+            opts.append(
+                '/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version()
+            )
         for ext in self.extensions:
             ext.extra_compile_args = opts
             ext.extra_link_args = link_opts
         build_ext.build_extensions(self)
 
 
+# setup(
+#     name="midynet",
+#     version=__version__,
+#     author=__author__,
+#     author_email=__email__,
+#     url="https://github.com/charlesmurphy1/fast-midynet",
+#     license=__license__,
+#     description="A package for the analysis of stochastic processes on random graphs.",
+#     long_description="",
+#     packages=setuptools.find_packages(),
+#     ext_modules=ext_modules,
+#     python_requires=">=3.6",
+#     setup_requires=["pybind11>=2.3"],
+#     install_requires=[
+#         "pybind11>=2.3",
+#         "numpy>=1.20.3",
+#         "scipy>=1.7.1",
+#         "psutil>=5.8.0",
+#         "tqdm>=4.56.0",
+#         "basegraph==1.0.0",
+#         "SamplableSet>=2.0.0",
+#     ],
+#     extras_require={"full": ["networkx", "netrd", "graph_tool"]},
+#     include_package_data=True,
+#     cmdclass={"build_ext": BuildExt},
+#     zip_safe=False,
+# )
+
 setup(
-    name="midynet",
     version=__version__,
-    author=__author__,
-    author_email=__email__,
-    url="https://github.com/charlesmurphy1/fast-midynet",
-    license=__license__,
-    description="A package for the analysis of stochastic processes on random graphs.",
-    long_description="",
-    packages=setuptools.find_packages(),
     ext_modules=ext_modules,
-    python_requires=">=3.6",
-    setup_requires=["pybind11>=2.3"],
-    install_requires=[
-        "pybind11>=2.3",
-        "numpy>=1.20.3",
-        "scipy>=1.7.1",
-        "psutil>=5.8.0",
-        "tqdm>=4.56.0",
-        "basegraph==1.0.0",
-        "SamplableSet>=2.0.0",
-    ],
     extras_require={"full": ["networkx", "netrd", "graph_tool"]},
     include_package_data=True,
     cmdclass={"build_ext": BuildExt},
-    zip_safe=False,
 )
