@@ -4,9 +4,9 @@ import importlib
 import typing
 
 import basegraph
-import networkx as nx
 from _midynet.mcmc import DynamicsMCMC
 from _midynet.utility import get_edge_list
+
 
 __all__ = ("MCMCConvergenceAnalysis",)
 
@@ -50,7 +50,7 @@ class MCMCConvergenceAnalysis:
     @staticmethod
     def convert_basegraph_to_networkx(
         bs_graph: basegraph.core.UndirectedMultigraph,
-    ) -> nx.Graph:
+    ):
         if importlib.util.find_spec("networkx") is None:
             message = (
                 "The MCMCConvergenceAnalysis method cannot be used, "
