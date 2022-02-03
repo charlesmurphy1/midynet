@@ -1,14 +1,13 @@
 import pytest
 from _midynet.prior import sbm
 
-from midynet.config import *
+from midynet.config import Wrapper
 
 
 @pytest.fixture
 def wrapper():
     size = 100
     max_block_count = 10
-    config = BlockPriorConfig.uniform()
     block_count = sbm.BlockCountUniformPrior(max_block_count)
     blocks = sbm.BlockUniformPrior(size, block_count)
     return Wrapper(
@@ -27,7 +26,9 @@ def test_get_wrap(wrapper):
 
 
 def test_get_others(wrapper):
-    assert isinstance(wrapper.get_other("block_count"), sbm.BlockCountUniformPrior)
+    assert isinstance(
+        wrapper.get_other("block_count"), sbm.BlockCountUniformPrior
+    )
 
 
 def test_correct_setup(wrapper):

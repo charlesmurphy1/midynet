@@ -2,7 +2,14 @@ import pytest
 from _midynet.mcmc import DynamicsMCMC
 
 import midynet
-from midynet.config import *
+from midynet.config import (
+    DynamicsFactory,
+    RandomGraphFactory,
+    RandomGraphMCMCFactory,
+    MetricsConfig,
+    ExperimentConfig,
+    Wrapper,
+)
 
 DISPLAY = False
 

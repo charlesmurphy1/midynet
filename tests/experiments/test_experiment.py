@@ -1,5 +1,3 @@
-import pathlib
-
 import numpy as np
 import pytest
 
@@ -97,4 +95,4 @@ def test_merge(experiment):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pass

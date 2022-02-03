@@ -4,9 +4,14 @@ from dataclasses import dataclass
 import numpy as np
 import pytest
 
-import midynet
 from midynet import metrics
-from midynet.config import *
+from midynet.config import (
+    Config,
+    DynamicsConfig,
+    RandomGraphConfig,
+    MetricsCollectionConfig,
+    ExperimentConfig,
+)
 
 
 @dataclass
@@ -22,8 +27,6 @@ def base_metrics():
     coupling = np.linspace(0, 10, 2)
     infection_prob = np.linspace(0, 10, 2)
     N = [10, 100]
-    coupling_size = len(coupling)
-    N_size = len(N)
     d = DynamicsConfig.auto(["ising", "sis"])
     d[0].set_value("coupling", coupling)
     d[1].set_value("infection_prob", infection_prob)
@@ -66,10 +69,6 @@ def test_basemetrics_flatten(base_metrics):
     flat_data = base_metrics.flatten(base_metrics.data)
     for name, data in flat_data.items():
         for key, value in data.items():
-            # if name == "test.ising":
-            #     assert value.shape == (len(self.coupling) * len(self.N),)
-            # elif name == "test.sis":
-            #     assert value.shape == (len(self.infection_prob) * len(self.N),)
             assert np.all(value == np.pi)
 
 
@@ -84,28 +83,6 @@ def test_basemetrics_load(base_metrics):
     base_metrics.save("metrics.pickle")
     base_metrics.load("metrics.pickle")
     pathlib.Path("metrics.pickle").unlink()
-
-
-# def test_merge_with():
-#     config = self.config.deepcopy()
-#
-#     config.set_value("dynamics.ising.coupling", 1000.0)
-#     config.set_value("dynamics.sis.infection_prob", 1000.0)
-#     config.set_value(
-#         "graph.edge_matrix.edge_count", EdgeCountPriorConfig.auto(50.0)
-#     )
-#     metrics = DummyMetrics(value=2, config=config)
-#     metrics.compute()
-#     self.metrics.compute()
-#     self.metrics.merge_with(metrics)
-#
-#     d = self.metrics.data
-#     for keys in itertools.product(["test"], ["ising", "sis"], ["delta", "poisson"]):
-#         name = ".".join(keys)
-#         self.assertIn(name, d)
-#         self.assertEqual(
-#             d[name]["dummy"].shape, (self.coupling_size + 1, self.N_size)
-#         )
 
 
 metrics_dict = {
@@ -153,7 +130,7 @@ def test_eval(args):
     config, metrics = args
     m = metrics(config)
     for c in config.sequence():
-        d = m.eval(c)
+        m.eval(c)
 
 
 if __name__ == "__main__":

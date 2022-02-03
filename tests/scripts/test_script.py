@@ -1,10 +1,6 @@
-import os
-import pathlib
-
 import pytest
-
 from midynet import scripts
-from midynet.config import *
+from midynet.config import ExperimentConfig
 
 DISPLAY = False
 
@@ -19,7 +15,7 @@ def script():
     s = scripts.ScriptManager(
         "test_script",
         "python run.py",
-        path_to_scripts=f"./testing/scripts/test-dir",
+        path_to_scripts="./testing/scripts/test-dir",
     )
     yield s
     path = s.path_to_scripts  # testing/scripts/test-dir
@@ -75,4 +71,4 @@ def test_split_param(config, script):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pass

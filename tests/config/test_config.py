@@ -1,12 +1,16 @@
 import pathlib
-import typing
 
 import pytest
 
-import midynet as md
-from midynet.config import *
+from midynet.config import (
+    Config,
+    Parameter,
+    MetricsConfig,
+    MetricsCollectionConfig,
+    ExperimentConfig,
+)
 
-DISPLAY = True
+DISPLAY = False
 
 
 @pytest.fixture
@@ -63,7 +67,9 @@ def test_baseconfig_contains(config):
 
 
 def test_baseconfig_get_recursively(config, r_config):
-    assert config.get_param("x") == r_config.get_param(f"config{Config.separator}x")
+    assert config.get_param("x") == r_config.get_param(
+        f"config{Config.separator}x"
+    )
 
 
 def test_baseconfig_dictcopy_recursively(r_config):
@@ -241,7 +247,9 @@ def test_metrics_collection_config_auto():
     assert "dynamics_entropy" in metrics_config
     assert "dynamics_entropy" in metrics_config.metrics_names
 
-    metrics_config = MetricsCollectionConfig.auto(["dynamics_entropy", "graph_entropy"])
+    metrics_config = MetricsCollectionConfig.auto(
+        ["dynamics_entropy", "graph_entropy"]
+    )
     assert "dynamics_entropy" in metrics_config
     assert "graph_entropy" in metrics_config
     assert "dynamics_entropy" in metrics_config.metrics_names
@@ -252,7 +260,10 @@ def test_metrics_collection_config_auto():
 
 def test_experiment_config_default():
     exp = ExperimentConfig.default(
-        "test", "sis", "uniform_sbm", metrics=["dynamics_entropy", "graph_entropy"]
+        "test",
+        "sis",
+        "uniform_sbm",
+        metrics=["dynamics_entropy", "graph_entropy"],
     )
     assert "name" in exp
     assert "dynamics" in exp

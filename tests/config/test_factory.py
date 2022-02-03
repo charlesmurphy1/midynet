@@ -1,6 +1,24 @@
 import pytest
 
-from midynet.config import *
+from midynet.config import (
+    EdgeCountPriorConfig,
+    EdgeCountPriorFactory,
+    BlockCountPriorConfig,
+    BlockCountPriorFactory,
+    BlockPriorConfig,
+    BlockPriorFactory,
+    EdgeMatrixPriorConfig,
+    EdgeMatrixPriorFactory,
+    DegreePriorConfig,
+    DegreePriorFactory,
+    RandomGraphConfig,
+    RandomGraphFactory,
+    DynamicsConfig,
+    DynamicsFactory,
+    RandomGraphMCMCFactory,
+    MetricsFactory,
+    ExperimentConfig,
+)
 
 edge_count_setup = [
     pytest.param(
@@ -251,7 +269,9 @@ random_graph_mcmc_setup = [
 
 metrics_setup = [
     pytest.param(
-        ExperimentConfig.default("test", "ising", "er", metrics=["dynamics_entropy"]),
+        ExperimentConfig.default(
+            "test", "ising", "er", metrics=["dynamics_entropy"]
+        ),
         MetricsFactory,
         lambda obj: None,
         id="metrics",
@@ -274,7 +294,7 @@ metrics_setup = [
     ],
 )
 def test_build_from_config(config, factory, run):
-    obj = factory.build(config)
+    factory.build(config)
 
 
 @pytest.mark.parametrize(

@@ -4,9 +4,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from _midynet.mcmc import DynamicsMCMC
-from netrd.distance import Frobenius, Hamming
+from netrd.distance import Frobenius
 
-from midynet.config import *
+from midynet.config import (
+    DynamicsFactory,
+    RandomGraphFactory,
+    RandomGraphMCMCFactory,
+    ExperimentConfig,
+    Wrapper,
+)
 from midynet.util import MCMCConvergenceAnalysis
 
 
@@ -29,7 +35,9 @@ def mcmc_analysis(c):
     d = DynamicsFactory.build(c.dynamics)
     d.set_random_graph(g.get_wrap())
     g_mcmc = RandomGraphMCMCFactory.build(c.graph)
-    mcmc = DynamicsMCMC(d, g_mcmc.get_wrap(), 1, 1, c.graph.sample_graph_prior_prob)
+    mcmc = DynamicsMCMC(
+        d, g_mcmc.get_wrap(), 1, 1, c.graph.sample_graph_prior_prob
+    )
     d.sample()
     d.sample_graph()
     mcmc.set_up()
@@ -64,3 +72,7 @@ def test_generic(config):
     plt.ylabel(f"{distance.__class__.__name__} distance")
     plt.legend()
     plt.show()
+
+
+if __name__ == "__main__":
+    pass
