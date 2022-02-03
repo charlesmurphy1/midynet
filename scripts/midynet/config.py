@@ -114,7 +114,7 @@ def get_config_figure3Small(
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
-    config.metrics.mutualinfo.set_value("num_samples", 1000)
+    config.metrics.mutualinfo.set_value("num_samples", 100)
     config.metrics.mutualinfo.set_value("method", ["meanfield", "annealed"])
 
     resources = {
