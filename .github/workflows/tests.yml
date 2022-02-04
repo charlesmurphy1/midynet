@@ -1,20 +1,21 @@
 name: build and tests
 
 on:
-  - push
-  - pull_request
+    - push
+    - pull_request
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+    test:
+        runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: Install dependencies
-      run: bash set-up-everything.sh
-    - name: Run tests
-      run: pytest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up Python 3.9
+                uses: actions/setup-python@v2
+                with:
+                    python-version: 3.9
+            - name: Install dependencies
+            - name: build
+                run: bash set-up-everything.sh
+            - name: Run tests
+                run: pytest
