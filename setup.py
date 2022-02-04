@@ -150,7 +150,7 @@ ext_modules = [
         ],
         language="c++",
         extra_objects=[
-            find_compiled_SamplableSet("./_midynet/base_graph/build"),
+            find_compiled_basegraph("./_midynet/base_graph/build"),
             find_compiled_SamplableSet("./_midynet/SamplableSet/src/build"),
         ],
     ),
