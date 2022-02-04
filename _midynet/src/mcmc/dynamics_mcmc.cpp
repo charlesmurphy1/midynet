@@ -11,6 +11,7 @@ bool DynamicsMCMC::doMetropolisHastingsStep() {
         m_lastLogJointRatio = m_randomGraphMCMC.getLastLogJointRatio();
         m_lastLogAcceptance = m_randomGraphMCMC.getLastLogAcceptance();
         m_isLastAccepted = m_randomGraphMCMC.isLastAccepted();
+
     }
     else {
         m_lastMoveWasGraphMove = true;
@@ -45,8 +46,9 @@ bool DynamicsMCMC::doMetropolisHastingsStep() {
             m_dynamics.applyGraphMove(move);
             m_randomGraphMCMC.updateProbabilitiesFromGraphMove(move);
         }
-        return m_isLastAccepted;
     }
+
+    return m_isLastAccepted;
 
 }
 
