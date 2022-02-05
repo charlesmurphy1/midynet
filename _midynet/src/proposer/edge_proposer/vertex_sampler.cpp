@@ -2,18 +2,23 @@
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/rng.h"
 
-
 namespace FastMIDyNet{
 
-void VertexUniformSampler::setUp(const MultiGraph& graph){
+void VertexUniformSampler::setUp(
+    const MultiGraph& graph,
+    std::unordered_set<BaseGraph::VertexIndex> blackList
+){
     for (auto vertex : graph){
-        if (m_withIsolatedVertices or graph.getDegreeOfIdx(vertex) > 0)
-            m_vertexSampler.insert(vertex, 1);
+        if ( blackList.count(vertex) > 0 )
+            continue;
+        m_vertexSampler.insert(vertex, 1.);
     }
 }
 
 
 BaseGraph::VertexIndex VertexDegreeSampler::sample() const {
+    if (m_sampleFromUniformDistribution(rng))
+        return m_vertexSampler.sample_ext_RNG(rng).first;
     auto edge = m_edgeSampler.sample_ext_RNG(rng).first;
 
     if ( m_vertexChoiceDistribution(rng) )
@@ -22,13 +27,26 @@ BaseGraph::VertexIndex VertexDegreeSampler::sample() const {
         return edge.second;
 }
 
-void VertexDegreeSampler::setUp(const MultiGraph& graph){
+void VertexDegreeSampler::setUp(
+    const MultiGraph& graph,
+    std::unordered_set<BaseGraph::VertexIndex> blackList
+){
     m_edgeSampler.clear();
-    for (auto vertex: graph)
-        for (auto neighbor: graph.getNeighboursOfIdx(vertex))
-            if (vertex <= neighbor.vertexIndex)
+    for (auto vertex: graph){
+        if (blackList.count(vertex) > 0)
+            continue;
+        m_vertexSampler.insert(vertex, 1.);
+        for (auto neighbor: graph.getNeighboursOfIdx(vertex)){
+            if (vertex <= neighbor.vertexIndex
+                and blackList.count(neighbor.vertexIndex) == 0
+            )
                 m_edgeSampler.insert({vertex, neighbor.vertexIndex}, neighbor.label);
+        }
+    }
     m_degrees = graph.getDegrees();
+    m_sampleFromUniformDistribution = std::bernoulli_distribution(
+        m_shift / (m_shift * graph.getSize() + graph.getTotalEdgeNumber())
+    );
 }
 
 void VertexDegreeSampler::update(const GraphMove& move) {

@@ -9,6 +9,7 @@ namespace FastMIDyNet{
 template<typename MoveType>
 class Proposer{
     public:
+        virtual ~Proposer(){}
         virtual MoveType proposeMove() const = 0;
         virtual void checkConsistency() const {};
         virtual void checkSafety() const {};

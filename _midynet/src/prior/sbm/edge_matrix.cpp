@@ -156,7 +156,6 @@ void EdgeMatrixUniformPrior::sampleState() {
             m_edgeCountPriorPtr->getState(),
             blockCount*(blockCount+1)/2
             );
-
     m_state = EdgeMatrix(blockCount, std::vector<size_t>(blockCount, 0));
     std::pair<BlockIndex, BlockIndex> rs;
     m_edgeCountsInBlocks = std::vector<size_t>(blockCount, 0);

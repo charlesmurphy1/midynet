@@ -25,12 +25,21 @@ GraphMove DoubleEdgeSwapProposer::proposeRawMove() const {
     return {{edge1, edge2}, {newEdge1, newEdge2}};
 }
 
-void DoubleEdgeSwapProposer::setUp(const MultiGraph& graph) {
+void DoubleEdgeSwapProposer::setUpFromGraph(
+    const MultiGraph& graph,
+    std::unordered_set<BaseGraph::VertexIndex> blackList
+) {
+    m_graphPtr = &graph;
     m_edgeSamplableSet.clear();
-    for (auto vertex: graph)
+    for (auto vertex: graph){
+        if (blackList.count(vertex) > 0)
+            continue;
         for (auto neighbor: graph.getNeighboursOfIdx(vertex))
-            if (vertex <= neighbor.vertexIndex)
+            if (vertex <= neighbor.vertexIndex
+                and blackList.count(neighbor.vertexIndex) == 0
+            )
                 m_edgeSamplableSet.insert({vertex, neighbor.vertexIndex}, neighbor.label);
+    }
 }
 
 void DoubleEdgeSwapProposer::updateProbabilities(const GraphMove& move) {

@@ -17,7 +17,7 @@ public:
     MultiGraph graph = getUndirectedHouseMultiGraph();
     DummyDoubleEdgeSwapProposer swapProposer;
     void SetUp() {
-        swapProposer.setUp(graph);
+        swapProposer.setUpFromGraph(graph);
     }
 };
 

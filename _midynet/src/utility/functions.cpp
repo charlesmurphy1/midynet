@@ -95,11 +95,9 @@ void assertValidProbability(double probability) {
 }
 
 std::pair<size_t, size_t> getUndirectedPairFromIndex(size_t index, size_t n) {
-    // const size_t i = floor(-.5 + sqrt(.25+2*index));
-    // const size_t j = index - i*(i-1)*.5;
-    const size_t i = index / n;
-    const size_t j = index % n;
-    return {i, j};
+    const size_t i = floor(-.5 + sqrt(.25+2*index));
+    const size_t j = index - i*(i+1)*.5;
+    return {j, i};
 }
 
 MultiGraph getSubGraphByBlocks(const MultiGraph& graph, const BlockSequence& blocks, BlockIndex r, BlockIndex s){

@@ -36,15 +36,27 @@ class PyEdgeProposer: public PyProposer<GraphMove, BaseClass>{
 public:
     using PyProposer<GraphMove, BaseClass>::PyProposer;
     /* Pure abstract methods */
-    void setUp(const RandomGraph& randomGraph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, randomGraph); }
     const double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
     GraphMove proposeRawMove() const override { PYBIND11_OVERRIDE_PURE(GraphMove, BaseClass, proposeRawMove, ); }
 
     /* Abstract & overloaded methods */
+    void setUp(const RandomGraph& randomGraph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, randomGraph); }
+    void setUpFromGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUpFromGraph, graph); }
     bool setAcceptIsolated(bool accept) override { PYBIND11_OVERRIDE(bool, BaseClass, setAcceptIsolated, accept); }
     void updateProbabilities(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, updateProbabilities, move); }
     void updateProbabilities(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, updateProbabilities, move); }
-    GraphMove proposeMove() const override { PYBIND11_OVERRIDE_PURE(GraphMove, BaseClass, proposeMove, ); }
+    GraphMove proposeMove() const override { PYBIND11_OVERRIDE(GraphMove, BaseClass, proposeMove, ); }
+};
+
+template<class EdgeProposerSubClass, typename BaseClass = LabeledEdgeProposer<EdgeProposerSubClass>>
+class PyLabeledEdgeProposer: public BaseClass{
+public:
+    using BaseClass::BaseClass;
+
+    /* Abstract & overloaded methods */
+    EdgeProposerSubClass constructEdgeProposer() const { PYBIND11_OVERRIDE(EdgeProposerSubClass, BaseClass, constructEdgeProposer, ); }
+
+
 };
 
 template<typename BaseClass = HingeFlipProposer>
@@ -96,7 +108,7 @@ public:
     const double getTotalWeight() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getTotalWeight, ) ;}
 
     /* Abstract & overloaded methods */
-    void checkSafety() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSafety, ) ;}
+    void checkSafety() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSafety, ) ;}
 };
 
 }

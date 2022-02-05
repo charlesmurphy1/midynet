@@ -54,6 +54,25 @@ void initEdgeProposer(py::module& m){
 
     py::class_<SingleEdgeDegreeProposer, SingleEdgeProposer>(m, "SingleEdgeDegreeProposer")
         .def(py::init<bool, bool, size_t>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true, py::arg("shift")=1) ;
+
+
+    /* Labeled edge proposers */
+
+    py::class_<LabeledDoubleEdgeSwapProposer, EdgeProposer>(m, "LabeledDoubleEdgeSwapProposer")
+        .def(py::init<bool, bool>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true);
+
+    py::class_<LabeledHingeFlipUniformProposer, EdgeProposer>(m, "LabeledHingeFlipUniformProposer")
+        .def(py::init<bool, bool>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true);
+
+    py::class_<LabeledHingeFlipDegreeProposer, EdgeProposer>(m, "LabeledHingeFlipDegreeProposer")
+        .def(py::init<bool, bool, size_t>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true, py::arg("shift")=1) ;
+
+    py::class_<LabeledSingleEdgeUniformProposer, SingleEdgeProposer>(m, "LabeledSingleEdgeUniformProposer")
+        .def(py::init<bool, bool>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true);
+
+    py::class_<LabledSingleEdgeDegreeProposer, SingleEdgeProposer>(m, "LabledSingleEdgeDegreeProposer")
+        .def(py::init<bool, bool, size_t>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true, py::arg("shift")=1) ;
+
 }
 
 }

@@ -13,9 +13,9 @@ namespace FastMIDyNet {
 
 
 class BlockUniformProposer: public BlockProposer {
-    const BlockSequence* m_blocksPtr = NULL;
-    const std::vector<size_t>* m_vertexCountsPtr = NULL;
-    const size_t* m_blockCountPtr = NULL;
+    const BlockSequence* m_blocksPtr = nullptr;
+    const std::vector<size_t>* m_vertexCountsPtr = nullptr;
+    const size_t* m_blockCountPtr = nullptr;
     const double m_blockCreationProbability;
     mutable std::bernoulli_distribution m_createNewBlockDistribution;
     mutable std::uniform_int_distribution<BaseGraph::VertexIndex> m_vertexDistribution;

@@ -25,17 +25,17 @@ GraphMove HingeFlipProposer::proposeRawMove() const {
     return {{edge}, {newEdge}};
 };
 
-bool HingeFlipProposer::setAcceptIsolated(bool accept){
-    m_vertexSamplerPtr->setAcceptIsolated(accept);
-    return m_withIsolatedVertices = accept;
-}
-
-void HingeFlipProposer::setUp(const MultiGraph& graph){
+void HingeFlipProposer::setUpFromGraph(const MultiGraph& graph, std::unordered_set<BaseGraph::VertexIndex> blackList){
+    m_graphPtr = &graph;
     m_edgeSamplableSet.clear();
     m_vertexSamplerPtr->setUp(graph);
     for (auto vertex: graph) {
-        for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {
-            if (vertex <= neighbor.vertexIndex)
+        if (blackList.count(vertex) > 0)
+            continue;
+        for (auto neighbor: graph.getNeighboursOfIdx(vertex)){
+            if (vertex <= neighbor.vertexIndex
+                 and blackList.count(neighbor.vertexIndex) == 0
+             )
                 m_edgeSamplableSet.insert({vertex, neighbor.vertexIndex}, neighbor.label);
         }
     }

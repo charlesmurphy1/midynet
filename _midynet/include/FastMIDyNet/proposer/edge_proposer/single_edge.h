@@ -4,6 +4,7 @@
 
 #include "FastMIDyNet/exceptions.h"
 #include "edge_proposer.h"
+#include "labeled.hpp"
 #include "vertex_sampler.h"
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
@@ -16,12 +17,10 @@ private:
     mutable std::bernoulli_distribution m_addOrRemoveDistribution = std::bernoulli_distribution(.5);
 protected:
     VertexSampler* m_vertexSamplerPtr = NULL;
-    const FastMIDyNet::MultiGraph* m_graphPtr = NULL;
 public:
     using EdgeProposer::EdgeProposer;
     GraphMove proposeRawMove() const override;
-    void setUp(const RandomGraph& randomGraph) override { EdgeProposer::setUp(randomGraph); setUp(randomGraph.getGraph()); }
-    void setUp(const MultiGraph&);
+    void setUpFromGraph(const MultiGraph&, std::unordered_set<BaseGraph::VertexIndex> blackList={}) override;
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     void updateProbabilities(const GraphMove& move) override { };
     void updateProbabilities(const BlockMove& move) override { };
@@ -94,6 +93,17 @@ public:
 };
 
 
+class LabeledSingleEdgeUniformProposer: public LabeledEdgeProposer<SingleEdgeUniformProposer>{ };
+class LabeledSingleEdgeDegreeProposer: public LabeledEdgeProposer<SingleEdgeDegreeProposer>{
+private:
+    double m_shift = 1;
+public:
+    SingleEdgeDegreeProposer* constructNewEdgeProposer() const override {
+        return new SingleEdgeDegreeProposer(m_allowSelfLoops, m_allowMultiEdges, m_shift);
+    }
+
+    void setShift(double shift) { m_shift = shift; }
+};
 } // namespace FastMIDyNet
 
 
