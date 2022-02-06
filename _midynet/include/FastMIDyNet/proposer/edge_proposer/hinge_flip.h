@@ -4,7 +4,6 @@
 
 #include "FastMIDyNet/exceptions.h"
 #include "edge_proposer.h"
-#include "labeled.hpp"
 #include "vertex_sampler.h"
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
@@ -60,17 +59,6 @@ public:
         return log(m_vertexDegreeSampler.getVertexWeight(losingVertex) - 1)
              - log(m_vertexDegreeSampler.getVertexWeight(gainingVertex));
     }
-};
-
-class LabeledHingeFlipUniformProposer: public LabeledEdgeProposer<HingeFlipUniformProposer>{ };
-class LabeledHingeFlipDegreeProposer: public LabeledEdgeProposer<HingeFlipDegreeProposer>{
-private:
-    double m_shift = 1;
-public:
-    HingeFlipDegreeProposer* constructNewEdgeProposer() const {
-        return new HingeFlipDegreeProposer(m_allowSelfLoops, m_allowMultiEdges, m_shift);
-    };
-    void setShift(double shift){ m_shift = 1;}
 };
 
 

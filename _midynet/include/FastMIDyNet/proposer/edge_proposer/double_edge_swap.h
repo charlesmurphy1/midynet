@@ -2,7 +2,6 @@
 #define FAST_MIDYNET_DOUBLE_EDGE_SWAP_H
 
 #include "edge_proposer.h"
-#include "labeled.hpp"
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 
@@ -23,8 +22,6 @@ public:
 
     const sset::SamplableSet<BaseGraph::Edge>& getSamplableSet() { return m_edgeSamplableSet; }
 };
-
-class LabeledDoubleEdgeSwapProposer: public LabeledEdgeProposer<DoubleEdgeSwapProposer>{ };
 
 
 } // namespace FastMIDyNet
