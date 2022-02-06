@@ -4,7 +4,7 @@
 
 #include "FastMIDyNet/exceptions.h"
 #include "edge_proposer.h"
-#include "vertex_sampler.h"
+#include "FastMIDyNet/proposer/vertex_sampler.h"
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 

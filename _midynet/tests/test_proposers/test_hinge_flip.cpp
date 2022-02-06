@@ -84,7 +84,6 @@ TEST_F(TestHingeFlipUniformProposer, updateProbabilities_removeEdge_edgeWeightDe
     auto edge = proposer.getEdgeSamplableSet().sample().first;
 
     size_t edgeMult = graph.getEdgeMultiplicityIdx(edge);
-    std::cout << "(" << edge.first << ", " << edge.second << ")" << std::endl;
     GraphMove move = {{edge}, {}};
     proposer.updateProbabilities(move);
     if (edgeMult > 1)

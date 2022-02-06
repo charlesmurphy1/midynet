@@ -1,0 +1,105 @@
+#include "gtest/gtest.h"
+#include "FastMIDyNet/proposer/edge_sampler.h"
+
+
+namespace FastMIDyNet{
+
+class TestEdgeSampler: public ::testing::Test{
+public:
+    size_t vertexCount = 5;
+    EdgeSampler sampler = EdgeSampler();
+    MultiGraph graph = MultiGraph(vertexCount);
+    size_t edgeCount;
+    void SetUp(){
+        graph.addEdgeIdx(0, 1);
+        graph.addEdgeIdx(0, 2);
+        graph.addEdgeIdx(0, 3);
+
+        graph.addEdgeIdx(1, 1);
+        graph.addEdgeIdx(1, 2);
+        graph.addEdgeIdx(1, 3);
+
+        edgeCount = graph.getTotalEdgeNumber();
+        sampler.setUp(graph);
+    }
+};
+
+TEST_F(TestEdgeSampler, setUp_withGraph){
+    sampler.setUp(graph);
+    EXPECT_EQ(sampler.getTotalWeight(), edgeCount);
+}
+
+TEST_F(TestEdgeSampler, setUp_withGraphAndBlackList){
+    sampler.setUp(graph, {1});
+
+    for (auto vertex: graph){
+        for (auto neighbor : graph.getNeighboursOfIdx(vertex)){
+            if (vertex > neighbor.vertexIndex)
+                continue;
+            BaseGraph::Edge edge = {vertex, neighbor.vertexIndex};
+            if (vertex == 1 or neighbor.vertexIndex == 1)
+                EXPECT_EQ(sampler.getEdgeWeight(edge), 0);
+            else
+                EXPECT_EQ(sampler.getEdgeWeight(edge), neighbor.label);
+        }
+    }
+}
+
+TEST_F(TestEdgeSampler, setUp_withGraphAndWhiteList){
+    sampler.setUp(graph, {}, {{0, 1}});
+
+    for (auto vertex: graph){
+        for (auto neighbor : graph.getNeighboursOfIdx(vertex)){
+            if (vertex > neighbor.vertexIndex)
+                continue;
+            BaseGraph::Edge edge = {vertex, neighbor.vertexIndex};
+            if (vertex == 0 and neighbor.vertexIndex == 1)
+                EXPECT_EQ(sampler.getEdgeWeight(edge), 1);
+            else
+                EXPECT_EQ(sampler.getEdgeWeight(edge), 0);
+        }
+    }
+}
+
+TEST_F(TestEdgeSampler, getEdgeWeight_returnCorrectWeight){
+    EXPECT_EQ(sampler.getEdgeWeight({0, 1}), 1);
+    EXPECT_EQ(sampler.getEdgeWeight({1, 1}), 1);
+}
+
+TEST_F(TestEdgeSampler, getEdgeWeight_ForBlackListedVertex_return0){
+    sampler.setUp(graph, {1});
+    EXPECT_EQ(sampler.getEdgeWeight({0, 1}), 0);
+}
+
+TEST_F(TestEdgeSampler, getTotalWeight_returnCorrectWeight){
+    EXPECT_EQ(sampler.getTotalWeight(), edgeCount);
+
+    sampler.setUp(graph, {}, {{0, 1}});
+    EXPECT_EQ(sampler.getTotalWeight(), 1);
+}
+
+TEST_F(TestEdgeSampler, sample_returnEdgeInGraph){
+    for(size_t i=0; i<100; ++i){
+        auto edge = sampler.sample();
+        EXPECT_GT(graph.getEdgeMultiplicityIdx(edge), 0);
+    }
+}
+
+TEST_F(TestEdgeSampler, update_forRemovedEdge_removeEdgeFromSampler){
+    GraphMove move = {{{0, 1}}, {}};
+    sampler.update(move);
+    EXPECT_EQ(sampler.getEdgeWeight({0, 1}), 0);
+    EXPECT_EQ(sampler.getTotalWeight(), edgeCount - 1);
+}
+
+TEST_F(TestEdgeSampler, update_forAddededEdge_addEdgeToSampler){
+    GraphMove move = {{}, {{2, 3}}};
+    EXPECT_EQ(sampler.getEdgeWeight({2, 3}), 0);
+    sampler.update(move);
+    EXPECT_EQ(sampler.getEdgeWeight({2, 3}), 1);
+    EXPECT_EQ(sampler.getTotalWeight(), edgeCount + 1);
+}
+
+
+
+}
