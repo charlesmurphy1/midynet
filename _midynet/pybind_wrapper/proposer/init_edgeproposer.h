@@ -23,8 +23,8 @@ void initEdgeProposer(py::module& m){
         .def("allow_self_loops", &EdgeProposer::allowSelfLoops)
         .def("allow_multiedges", &EdgeProposer::allowMultiEdges)
         .def("get_log_proposal_ratio", &EdgeProposer::getLogProposalProbRatio, py::arg("move"))
-        .def("update", py::overload_cast<const GraphMove&>(&EdgeProposer::updateProbabilities), py::arg("move"))
-        .def("update", py::overload_cast<const BlockMove&>(&EdgeProposer::updateProbabilities), py::arg("move"));
+        .def("apply_graph_move", &EdgeProposer::applyGraphMove, py::arg("move"))
+        .def("apply_block_move", &EdgeProposer::applyBlockMove, py::arg("move"));
 
     /* Double edge swap proposers */
     py::class_<DoubleEdgeSwapProposer, EdgeProposer>(m, "DoubleEdgeSwapProposer")

@@ -21,8 +21,8 @@ void initBlockProposer(py::module& m){
         .def(py::init<>())
         .def("set_up", &BlockProposer::setUp, py::arg("random_graph"))
         .def("get_log_proposal_prob_ratio", &BlockProposer::getLogProposalProbRatio, py::arg("move"))
-        .def("update", py::overload_cast<const GraphMove&>(&BlockProposer::updateProbabilities), py::arg("move"))
-        .def("update", py::overload_cast<const BlockMove&>(&BlockProposer::updateProbabilities), py::arg("move"));
+        .def("apply_graph_move", &BlockProposer::applyGraphMove, py::arg("move"))
+        .def("apply_block_move", &BlockProposer::applyBlockMove, py::arg("move"));
 
     py::class_<BlockGenericProposer, BlockProposer>(m, "BlockGenericProposer")
         .def(py::init<>());

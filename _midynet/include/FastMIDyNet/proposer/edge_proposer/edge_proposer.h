@@ -38,9 +38,7 @@ public:
     }
     virtual GraphMove proposeRawMove() const = 0;
     virtual void setUpFromGraph( const MultiGraph& graph ) { m_graphPtr = &graph; }
-    virtual void setUp(
-        const RandomGraph& randomGraph
-    ) { setUpFromGraph(randomGraph.getGraph()); }
+    virtual void setUp( const RandomGraph& randomGraph ) { setUpFromGraph(randomGraph.getGraph()); }
     virtual const double getLogProposalProbRatio(const GraphMove& move) const = 0;
     virtual void applyGraphMove(const GraphMove& move) {};
     virtual void applyBlockMove(const BlockMove& move) {};

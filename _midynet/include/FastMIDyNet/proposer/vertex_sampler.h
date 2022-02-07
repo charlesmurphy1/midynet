@@ -24,6 +24,7 @@ public:
     virtual void removeEdge(const BaseGraph::Edge&) { };
     virtual const double getVertexWeight(const BaseGraph::VertexIndex&) const = 0;
     virtual const double getTotalWeight() const = 0;
+    virtual const size_t getSize() const = 0;
     virtual void checkSafety() const {}
     virtual void clear() {}
 };
@@ -47,6 +48,7 @@ public:
         return (m_vertexSampler.count(vertex) > 0) ? m_vertexSampler.get_weight(vertex) : 0.;
     }
     const double getTotalWeight() const override { return m_vertexSampler.total_weight(); }
+    const size_t getSize() const override { return m_vertexSampler.size(); }
     void clear() { m_vertexSampler.clear(); }
 
     void checkSafety()const override {
@@ -75,14 +77,15 @@ public:
 
     BaseGraph::VertexIndex sample() const override;
     void setUp(const MultiGraph& graph) override;
-    void insertEdge(const BaseGraph::Edge&edge, double edgeWeight) override { m_edgeSampler.insertEdge(edge, edgeWeight); }
-    void eraseEdge(const BaseGraph::Edge&edge) override { m_edgeSampler.eraseEdge(edge); }
-    void addEdge(const BaseGraph::Edge&edge) override { m_edgeSampler.addEdge(edge); }
-    void removeEdge(const BaseGraph::Edge&edge) override { m_edgeSampler.removeEdge(edge); }
+    void insertEdge(const BaseGraph::Edge& edge, double edgeWeight) override { m_edgeSampler.insertEdge(edge, edgeWeight); }
+    void eraseEdge(const BaseGraph::Edge& edge) override { m_edgeSampler.eraseEdge(edge); }
+    void addEdge(const BaseGraph::Edge& edge) override { m_edgeSampler.addEdge(edge); }
+    void removeEdge(const BaseGraph::Edge& edge) override { m_edgeSampler.removeEdge(edge); }
     const double getVertexWeight(const BaseGraph::VertexIndex& vertex) const override {
         return (m_vertexSampler.count(vertex) > 0) ? m_shift + m_edgeSampler.getVertexWeight(vertex) : 0.;
     }
     const double getTotalWeight() const override { return 2 * m_edgeSampler.getTotalWeight() + m_shift * m_vertexSampler.total_weight(); }
+    const size_t getSize() const override { return m_vertexSampler.size(); }
     void clear() { m_vertexSampler.clear(); m_edgeSampler.clear(); }
 
     void checkSafety() const override {

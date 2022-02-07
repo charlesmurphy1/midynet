@@ -42,8 +42,8 @@ public:
     /* Abstract & overloaded methods */
     void setUp(const RandomGraph& randomGraph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, randomGraph); }
     void setUpFromGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUpFromGraph, graph); }
-    void updateProbabilities(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, updateProbabilities, move); }
-    void updateProbabilities(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, updateProbabilities, move); }
+    void applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
+    void applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
     GraphMove proposeMove() const override { PYBIND11_OVERRIDE(GraphMove, BaseClass, proposeMove, ); }
 };
 
@@ -78,8 +78,8 @@ public:
     const double getLogProposalProbRatio(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
 
     /* Abstract & overloaded methods */
-    void updateProbabilities(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, updateProbabilities, move); }
-    void updateProbabilities(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, updateProbabilities, move); }
+    void applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
+    void applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
 };
 
 template<typename BaseClass = VertexSampler>
@@ -92,12 +92,17 @@ public:
     void setUp(const MultiGraph& graph) override {
             PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, graph) ;
         }
-    void update(const GraphMove& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, update, move) ;}
+    void addEdge(const BaseGraph::Edge& edge) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, addEdge, edge) ;}
+    void removeEdge(const BaseGraph::Edge& edge) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, removeEdge, edge) ;}
+    void insertEdge(const BaseGraph::Edge& edge, double weight) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, insertEdge, edge, weight) ;}
+    void eraseEdge(const BaseGraph::Edge& edge) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, eraseEdge, edge) ;}
     const double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getVertexWeight, vertexIdx) ;}
     const double getTotalWeight() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getTotalWeight, ) ;}
+    const size_t getSize() const override { PYBIND11_OVERRIDE_PURE(const size_t, BaseClass, getSize, ) ;}
 
     /* Abstract & overloaded methods */
     void checkSafety() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSafety, ) ;}
+    void clear() override { PYBIND11_OVERRIDE(void, BaseClass, clear, ) ;}
 };
 
 }

@@ -17,10 +17,15 @@ void initVertexSampler(py::module& m){
         .def(py::init<>())
         .def("sample", &VertexSampler::sample)
         .def("set_up", &VertexSampler::setUp, py::arg("graph"))
-        .def("update", &VertexSampler::update, py::arg("move"))
+        .def("add_edge", &VertexSampler::addEdge, py::arg("edge"))
+        .def("remove_edge", &VertexSampler::removeEdge, py::arg("edge"))
+        .def("insert_edge", &VertexSampler::insertEdge, py::arg("edge"), py::arg("weight"))
+        .def("erase_edge", &VertexSampler::eraseEdge, py::arg("edge"))
         .def("get_vertex_weight", &VertexSampler::getVertexWeight, py::arg("vertex"))
         .def("get_total_weight", &VertexSampler::getTotalWeight)
+        .def("get_size", &VertexSampler::getSize)
         .def("check_safety", &VertexSampler::checkSafety)
+        .def("clear", &VertexSampler::clear)
         ;
 
     py::class_<VertexUniformSampler, VertexSampler>(m, "VertexUniformSampler")

@@ -21,10 +21,10 @@ public:
     BaseGraph::Edge sample() const {
         return m_edgeSampler.sample_ext_RNG(rng).first;
     }
-    void addEdge(const BaseGraph::Edge);
-    void removeEdge(const BaseGraph::Edge);
-    void insertEdge(const BaseGraph::Edge, double);
-    void eraseEdge(const BaseGraph::Edge);
+    void addEdge(const BaseGraph::Edge& );
+    void removeEdge(const BaseGraph::Edge& );
+    void insertEdge(const BaseGraph::Edge& , double);
+    void eraseEdge(const BaseGraph::Edge& );
     void setUp(const MultiGraph&);
     const double getEdgeWeight(const BaseGraph::Edge& edge) const {
         return (m_edgeSampler.count(edge) > 0) ? m_edgeSampler.get_weight(edge) : 0.;

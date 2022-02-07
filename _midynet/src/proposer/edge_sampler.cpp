@@ -3,7 +3,7 @@
 
 namespace FastMIDyNet{
 
-void EdgeSampler::removeEdge(const BaseGraph::Edge edge){
+void EdgeSampler::removeEdge(const BaseGraph::Edge& edge){
     auto orderedEdge = getOrderedEdge(edge);
     double edgeWeight = round(m_edgeSampler.get_weight(orderedEdge));
     if (edgeWeight == 1)
@@ -14,7 +14,7 @@ void EdgeSampler::removeEdge(const BaseGraph::Edge edge){
     --m_vertexWeights[orderedEdge.second];
 }
 
-void EdgeSampler::addEdge(const BaseGraph::Edge edge){
+void EdgeSampler::addEdge(const BaseGraph::Edge& edge){
     auto orderedEdge = getOrderedEdge(edge);
     if (m_edgeSampler.count(orderedEdge) == 0)
         m_edgeSampler.insert(orderedEdge, 1);
@@ -25,14 +25,14 @@ void EdgeSampler::addEdge(const BaseGraph::Edge edge){
     ++m_vertexWeights[orderedEdge.second];
 }
 
-void EdgeSampler::insertEdge(const BaseGraph::Edge edge, double edgeWeight=1){
+void EdgeSampler::insertEdge(const BaseGraph::Edge& edge, double edgeWeight=1){
     auto orderedEdge = getOrderedEdge(edge);
     m_edgeSampler.insert(edge, edgeWeight);
     m_vertexWeights[edge.first] += edgeWeight;
     m_vertexWeights[edge.second] += edgeWeight;
 }
 
-void EdgeSampler::eraseEdge(const BaseGraph::Edge edge){
+void EdgeSampler::eraseEdge(const BaseGraph::Edge& edge){
     double edgeWeight = m_edgeSampler.get_weight(edge);
     m_vertexWeights[edge.first] -= edgeWeight;
     m_vertexWeights[edge.second] -= edgeWeight;
