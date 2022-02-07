@@ -69,7 +69,7 @@ jobs:
               shell: bash
               run: |
                     [ -d "./build" ] && rm -r build
-                    pip install . [testing]
+                    pip install .
 
             - name: Run tests
               shell: bash
