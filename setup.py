@@ -66,44 +66,44 @@ def find_files_recursively(path, ext=[]):
 
 
 ext_modules = [
-    # Extension(
-    #     "basegraph",
-    #     include_dirs=[
-    #         get_pybind_include(),
-    #         get_pybind_include(user=True),
-    #         "./_midynet/base_graph/include",
-    #     ],
-    #     sources=[
-    #         "./_midynet/base_graph/pybind_wrapper/pybind_main.cpp",
-    #         "./_midynet/base_graph/src/directed_multigraph.cpp",
-    #         "./_midynet/base_graph/src/directedgraph.cpp",
-    #         "./_midynet/base_graph/src/undirectedgraph.cpp",
-    #         "./_midynet/base_graph/src/undirected_multigraph.cpp",
-    #         "./_midynet/base_graph/src/fileio.cpp",
-    #         "./_midynet/base_graph/src/algorithms/graphpaths.cpp",
-    #         "./_midynet/base_graph/src/algorithms/percolation.cpp",
-    #         "./_midynet/base_graph/src/algorithms/randomgraphs.cpp",
-    #         "./_midynet/base_graph/src/metrics/general.cpp",
-    #         "./_midynet/base_graph/src/metrics/directed.cpp",
-    #         "./_midynet/base_graph/src/metrics/undirected.cpp",
-    #     ],
-    #     language="c++",
-    # ),
-    # Extension(
-    #     "_SamplableSet",
-    #     include_dirs=[
-    #         "./_midynet/SamplableSet/src/",
-    #         get_pybind_include(),
-    #         get_pybind_include(user=True),
-    #     ],
-    #     sources=[
-    #         "./_midynet/SamplableSet/src/bind_SamplableSet.cpp",
-    #         "./_midynet/SamplableSet/src/HashPropensity.cpp",
-    #         "./_midynet/SamplableSet/src/BinaryTree.cpp",
-    #         "./_midynet/SamplableSet/src/SamplableSet.cpp",
-    #     ],
-    #     language="c++",
-    # ),
+    Extension(
+        "basegraph",
+        include_dirs=[
+            get_pybind_include(),
+            get_pybind_include(user=True),
+            "./_midynet/base_graph/include",
+        ],
+        sources=[
+            "./_midynet/base_graph/pybind_wrapper/pybind_main.cpp",
+            "./_midynet/base_graph/src/directed_multigraph.cpp",
+            "./_midynet/base_graph/src/directedgraph.cpp",
+            "./_midynet/base_graph/src/undirectedgraph.cpp",
+            "./_midynet/base_graph/src/undirected_multigraph.cpp",
+            "./_midynet/base_graph/src/fileio.cpp",
+            "./_midynet/base_graph/src/algorithms/graphpaths.cpp",
+            "./_midynet/base_graph/src/algorithms/percolation.cpp",
+            "./_midynet/base_graph/src/algorithms/randomgraphs.cpp",
+            "./_midynet/base_graph/src/metrics/general.cpp",
+            "./_midynet/base_graph/src/metrics/directed.cpp",
+            "./_midynet/base_graph/src/metrics/undirected.cpp",
+        ],
+        language="c++",
+    ),
+    Extension(
+        "_SamplableSet",
+        include_dirs=[
+            "./_midynet/SamplableSet/src/",
+            get_pybind_include(),
+            get_pybind_include(user=True),
+        ],
+        sources=[
+            "./_midynet/SamplableSet/src/bind_SamplableSet.cpp",
+            "./_midynet/SamplableSet/src/HashPropensity.cpp",
+            "./_midynet/SamplableSet/src/BinaryTree.cpp",
+            "./_midynet/SamplableSet/src/SamplableSet.cpp",
+        ],
+        language="c++",
+    ),
     Extension(
         "_midynet",
         include_dirs=[
@@ -232,7 +232,6 @@ class BuildExt(build_ext):
 setup(
     version=0.1,
     ext_modules=ext_modules,
-    extras_require={"full": ["networkx", "netrd", "graph_tool"]},
     include_package_data=True,
     cmdclass={"build_ext": BuildExt},
 )
