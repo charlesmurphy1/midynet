@@ -16,7 +16,7 @@ protected:
 public:
     using EdgeProposer::EdgeProposer;
     GraphMove proposeRawMove() const override;
-    void setUpFromGraph(const MultiGraph&, std::unordered_set<BaseGraph::VertexIndex> blackList={}) override;
+    void setUpFromGraph(const MultiGraph&) override;
     const double getLogProposalProbRatio(const GraphMove&) const override { return 0; }
     void updateProbabilities(const GraphMove&) override;
 

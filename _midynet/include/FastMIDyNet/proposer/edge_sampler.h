@@ -22,9 +22,7 @@ public:
         return m_edgeSampler.sample_ext_RNG(rng).first;
     }
     void update(const GraphMove&);
-    void setUp(const MultiGraph&,
-        const std::unordered_set<BaseGraph::VertexIndex>& vertexBlackList={},
-        const std::unordered_set<BaseGraph::Edge>& edgeWhiteList={});
+    void setUp(const MultiGraph&);
     const double getEdgeWeight(const BaseGraph::Edge& edge) const {
         return (m_edgeSampler.count(edge) > 0) ? m_edgeSampler.get_weight(edge) : 0.;
     }

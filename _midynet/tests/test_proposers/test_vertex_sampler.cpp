@@ -18,26 +18,10 @@ TEST_F(TestVertexUniformSampler, setUp_withGraph){
     EXPECT_EQ(sampler.getTotalWeight(), 10);
 }
 
-TEST_F(TestVertexUniformSampler, setUp_withGraphAndBlackList){
-    sampler.setUp(graph, {1, 5});
-    EXPECT_EQ(sampler.getTotalWeight(), 8);
-    EXPECT_EQ(sampler.getVertexWeight(1), 0);
-    EXPECT_EQ(sampler.getVertexWeight(2), 1);
-    EXPECT_EQ(sampler.getVertexWeight(3), 1);
-    EXPECT_EQ(sampler.getVertexWeight(4), 1);
-    EXPECT_EQ(sampler.getVertexWeight(5), 0);
-    EXPECT_EQ(sampler.getVertexWeight(6), 1);
-    EXPECT_EQ(sampler.getVertexWeight(7), 1);
-    EXPECT_EQ(sampler.getVertexWeight(8), 1);
-    EXPECT_EQ(sampler.getVertexWeight(9), 1);
-}
-
 TEST_F(TestVertexUniformSampler, sample_returnVertexInGraph){
-    sampler.setUp(graph, {1, 5});
+    sampler.setUp(graph);
     for (size_t i=0; i<100; ++i){
         auto vertex = sampler.sample();
-        EXPECT_NE(vertex, 1);
-        EXPECT_NE(vertex, 5);
     }
 }
 
@@ -97,25 +81,6 @@ public:
 TEST_F(TestVertexDegreeSampler, setUp_withGraph){
     for (auto vertex : graph){
         EXPECT_GT(sampler.getVertexWeight(vertex), 0);
-    }
-}
-
-TEST_F(TestVertexDegreeSampler, setUp_withGraphAndBlackList){
-    sampler.setUp(graph, {1});
-    for (auto vertex : graph){
-        if (vertex == 1){
-            EXPECT_EQ(sampler.getVertexWeight(vertex), 0);
-            continue;
-        }
-        EXPECT_GT(sampler.getVertexWeight(vertex), 0);
-    }
-}
-
-TEST_F(TestVertexDegreeSampler, sample_returnVertexInGraph){
-    sampler.setUp(graph, {1});
-    for(size_t i=0; i<100; ++i){
-        auto vertex = sampler.sample();
-        EXPECT_NE(vertex, 1);
     }
 }
 

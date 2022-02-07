@@ -27,21 +27,13 @@ void EdgeSampler::update(const GraphMove& move){
     }
 }
 
-void EdgeSampler::setUp(const MultiGraph& graph,
-    const std::unordered_set<BaseGraph::VertexIndex>& vertexBlackList,
-    const std::unordered_set<BaseGraph::Edge>& edgeWhiteList){
+void EdgeSampler::setUp(const MultiGraph& graph){
     m_edgeSampler.clear();
     m_degrees = graph.getDegrees();
     for (auto vertex: graph) {
-        if (vertexBlackList.count(vertex) > 0)
-            continue;
-
         for (auto neighbor: graph.getNeighboursOfIdx(vertex)){
             BaseGraph::Edge edge = {vertex, neighbor.vertexIndex};
-            if (vertex <= neighbor.vertexIndex and
-                vertexBlackList.count(neighbor.vertexIndex) == 0 and
-                (edgeWhiteList.size() == 0 or edgeWhiteList.count(edge) > 0)
-             )
+            if (vertex <= neighbor.vertexIndex)
                 m_edgeSampler.insert(edge, neighbor.label);
         }
     }

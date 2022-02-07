@@ -29,53 +29,9 @@ TEST_F(TestEdgeSampler, setUp_withGraph){
     EXPECT_EQ(sampler.getTotalWeight(), edgeCount);
 }
 
-TEST_F(TestEdgeSampler, setUp_withGraphAndBlackList){
-    sampler.setUp(graph, {1});
-
-    for (auto vertex: graph){
-        for (auto neighbor : graph.getNeighboursOfIdx(vertex)){
-            if (vertex > neighbor.vertexIndex)
-                continue;
-            BaseGraph::Edge edge = {vertex, neighbor.vertexIndex};
-            if (vertex == 1 or neighbor.vertexIndex == 1)
-                EXPECT_EQ(sampler.getEdgeWeight(edge), 0);
-            else
-                EXPECT_EQ(sampler.getEdgeWeight(edge), neighbor.label);
-        }
-    }
-}
-
-TEST_F(TestEdgeSampler, setUp_withGraphAndWhiteList){
-    sampler.setUp(graph, {}, {{0, 1}});
-
-    for (auto vertex: graph){
-        for (auto neighbor : graph.getNeighboursOfIdx(vertex)){
-            if (vertex > neighbor.vertexIndex)
-                continue;
-            BaseGraph::Edge edge = {vertex, neighbor.vertexIndex};
-            if (vertex == 0 and neighbor.vertexIndex == 1)
-                EXPECT_EQ(sampler.getEdgeWeight(edge), 1);
-            else
-                EXPECT_EQ(sampler.getEdgeWeight(edge), 0);
-        }
-    }
-}
-
 TEST_F(TestEdgeSampler, getEdgeWeight_returnCorrectWeight){
     EXPECT_EQ(sampler.getEdgeWeight({0, 1}), 1);
     EXPECT_EQ(sampler.getEdgeWeight({1, 1}), 1);
-}
-
-TEST_F(TestEdgeSampler, getEdgeWeight_ForBlackListedVertex_return0){
-    sampler.setUp(graph, {1});
-    EXPECT_EQ(sampler.getEdgeWeight({0, 1}), 0);
-}
-
-TEST_F(TestEdgeSampler, getTotalWeight_returnCorrectWeight){
-    EXPECT_EQ(sampler.getTotalWeight(), edgeCount);
-
-    sampler.setUp(graph, {}, {{0, 1}});
-    EXPECT_EQ(sampler.getTotalWeight(), 1);
 }
 
 TEST_F(TestEdgeSampler, sample_returnEdgeInGraph){

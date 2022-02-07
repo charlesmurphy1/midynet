@@ -37,14 +37,10 @@ public:
         throw std::runtime_error("EdgeProposer: Could not find edge to propose.");
     }
     virtual GraphMove proposeRawMove() const = 0;
-    virtual void setUpFromGraph(
-        const MultiGraph& graph,
-        std::unordered_set<BaseGraph::VertexIndex> blackList={}
-    ) { m_graphPtr = &graph; }
+    virtual void setUpFromGraph( const MultiGraph& graph ) { m_graphPtr = &graph; }
     virtual void setUp(
-        const RandomGraph& randomGraph,
-        std::unordered_set<BaseGraph::VertexIndex> blackList={}
-    ) { setUpFromGraph(randomGraph.getGraph(), blackList); }
+        const RandomGraph& randomGraph
+    ) { setUpFromGraph(randomGraph.getGraph()); }
     virtual const double getLogProposalProbRatio(const GraphMove& move) const = 0;
     virtual void updateProbabilities(const GraphMove& move) {};
     virtual void updateProbabilities(const BlockMove& move) {};

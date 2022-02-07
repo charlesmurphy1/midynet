@@ -15,11 +15,11 @@ private:
     mutable std::bernoulli_distribution m_flipOrientationDistribution = std::bernoulli_distribution(.5);
 protected:
     sset::SamplableSet<BaseGraph::Edge> m_edgeSamplableSet = sset::SamplableSet<BaseGraph::Edge> (1, 100);
-    VertexSampler* m_vertexSamplerPtr = NULL;
+    VertexSampler* m_vertexSamplerPtr = nullptr;
 public:
     using EdgeProposer::EdgeProposer;
     GraphMove proposeRawMove() const override;
-    void setUpFromGraph(const MultiGraph&, std::unordered_set<BaseGraph::VertexIndex> blackList={}) override;
+    void setUpFromGraph(const MultiGraph&) override;
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     void updateProbabilities(const GraphMove& move) override;
     void updateProbabilities(const BlockMove& move) override { };

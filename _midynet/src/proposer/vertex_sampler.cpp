@@ -4,14 +4,10 @@
 
 namespace FastMIDyNet{
 
-void VertexUniformSampler::setUp(
-    const MultiGraph& graph,
-    const std::unordered_set<BaseGraph::VertexIndex>& blackList
-){
+void VertexUniformSampler::setUp(const MultiGraph& graph){
     clear();
     for (auto vertex : graph){
-        if ( blackList.count(vertex) == 0 )
-            m_vertexSampler.insert(vertex, 1.);
+        m_vertexSampler.insert(vertex, 1.);
     }
 }
 
@@ -27,15 +23,11 @@ BaseGraph::VertexIndex VertexDegreeSampler::sample() const {
         return edge.second;
 }
 
-void VertexDegreeSampler::setUp(
-    const MultiGraph& graph,
-    const std::unordered_set<BaseGraph::VertexIndex>& blackList
-){
+void VertexDegreeSampler::setUp(const MultiGraph& graph){
     clear();
     for (auto vertex: graph)
-        if (blackList.count(vertex) == 0)
-            m_vertexSampler.insert(vertex, 1.);
-    m_edgeSampler.setUp(graph, blackList, {});
+        m_vertexSampler.insert(vertex, 1.);
+    m_edgeSampler.setUp(graph);
     m_sampleFromUniformDistribution = std::bernoulli_distribution(
         m_shift / (m_shift * graph.getSize() + graph.getTotalEdgeNumber())
     );

@@ -17,10 +17,7 @@ namespace FastMIDyNet{
 class VertexSampler{
 public:
     virtual BaseGraph::VertexIndex sample() const = 0;
-    virtual void setUp(
-        const MultiGraph& graph,
-        const std::unordered_set<BaseGraph::VertexIndex>& blackList={}
-    ) = 0;
+    virtual void setUp(const MultiGraph& graph) = 0;
     virtual void update(const GraphMove&) { };
     virtual const double getVertexWeight(const BaseGraph::VertexIndex&) const = 0;
     virtual const double getTotalWeight() const = 0;
@@ -42,10 +39,7 @@ public:
     }
 
     BaseGraph::VertexIndex sample() const override { return m_vertexSampler.sample_ext_RNG(rng).first; }
-    void setUp(
-        const MultiGraph& graph,
-        const std::unordered_set<BaseGraph::VertexIndex>& blackList={}
-    ) override;
+    void setUp(const MultiGraph& graph) override;
     const double getVertexWeight(const BaseGraph::VertexIndex& vertex) const override {
         return (m_vertexSampler.count(vertex) > 0) ? m_vertexSampler.get_weight(vertex) : 0.;
     }
@@ -77,10 +71,7 @@ public:
     }
 
     BaseGraph::VertexIndex sample() const override;
-    void setUp(
-        const MultiGraph& graph,
-        const std::unordered_set<BaseGraph::VertexIndex>& blackList={}
-    ) override;
+    void setUp(const MultiGraph& graph) override;
     void update(const GraphMove& move) override;
     const double getVertexWeight(const BaseGraph::VertexIndex& vertex) const override {
         return (m_vertexSampler.count(vertex) > 0) ? m_shift + m_edgeSampler.getVertexWeight(vertex) : 0.;

@@ -6,7 +6,7 @@
 
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/proposer/python/proposer.hpp"
-#include "FastMIDyNet/proposer/edge_proposer/vertex_sampler.h"
+#include "FastMIDyNet/proposer/vertex_sampler.h"
 
 
 namespace py = pybind11;
@@ -17,12 +17,9 @@ void initVertexSampler(py::module& m){
         .def(py::init<>())
         .def("sample", &VertexSampler::sample)
         .def("set_up", &VertexSampler::setUp, py::arg("graph"))
-        .def("update", py::overload_cast<const GraphMove&>(&VertexSampler::update), py::arg("move"))
-        .def("update", py::overload_cast<const BlockMove&>(&VertexSampler::update), py::arg("move"))
+        .def("update", &VertexSampler::update, py::arg("move"))
         .def("get_vertex_weight", &VertexSampler::getVertexWeight, py::arg("vertex"))
         .def("get_total_weight", &VertexSampler::getTotalWeight)
-        .def("accept_isolated", &VertexSampler::setAcceptIsolated, py::arg("accept"))
-        .def("accept_isolated", &VertexSampler::getAcceptIsolated)
         .def("check_safety", &VertexSampler::checkSafety)
         ;
 

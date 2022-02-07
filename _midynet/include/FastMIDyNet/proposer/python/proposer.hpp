@@ -10,7 +10,7 @@
 #include "FastMIDyNet/proposer/edge_proposer/edge_proposer.h"
 #include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
 #include "FastMIDyNet/proposer/edge_proposer/single_edge.h"
-#include "FastMIDyNet/proposer/edge_proposer/vertex_sampler.h"
+#include "FastMIDyNet/proposer/vertex_sampler.h"
 #include "FastMIDyNet/proposer/block_proposer/block_proposer.h"
 #include "FastMIDyNet/random_graph/random_graph.h"
 
@@ -42,21 +42,9 @@ public:
     /* Abstract & overloaded methods */
     void setUp(const RandomGraph& randomGraph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, randomGraph); }
     void setUpFromGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUpFromGraph, graph); }
-    bool setAcceptIsolated(bool accept) override { PYBIND11_OVERRIDE(bool, BaseClass, setAcceptIsolated, accept); }
     void updateProbabilities(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, updateProbabilities, move); }
     void updateProbabilities(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, updateProbabilities, move); }
     GraphMove proposeMove() const override { PYBIND11_OVERRIDE(GraphMove, BaseClass, proposeMove, ); }
-};
-
-template<class EdgeProposerSubClass, typename BaseClass = LabeledEdgeProposer<EdgeProposerSubClass>>
-class PyLabeledEdgeProposer: public BaseClass{
-public:
-    using BaseClass::BaseClass;
-
-    /* Abstract & overloaded methods */
-    EdgeProposerSubClass constructEdgeProposer() const { PYBIND11_OVERRIDE(EdgeProposerSubClass, BaseClass, constructEdgeProposer, ); }
-
-
 };
 
 template<typename BaseClass = HingeFlipProposer>
@@ -101,9 +89,10 @@ public:
 
     /* Pure abstract methods */
     BaseGraph::VertexIndex sample() const override { PYBIND11_OVERRIDE_PURE(const BaseGraph::VertexIndex, BaseClass, sample, ) ;}
-    void setUp(const MultiGraph& graph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, graph) ;}
+    void setUp(const MultiGraph& graph) override {
+            PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, graph) ;
+        }
     void update(const GraphMove& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, update, move) ;}
-    void update(const BlockMove& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, update, move) ;}
     const double getVertexWeight(const BaseGraph::VertexIndex& vertexIdx) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getVertexWeight, vertexIdx) ;}
     const double getTotalWeight() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getTotalWeight, ) ;}
 

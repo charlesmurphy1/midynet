@@ -26,18 +26,13 @@ GraphMove DoubleEdgeSwapProposer::proposeRawMove() const {
 }
 
 void DoubleEdgeSwapProposer::setUpFromGraph(
-    const MultiGraph& graph,
-    std::unordered_set<BaseGraph::VertexIndex> blackList
+    const MultiGraph& graph
 ) {
     m_graphPtr = &graph;
     m_edgeSamplableSet.clear();
     for (auto vertex: graph){
-        if (blackList.count(vertex) > 0)
-            continue;
         for (auto neighbor: graph.getNeighboursOfIdx(vertex))
-            if (vertex <= neighbor.vertexIndex
-                and blackList.count(neighbor.vertexIndex) == 0
-            )
+            if (vertex <= neighbor.vertexIndex)
                 m_edgeSamplableSet.insert({vertex, neighbor.vertexIndex}, neighbor.label);
     }
 }

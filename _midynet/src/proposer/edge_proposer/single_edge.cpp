@@ -27,9 +27,9 @@ GraphMove SingleEdgeProposer::proposeRawMove() const {
     return {{proposedEdge}, {}};
 }
 
-void SingleEdgeProposer::setUpFromGraph(const MultiGraph& graph, std::unordered_set<BaseGraph::VertexIndex> blackList) {
+void SingleEdgeProposer::setUpFromGraph(const MultiGraph& graph) {
     m_graphPtr = &graph;
-    m_vertexSamplerPtr->setUp(graph, blackList);
+    m_vertexSamplerPtr->setUp(graph);
 }
 
 } // namespace FastMIDyNet
