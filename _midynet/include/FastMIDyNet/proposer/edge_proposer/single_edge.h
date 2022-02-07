@@ -21,8 +21,8 @@ public:
     GraphMove proposeRawMove() const override;
     void setUpFromGraph(const MultiGraph&) override;
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
-    void updateProbabilities(const GraphMove& move) override { };
-    void updateProbabilities(const BlockMove& move) override { };
+    virtual void applyGraphMove(const GraphMove& move) override { };
+    void applyBlockMove(const BlockMove& move) override { };
     void checkSafety() const override {
         if (m_graphPtr == nullptr)
             throw SafetyError("SingleEdgeProposer: unsafe proposer since `m_graphPtr` is NULL.");
@@ -38,18 +38,7 @@ public:
     SingleEdgeUniformProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
         SingleEdgeProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
 
-    const double getLogProposalProbRatio(const GraphMove&move) const override{
-        double logProbability = 0;
-
-        for (auto edge: move.removedEdges)
-            if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 1)
-                logProbability += -log(.5);
-
-        for (auto edge: move.addedEdges)
-            if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 0)
-                logProbability += -log(.5);
-        return logProbability;
-    }
+    const double getLogProposalProbRatio(const GraphMove&move) const override;
 };
 
 class SingleEdgeDegreeProposer: public SingleEdgeProposer{
@@ -60,35 +49,8 @@ public:
         SingleEdgeProposer(allowSelfLoops, allowMultiEdges),
         m_vertexDegreeSampler(shift){ m_vertexSamplerPtr = &m_vertexDegreeSampler; }
 
-    const double getLogProposalProbRatio(const GraphMove&move) const override{
-        double logProbability = 0;
-
-        for (auto edge: move.removedEdges){
-            if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 1)
-                logProbability += -log(.5);
-
-            logProbability += log(m_vertexDegreeSampler.getVertexWeight(edge.first) - 1);
-            logProbability += log(m_vertexDegreeSampler.getVertexWeight(edge.second) - 1);
-            logProbability -= log(m_vertexDegreeSampler.getTotalWeight() - 1);
-
-            logProbability -= log(m_vertexDegreeSampler.getVertexWeight(edge.first));
-            logProbability -= log(m_vertexDegreeSampler.getVertexWeight(edge.second));
-            logProbability += log(m_vertexDegreeSampler.getTotalWeight());
-        }
-        for (auto edge: move.addedEdges){
-            if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 0)
-                logProbability += -log(.5);
-
-            logProbability += log(m_vertexDegreeSampler.getVertexWeight(edge.first) + 1);
-            logProbability += log(m_vertexDegreeSampler.getVertexWeight(edge.second) + 1);
-            logProbability -= log(m_vertexDegreeSampler.getTotalWeight() + 1);
-
-            logProbability -= log(m_vertexDegreeSampler.getVertexWeight(edge.first));
-            logProbability -= log(m_vertexDegreeSampler.getVertexWeight(edge.second));
-            logProbability += log(m_vertexDegreeSampler.getTotalWeight());
-        }
-        return logProbability;
-    }
+    void applyGraphMove(const GraphMove& move) override ;
+    const double getLogProposalProbRatio(const GraphMove&move) const override;
 };
 
 

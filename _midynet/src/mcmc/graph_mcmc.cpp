@@ -32,7 +32,7 @@ bool RandomGraphMCMC::doMetropolisHastingsStep() {
     if (m_uniform(rng) < exp(m_lastLogAcceptance)){
         m_isLastAccepted = true;
         m_randomGraphPtr->applyBlockMove(move);
-        m_blockProposer.updateProbabilities(move);
+        m_blockProposer.applyBlockMove(move);
     }
     return m_isLastAccepted;
 }

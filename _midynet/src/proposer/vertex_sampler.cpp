@@ -33,8 +33,4 @@ void VertexDegreeSampler::setUp(const MultiGraph& graph){
     );
 }
 
-void VertexDegreeSampler::update(const GraphMove& move) {
-    m_edgeSampler.update(move);
-}
-
 }

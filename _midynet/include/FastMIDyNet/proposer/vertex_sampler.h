@@ -18,7 +18,10 @@ class VertexSampler{
 public:
     virtual BaseGraph::VertexIndex sample() const = 0;
     virtual void setUp(const MultiGraph& graph) = 0;
-    virtual void update(const GraphMove&) { };
+    virtual void insertEdge(const BaseGraph::Edge&, double) { };
+    virtual void eraseEdge(const BaseGraph::Edge&) { };
+    virtual void addEdge(const BaseGraph::Edge&) { };
+    virtual void removeEdge(const BaseGraph::Edge&) { };
     virtual const double getVertexWeight(const BaseGraph::VertexIndex&) const = 0;
     virtual const double getTotalWeight() const = 0;
     virtual void checkSafety() const {}
@@ -72,7 +75,10 @@ public:
 
     BaseGraph::VertexIndex sample() const override;
     void setUp(const MultiGraph& graph) override;
-    void update(const GraphMove& move) override;
+    void insertEdge(const BaseGraph::Edge&edge, double edgeWeight) override { m_edgeSampler.insertEdge(edge, edgeWeight); }
+    void eraseEdge(const BaseGraph::Edge&edge) override { m_edgeSampler.eraseEdge(edge); }
+    void addEdge(const BaseGraph::Edge&edge) override { m_edgeSampler.addEdge(edge); }
+    void removeEdge(const BaseGraph::Edge&edge) override { m_edgeSampler.removeEdge(edge); }
     const double getVertexWeight(const BaseGraph::VertexIndex& vertex) const override {
         return (m_vertexSampler.count(vertex) > 0) ? m_shift + m_edgeSampler.getVertexWeight(vertex) : 0.;
     }

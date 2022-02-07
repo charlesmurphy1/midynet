@@ -32,4 +32,53 @@ void SingleEdgeProposer::setUpFromGraph(const MultiGraph& graph) {
     m_vertexSamplerPtr->setUp(graph);
 }
 
+const double SingleEdgeUniformProposer::getLogProposalProbRatio(const GraphMove&move) const {
+    double logProbability = 0;
+
+    for (auto edge: move.removedEdges)
+        if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 1)
+            logProbability += -log(.5);
+
+    for (auto edge: move.addedEdges)
+        if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 0)
+            logProbability += -log(.5);
+    return logProbability;
+}
+
+void SingleEdgeDegreeProposer::applyGraphMove(const GraphMove& move) {
+    for (auto edge: move.removedEdges)
+        m_vertexDegreeSampler.removeEdge(edge);
+    for (auto edge: move.addedEdges)
+        m_vertexDegreeSampler.addEdge(edge);
+};
+const double SingleEdgeDegreeProposer::getLogProposalProbRatio(const GraphMove&move) const {
+    double logProbability = 0;
+
+    for (auto edge: move.removedEdges){
+        if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 1)
+            logProbability += -log(.5);
+
+        logProbability += log(m_vertexDegreeSampler.getVertexWeight(edge.first) - 1);
+        logProbability += log(m_vertexDegreeSampler.getVertexWeight(edge.second) - 1);
+        logProbability -= log(m_vertexDegreeSampler.getTotalWeight() - 1);
+
+        logProbability -= log(m_vertexDegreeSampler.getVertexWeight(edge.first));
+        logProbability -= log(m_vertexDegreeSampler.getVertexWeight(edge.second));
+        logProbability += log(m_vertexDegreeSampler.getTotalWeight());
+    }
+    for (auto edge: move.addedEdges){
+        if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 0)
+            logProbability += -log(.5);
+
+        logProbability += log(m_vertexDegreeSampler.getVertexWeight(edge.first) + 1);
+        logProbability += log(m_vertexDegreeSampler.getVertexWeight(edge.second) + 1);
+        logProbability -= log(m_vertexDegreeSampler.getTotalWeight() + 1);
+
+        logProbability -= log(m_vertexDegreeSampler.getVertexWeight(edge.first));
+        logProbability -= log(m_vertexDegreeSampler.getVertexWeight(edge.second));
+        logProbability += log(m_vertexDegreeSampler.getTotalWeight());
+    }
+    return logProbability;
+}
+
 } // namespace FastMIDyNet

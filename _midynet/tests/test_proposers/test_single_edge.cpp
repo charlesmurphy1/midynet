@@ -31,23 +31,23 @@ class TestSingleEdgeUniformProposer: public::testing::Test {
 
 TEST_F(TestSingleEdgeUniformProposer, getLogProposalProbRatio_addEdge_return0) {
     FastMIDyNet::GraphMove move = {{}, {inexistentEdge}};
-    proposer.updateProbabilities(move);
+    proposer.applyGraphMove(move);
     EXPECT_EQ(proposer.getLogProposalProbRatio(move), -log(0.5));
 
     move = {{}, {singleEdge}};
-    proposer.updateProbabilities(move);
+    proposer.applyGraphMove(move);
     EXPECT_EQ(proposer.getLogProposalProbRatio(move), 0);
 }
 
 TEST_F(TestSingleEdgeUniformProposer, getLogProposalProbRatio_removeEdgeWithMultiplicity2_return0) {
     FastMIDyNet::GraphMove move = {{doubleEdge}, {}};
-    proposer.updateProbabilities(move);
+    proposer.applyGraphMove(move);
     EXPECT_EQ(proposer.getLogProposalProbRatio(move), 0);
 }
 
 TEST_F(TestSingleEdgeUniformProposer, getLogProposalProbRatio_removeEdgeWithMultiplicity1_returnCorrectRatio) {
     FastMIDyNet::GraphMove move = {{singleEdge}, {}};
-    proposer.updateProbabilities(move);
+    proposer.applyGraphMove(move);
     EXPECT_EQ(proposer.getLogProposalProbRatio(move), -log(.5));
 }
 
@@ -74,17 +74,17 @@ class TestSingleEdgeDegreeProposer: public::testing::Test {
 
 TEST_F(TestSingleEdgeDegreeProposer, getLogProposalProbRatio_addEdge_return0) {
     FastMIDyNet::GraphMove move = {{}, {inexistentEdge}};
-    proposer.updateProbabilities(move);
+    proposer.applyGraphMove(move);
 }
 
 TEST_F(TestSingleEdgeDegreeProposer, getLogProposalProbRatio_removeEdgeWithMultiplicity2_return0) {
     FastMIDyNet::GraphMove move = {{doubleEdge}, {}};
-    proposer.updateProbabilities(move);
+    proposer.applyGraphMove(move);
 }
 
 TEST_F(TestSingleEdgeDegreeProposer, getLogProposalProbRatio_removeEdgeWithMultiplicity1_returnCorrectRatio) {
     FastMIDyNet::GraphMove move = {{singleEdge}, {}};
-    proposer.updateProbabilities(move);
+    proposer.applyGraphMove(move);
 }
 
 }

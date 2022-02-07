@@ -41,17 +41,16 @@ TEST_F(TestEdgeSampler, sample_returnEdgeInGraph){
     }
 }
 
-TEST_F(TestEdgeSampler, update_forRemovedEdge_removeEdgeFromSampler){
+TEST_F(TestEdgeSampler, removeEdge_removeEdgeFromSampler){
     GraphMove move = {{{0, 1}}, {}};
-    sampler.update(move);
+    sampler.removeEdge({0, 1});
     EXPECT_EQ(sampler.getEdgeWeight({0, 1}), 0);
     EXPECT_EQ(sampler.getTotalWeight(), edgeCount - 1);
 }
 
-TEST_F(TestEdgeSampler, update_forAddededEdge_addEdgeToSampler){
-    GraphMove move = {{}, {{2, 3}}};
+TEST_F(TestEdgeSampler, addEdge_addEdgeToSampler){
     EXPECT_EQ(sampler.getEdgeWeight({2, 3}), 0);
-    sampler.update(move);
+    sampler.addEdge({2, 3});
     EXPECT_EQ(sampler.getEdgeWeight({2, 3}), 1);
     EXPECT_EQ(sampler.getTotalWeight(), edgeCount + 1);
 }

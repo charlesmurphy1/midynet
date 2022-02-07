@@ -14,7 +14,7 @@ namespace FastMIDyNet{
 class DummyEdgeProposer: public HingeFlipUniformProposer{
 public:
     using HingeFlipUniformProposer::HingeFlipUniformProposer;
-    sset::SamplableSet<BaseGraph::Edge> getEdgeSamplableSet() { return m_edgeSamplableSet; }
+    const EdgeSampler& getEdgeSampler() { return m_edgeSampler; }
 };
 
 class TestHingeFlipUniformProposer: public::testing::Test {
@@ -39,8 +39,8 @@ class TestHingeFlipUniformProposer: public::testing::Test {
 
 
 TEST_F(TestHingeFlipUniformProposer, setup_anyGraph_edgeSamplableSetContainsAllEdges) {
-    EXPECT_EQ(graph.getTotalEdgeNumber(), proposer.getEdgeSamplableSet().total_weight());
-    EXPECT_EQ(graph.getDistinctEdgeNumber(), proposer.getEdgeSamplableSet().size());
+    EXPECT_EQ(graph.getTotalEdgeNumber(), proposer.getEdgeSampler().getTotalWeight());
+    EXPECT_EQ(graph.getDistinctEdgeNumber(), proposer.getEdgeSampler().getSize());
 }
 
 
@@ -48,25 +48,25 @@ TEST_F(TestHingeFlipUniformProposer, setup_anyGraph_samplableSetHasOnlyOrderedEd
     for (auto vertex: graph)
         for (auto neighbor: graph.getNeighboursOfIdx(vertex))
             if (vertex <= neighbor.vertexIndex)
-                EXPECT_EQ(round(proposer.getEdgeSamplableSet().get_weight({vertex, neighbor.vertexIndex})), neighbor.label);
+                EXPECT_EQ(round(proposer.getEdgeSampler().getEdgeWeight({vertex, neighbor.vertexIndex})), neighbor.label);
             else
-                EXPECT_EQ(proposer.getEdgeSamplableSet().count({vertex, neighbor.vertexIndex}), 0);
+                EXPECT_EQ(proposer.getEdgeSampler().getEdgeWeight({vertex, neighbor.vertexIndex}), 0);
 }
 
 
 TEST_F(TestHingeFlipUniformProposer, updateProbabilities_addExistentEdge_edgeWeightIncreased) {
     BaseGraph::Edge edge = {0, 2};
     GraphMove move = {{}, {edge}};
-    proposer.updateProbabilities(move);
-    EXPECT_EQ(proposer.getEdgeSamplableSet().get_weight(edge), graph.getEdgeMultiplicityIdx(edge)+1);
+    proposer.applyGraphMove(move);
+    EXPECT_EQ(proposer.getEdgeSampler().getEdgeWeight(edge), graph.getEdgeMultiplicityIdx(edge)+1);
 }
 
 
 TEST_F(TestHingeFlipUniformProposer, updateProbabilities_addMultiEdge_edgeWeightIncreased) {
     BaseGraph::Edge edge = {0, 1};
     GraphMove move = {{}, {edge, edge}};
-    proposer.updateProbabilities(move);
-    EXPECT_EQ(proposer.getEdgeSamplableSet().get_weight(edge), graph.getEdgeMultiplicityIdx(edge)+2);
+    proposer.applyGraphMove(move);
+    EXPECT_EQ(proposer.getEdgeSampler().getEdgeWeight(edge), graph.getEdgeMultiplicityIdx(edge)+2);
 }
 
 
@@ -74,20 +74,20 @@ TEST_F(TestHingeFlipUniformProposer, updateProbabilities_addInexistentEdge_edgeW
     BaseGraph::Edge edge = {0, 1};
     BaseGraph::Edge reversedEdge = {1, 0};
     GraphMove move = {{}, {edge}};
-    proposer.updateProbabilities(move);
-    EXPECT_EQ(proposer.getEdgeSamplableSet().get_weight(edge), graph.getEdgeMultiplicityIdx(edge)+1);
-    EXPECT_EQ(proposer.getEdgeSamplableSet().count(reversedEdge), 0);
+    proposer.applyGraphMove(move);
+    EXPECT_EQ(proposer.getEdgeSampler().getEdgeWeight(edge), graph.getEdgeMultiplicityIdx(edge)+1);
+    EXPECT_EQ(proposer.getEdgeSampler().getEdgeWeight(reversedEdge), 0);
 }
 
 
 TEST_F(TestHingeFlipUniformProposer, updateProbabilities_removeEdge_edgeWeightDecreased) {
-    auto edge = proposer.getEdgeSamplableSet().sample().first;
+    auto edge = proposer.getEdgeSampler().sample();
 
     size_t edgeMult = graph.getEdgeMultiplicityIdx(edge);
     GraphMove move = {{edge}, {}};
-    proposer.updateProbabilities(move);
+    proposer.applyGraphMove(move);
     if (edgeMult > 1)
-        EXPECT_EQ(proposer.getEdgeSamplableSet().get_weight(edge), graph.getEdgeMultiplicityIdx(edge)-1);
+        EXPECT_EQ(proposer.getEdgeSampler().getEdgeWeight(edge), graph.getEdgeMultiplicityIdx(edge)-1);
 }
 
 }

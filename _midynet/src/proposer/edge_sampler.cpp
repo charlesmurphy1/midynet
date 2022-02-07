@@ -3,38 +3,50 @@
 
 namespace FastMIDyNet{
 
-void EdgeSampler::update(const GraphMove& move){
-    for (auto edge: move.removedEdges) {
-        edge = getOrderedEdge(edge);
-        size_t edgeWeight = round(m_edgeSampler.get_weight(edge));
-        if (edgeWeight == 1)
-            m_edgeSampler.erase(edge);
-        else
-            m_edgeSampler.set_weight(edge, edgeWeight-1);
-        --m_degrees[edge.first];
-        --m_degrees[edge.second];
-    }
+void EdgeSampler::removeEdge(const BaseGraph::Edge edge){
+    auto orderedEdge = getOrderedEdge(edge);
+    double edgeWeight = round(m_edgeSampler.get_weight(orderedEdge));
+    if (edgeWeight == 1)
+        m_edgeSampler.erase(orderedEdge);
+    else
+        m_edgeSampler.set_weight(orderedEdge, edgeWeight-1);
+    --m_vertexWeights[orderedEdge.first];
+    --m_vertexWeights[orderedEdge.second];
+}
 
-    for (auto edge: move.addedEdges) {
-        edge = getOrderedEdge(edge);
-        if (m_edgeSampler.count(edge) == 0)
-            m_edgeSampler.insert(edge, 1);
-        else
-            m_edgeSampler.set_weight(edge, round(m_edgeSampler.get_weight(edge))+1);
+void EdgeSampler::addEdge(const BaseGraph::Edge edge){
+    auto orderedEdge = getOrderedEdge(edge);
+    if (m_edgeSampler.count(orderedEdge) == 0)
+        m_edgeSampler.insert(orderedEdge, 1);
+    else
+        m_edgeSampler.set_weight(orderedEdge, round(m_edgeSampler.get_weight(orderedEdge))+1);
 
-        ++m_degrees[edge.first];
-        ++m_degrees[edge.second];
-    }
+    ++m_vertexWeights[orderedEdge.first];
+    ++m_vertexWeights[orderedEdge.second];
+}
+
+void EdgeSampler::insertEdge(const BaseGraph::Edge edge, double edgeWeight=1){
+    auto orderedEdge = getOrderedEdge(edge);
+    m_edgeSampler.insert(edge, edgeWeight);
+    m_vertexWeights[edge.first] += edgeWeight;
+    m_vertexWeights[edge.second] += edgeWeight;
+}
+
+void EdgeSampler::eraseEdge(const BaseGraph::Edge edge){
+    double edgeWeight = m_edgeSampler.get_weight(edge);
+    m_vertexWeights[edge.first] -= edgeWeight;
+    m_vertexWeights[edge.second] -= edgeWeight;
+    m_edgeSampler.erase(edge);
 }
 
 void EdgeSampler::setUp(const MultiGraph& graph){
-    m_edgeSampler.clear();
-    m_degrees = graph.getDegrees();
-    for (auto vertex: graph) {
+    clear();
+    m_vertexWeights = std::vector<double>(graph.getSize(), 0.);
+    for (auto vertex: graph){
         for (auto neighbor: graph.getNeighboursOfIdx(vertex)){
-            BaseGraph::Edge edge = {vertex, neighbor.vertexIndex};
-            if (vertex <= neighbor.vertexIndex)
-                m_edgeSampler.insert(edge, neighbor.label);
+            if (vertex <= neighbor.vertexIndex){
+                insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
+            }
         }
     }
 }

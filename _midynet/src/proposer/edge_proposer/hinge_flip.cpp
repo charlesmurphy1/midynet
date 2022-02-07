@@ -7,7 +7,7 @@ namespace FastMIDyNet {
 
 
 GraphMove HingeFlipProposer::proposeRawMove() const {
-    auto edge = m_edgeSamplableSet.sample_ext_RNG(rng).first;
+    auto edge = m_edgeSampler.sample();
     BaseGraph::VertexIndex node = m_vertexSamplerPtr->sample();
 
     if (edge.first == node or edge.second == node)
@@ -27,35 +27,20 @@ GraphMove HingeFlipProposer::proposeRawMove() const {
 
 void HingeFlipProposer::setUpFromGraph(const MultiGraph& graph){
     m_graphPtr = &graph;
-    m_edgeSamplableSet.clear();
+    m_edgeSampler.setUp(graph);
     m_vertexSamplerPtr->setUp(graph);
-    for (auto vertex: graph) {
-        for (auto neighbor: graph.getNeighboursOfIdx(vertex)){
-            if (vertex <= neighbor.vertexIndex)
-                m_edgeSamplableSet.insert({vertex, neighbor.vertexIndex}, neighbor.label);
-        }
-    }
 }
 
-void HingeFlipProposer::updateProbabilities(const GraphMove& move) {
-    m_vertexSamplerPtr->update(move);
+void HingeFlipProposer::applyGraphMove(const GraphMove& move) {
 
     for (auto edge: move.removedEdges) {
-        edge = getOrderedEdge(edge);
-        size_t edgeWeight = round(m_edgeSamplableSet.get_weight(edge));
-        if (edgeWeight == 1)
-            m_edgeSamplableSet.erase(edge);
-        else
-            m_edgeSamplableSet.set_weight(edge, edgeWeight-1);
+        m_vertexSamplerPtr->removeEdge(edge);
+        m_edgeSampler.removeEdge(edge);
     }
 
     for (auto edge: move.addedEdges) {
-        edge = getOrderedEdge(edge);
-        if (m_edgeSamplableSet.count(edge) == 0)
-            m_edgeSamplableSet.insert(edge, 1);
-        else {
-            m_edgeSamplableSet.set_weight(edge, round(m_edgeSamplableSet.get_weight(edge))+1);
-        }
+        m_vertexSamplerPtr->addEdge(edge);
+        m_edgeSampler.addEdge(edge);
     }
 }
 

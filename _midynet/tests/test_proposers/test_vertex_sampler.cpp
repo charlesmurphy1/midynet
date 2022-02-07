@@ -25,25 +25,22 @@ TEST_F(TestVertexUniformSampler, sample_returnVertexInGraph){
     }
 }
 
-TEST_F(TestVertexUniformSampler, update_forRemovedEdge_doNothing){
+TEST_F(TestVertexUniformSampler, removeEdge_doNothing){
     graph.addEdgeIdx(0, 1);
     graph.addEdgeIdx(0, 2);
     graph.addEdgeIdx(0, 3);
-    GraphMove move = {{{0, 1}}, {}};
     sampler.setUp(graph);
-
     EXPECT_EQ(sampler.getTotalWeight(), 10);
-    sampler.update(move);
+    sampler.removeEdge({0, 1});
     EXPECT_EQ(sampler.getTotalWeight(), 10);
 }
 
-TEST_F(TestVertexUniformSampler, update_forAddedEdge_doNothing){
+TEST_F(TestVertexUniformSampler, addEdge_doNothing){
     graph.addEdgeIdx(0, 1);
-    GraphMove move = {{}, {{0, 2}}};
     sampler.setUp(graph);
 
     EXPECT_EQ(sampler.getTotalWeight(), 10);
-    sampler.update(move);
+    sampler.addEdge({0, 2});
     EXPECT_EQ(sampler.getTotalWeight(), 10);
 }
 
@@ -84,23 +81,18 @@ TEST_F(TestVertexDegreeSampler, setUp_withGraph){
     }
 }
 
-TEST_F(TestVertexDegreeSampler, update_forRemovedEdge_changeWeight){
-    GraphMove move = {{{0,1}}, {}};
-
-    sampler.update(move);
+TEST_F(TestVertexDegreeSampler, removeEdge_changeWeight){
+    sampler.removeEdge({0, 1});
     EXPECT_EQ(sampler.getVertexWeight(0), shift + degrees[0] - 1);
     EXPECT_EQ(sampler.getVertexWeight(1), shift + degrees[1] - 1);
 
 
-    move = {{{1,1}}, {}};
-    sampler.update(move);
+    sampler.removeEdge({1, 1});
     EXPECT_EQ(sampler.getVertexWeight(1), shift + degrees[1] - 3);
 }
 
-TEST_F(TestVertexDegreeSampler, update_forAddedEdge_changeWeight){
-    GraphMove move = {{}, {{2,3}}};
-
-    sampler.update(move);
+TEST_F(TestVertexDegreeSampler, addEdge_changeWeight){
+    sampler.addEdge({2, 3});
     EXPECT_EQ(sampler.getVertexWeight(2), shift + degrees[2] + 1);
     EXPECT_EQ(sampler.getVertexWeight(3), shift + degrees[3] + 1);
 }

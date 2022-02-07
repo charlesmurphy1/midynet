@@ -5,6 +5,7 @@
 #include "FastMIDyNet/exceptions.h"
 #include "edge_proposer.h"
 #include "FastMIDyNet/proposer/vertex_sampler.h"
+#include "FastMIDyNet/proposer/edge_sampler.h"
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 
@@ -14,15 +15,15 @@ class HingeFlipProposer: public EdgeProposer {
 private:
     mutable std::bernoulli_distribution m_flipOrientationDistribution = std::bernoulli_distribution(.5);
 protected:
-    sset::SamplableSet<BaseGraph::Edge> m_edgeSamplableSet = sset::SamplableSet<BaseGraph::Edge> (1, 100);
+    EdgeSampler m_edgeSampler;
     VertexSampler* m_vertexSamplerPtr = nullptr;
 public:
     using EdgeProposer::EdgeProposer;
     GraphMove proposeRawMove() const override;
     void setUpFromGraph(const MultiGraph&) override;
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
-    void updateProbabilities(const GraphMove& move) override;
-    void updateProbabilities(const BlockMove& move) override { };
+    void applyGraphMove(const GraphMove& move) override;
+    void applyBlockMove(const BlockMove& move) override { };
     void checkSafety() const override {
         if (m_vertexSamplerPtr == nullptr)
             throw SafetyError("HingeFlipProposer: unsafe proposer since `m_vertexSamplerPtr` is NULL.");
