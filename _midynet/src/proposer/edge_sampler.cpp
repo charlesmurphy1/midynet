@@ -4,51 +4,40 @@
 namespace FastMIDyNet{
 
 void EdgeSampler::removeEdge(const BaseGraph::Edge& edge){
-    auto orderedEdge = getOrderedEdge(edge);
-    double edgeWeight = round(m_edgeSampler.get_weight(orderedEdge));
+    // auto orderedEdge = getOrderedEdge(edge);
+    if (not contains(edge))
+        throw std::logic_error("Cannot remove non-exising edge.");
+    double edgeWeight = round(m_edgeSampler.get_weight(edge));
     if (edgeWeight == 1)
-        m_edgeSampler.erase(orderedEdge);
+        m_edgeSampler.erase(edge);
     else
-        m_edgeSampler.set_weight(orderedEdge, edgeWeight-1);
-    --m_vertexWeights[orderedEdge.first];
-    --m_vertexWeights[orderedEdge.second];
+        m_edgeSampler.set_weight(edge, edgeWeight-1);
 }
 
 void EdgeSampler::addEdge(const BaseGraph::Edge& edge){
-    auto orderedEdge = getOrderedEdge(edge);
-    if (m_edgeSampler.count(orderedEdge) == 0)
-        m_edgeSampler.insert(orderedEdge, 1);
-    else
-        m_edgeSampler.set_weight(orderedEdge, round(m_edgeSampler.get_weight(orderedEdge))+1);
+    // auto orderedEdge = getOrderedEdge(edge);
 
-    ++m_vertexWeights[orderedEdge.first];
-    ++m_vertexWeights[orderedEdge.second];
+    if (m_edgeSampler.count(edge) == 0)
+        m_edgeSampler.insert(edge, 1);
+    else
+        m_edgeSampler.set_weight(edge, round(m_edgeSampler.get_weight(edge))+1);
 }
 
 void EdgeSampler::insertEdge(const BaseGraph::Edge& edge, double edgeWeight=1){
-    auto orderedEdge = getOrderedEdge(edge);
-    m_edgeSampler.insert(edge, edgeWeight);
-    m_vertexWeights[edge.first] += edgeWeight;
-    m_vertexWeights[edge.second] += edgeWeight;
+    // auto orderedEdge = getOrderedEdge(edge);
+    if (contains(edge))
+        m_edgeSampler.set_weight(edge, edgeWeight);
+    else
+        m_edgeSampler.insert(edge, edgeWeight);
 }
 
-void EdgeSampler::eraseEdge(const BaseGraph::Edge& edge){
+double EdgeSampler::eraseEdge(const BaseGraph::Edge& edge){
+    // auto edge = getOrderedEdge(edge);
+    if (not contains(edge))
+        throw std::logic_error("Cannot erase non-exising edge.");
     double edgeWeight = m_edgeSampler.get_weight(edge);
-    m_vertexWeights[edge.first] -= edgeWeight;
-    m_vertexWeights[edge.second] -= edgeWeight;
     m_edgeSampler.erase(edge);
-}
-
-void EdgeSampler::setUp(const MultiGraph& graph){
-    clear();
-    m_vertexWeights = std::vector<double>(graph.getSize(), 0.);
-    for (auto vertex: graph){
-        for (auto neighbor: graph.getNeighboursOfIdx(vertex)){
-            if (vertex <= neighbor.vertexIndex){
-                insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
-            }
-        }
-    }
+    return edgeWeight;
 }
 
 }

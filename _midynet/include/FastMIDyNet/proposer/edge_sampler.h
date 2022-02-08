@@ -7,13 +7,14 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/proposer/movetypes.h"
+#include "FastMIDyNet/utility/maps.hpp"
+#include "FastMIDyNet/utility/functions.h"
 
 namespace FastMIDyNet{
 
 class EdgeSampler{
 private:
     sset::SamplableSet<BaseGraph::Edge> m_edgeSampler = sset::SamplableSet<BaseGraph::Edge>(1, 100);
-    std::vector<double> m_vertexWeights;
 public:
     EdgeSampler(){}
     EdgeSampler(const EdgeSampler& other): m_edgeSampler(other.m_edgeSampler){}
@@ -21,21 +22,25 @@ public:
     BaseGraph::Edge sample() const {
         return m_edgeSampler.sample_ext_RNG(rng).first;
     }
+    virtual bool contains(const BaseGraph::Edge&edge) const {
+        return m_edgeSampler.count(edge) > 0;
+    };
+
     void addEdge(const BaseGraph::Edge& );
     void removeEdge(const BaseGraph::Edge& );
     void insertEdge(const BaseGraph::Edge& , double);
-    void eraseEdge(const BaseGraph::Edge& );
-    void setUp(const MultiGraph&);
+    double eraseEdge(const BaseGraph::Edge& );
     const double getEdgeWeight(const BaseGraph::Edge& edge) const {
-        return (m_edgeSampler.count(edge) > 0) ? m_edgeSampler.get_weight(edge) : 0.;
+        // auto orderedEdge = getOrderedEdge(edge);
+        return (contains(edge)) ? m_edgeSampler.get_weight(edge) : 0.;
     }
-    const double getVertexWeight(const BaseGraph::VertexIndex& vertex) const {
-        return m_vertexWeights[vertex];
-    }
+
+    void applyGraphMove(const GraphMove&) ;
+    // void applyBlockMove(const BlockMove&) ;
     const double getTotalWeight() const {return m_edgeSampler.total_weight(); }
     const double getSize() const {return m_edgeSampler.size(); }
 
-    void clear() { m_edgeSampler.clear(); m_vertexWeights.clear(); }
+    void clear() { m_edgeSampler.clear(); }
     virtual void checkSafety() const { }
 };
 

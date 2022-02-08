@@ -39,15 +39,14 @@ public:
     HingeFlipUniformProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
         HingeFlipProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
 
-    const double getLogProposalProbRatio(const GraphMove&) const override{
-        return 0.;
-    }
+    const double getLogProposalProbRatio(const GraphMove&) const override{ return 0.; }
 };
 
 
 class HingeFlipDegreeProposer: public HingeFlipProposer{
 private:
     VertexDegreeSampler m_vertexDegreeSampler;
+
 public:
     HingeFlipDegreeProposer(bool allowSelfLoops=true, bool allowMultiEdges=true, double shift=1):
         HingeFlipProposer(allowSelfLoops, allowMultiEdges),

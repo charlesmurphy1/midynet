@@ -25,11 +25,12 @@ GraphMove DoubleEdgeSwapProposer::proposeRawMove() const {
     return {{edge1, edge2}, {newEdge1, newEdge2}};
 }
 
-void DoubleEdgeSwapProposer::setUpFromGraph(
-    const MultiGraph& graph
-) {
+void DoubleEdgeSwapProposer::setUpFromGraph( const MultiGraph& graph ) {
     m_graphPtr = &graph;
-    m_edgeSampler.setUp(graph);
+    for (auto vertex : graph)
+        for (auto neighbor : graph.getNeighboursOfIdx(vertex))
+            if (vertex <= neighbor.vertexIndex)
+                m_edgeSampler.insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
 }
 
 void DoubleEdgeSwapProposer::applyGraphMove(const GraphMove& move) {

@@ -2,7 +2,7 @@
 #define FAST_MIDYNET_VERTEX_SAMPLER_H
 
 #include <random>
-#include <unordered_set>
+#include <unordered_map>
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 #include "BaseGraph/types.h"
@@ -17,11 +17,12 @@ namespace FastMIDyNet{
 class VertexSampler{
 public:
     virtual BaseGraph::VertexIndex sample() const = 0;
-    virtual void setUp(const MultiGraph& graph) = 0;
-    virtual void insertEdge(const BaseGraph::Edge&, double) { };
-    virtual void eraseEdge(const BaseGraph::Edge&) { };
-    virtual void addEdge(const BaseGraph::Edge&) { };
-    virtual void removeEdge(const BaseGraph::Edge&) { };
+    virtual bool contains(const BaseGraph::VertexIndex&) const = 0;
+    virtual void insertVertex(const BaseGraph::VertexIndex& vertex) = 0;
+    virtual void insertEdge(const BaseGraph::Edge& edge, double edgeWeight) = 0;
+    virtual void eraseEdge(const BaseGraph::Edge&) = 0;
+    virtual void addEdge(const BaseGraph::Edge&) = 0;
+    virtual void removeEdge(const BaseGraph::Edge&) = 0;
     virtual const double getVertexWeight(const BaseGraph::VertexIndex&) const = 0;
     virtual const double getTotalWeight() const = 0;
     virtual const size_t getSize() const = 0;
@@ -43,12 +44,25 @@ public:
     }
 
     BaseGraph::VertexIndex sample() const override { return m_vertexSampler.sample_ext_RNG(rng).first; }
-    void setUp(const MultiGraph& graph) override;
+
+    bool contains(const BaseGraph::VertexIndex& vertex) const override {
+        return m_vertexSampler.count(vertex) > 0;
+    };
+    void insertVertex(const BaseGraph::VertexIndex& vertex) override {
+        if (not contains(vertex))
+            m_vertexSampler.insert(vertex, 1);
+    };
+    void insertEdge(const BaseGraph::Edge& edge, double edgeWeight) { };
+    void eraseEdge(const BaseGraph::Edge&) { };
+    void addEdge(const BaseGraph::Edge&) { };
+    void removeEdge(const BaseGraph::Edge&) { };
     const double getVertexWeight(const BaseGraph::VertexIndex& vertex) const override {
-        return (m_vertexSampler.count(vertex) > 0) ? m_vertexSampler.get_weight(vertex) : 0.;
+        return (contains(vertex)) ? m_vertexSampler.get_weight(vertex) : 0.;
     }
     const double getTotalWeight() const override { return m_vertexSampler.total_weight(); }
     const size_t getSize() const override { return m_vertexSampler.size(); }
+
+
     void clear() { m_vertexSampler.clear(); }
 
     void checkSafety()const override {
@@ -63,30 +77,43 @@ protected:
     sset::SamplableSet<BaseGraph::VertexIndex> m_vertexSampler = sset::SamplableSet<BaseGraph::VertexIndex>(1, 100);
     EdgeSampler m_edgeSampler;
     mutable std::bernoulli_distribution m_vertexChoiceDistribution = std::bernoulli_distribution(.5);
-    mutable std::bernoulli_distribution m_sampleFromUniformDistribution;
+    mutable std::uniform_real_distribution<double> m_uniform01 = std::uniform_real_distribution<double>(0, 1);
     double m_shift;
+    double m_totalEdgeWeight;
+    std::unordered_map<BaseGraph::VertexIndex, double> m_weights;
 public:
     VertexDegreeSampler(double shift=1):m_shift(shift){};
     VertexDegreeSampler(const VertexDegreeSampler& other):
-        m_edgeSampler(other.m_edgeSampler){}
+        m_vertexSampler(other.m_vertexSampler), m_edgeSampler(other.m_edgeSampler),
+        m_totalEdgeWeight(other.m_totalEdgeWeight), m_shift(other.m_shift){}
     ~VertexDegreeSampler() {}
     const VertexDegreeSampler& operator=(const VertexDegreeSampler& other){
+        this->m_vertexSampler = other.m_vertexSampler;
         this->m_edgeSampler = other.m_edgeSampler;
+        this->m_totalEdgeWeight = other.m_totalEdgeWeight;
+        this->m_weights = other.m_weights;
+        this->m_shift = other.m_shift;
         return *this;
     }
 
     BaseGraph::VertexIndex sample() const override;
-    void setUp(const MultiGraph& graph) override;
-    void insertEdge(const BaseGraph::Edge& edge, double edgeWeight) override { m_edgeSampler.insertEdge(edge, edgeWeight); }
-    void eraseEdge(const BaseGraph::Edge& edge) override { m_edgeSampler.eraseEdge(edge); }
-    void addEdge(const BaseGraph::Edge& edge) override { m_edgeSampler.addEdge(edge); }
-    void removeEdge(const BaseGraph::Edge& edge) override { m_edgeSampler.removeEdge(edge); }
-    const double getVertexWeight(const BaseGraph::VertexIndex& vertex) const override {
-        return (m_vertexSampler.count(vertex) > 0) ? m_shift + m_edgeSampler.getVertexWeight(vertex) : 0.;
+    void insertVertex(const BaseGraph::VertexIndex& vertex) override;
+    void insertEdge(const BaseGraph::Edge& edge, double edgeWeight) override ;
+    void eraseEdge(const BaseGraph::Edge& edge) override ;
+    void addEdge(const BaseGraph::Edge& edge) override ;
+    void removeEdge(const BaseGraph::Edge& edge) override ;
+    bool contains(const BaseGraph::VertexIndex& vertex) const override{
+        return m_vertexSampler.count(vertex) > 0;
     }
-    const double getTotalWeight() const override { return 2 * m_edgeSampler.getTotalWeight() + m_shift * m_vertexSampler.total_weight(); }
+    const double getVertexWeight(const BaseGraph::VertexIndex& vertex) const override {
+        return (contains(vertex)) ? m_shift + m_weights.at(vertex) : 0.;
+    }
+    void applyGraphMove(const GraphMove&) ;
+    const double getTotalWeight() const override {
+        return m_totalEdgeWeight + m_shift * m_vertexSampler.total_weight();
+    }
     const size_t getSize() const override { return m_vertexSampler.size(); }
-    void clear() { m_vertexSampler.clear(); m_edgeSampler.clear(); }
+    void clear() { m_totalEdgeWeight = 0; m_vertexSampler.clear(); m_weights.clear(); m_edgeSampler.clear(); }
 
     void checkSafety() const override {
         if (m_edgeSampler.getTotalWeight() == 0)

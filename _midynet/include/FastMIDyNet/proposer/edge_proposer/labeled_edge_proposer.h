@@ -4,32 +4,35 @@
 #include <map>
 #include "edge_proposer.h"
 #include "FastMIDyNet/proposer/edge_sampler.h"
+#include "FastMIDyNet/proposer/vertex_sampler.h"
+#include "FastMIDyNet/proposer/label_sampler.h"
+#include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/utility/maps.hpp"
 
 namespace FastMIDyNet{
 
 using LabelPair = std::pair<BlockIndex, BlockIndex>;
+
 class LabeledEdgeProposer: public EdgeProposer{
 protected:
-    const std::vector<BlockIndex>* m_labelsPtr = nullptr;
-    EdgeSampler m_edgeSampler;
-    bool m_keepLabels;
-
+    LabelPairSampler m_labelSampler;
 public:
-    LabeledEdgeProposer(bool allowSelfLoops=true, bool allowMultiEdges=true, bool keepLabels=false):
-        EdgeProposer(allowSelfLoops, allowMultiEdges), m_keepLabels(keepLabels){ }
+    LabeledEdgeProposer(
+        bool allowSelfLoops=true,
+        bool allowMultiEdges=true,
+        double labelPairShift=1):
+            EdgeProposer(allowSelfLoops, allowMultiEdges),
+            m_labelSampler(labelPairShift){ }
 
     virtual void setUp( const RandomGraph& randomGraph ) {
-        m_labelsPtr = &randomGraph.getBlocks(); setUpFromGraph(randomGraph.getGraph());
+        m_labelSampler.setUp(randomGraph);
+        setUpFromGraph(randomGraph.getGraph());
     }
-
-    const bool& keepLabels(bool keep){ return m_keepLabels = keep; }
-    const bool& keepLabels() const { return m_keepLabels; }
-
-    virtual void onLabelCreation(const BlockMove& move);
-    virtual void onLabelDeletion(const BlockMove& move);
-
-
-
+    virtual void setUpFromGraph(const MultiGraph& graph){
+        EdgeProposer::setUpFromGraph(graph);
+    }
+    virtual void onLabelCreation(const BlockMove& move) { };
+    virtual void onLabelDeletion(const BlockMove& move) { };
 };
 
 }

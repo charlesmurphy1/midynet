@@ -10,6 +10,15 @@ public:
     EdgeSampler sampler = EdgeSampler();
     MultiGraph graph = MultiGraph(vertexCount);
     size_t edgeCount;
+
+    void setUpSamplerWithGraph(const MultiGraph& graph){
+        sampler.clear();
+        for (auto vertex : graph){
+            for (auto neighbor : graph.getNeighboursOfIdx(vertex))
+                if (vertex <= neighbor.vertexIndex)
+                    sampler.insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
+        }
+    }
     void SetUp(){
         graph.addEdgeIdx(0, 1);
         graph.addEdgeIdx(0, 2);
@@ -20,12 +29,12 @@ public:
         graph.addEdgeIdx(1, 3);
 
         edgeCount = graph.getTotalEdgeNumber();
-        sampler.setUp(graph);
+        setUpSamplerWithGraph(graph);
     }
 };
 
 TEST_F(TestEdgeSampler, setUp_withGraph){
-    sampler.setUp(graph);
+    setUpSamplerWithGraph(graph);
     EXPECT_EQ(sampler.getTotalWeight(), edgeCount);
 }
 

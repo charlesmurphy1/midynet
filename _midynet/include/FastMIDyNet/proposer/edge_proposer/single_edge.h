@@ -51,6 +51,8 @@ public:
 
     void applyGraphMove(const GraphMove& move) override ;
     const double getLogProposalProbRatio(const GraphMove&move) const override;
+
+    const double getGammaRatio(BaseGraph::Edge edge, const double difference=1) const ;
 };
 
 
