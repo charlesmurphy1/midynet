@@ -1,20 +1,24 @@
 import os
 import sys
 import setuptools
+import importlib
 from setuptools import setup
 
-# from setuptools.command.build_ext import build_ext
-from pybind11.setup_helpers import (
-    ParallelCompile,
-    build_ext,
-    Pybind11Extension,
-    naive_recompile,
-)
 
-# Optional multithreaded build
-ParallelCompile(
-    "NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile
-).install()
+if importlib.util.find_spec("pybind11") is None:
+    from setuptools.command.build_ext import build_ext
+    from setuptools import Extension
+else:
+    from pybind11.setup_helpers import (
+        ParallelCompile,
+        naive_recompile,
+        Pybind11Extension,
+        build_ext
+    )
+    Extension = Pybind11Extension
+    ParallelCompile(
+        "NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile
+    ).install()
 
 
 class get_pybind_include(object):
@@ -78,7 +82,7 @@ def find_files_recursively(path, ext=[]):
 
 
 ext_modules = [
-    Pybind11Extension(
+    Extension(
         "_midynet",
         include_dirs=[
             get_pybind_include(),
