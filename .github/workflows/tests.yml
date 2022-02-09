@@ -23,7 +23,9 @@ jobs:
 
             - name: Install C++ dependencies
               shell: bash
-              run: sudo apt install gcc-9 g++ cmake
+              run: |
+                    sudo apt install gcc-9 g++ cmake
+                    pip install --upgrade pip
 
             - name: Installing basegraph==1.0.0
               shell: bash
