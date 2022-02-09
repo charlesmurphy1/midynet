@@ -1,7 +1,7 @@
 #ifndef FAST_MIDYNET_LABELED_DOUBLE_EDGE_SWAP_H
 #define FAST_MIDYNET_LABELED_DOUBLE_EDGE_SWAP_H
 
-#include <map>
+#include <unordered_map>
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 #include "labeled_edge_proposer.h"
@@ -16,7 +16,7 @@ class LabeledDoubleEdgeSwapProposer: public LabeledEdgeProposer {
 private:
     mutable std::bernoulli_distribution m_swapOrientationDistribution = std::bernoulli_distribution(.5);
 protected:
-    std::map<LabelPair, EdgeSampler*> m_labeledEdgeSampler;
+    std::unordered_map<LabelPair, EdgeSampler*> m_labeledEdgeSampler;
 public:
     LabeledDoubleEdgeSwapProposer(bool allowSelfLoops=true, bool allowMultiEdges=true, double labelPairShift=1):
         LabeledEdgeProposer(allowSelfLoops, allowMultiEdges, labelPairShift) { }

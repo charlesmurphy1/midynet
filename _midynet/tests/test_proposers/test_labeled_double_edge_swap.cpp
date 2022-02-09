@@ -6,10 +6,16 @@
 
 namespace FastMIDyNet{
 
+    class DummyLabeledDoubleEdgeSwapProposer: public LabeledDoubleEdgeSwapProposer{
+    public:
+        LabelPairSampler getLabelSampler() { return m_labelSampler;}
+        std::unordered_map<LabelPair, EdgeSampler*> getEdgeSamplers(){ return m_labeledEdgeSampler; }
+    };
+
 class TestLabeledDoubleEdgeSwapProposer: public ::testing::Test{
 public:
     DummySBMGraph randomGraph = DummySBMGraph();
-    LabeledDoubleEdgeSwapProposer proposer = LabeledDoubleEdgeSwapProposer();
+    DummyLabeledDoubleEdgeSwapProposer proposer = DummyLabeledDoubleEdgeSwapProposer();
     void SetUp(){
         randomGraph.sample();
         proposer.setUp(randomGraph);
@@ -61,7 +67,36 @@ TEST_F(TestLabeledDoubleEdgeSwapProposer, applyGraphMove_forSomeGraphMove){
 }
 
 TEST_F(TestLabeledDoubleEdgeSwapProposer, applyBlockMove_forSomeBlockMove){
+    for (auto vertex : randomGraph.getGraph()){
+        BlockIndex prevBlockIdx = randomGraph.getBlockOfIdx(vertex);
+        BlockIndex nextBlockIdx = (prevBlockIdx == randomGraph.getBlockCount()-1) ? prevBlockIdx - 1 : prevBlockIdx + 1;
+        BlockMove move = {vertex, prevBlockIdx, nextBlockIdx};
+        // EXPECT_TRUE(proposer.getVertexSamplers().at(prevBlockIdx)->contains(vertex));
+        // for (auto neighbor : randomGraph.getGraph().getNeighboursOfIdx(vertex)){
+        //     auto edge = getOrderedEdge({vertex, neighbor.vertexIndex});
+        //     auto labelPair = proposer.getLabelSampler().getLabelOfIdx(edge);
+        //     EXPECT_TRUE(proposer.getEdgeSamplers().at(labelPair)->contains(edge));
+        // }
+        // double totalWeightBefore = proposer.getVertexSamplers().at(prevBlockIdx)->getTotalWeight();
 
+        proposer.applyBlockMove(move);
+
+        // EXPECT_FALSE(proposer.getVertexSamplers().at(prevBlockIdx)->contains(vertex));
+        double expectedWeightDiff = 0;
+        for (auto neighbor : randomGraph.getGraph().getNeighboursOfIdx(vertex)){
+            auto s = proposer.getLabelSampler().getLabelOfIdx(neighbor.vertexIndex);
+            auto edge = getOrderedEdge({vertex, neighbor.vertexIndex});
+            auto prevLabelPair = getOrderedPair<BlockIndex>({prevBlockIdx, s});
+            auto nextLabelPair = getOrderedPair<BlockIndex>({nextBlockIdx, s});
+            // EXPECT_FALSE(proposer.getEdgeSamplers().at(prevLabelPair)->contains(edge));
+            // EXPECT_TRUE(proposer.getEdgeSamplers().at(nextLabelPair)->contains(edge));
+            // if (s != prevBlockIdx){
+            //     expectedWeightDiff += neighbor.label;
+            // }
+        }
+        // EXPECT_EQ(proposer.getVertexSamplers().at(prevBlockIdx)->getTotalWeight(), totalWeightBefore - 1);
+        randomGraph.applyBlockMove(move);
+    }
 }
 
 

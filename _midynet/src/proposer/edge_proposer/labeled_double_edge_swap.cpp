@@ -52,10 +52,14 @@ void LabeledDoubleEdgeSwapProposer::applyBlockMove(const BlockMove& move) {
         onLabelCreation(move);
 
     for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
+        BaseGraph::Edge edge = getOrderedEdge({move.vertexIdx, neighbor.vertexIndex});
+        auto s = m_labelSampler.getLabelOfIdx(neighbor.vertexIndex);
         auto oldPair = getOrderedPair<BlockIndex>({move.prevBlockIdx, m_labelSampler.getLabelOfIdx(neighbor.vertexIndex)});
-        double weight = m_labeledEdgeSampler.at(oldPair)->onEdgeErasure({move.vertexIdx, neighbor.vertexIndex});
-        auto newPair = getOrderedPair<BlockIndex>({move.prevBlockIdx, m_labelSampler.getLabelOfIdx(neighbor.vertexIndex)});
-        m_labeledEdgeSampler.at(newPair)->onEdgeInsertion({move.vertexIdx, neighbor.vertexIndex}, weight);
+        auto newPair = getOrderedPair<BlockIndex>({move.nextBlockIdx, m_labelSampler.getLabelOfIdx(neighbor.vertexIndex)});
+        m_labeledEdgeSampler.at(oldPair)->onEdgeErasure(edge);
+        if (m_labeledEdgeSampler.count(newPair) == 0)
+            m_labeledEdgeSampler.insert({newPair, new EdgeSampler()});
+        m_labeledEdgeSampler.at(newPair)->onEdgeInsertion(edge, neighbor.label);
     }
 
     if (move.addedBlocks == -1)
