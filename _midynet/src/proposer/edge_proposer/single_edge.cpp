@@ -29,7 +29,63 @@ GraphMove SingleEdgeProposer::proposeRawMove() const {
 
 void SingleEdgeProposer::setUpFromGraph(const MultiGraph& graph) {
     m_graphPtr = &graph;
-    m_vertexSamplerPtr->setUp(graph);
+    for (auto vertex : graph){
+        m_vertexSamplerPtr->onVertexInsertion(vertex);
+        for (auto neighbor : graph.getNeighboursOfIdx(vertex)){
+            if (vertex <= neighbor.vertexIndex)
+                m_vertexSamplerPtr->onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
+
+        }
+    }
+}
+
+const double SingleEdgeUniformProposer::getLogProposalProbRatio(const GraphMove&move) const {
+    double logProbability = 0;
+
+    for (auto edge: move.removedEdges)
+        if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 1)
+            logProbability += log(.5);
+
+    for (auto edge: move.addedEdges)
+        if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 0)
+            logProbability -= log(.5);
+    return logProbability;
+}
+
+void SingleEdgeDegreeProposer::applyGraphMove(const GraphMove& move) {
+    for (auto edge: move.removedEdges)
+        m_vertexDegreeSampler.onEdgeRemoval(edge);
+    for (auto edge: move.addedEdges)
+        m_vertexDegreeSampler.onEdgeAddition(edge);
+}
+
+const double SingleEdgeDegreeProposer::getGammaRatio(BaseGraph::Edge edge, const double difference) const{
+    double gamma = 0;
+    gamma += log(m_vertexDegreeSampler.getVertexWeight(edge.first) + difference);
+    gamma += log(m_vertexDegreeSampler.getVertexWeight(edge.second) + difference);
+    gamma -= log(m_vertexDegreeSampler.getTotalWeight()  + difference);
+
+    gamma -= log(m_vertexDegreeSampler.getVertexWeight(edge.first));
+    gamma -= log(m_vertexDegreeSampler.getVertexWeight(edge.second));
+    gamma += log(m_vertexDegreeSampler.getTotalWeight());
+
+    return gamma;
+}
+
+const double SingleEdgeDegreeProposer::getLogProposalProbRatio(const GraphMove&move) const {
+    double logRatio = 0;
+
+    for (auto edge: move.removedEdges){
+        logRatio += getGammaRatio(edge, -1);
+        if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 1)
+            logRatio += -log(.5);
+    }
+    for (auto edge: move.addedEdges){
+        logRatio += getGammaRatio(edge, 1);
+        if (m_graphPtr->getEdgeMultiplicityIdx(edge) == 0)
+            logRatio += -log(.5);
+    }
+    return logRatio;
 }
 
 } // namespace FastMIDyNet

@@ -1,7 +1,13 @@
 #include "FastMIDyNet/types.h"
 
+#include "FastMIDyNet/prior/sbm/edge_count.h"
+#include "FastMIDyNet/prior/sbm/block_count.h"
+#include "FastMIDyNet/prior/sbm/block.h"
+#include "FastMIDyNet/prior/sbm/edge_matrix.h"
+#include "FastMIDyNet/random_graph/sbm.h"
 
-static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
+namespace FastMIDyNet{
+static MultiGraph getUndirectedHouseMultiGraph(){
     //     /*
     //      * (0)      (1)
     //      * ||| \   / | \
@@ -13,7 +19,7 @@ static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
     //      *
     //      *      (6)
     //      */
-    FastMIDyNet::MultiGraph graph(7);
+    MultiGraph graph(7);
     graph.addMultiedgeIdx(0, 2, 3);
     graph.addEdgeIdx(0, 3);
     graph.addEdgeIdx(1, 2);
@@ -24,5 +30,21 @@ static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
     graph.addEdgeIdx(3, 5);
 
     return graph;
+
+}
+
+class DummySBMGraph: public StochasticBlockModelFamily{
+private:
+    size_t size = 100;
+    BlockCountDeltaPrior blockCount = {3};
+    BlockUniformHyperPrior blocks = {size, blockCount};
+    EdgeCountDeltaPrior edgeCount = {250};
+    EdgeMatrixUniformPrior edgeMatrix = {edgeCount, blocks};
+public:
+    DummySBMGraph():StochasticBlockModelFamily(100){
+        setBlockPrior(blocks);
+        setEdgeMatrixPrior(edgeMatrix);
+    }
+};
 
 }

@@ -1,8 +1,24 @@
 import os
 import sys
 import setuptools
-from setuptools import Extension, setup
-from setuptools.command.build_ext import build_ext
+import importlib
+from setuptools import setup
+
+
+if importlib.util.find_spec("pybind11") is None:
+    from setuptools.command.build_ext import build_ext
+    from setuptools import Extension
+else:
+    from pybind11.setup_helpers import (
+        ParallelCompile,
+        naive_recompile,
+        Pybind11Extension,
+        build_ext
+    )
+    Extension = Pybind11Extension
+    ParallelCompile(
+        "NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile
+    ).install()
 
 
 class get_pybind_include(object):
@@ -95,11 +111,16 @@ ext_modules = [
             "./_midynet/src/dynamics/degree.cpp",
             "./_midynet/src/dynamics/ising-glauber.cpp",
             "./_midynet/src/dynamics/sis.cpp",
-            "./_midynet/src/proposer/vertex_sampler.cpp",
-            "./_midynet/src/proposer/edge_sampler.cpp",
+            "./_midynet/src/proposer/sampler/vertex_sampler.cpp",
+            "./_midynet/src/proposer/sampler/edge_sampler.cpp",
+            "./_midynet/src/proposer/sampler/label_sampler.cpp",
+            "./_midynet/src/proposer/edge_proposer/edge_proposer.cpp",
             "./_midynet/src/proposer/edge_proposer/double_edge_swap.cpp",
             "./_midynet/src/proposer/edge_proposer/hinge_flip.cpp",
             "./_midynet/src/proposer/edge_proposer/single_edge.cpp",
+            "./_midynet/src/proposer/edge_proposer/labeled_edge_proposer.cpp",
+            "./_midynet/src/proposer/edge_proposer/labeled_double_edge_swap.cpp",
+            "./_midynet/src/proposer/edge_proposer/labeled_hinge_flip.cpp",
             "./_midynet/src/proposer/block_proposer/generic.cpp",
             "./_midynet/src/proposer/block_proposer/uniform.cpp",
             "./_midynet/src/proposer/block_proposer/peixoto.cpp",

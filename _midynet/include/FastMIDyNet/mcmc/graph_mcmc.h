@@ -76,8 +76,8 @@ public:
 
     double getLogProposalProbRatioFromGraphMove(const GraphMove& move) const { return m_edgeProposer.getLogProposalProbRatio(move); }
     double getLogProposalProbRatioFromBlockMove(const BlockMove& move) const { return m_blockProposer.getLogProposalProbRatio(move); }
-    void updateProbabilitiesFromGraphMove(const GraphMove& move) { m_blockProposer.updateProbabilities(move); m_edgeProposer.updateProbabilities(move); }
-    void updateProbabilitiesFromBlockMove(const BlockMove& move) { m_blockProposer.updateProbabilities(move); m_edgeProposer.updateProbabilities(move); }
+    void applyGraphMove(const GraphMove& move) { m_blockProposer.applyGraphMove(move); m_edgeProposer.applyGraphMove(move); }
+    void applyBlockMove(const BlockMove& move) { m_blockProposer.applyBlockMove(move); m_edgeProposer.applyBlockMove(move); }
 
     bool doMetropolisHastingsStep() override ;
 

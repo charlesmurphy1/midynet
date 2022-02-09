@@ -62,8 +62,8 @@ void initMCMCBaseClass(py::module& m){
         .def("propose_edge_move", &RandomGraphMCMC::proposeEdgeMove )
         .def("get_log_proposal_prob_ratio_from_graph_move", &RandomGraphMCMC::getLogProposalProbRatioFromGraphMove, py::arg("move") )
         .def("get_log_proposal_prob_ratio_from_block_move", &RandomGraphMCMC::getLogProposalProbRatioFromBlockMove, py::arg("move") )
-        .def("update_probabilities_from_graph_move", &RandomGraphMCMC::updateProbabilitiesFromGraphMove, py::arg("move") )
-        .def("update_probabilities_from_block_move", &RandomGraphMCMC::updateProbabilitiesFromBlockMove, py::arg("move") )
+        .def("apply_graph_move", &RandomGraphMCMC::applyGraphMove, py::arg("move") )
+        .def("apply_block_move", &RandomGraphMCMC::applyBlockMove, py::arg("move") )
         ;
 
     py::class_<DynamicsMCMC, MCMC>(m, "DynamicsMCMC")

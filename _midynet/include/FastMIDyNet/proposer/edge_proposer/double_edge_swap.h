@@ -2,6 +2,7 @@
 #define FAST_MIDYNET_DOUBLE_EDGE_SWAP_H
 
 #include "edge_proposer.h"
+#include "FastMIDyNet/proposer/sampler/edge_sampler.h"
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 
@@ -12,15 +13,14 @@ class DoubleEdgeSwapProposer: public EdgeProposer {
 private:
     mutable std::bernoulli_distribution m_swapOrientationDistribution = std::bernoulli_distribution(.5);
 protected:
-    sset::SamplableSet<BaseGraph::Edge> m_edgeSamplableSet = sset::SamplableSet<BaseGraph::Edge>(1, 100);
+    EdgeSampler m_edgeSampler;
 public:
     using EdgeProposer::EdgeProposer;
     GraphMove proposeRawMove() const override;
     void setUpFromGraph(const MultiGraph&) override;
     const double getLogProposalProbRatio(const GraphMove&) const override { return 0; }
-    void updateProbabilities(const GraphMove&) override;
-
-    const sset::SamplableSet<BaseGraph::Edge>& getSamplableSet() { return m_edgeSamplableSet; }
+    void applyGraphMove(const GraphMove&) override;
+    void clear() override { m_edgeSampler.clear(); }
 };
 
 

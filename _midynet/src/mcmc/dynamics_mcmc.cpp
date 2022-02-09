@@ -44,7 +44,7 @@ bool DynamicsMCMC::doMetropolisHastingsStep() {
         if (r < p){
             m_isLastAccepted = true;
             m_dynamics.applyGraphMove(move);
-            m_randomGraphMCMC.updateProbabilitiesFromGraphMove(move);
+            m_randomGraphMCMC.applyGraphMove(move);
         }
     }
 

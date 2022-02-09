@@ -140,7 +140,14 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(
     int counter,
     map<VertexIndex, VertexNeighborhoodStateSequence>& prevNeighborMap,
     map<VertexIndex, VertexNeighborhoodStateSequence>& nextNeighborMap) const{
+    edge = getOrderedEdge(edge);
     VertexIndex v = edge.first, u = edge.second;
+
+    if (m_randomGraphPtr->getGraph().getEdgeMultiplicityIdx(edge) == 0 and counter < 0)
+        throw std::logic_error("Dynamics: Edge ("
+                                + std::to_string(edge.first) + ", "
+                                + std::to_string(edge.second) + ") "
+                                + "with multiplicity 0 cannot be removed.");
 
 
     if (prevNeighborMap.count(v) == 0){
@@ -162,8 +169,6 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(
             nextNeighborMap[u][t][vState] += counter;
             nextNeighborMap[v][t][uState] += counter;
         }
-        if (nextNeighborMap[v][t][uState] < 0 or nextNeighborMap[u][t][vState] < 0)
-            throw std::logic_error("Negative values!");
     }
 };
 
@@ -172,22 +177,19 @@ const double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move)
     set<size_t> verticesAffected;
     map<VertexIndex,VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
 
-    size_t v, u;
+
     for (const auto& edge : move.addedEdges){
-        v = edge.first;
-        u = edge.second;
+        size_t v = edge.first, u = edge.second;
         verticesAffected.insert(v);
         verticesAffected.insert(u);
         updateNeighborStateMapFromEdgeMove(edge, 1, prevNeighborMap, nextNeighborMap);
     }
     for (const auto& edge : move.removedEdges){
-        v = edge.first;
-        u = edge.second;
+        size_t v = edge.first, u = edge.second;
         verticesAffected.insert(v);
         verticesAffected.insert(u);
         updateNeighborStateMapFromEdgeMove(edge, -1, prevNeighborMap, nextNeighborMap);
     }
-
 
     for (const auto& idx: verticesAffected){
         for (size_t t = 0; t < m_numSteps; t++) {
@@ -213,6 +215,7 @@ void Dynamics::applyGraphMove(const GraphMove& move){
     map<VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
     VertexNeighborhoodStateSequence neighborState(m_numSteps);
     size_t v, u;
+
     for (const auto& edge : move.addedEdges){
         v = edge.first;
         u = edge.second;

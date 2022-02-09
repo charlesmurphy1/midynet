@@ -13,8 +13,8 @@ class BlockProposer: public Proposer<BlockMove> {
 public:
     virtual void setUp(const RandomGraph& randomGraph) = 0;
     virtual const double getLogProposalProbRatio(const BlockMove& move) const = 0;
-    virtual void updateProbabilities(const GraphMove& move) {};
-    virtual void updateProbabilities(const BlockMove& move) {};
+    virtual void applyGraphMove(const GraphMove& move) {};
+    virtual void applyBlockMove(const BlockMove& move) {};
 
 };
 

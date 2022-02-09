@@ -4,10 +4,10 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "FastMIDyNet/proposer/python/block_proposer.hpp"
+
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/proposer/proposer.hpp"
 #include "FastMIDyNet/proposer/block_proposer/block_proposer.h"
-#include "FastMIDyNet/proposer/python/proposer.hpp"
 #include "FastMIDyNet/proposer/block_proposer/generic.h"
 #include "FastMIDyNet/proposer/block_proposer/uniform.h"
 #include "FastMIDyNet/proposer/block_proposer/peixoto.h"
@@ -21,8 +21,8 @@ void initBlockProposer(py::module& m){
         .def(py::init<>())
         .def("set_up", &BlockProposer::setUp, py::arg("random_graph"))
         .def("get_log_proposal_prob_ratio", &BlockProposer::getLogProposalProbRatio, py::arg("move"))
-        .def("update", py::overload_cast<const GraphMove&>(&BlockProposer::updateProbabilities), py::arg("move"))
-        .def("update", py::overload_cast<const BlockMove&>(&BlockProposer::updateProbabilities), py::arg("move"));
+        .def("apply_graph_move", &BlockProposer::applyGraphMove, py::arg("move"))
+        .def("apply_block_move", &BlockProposer::applyBlockMove, py::arg("move"));
 
     py::class_<BlockGenericProposer, BlockProposer>(m, "BlockGenericProposer")
         .def(py::init<>());

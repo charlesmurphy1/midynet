@@ -4,9 +4,10 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "FastMIDyNet/proposer/python/proposer.hpp"
+
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/proposer/proposer.hpp"
-#include "FastMIDyNet/proposer/python/proposer.hpp"
 
 namespace py = pybind11;
 namespace FastMIDyNet{

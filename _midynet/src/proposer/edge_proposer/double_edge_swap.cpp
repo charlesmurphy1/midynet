@@ -7,8 +7,8 @@ namespace FastMIDyNet {
 
 
 GraphMove DoubleEdgeSwapProposer::proposeRawMove() const {
-    auto edge1 = m_edgeSamplableSet.sample_ext_RNG(rng).first;
-    auto edge2 = m_edgeSamplableSet.sample_ext_RNG(rng).first;
+    auto edge1 = m_edgeSampler.sample();
+    auto edge2 = m_edgeSampler.sample();
 
     if (edge1 == edge2)
         return GraphMove();
@@ -22,41 +22,40 @@ GraphMove DoubleEdgeSwapProposer::proposeRawMove() const {
         newEdge1 = {edge1.first, edge2.second};
         newEdge2 = {edge1.second, edge2.first};
     }
+
+
+
+    if ( m_edgeSampler.contains(edge1) and m_graphPtr->getEdgeMultiplicityIdx(edge1) == 0)
+        throw std::logic_error("DoubleEdgeSwapProposer: Edge ("
+                                + std::to_string(edge1.first) + ", "
+                                + std::to_string(edge1.second)
+                                + ") exists in sampler with multiplicity 0 in graph.");
+
+    if ( m_edgeSampler.contains(edge2) and m_graphPtr->getEdgeMultiplicityIdx(edge2) == 0)
+        throw std::logic_error("DoubleEdgeSwapProposer: Edge ("
+                                + std::to_string(edge2.first) + ", "
+                                + std::to_string(edge2.second)
+                                + ") exists in sampler with multiplicity 0 in graph.");
+
     return {{edge1, edge2}, {newEdge1, newEdge2}};
 }
 
-void DoubleEdgeSwapProposer::setUpFromGraph(
-    const MultiGraph& graph
-) {
+void DoubleEdgeSwapProposer::setUpFromGraph( const MultiGraph& graph ) {
     m_graphPtr = &graph;
-    m_edgeSamplableSet.clear();
-    for (auto vertex: graph){
-        for (auto neighbor: graph.getNeighboursOfIdx(vertex))
+    for (auto vertex : graph)
+        for (auto neighbor : graph.getNeighboursOfIdx(vertex))
             if (vertex <= neighbor.vertexIndex)
-                m_edgeSamplableSet.insert({vertex, neighbor.vertexIndex}, neighbor.label);
-    }
+                m_edgeSampler.onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
 }
 
-void DoubleEdgeSwapProposer::updateProbabilities(const GraphMove& move) {
-    size_t edgeWeight;
-    BaseGraph::Edge edge;
-    for (auto removedEdge: move.removedEdges) {
-        edge = getOrderedEdge(removedEdge);
-        edgeWeight = round(m_edgeSamplableSet.get_weight(edge));
-        if (edgeWeight == 1)
-            m_edgeSamplableSet.erase(edge);
-        else
-            m_edgeSamplableSet.set_weight(edge, edgeWeight-1);
+void DoubleEdgeSwapProposer::applyGraphMove(const GraphMove& move) {
+    for (auto edge: move.removedEdges) {
+        edge = getOrderedEdge(edge);
+        m_edgeSampler.onEdgeRemoval(edge);
     }
-
-    for (auto addedEdge: move.addedEdges) {
-        edge = getOrderedEdge(addedEdge);
-        if (m_edgeSamplableSet.count(edge) == 0)
-            m_edgeSamplableSet.insert(edge, 1);
-        else {
-            edgeWeight = round(m_edgeSamplableSet.get_weight(edge));
-            m_edgeSamplableSet.set_weight(edge, edgeWeight+1);
-        }
+    for (auto edge: move.addedEdges) {
+        edge = getOrderedEdge(edge);
+        m_edgeSampler.onEdgeAddition(edge);
     }
 }
 

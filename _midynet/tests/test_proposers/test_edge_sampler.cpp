@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "FastMIDyNet/proposer/edge_sampler.h"
+#include "FastMIDyNet/proposer/sampler/edge_sampler.h"
 
 
 namespace FastMIDyNet{
@@ -10,6 +10,15 @@ public:
     EdgeSampler sampler = EdgeSampler();
     MultiGraph graph = MultiGraph(vertexCount);
     size_t edgeCount;
+
+    void setUpSamplerWithGraph(const MultiGraph& graph){
+        sampler.clear();
+        for (auto vertex : graph){
+            for (auto neighbor : graph.getNeighboursOfIdx(vertex))
+                if (vertex <= neighbor.vertexIndex)
+                    sampler.onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
+        }
+    }
     void SetUp(){
         graph.addEdgeIdx(0, 1);
         graph.addEdgeIdx(0, 2);
@@ -20,12 +29,12 @@ public:
         graph.addEdgeIdx(1, 3);
 
         edgeCount = graph.getTotalEdgeNumber();
-        sampler.setUp(graph);
+        setUpSamplerWithGraph(graph);
     }
 };
 
 TEST_F(TestEdgeSampler, setUp_withGraph){
-    sampler.setUp(graph);
+    setUpSamplerWithGraph(graph);
     EXPECT_EQ(sampler.getTotalWeight(), edgeCount);
 }
 
@@ -41,17 +50,16 @@ TEST_F(TestEdgeSampler, sample_returnEdgeInGraph){
     }
 }
 
-TEST_F(TestEdgeSampler, update_forRemovedEdge_removeEdgeFromSampler){
+TEST_F(TestEdgeSampler, removeEdge_removeEdgeFromSampler){
     GraphMove move = {{{0, 1}}, {}};
-    sampler.update(move);
+    sampler.onEdgeRemoval({0, 1});
     EXPECT_EQ(sampler.getEdgeWeight({0, 1}), 0);
     EXPECT_EQ(sampler.getTotalWeight(), edgeCount - 1);
 }
 
-TEST_F(TestEdgeSampler, update_forAddededEdge_addEdgeToSampler){
-    GraphMove move = {{}, {{2, 3}}};
+TEST_F(TestEdgeSampler, addEdge_addEdgeToSampler){
     EXPECT_EQ(sampler.getEdgeWeight({2, 3}), 0);
-    sampler.update(move);
+    sampler.onEdgeAddition({2, 3});
     EXPECT_EQ(sampler.getEdgeWeight({2, 3}), 1);
     EXPECT_EQ(sampler.getTotalWeight(), edgeCount + 1);
 }

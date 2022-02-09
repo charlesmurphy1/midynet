@@ -25,27 +25,16 @@ public:
     EdgeProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
         m_allowSelfLoops(allowSelfLoops), m_allowMultiEdges(allowMultiEdges) {}
     virtual ~EdgeProposer(){}
-    GraphMove proposeMove() const override {
-        for (size_t i = 0; i < m_maxIteration; i++) {
-            GraphMove move = proposeRawMove();
-            for (auto e : move.addedEdges){
-                if ((isSelfLoop(e) and not m_allowSelfLoops) or (isExistingEdge(e) and not m_allowMultiEdges))
-                    continue;
-                return move;
-            }
-        }
-        throw std::runtime_error("EdgeProposer: Could not find edge to propose.");
-    }
+    GraphMove proposeMove() const override ;
     virtual GraphMove proposeRawMove() const = 0;
-    virtual void setUpFromGraph( const MultiGraph& graph ) { m_graphPtr = &graph; }
-    virtual void setUp(
-        const RandomGraph& randomGraph
-    ) { setUpFromGraph(randomGraph.getGraph()); }
     virtual const double getLogProposalProbRatio(const GraphMove& move) const = 0;
-    virtual void updateProbabilities(const GraphMove& move) {};
-    virtual void updateProbabilities(const BlockMove& move) {};
+    virtual void setUp( const RandomGraph& randomGraph ) { clear(); setUpFromGraph(randomGraph.getGraph()); }
+    virtual void setUpFromGraph( const MultiGraph& graph ) { m_graphPtr = &graph; }
+    virtual void applyGraphMove(const GraphMove& move) {};
+    virtual void applyBlockMove(const BlockMove& move) {};
     const bool& allowSelfLoops() const { return m_allowSelfLoops; }
     const bool& allowMultiEdges() const { return m_allowMultiEdges; }
+    virtual void clear() override { m_graphPtr = nullptr; }
 
 };
 
