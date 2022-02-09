@@ -4,8 +4,8 @@
 
 #include "FastMIDyNet/exceptions.h"
 #include "edge_proposer.h"
-#include "FastMIDyNet/proposer/vertex_sampler.h"
-#include "FastMIDyNet/proposer/edge_sampler.h"
+#include "FastMIDyNet/proposer/sampler/vertex_sampler.h"
+#include "FastMIDyNet/proposer/sampler/edge_sampler.h"
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 
@@ -29,6 +29,11 @@ public:
             throw SafetyError("HingeFlipProposer: unsafe proposer since `m_vertexSamplerPtr` is NULL.");
         m_vertexSamplerPtr->checkSafety();
     }
+    void clear() override {
+        m_edgeSampler.clear();
+        m_vertexSamplerPtr->clear();
+    }
+
 };
 
 
@@ -40,6 +45,14 @@ public:
         HingeFlipProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
     virtual ~HingeFlipUniformProposer(){}
     const double getLogProposalProbRatio(const GraphMove&) const override{ return 0.; }
+    void checkConsistency() const override {
+        for (auto vertex : *m_graphPtr)
+            if (not m_vertexUniformSampler.contains(vertex))
+                throw ConsistencyError(
+                    "HingeFlipUniformProposer: vertexSampler is inconsistent with graph, "
+                    + std::to_string(vertex) + " is not in sampler."
+                );
+    }
 };
 
 
@@ -60,6 +73,8 @@ public:
         return log(m_vertexDegreeSampler.getVertexWeight(losingVertex) - 1)
              - log(m_vertexDegreeSampler.getVertexWeight(gainingVertex));
     }
+
+    void checkConsistency() const override { }
 };
 
 

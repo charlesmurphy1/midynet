@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "FastMIDyNet/proposer/vertex_sampler.h"
+#include "FastMIDyNet/proposer/sampler/vertex_sampler.h"
 
 
 namespace FastMIDyNet{

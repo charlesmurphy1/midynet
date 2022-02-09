@@ -69,7 +69,7 @@ public:
     const size_t getSize() const override { return m_vertexSampler.size(); }
 
 
-    void clear() { m_vertexSampler.clear(); }
+    void clear() override { m_vertexSampler.clear(); }
 
     void checkSafety()const override {
         if (m_vertexSampler.size() == 0)
@@ -115,12 +115,11 @@ public:
     const double getVertexWeight(const BaseGraph::VertexIndex& vertex) const override {
         return (contains(vertex)) ? m_shift + m_weights.at(vertex) : 0.;
     }
-    void applyGraphMove(const GraphMove&) ;
     const double getTotalWeight() const override {
         return m_totalEdgeWeight + m_shift * m_vertexSampler.total_weight();
     }
     const size_t getSize() const override { return m_vertexSampler.size(); }
-    void clear() { m_totalEdgeWeight = 0; m_vertexSampler.clear(); m_weights.clear(); m_edgeSampler.clear(); }
+    void clear() override { m_totalEdgeWeight = 0; m_vertexSampler.clear(); m_weights.clear(); m_edgeSampler.clear(); }
 
     void checkSafety() const override {
         if (m_edgeSampler.getTotalWeight() == 0)

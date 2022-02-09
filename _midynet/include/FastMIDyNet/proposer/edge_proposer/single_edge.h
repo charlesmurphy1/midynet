@@ -4,7 +4,7 @@
 
 #include "FastMIDyNet/exceptions.h"
 #include "edge_proposer.h"
-#include "FastMIDyNet/proposer/vertex_sampler.h"
+#include "FastMIDyNet/proposer/sampler/vertex_sampler.h"
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 
@@ -29,6 +29,7 @@ public:
         if (m_vertexSamplerPtr == nullptr)
             throw SafetyError("SingleEdgeProposer: unsafe proposer since `m_vertexSamplerPtr` is NULL.");
     }
+    void clear() { m_vertexSamplerPtr->clear(); }
 };
 
 class SingleEdgeUniformProposer: public SingleEdgeProposer{

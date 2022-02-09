@@ -5,8 +5,8 @@
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 #include "labeled_edge_proposer.h"
-#include "FastMIDyNet/proposer/vertex_sampler.h"
-#include "FastMIDyNet/proposer/edge_sampler.h"
+#include "FastMIDyNet/proposer/sampler/vertex_sampler.h"
+#include "FastMIDyNet/proposer/sampler/edge_sampler.h"
 #include "FastMIDyNet/utility/functions.h"
 
 
@@ -34,7 +34,7 @@ public:
             edgeCount += s.second->getTotalWeight();
         return edgeCount;
     }
-    void clear();
+    void clear() override;
 };
 
 class LabeledHingeFlipUniformProposer: public LabeledHingeFlipProposer {

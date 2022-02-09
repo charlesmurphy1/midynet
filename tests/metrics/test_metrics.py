@@ -108,8 +108,8 @@ def args(request):
     )
     c.set_value("dynamics.num_steps", 10)
     c.set_value("dynamics.infection_prob", [0.0, 0.5])
-    c.set_value("graph.size", 10)
-    c.set_value("graph.edge_count.state", 25)
+    c.set_value("graph.size", 5)
+    c.set_value("graph.edge_count.state", 5)
     c.set_value(
         "metrics",
         MetricsCollectionConfig.auto(request.param),

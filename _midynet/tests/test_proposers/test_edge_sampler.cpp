@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "FastMIDyNet/proposer/edge_sampler.h"
+#include "FastMIDyNet/proposer/sampler/edge_sampler.h"
 
 
 namespace FastMIDyNet{

@@ -156,6 +156,7 @@ def get_log_posterior_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
     s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
 
     for i in range(config.num_sweeps):
+        print(i)
         _s, _f = dynamicsMCMC.do_MH_sweep(burn=burn)
         s += _s
         f += _f
@@ -165,44 +166,6 @@ def get_log_posterior_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
     dynamicsMCMC.pop_callback()
 
     return logp
-
-
-def get_log_posterior_meanfield_sbm(
-    dynamicsMCMC: DynamicsMCMC, config: Config
-):
-    if importlib.util.find_spec("graph_tool") is None:
-        message = (
-            "The meanfield method cannot be used for SBM graphs, "
-            + "because `graph_tool` is not installed."
-        )
-        raise NotImplementedError(message)
-    else:
-        from graph_tool.inference import (
-            ModeClusterState,
-            mcmc_equilibrate,
-        )
-
-        graph_callback = CollectEdgeMultiplicityOnSweep()
-        partition_callback = CollectPartitionOnSweep()
-        dynamicsMCMC.add_callback(graph_callback)
-        dynamicsMCMC.add_callback(partition_callback)
-        dynamicsMCMC.set_up()
-        burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
-        for i in range(config.num_sweeps):
-            dynamicsMCMC.do_MH_sweep(burn=burn)
-        logp = -graph_callback.get_marginal_entropy()  # -H(G|X)
-        partitions = partition_callback.get_partitions()  # -H(b|X)
-        partition_modes = ModeClusterState(partitions)
-        mcmc_equilibrate(
-            partition_modes, wait=1, mcmc_args=dict(niter=1, beta=np.inf)
-        )
-        logp += -partition_modes.posterior_entropy(MLE=True)
-
-        dynamicsMCMC.tear_down()
-        dynamicsMCMC.pop_callback()
-        dynamicsMCMC.pop_callback()
-
-        return logp
 
 
 def get_log_posterior_annealed(dynamicsMCMC: DynamicsMCMC, config: Config):

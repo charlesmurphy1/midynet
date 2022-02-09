@@ -39,10 +39,12 @@ void LabeledDoubleEdgeSwapProposer::setUpFromGraph(const MultiGraph& graph) {
 
 void LabeledDoubleEdgeSwapProposer::applyGraphMove(const GraphMove& move) {
     for(auto edge : move.removedEdges){
+        edge = getOrderedEdge(edge);
         auto rs = m_labelSampler.getLabelOfIdx(edge);
         m_labeledEdgeSampler.at(rs)->onEdgeRemoval(edge);
     }
     for(auto edge : move.addedEdges){
+        edge = getOrderedEdge(edge);
         auto rs = m_labelSampler.getLabelOfIdx(edge);
         m_labeledEdgeSampler.at(rs)->onEdgeAddition(edge);
     }

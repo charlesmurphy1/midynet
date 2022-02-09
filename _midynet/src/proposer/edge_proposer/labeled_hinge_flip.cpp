@@ -91,6 +91,7 @@ void LabeledHingeFlipProposer::applyBlockMove(const BlockMove& move) {
 }
 
 void LabeledHingeFlipProposer::clear(){
+    LabeledEdgeProposer::clear();
     for (auto p : m_labeledEdgeSampler)
         delete p.second;
     m_labeledEdgeSampler.clear();

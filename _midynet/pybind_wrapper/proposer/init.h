@@ -6,7 +6,7 @@
 
 #include "init_movetypes.h"
 #include "init_proposer.h"
-#include "init_vertexsampler.h"
+#include "init_sampler.h"
 #include "init_edgeproposer.h"
 #include "init_blockproposer.h"
 
@@ -17,8 +17,10 @@ void initProposer(py::module& m){
     initMoveTypes(m);
     initProposerBaseClass(m);
 
+    auto sampler = m.def_submodule("sampler");
+    initSampler(sampler);
+
     auto edge_proposer = m.def_submodule("edge_proposer");
-    initVertexSampler(edge_proposer);
     initEdgeProposer(edge_proposer);
 
     auto block_proposer = m.def_submodule("block_proposer");

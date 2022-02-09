@@ -2,7 +2,7 @@
 #define FAST_MIDYNET_DOUBLE_EDGE_SWAP_H
 
 #include "edge_proposer.h"
-#include "FastMIDyNet/proposer/edge_sampler.h"
+#include "FastMIDyNet/proposer/sampler/edge_sampler.h"
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 
@@ -20,6 +20,7 @@ public:
     void setUpFromGraph(const MultiGraph&) override;
     const double getLogProposalProbRatio(const GraphMove&) const override { return 0; }
     void applyGraphMove(const GraphMove&) override;
+    void clear() override { m_edgeSampler.clear(); }
 };
 
 

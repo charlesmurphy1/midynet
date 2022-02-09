@@ -22,6 +22,21 @@ GraphMove DoubleEdgeSwapProposer::proposeRawMove() const {
         newEdge1 = {edge1.first, edge2.second};
         newEdge2 = {edge1.second, edge2.first};
     }
+
+
+
+    if ( m_edgeSampler.contains(edge1) and m_graphPtr->getEdgeMultiplicityIdx(edge1) == 0)
+        throw std::logic_error("DoubleEdgeSwapProposer: Edge ("
+                                + std::to_string(edge1.first) + ", "
+                                + std::to_string(edge1.second)
+                                + ") exists in sampler with multiplicity 0 in graph.");
+
+    if ( m_edgeSampler.contains(edge2) and m_graphPtr->getEdgeMultiplicityIdx(edge2) == 0)
+        throw std::logic_error("DoubleEdgeSwapProposer: Edge ("
+                                + std::to_string(edge2.first) + ", "
+                                + std::to_string(edge2.second)
+                                + ") exists in sampler with multiplicity 0 in graph.");
+
     return {{edge1, edge2}, {newEdge1, newEdge2}};
 }
 
@@ -35,9 +50,11 @@ void DoubleEdgeSwapProposer::setUpFromGraph( const MultiGraph& graph ) {
 
 void DoubleEdgeSwapProposer::applyGraphMove(const GraphMove& move) {
     for (auto edge: move.removedEdges) {
+        edge = getOrderedEdge(edge);
         m_edgeSampler.onEdgeRemoval(edge);
     }
     for (auto edge: move.addedEdges) {
+        edge = getOrderedEdge(edge);
         m_edgeSampler.onEdgeAddition(edge);
     }
 }

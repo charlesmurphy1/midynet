@@ -25,11 +25,17 @@ public:
 
 TEST_F(TestLabeledHingeFlipUniformProposer, proposeMove){
     auto move = proposer.proposeMove();
-    for (auto edge : move.removedEdges)
+    LabelPair rs = {10, 10};
+    for (auto edge : move.removedEdges){
         EXPECT_GT(randomGraph.getGraph().getEdgeMultiplicityIdx(edge), 0);
-
-    for (auto edge : move.addedEdges)
+        if (rs.first == 10 and rs.second == 10)
+            rs = proposer.getLabelSampler().getLabelOfIdx(edge);
+        EXPECT_EQ(rs, proposer.getLabelSampler().getLabelOfIdx(edge));
+    }
+    for (auto edge : move.addedEdges){
         EXPECT_GE(randomGraph.getGraph().getEdgeMultiplicityIdx(edge), 0);
+        EXPECT_EQ(rs, proposer.getLabelSampler().getLabelOfIdx(edge));
+    }
 }
 
 TEST_F(TestLabeledHingeFlipUniformProposer, onLabelCreation_doNothing){

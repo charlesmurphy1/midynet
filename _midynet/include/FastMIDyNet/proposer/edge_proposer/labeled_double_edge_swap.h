@@ -5,7 +5,7 @@
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
 #include "labeled_edge_proposer.h"
-#include "FastMIDyNet/proposer/edge_sampler.h"
+#include "FastMIDyNet/proposer/sampler/edge_sampler.h"
 #include "FastMIDyNet/utility/functions.h"
 
 
@@ -28,6 +28,7 @@ public:
     void applyBlockMove(const BlockMove& move) override ;
     size_t getTotalEdgeCount() const ;
     void clear(){
+        LabeledEdgeProposer::clear();
         for (auto p : m_labeledEdgeSampler)
             delete p.second;
         m_labeledEdgeSampler.clear();

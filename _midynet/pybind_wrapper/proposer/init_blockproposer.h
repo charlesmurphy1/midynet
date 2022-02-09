@@ -4,10 +4,10 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "FastMIDyNet/proposer/python/block_proposer.hpp"
+
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/proposer/proposer.hpp"
 #include "FastMIDyNet/proposer/block_proposer/block_proposer.h"
-#include "FastMIDyNet/proposer/python/proposer.hpp"
 #include "FastMIDyNet/proposer/block_proposer/generic.h"
 #include "FastMIDyNet/proposer/block_proposer/uniform.h"
 #include "FastMIDyNet/proposer/block_proposer/peixoto.h"

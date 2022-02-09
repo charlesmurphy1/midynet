@@ -3,9 +3,9 @@
 
 #include <map>
 #include "edge_proposer.h"
-#include "FastMIDyNet/proposer/edge_sampler.h"
-#include "FastMIDyNet/proposer/vertex_sampler.h"
-#include "FastMIDyNet/proposer/label_sampler.h"
+#include "FastMIDyNet/proposer/sampler/edge_sampler.h"
+#include "FastMIDyNet/proposer/sampler/vertex_sampler.h"
+#include "FastMIDyNet/proposer/sampler/label_sampler.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/utility/maps.hpp"
 
@@ -25,6 +25,7 @@ public:
             m_labelSampler(labelPairShift){ }
     virtual ~LabeledEdgeProposer(){ }
     virtual void setUp( const RandomGraph& randomGraph ) {
+        clear(); 
         m_labelSampler.setUp(randomGraph);
         setUpFromGraph(randomGraph.getGraph());
     }
@@ -33,7 +34,11 @@ public:
     }
     virtual void onLabelCreation(const BlockMove& move) { };
     virtual void onLabelDeletion(const BlockMove& move) { };
+    virtual void clear() { m_labelSampler.clear(); }
+
 };
+
+
 
 }
 

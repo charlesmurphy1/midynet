@@ -13,6 +13,7 @@ class Proposer{
         virtual MoveType proposeMove() const = 0;
         virtual void checkConsistency() const {};
         virtual void checkSafety() const {};
+        virtual void clear() {};
 };
 
 }

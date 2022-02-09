@@ -140,7 +140,14 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(
     int counter,
     map<VertexIndex, VertexNeighborhoodStateSequence>& prevNeighborMap,
     map<VertexIndex, VertexNeighborhoodStateSequence>& nextNeighborMap) const{
+    edge = getOrderedEdge(edge);
     VertexIndex v = edge.first, u = edge.second;
+
+    if (m_randomGraphPtr->getGraph().getEdgeMultiplicityIdx(edge) == 0 and counter < 0)
+        throw std::logic_error("Dynamics: Edge ("
+                                + std::to_string(edge.first) + ", "
+                                + std::to_string(edge.second) + ") "
+                                + "with multiplicity 0 cannot be removed.");
 
 
     if (prevNeighborMap.count(v) == 0){
@@ -162,8 +169,6 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(
             nextNeighborMap[u][t][vState] += counter;
             nextNeighborMap[v][t][uState] += counter;
         }
-        if (nextNeighborMap[v][t][uState] < 0 or nextNeighborMap[u][t][vState] < 0)
-            throw std::logic_error("Negative values!");
     }
 };
 
@@ -172,6 +177,16 @@ const double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move)
     set<size_t> verticesAffected;
     map<VertexIndex,VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
 
+
+    std::cout << "Computing ratio: ";
+    std::cout << "Current graph: ";
+    for (auto vertex : m_randomGraphPtr->getGraph())
+        for (auto neighbor : m_randomGraphPtr->getGraph().getNeighboursOfIdx(vertex))
+            if (vertex <= neighbor.vertexIndex)
+                std::cout << "(" << vertex << ", " << neighbor.vertexIndex << ") -> " << neighbor.label << " ";
+    std::cout << std::endl;
+
+    move.display();
     size_t v, u;
     for (const auto& edge : move.addedEdges){
         v = edge.first;
@@ -179,6 +194,8 @@ const double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move)
         verticesAffected.insert(v);
         verticesAffected.insert(u);
         updateNeighborStateMapFromEdgeMove(edge, 1, prevNeighborMap, nextNeighborMap);
+        std::cout << "Edge (" << edge.first << ", " << edge.second << ") with multiplicity " << m_randomGraphPtr->getGraph().getEdgeMultiplicityIdx(edge) << " being ";
+        std::cout << "added." << std::endl;
     }
     for (const auto& edge : move.removedEdges){
         v = edge.first;
@@ -186,8 +203,9 @@ const double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move)
         verticesAffected.insert(v);
         verticesAffected.insert(u);
         updateNeighborStateMapFromEdgeMove(edge, -1, prevNeighborMap, nextNeighborMap);
+        std::cout << "Edge (" << edge.first << ", " << edge.second << ") with multiplicity " << m_randomGraphPtr->getGraph().getEdgeMultiplicityIdx(edge) << " being ";
+        std::cout << "removed." << std::endl;
     }
-
 
     for (const auto& idx: verticesAffected){
         for (size_t t = 0; t < m_numSteps; t++) {
@@ -195,6 +213,7 @@ const double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move)
             logLikelihoodRatio -= log(getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], prevNeighborMap[idx][t]));
         }
     }
+    std::cout << std::endl;
 
     return logLikelihoodRatio;
 }
@@ -213,12 +232,24 @@ void Dynamics::applyGraphMove(const GraphMove& move){
     map<VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
     VertexNeighborhoodStateSequence neighborState(m_numSteps);
     size_t v, u;
+
+    std::cout << "Applying move: ";
+    std::cout << "Graph Before: ";
+    for (auto vertex : m_randomGraphPtr->getGraph())
+        for (auto neighbor : m_randomGraphPtr->getGraph().getNeighboursOfIdx(vertex))
+            if (vertex <= neighbor.vertexIndex)
+                std::cout << "(" << vertex << ", " << neighbor.vertexIndex << ") -> " << neighbor.label << " ";
+    std::cout << std::endl;
+
+    move.display();
     for (const auto& edge : move.addedEdges){
         v = edge.first;
         u = edge.second;
         verticesAffected.insert(v);
         verticesAffected.insert(u);
         updateNeighborStateMapFromEdgeMove(edge, 1, prevNeighborMap, nextNeighborMap);
+        std::cout << "Edge (" << edge.first << ", " << edge.second << ") with multiplicity " << m_randomGraphPtr->getGraph().getEdgeMultiplicityIdx(edge) << " being ";
+        std::cout << "added." << std::endl;
     }
     for (const auto& edge : move.removedEdges){
         v = edge.first;
@@ -226,6 +257,8 @@ void Dynamics::applyGraphMove(const GraphMove& move){
         verticesAffected.insert(v);
         verticesAffected.insert(u);
         updateNeighborStateMapFromEdgeMove(edge, -1, prevNeighborMap, nextNeighborMap);
+        std::cout << "Edge (" << edge.first << ", " << edge.second << ") with multiplicity " << m_randomGraphPtr->getGraph().getEdgeMultiplicityIdx(edge) << " being ";
+        std::cout << "removed." << std::endl;
     }
 
     for (const auto& idx: verticesAffected){
@@ -234,6 +267,14 @@ void Dynamics::applyGraphMove(const GraphMove& move){
         }
     }
     m_randomGraphPtr->applyGraphMove(move);
+
+    std::cout << "Graph After: ";
+    for (auto vertex : m_randomGraphPtr->getGraph())
+        for (auto neighbor : m_randomGraphPtr->getGraph().getNeighboursOfIdx(vertex))
+            if (vertex <= neighbor.vertexIndex)
+                std::cout << "(" << vertex << ", " << neighbor.vertexIndex << ") -> " << neighbor.label << " ";
+    std::cout << std::endl;
+    std::cout << std::endl;
 }
 
 void Dynamics::checkSafety() const {

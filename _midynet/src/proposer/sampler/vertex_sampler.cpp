@@ -1,4 +1,4 @@
-#include "FastMIDyNet/proposer/vertex_sampler.h"
+#include "FastMIDyNet/proposer/sampler/vertex_sampler.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/rng.h"
 
@@ -31,7 +31,7 @@ void VertexDegreeSampler::onVertexInsertion(const BaseGraph::VertexIndex& vertex
 
 void VertexDegreeSampler::onVertexErasure(const BaseGraph::VertexIndex& vertex) {
     if (not contains(vertex))
-        throw std::logic_error("Cannot remove non-exising vertex " + std::to_string(vertex) + ".");
+        throw std::logic_error("VertexSampler: Cannot remove non-exising vertex " + std::to_string(vertex) + ".");
     m_vertexSampler.erase(vertex);
     m_weights.erase(vertex);
 }

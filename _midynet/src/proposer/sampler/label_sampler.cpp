@@ -1,4 +1,4 @@
-#include "FastMIDyNet/proposer/label_sampler.h"
+#include "FastMIDyNet/proposer/sampler/label_sampler.h"
 
 namespace FastMIDyNet{
 

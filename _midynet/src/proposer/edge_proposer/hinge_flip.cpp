@@ -22,6 +22,13 @@ GraphMove HingeFlipProposer::proposeRawMove() const {
         newEdge = {edge.second, vertex};
         edge = {edge.second, edge.first};
     }
+
+    if ( m_edgeSampler.contains(edge) and m_graphPtr->getEdgeMultiplicityIdx(edge) == 0)
+        throw std::logic_error("HingeFlipProposer: Edge ("
+                                + std::to_string(edge.first) + ", "
+                                + std::to_string(edge.second)
+                                + ") exists in sampler with multiplicity 0 in graph.");
+
     return {{edge}, {newEdge}};
 };
 
@@ -41,10 +48,12 @@ void HingeFlipProposer::setUpFromGraph(const MultiGraph& graph){
 
 void HingeFlipProposer::applyGraphMove(const GraphMove& move) {
     for (auto edge : move.removedEdges){
+        edge = getOrderedEdge(edge);
         m_vertexSamplerPtr->onEdgeRemoval(edge);
         m_edgeSampler.onEdgeRemoval(edge);
     }
     for (auto edge : move.addedEdges){
+        edge = getOrderedEdge(edge);
         m_vertexSamplerPtr->onEdgeAddition(edge);
         m_edgeSampler.onEdgeAddition(edge);
     }

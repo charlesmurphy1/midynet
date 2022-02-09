@@ -35,7 +35,17 @@ public:
         return (contains(edge)) ? m_edgeSampler.get_weight(edge) : 0.;
     }
 
-    void applyGraphMove(const GraphMove&) ;
+    std::unordered_set<BaseGraph::Edge> enumerateEdges(){
+        std::unordered_set<BaseGraph::Edge> edges;
+        m_edgeSampler.init_iterator();
+        for (size_t i = 0; i < m_edgeSampler.size(); i++) {
+            edges.insert(m_edgeSampler.get_at_iterator().first);
+            m_edgeSampler.next();
+        }
+        return edges;
+    }
+
+    // void applyGraphMove(const GraphMove&) ;
     // void applyBlockMove(const BlockMove&) ;
     const double getTotalWeight() const {return m_edgeSampler.total_weight(); }
     const double getSize() const {return m_edgeSampler.size(); }

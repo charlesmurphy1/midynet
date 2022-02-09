@@ -28,6 +28,7 @@ public:
 
     LabelPair sample() const ;
     void setUp(const RandomGraph& randomGraph) {
+        clear();
         m_labelsPtr = &randomGraph.getBlocks();
         m_vertexCountsPtr = &randomGraph.getVertexCountsInBlocks();
         m_edgeMatrixPtr = &randomGraph.getEdgeMatrix();
@@ -64,16 +65,23 @@ public:
     const double getEdgeTotalWeight() const { return m_edgeSampler.getTotalWeight(); }
     const double getTotalWeight() const { return m_shift * getVertexTotalWeight() * getVertexTotalWeight() + getEdgeTotalWeight(); }
     const BlockIndex getLabelOfIdx(const BaseGraph::VertexIndex& vertex) const {
-        if (m_labelsPtr == nullptr)
-            throw std::logic_error("LabeledEdgeProposer: `m_labelsPtr` is null.");
         return (*m_labelsPtr)[vertex];
     }
     const LabelPair getLabelOfIdx(const BaseGraph::Edge& edge) const {
         return getOrderedPair<BlockIndex>({getLabelOfIdx(edge.first), getLabelOfIdx(edge.second)});
     }
 
-    void clear() { m_vertexSampler.clear(); m_edgeSampler.clear(); }
-    void checkSafety() const { }
+    void clear() {
+        m_labelsPtr = nullptr;
+        m_vertexCountsPtr = nullptr;
+        m_edgeMatrixPtr = nullptr;
+        m_vertexSampler.clear();
+        m_edgeSampler.clear();
+    }
+    void checkSafety() const {
+        if (m_labelsPtr == nullptr)
+            throw std::logic_error("LabeledEdgeProposer: `m_labelsPtr` is null.");
+    }
 
 };
 
