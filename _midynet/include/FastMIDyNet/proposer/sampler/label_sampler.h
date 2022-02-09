@@ -51,9 +51,9 @@ public:
     void onEdgeInsertion(const BaseGraph::Edge& edge, double weight) {
         m_vertexSampler.onEdgeInsertion(edge, weight); m_edgeSampler.onEdgeInsertion(edge, weight);
     }
-    void onEdgeErasure(const BaseGraph::Edge& edge) {
+    double onEdgeErasure(const BaseGraph::Edge& edge) {
         m_vertexSampler.onEdgeErasure(edge);
-        m_edgeSampler.onEdgeErasure(edge);
+        return m_edgeSampler.onEdgeErasure(edge);
     }
 
     const double getLabelPairWeight(const LabelPair& pair) const {
