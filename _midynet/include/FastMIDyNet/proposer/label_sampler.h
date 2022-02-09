@@ -32,27 +32,27 @@ public:
         m_vertexCountsPtr = &randomGraph.getVertexCountsInBlocks();
         m_edgeMatrixPtr = &randomGraph.getEdgeMatrix();
         for (auto vertex : randomGraph.getGraph()){
-            m_vertexSampler.insertVertex(vertex);
+            m_vertexSampler.onVertexInsertion(vertex);
             for (auto neighbor : randomGraph.getGraph().getNeighboursOfIdx(vertex)){
                 if (vertex <= neighbor.vertexIndex){
-                    m_vertexSampler.insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
-                    m_edgeSampler.insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
+                    m_vertexSampler.onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
+                    m_edgeSampler.onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
                 }
             }
         }
     }
-    void addEdge(const BaseGraph::Edge& edge) {
-        m_vertexSampler.addEdge(edge); m_edgeSampler.addEdge(edge);
+    void onEdgeAddition(const BaseGraph::Edge& edge) {
+        m_vertexSampler.onEdgeAddition(edge); m_edgeSampler.onEdgeAddition(edge);
     }
-    void removeEdge(const BaseGraph::Edge& edge) {
-        m_vertexSampler.removeEdge(edge); m_edgeSampler.removeEdge(edge);
+    void onEdgeRemoval(const BaseGraph::Edge& edge) {
+        m_vertexSampler.onEdgeRemoval(edge); m_edgeSampler.onEdgeRemoval(edge);
     }
-    void insertEdge(const BaseGraph::Edge& edge, double weight) {
-        m_vertexSampler.insertEdge(edge, weight); m_edgeSampler.insertEdge(edge, weight);
+    void onEdgeInsertion(const BaseGraph::Edge& edge, double weight) {
+        m_vertexSampler.onEdgeInsertion(edge, weight); m_edgeSampler.onEdgeInsertion(edge, weight);
     }
-    double eraseEdge(const BaseGraph::Edge& edge) {
-        m_vertexSampler.eraseEdge(edge);
-        m_edgeSampler.eraseEdge(edge);
+    double onEdgeErasure(const BaseGraph::Edge& edge) {
+        m_vertexSampler.onEdgeErasure(edge);
+        m_edgeSampler.onEdgeErasure(edge);
     }
 
     const double getLabelPairWeight(const LabelPair& pair) const {

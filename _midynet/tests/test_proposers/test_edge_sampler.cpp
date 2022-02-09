@@ -16,7 +16,7 @@ public:
         for (auto vertex : graph){
             for (auto neighbor : graph.getNeighboursOfIdx(vertex))
                 if (vertex <= neighbor.vertexIndex)
-                    sampler.insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
+                    sampler.onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
         }
     }
     void SetUp(){
@@ -52,14 +52,14 @@ TEST_F(TestEdgeSampler, sample_returnEdgeInGraph){
 
 TEST_F(TestEdgeSampler, removeEdge_removeEdgeFromSampler){
     GraphMove move = {{{0, 1}}, {}};
-    sampler.removeEdge({0, 1});
+    sampler.onEdgeRemoval({0, 1});
     EXPECT_EQ(sampler.getEdgeWeight({0, 1}), 0);
     EXPECT_EQ(sampler.getTotalWeight(), edgeCount - 1);
 }
 
 TEST_F(TestEdgeSampler, addEdge_addEdgeToSampler){
     EXPECT_EQ(sampler.getEdgeWeight({2, 3}), 0);
-    sampler.addEdge({2, 3});
+    sampler.onEdgeAddition({2, 3});
     EXPECT_EQ(sampler.getEdgeWeight({2, 3}), 1);
     EXPECT_EQ(sampler.getTotalWeight(), edgeCount + 1);
 }

@@ -23,7 +23,7 @@ public:
         double labelPairShift=1):
             EdgeProposer(allowSelfLoops, allowMultiEdges),
             m_labelSampler(labelPairShift){ }
-
+    virtual ~LabeledEdgeProposer(){ }
     virtual void setUp( const RandomGraph& randomGraph ) {
         m_labelSampler.setUp(randomGraph);
         setUpFromGraph(randomGraph.getGraph());

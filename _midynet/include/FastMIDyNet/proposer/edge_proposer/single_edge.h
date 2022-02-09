@@ -37,6 +37,7 @@ private:
 public:
     SingleEdgeUniformProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
         SingleEdgeProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
+    virtual ~SingleEdgeUniformProposer(){}
 
     const double getLogProposalProbRatio(const GraphMove&move) const override;
 };
@@ -48,6 +49,8 @@ public:
     SingleEdgeDegreeProposer(bool allowSelfLoops=true, bool allowMultiEdges=true, double shift=1):
         SingleEdgeProposer(allowSelfLoops, allowMultiEdges),
         m_vertexDegreeSampler(shift){ m_vertexSamplerPtr = &m_vertexDegreeSampler; }
+
+    virtual ~SingleEdgeDegreeProposer(){}
 
     void applyGraphMove(const GraphMove& move) override ;
     const double getLogProposalProbRatio(const GraphMove&move) const override;

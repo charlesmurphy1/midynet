@@ -22,15 +22,22 @@ BaseGraph::VertexIndex VertexDegreeSampler::sample() const {
 
 
 
-void VertexDegreeSampler::insertVertex(const BaseGraph::VertexIndex& vertex) {
+void VertexDegreeSampler::onVertexInsertion(const BaseGraph::VertexIndex& vertex) {
     if (not contains(vertex)){
         m_vertexSampler.insert(vertex, 1);
         m_weights.insert({vertex, 0});
     }
 }
 
-void VertexDegreeSampler::insertEdge(const BaseGraph::Edge& edge, double edgeWeight) {
-    m_edgeSampler.insertEdge(edge, edgeWeight);
+void VertexDegreeSampler::onVertexErasure(const BaseGraph::VertexIndex& vertex) {
+    if (not contains(vertex))
+        throw std::logic_error("Cannot remove non-exising vertex " + std::to_string(vertex) + ".");
+    m_vertexSampler.erase(vertex);
+    m_weights.erase(vertex);
+}
+
+void VertexDegreeSampler::onEdgeInsertion(const BaseGraph::Edge& edge, double edgeWeight) {
+    m_edgeSampler.onEdgeInsertion(edge, edgeWeight);
     m_totalEdgeWeight += edgeWeight;
     if ( contains(edge.first) )
         m_weights[edge.first] += edgeWeight;
@@ -39,10 +46,10 @@ void VertexDegreeSampler::insertEdge(const BaseGraph::Edge& edge, double edgeWei
 
 }
 
-void VertexDegreeSampler::eraseEdge(const BaseGraph::Edge& edge) {
+void VertexDegreeSampler::onEdgeErasure(const BaseGraph::Edge& edge) {
     if (not contains(edge.first) and not contains(edge.second))
         return;
-    double edgeWeight = m_edgeSampler.eraseEdge(edge);
+    double edgeWeight = m_edgeSampler.onEdgeErasure(edge);
     m_totalEdgeWeight -= edgeWeight;
 
     if ( contains(edge.first) )
@@ -51,8 +58,8 @@ void VertexDegreeSampler::eraseEdge(const BaseGraph::Edge& edge) {
         m_weights[edge.second] -= edgeWeight;
 }
 
-void VertexDegreeSampler::addEdge(const BaseGraph::Edge& edge) {
-    m_edgeSampler.addEdge(edge);
+void VertexDegreeSampler::onEdgeAddition(const BaseGraph::Edge& edge) {
+    m_edgeSampler.onEdgeAddition(edge);
     ++m_totalEdgeWeight;
     if ( contains(edge.first) )
         ++m_weights[edge.first];
@@ -60,10 +67,10 @@ void VertexDegreeSampler::addEdge(const BaseGraph::Edge& edge) {
         ++m_weights[edge.second];
 }
 
-void VertexDegreeSampler::removeEdge(const BaseGraph::Edge& edge) {
+void VertexDegreeSampler::onEdgeRemoval(const BaseGraph::Edge& edge) {
     if (not contains(edge.first) and not contains(edge.second))
         return;
-    m_edgeSampler.removeEdge(edge);
+    m_edgeSampler.onEdgeRemoval(edge);
     --m_totalEdgeWeight;
     if ( contains(edge.first) )
         --m_weights[edge.first];

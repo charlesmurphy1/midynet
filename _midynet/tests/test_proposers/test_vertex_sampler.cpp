@@ -11,11 +11,11 @@ public:
     void setUpSamplerWithGraph(const MultiGraph& graph){
         sampler.clear();
         for (auto vertex : graph)
-            sampler.insertVertex(vertex);
+            sampler.onVertexInsertion(vertex);
         for (auto vertex : graph)
             for (auto neighbor : graph.getNeighboursOfIdx(vertex))
                 if (vertex <= neighbor.vertexIndex)
-                    sampler.insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
+                    sampler.onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
 
     }
     void SetUp(){
@@ -41,7 +41,7 @@ TEST_F(TestVertexUniformSampler, removeEdge_doNothing){
     graph.addEdgeIdx(0, 3);
     setUpSamplerWithGraph(graph);
     EXPECT_EQ(sampler.getTotalWeight(), 10);
-    sampler.removeEdge({0, 1});
+    sampler.onEdgeRemoval({0, 1});
     EXPECT_EQ(sampler.getTotalWeight(), 10);
 }
 
@@ -50,7 +50,7 @@ TEST_F(TestVertexUniformSampler, addEdge_doNothing){
     setUpSamplerWithGraph(graph);
 
     EXPECT_EQ(sampler.getTotalWeight(), 10);
-    sampler.addEdge({0, 2});
+    sampler.onEdgeAddition({0, 2});
     EXPECT_EQ(sampler.getTotalWeight(), 10);
 }
 
@@ -63,7 +63,7 @@ TEST_F(TestVertexUniformSampler, getTotalWeight_returnSizeOfVertexSet){
 
 class TestVertexDegreeSampler: public ::testing::Test{
 public:
-    double shift = 1;
+    double shift = 3;
     size_t vertexCount = 5;
     VertexDegreeSampler sampler = VertexDegreeSampler(shift);
     MultiGraph graph = MultiGraph(vertexCount);
@@ -74,11 +74,11 @@ public:
     void setUpSamplerWithGraph(const MultiGraph& graph){
         sampler.clear();
         for (auto vertex : graph)
-            sampler.insertVertex(vertex);
+            sampler.onVertexInsertion(vertex);
         for (auto vertex : graph)
             for (auto neighbor : graph.getNeighboursOfIdx(vertex))
                 if (vertex <= neighbor.vertexIndex)
-                    sampler.insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
+                    sampler.onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
     }
 
     void SetUp(){
@@ -105,16 +105,25 @@ TEST_F(TestVertexDegreeSampler, setUp_withGraph){
 TEST_F(TestVertexDegreeSampler, removeEdge_changeWeight){
     EXPECT_EQ(sampler.getVertexWeight(0), shift + degrees[0]);
     EXPECT_EQ(sampler.getVertexWeight(1), shift + degrees[1]);
-    sampler.removeEdge({0, 1});
+    sampler.onEdgeRemoval({0, 1});
     EXPECT_EQ(sampler.getVertexWeight(0), shift + degrees[0] - 1);
     EXPECT_EQ(sampler.getVertexWeight(1), shift + degrees[1] - 1);
 
-    sampler.removeEdge({1, 1});
+    sampler.onEdgeRemoval({1, 1});
     EXPECT_EQ(sampler.getVertexWeight(1), shift + degrees[1] - 3);
 }
 
+TEST_F(TestVertexDegreeSampler, eraseVertex_changeWeightAndDoesNotContainVertex){
+    EXPECT_TRUE(sampler.contains(1));
+    EXPECT_EQ(sampler.getTotalWeight(), shift * vertexCount + edgeCount);
+    sampler.onVertexErasure(1);
+    EXPECT_FALSE(sampler.contains(1));
+    EXPECT_EQ(sampler.getTotalWeight(), shift * (vertexCount - 1) + edgeCount);
+    EXPECT_EQ(sampler.getVertexWeight(1), 0);
+}
+
 TEST_F(TestVertexDegreeSampler, addEdge_changeWeight){
-    sampler.addEdge({2, 3});
+    sampler.onEdgeAddition({2, 3});
     EXPECT_EQ(sampler.getVertexWeight(2), shift + degrees[2] + 1);
     EXPECT_EQ(sampler.getVertexWeight(3), shift + degrees[3] + 1);
 }

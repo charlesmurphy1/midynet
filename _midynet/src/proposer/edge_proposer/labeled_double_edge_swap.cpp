@@ -31,7 +31,7 @@ void LabeledDoubleEdgeSwapProposer::setUpFromGraph(const MultiGraph& graph) {
             if (m_labeledEdgeSampler.count(rs) == 0)
                 m_labeledEdgeSampler.insert({rs, new EdgeSampler()});
             if (vertex <= neighbor.vertexIndex){
-                m_labeledEdgeSampler.at(rs)->insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
+                m_labeledEdgeSampler.at(rs)->onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
             }
         }
     }
@@ -40,11 +40,11 @@ void LabeledDoubleEdgeSwapProposer::setUpFromGraph(const MultiGraph& graph) {
 void LabeledDoubleEdgeSwapProposer::applyGraphMove(const GraphMove& move) {
     for(auto edge : move.removedEdges){
         auto rs = m_labelSampler.getLabelOfIdx(edge);
-        m_labeledEdgeSampler.at(rs)->removeEdge(edge);
+        m_labeledEdgeSampler.at(rs)->onEdgeRemoval(edge);
     }
     for(auto edge : move.addedEdges){
         auto rs = m_labelSampler.getLabelOfIdx(edge);
-        m_labeledEdgeSampler.at(rs)->addEdge(edge);
+        m_labeledEdgeSampler.at(rs)->onEdgeAddition(edge);
     }
 }
 void LabeledDoubleEdgeSwapProposer::applyBlockMove(const BlockMove& move) {
@@ -53,13 +53,20 @@ void LabeledDoubleEdgeSwapProposer::applyBlockMove(const BlockMove& move) {
 
     for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
         auto oldPair = getOrderedPair<BlockIndex>({move.prevBlockIdx, m_labelSampler.getLabelOfIdx(neighbor.vertexIndex)});
-        double weight = m_labeledEdgeSampler.at(oldPair)->eraseEdge({move.vertexIdx, neighbor.vertexIndex});
+        double weight = m_labeledEdgeSampler.at(oldPair)->onEdgeErasure({move.vertexIdx, neighbor.vertexIndex});
         auto newPair = getOrderedPair<BlockIndex>({move.prevBlockIdx, m_labelSampler.getLabelOfIdx(neighbor.vertexIndex)});
-        m_labeledEdgeSampler.at(newPair)->insertEdge({move.vertexIdx, neighbor.vertexIndex}, weight);
+        m_labeledEdgeSampler.at(newPair)->onEdgeInsertion({move.vertexIdx, neighbor.vertexIndex}, weight);
     }
 
     if (move.addedBlocks == -1)
         onLabelDeletion(move);
+}
+
+size_t LabeledDoubleEdgeSwapProposer::getTotalEdgeCount() const {
+    size_t edgeCount = 0;
+    for (auto s: m_labeledEdgeSampler)
+        edgeCount += s.second->getTotalWeight();
+    return edgeCount;
 }
 
 }

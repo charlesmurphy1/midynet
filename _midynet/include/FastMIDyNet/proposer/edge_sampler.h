@@ -26,10 +26,10 @@ public:
         return m_edgeSampler.count(edge) > 0;
     };
 
-    void addEdge(const BaseGraph::Edge& );
-    void removeEdge(const BaseGraph::Edge& );
-    void insertEdge(const BaseGraph::Edge& , double);
-    double eraseEdge(const BaseGraph::Edge& );
+    void onEdgeAddition(const BaseGraph::Edge& );
+    void onEdgeRemoval(const BaseGraph::Edge& );
+    void onEdgeInsertion(const BaseGraph::Edge& , double);
+    double onEdgeErasure(const BaseGraph::Edge& );
     const double getEdgeWeight(const BaseGraph::Edge& edge) const {
         // auto orderedEdge = getOrderedEdge(edge);
         return (contains(edge)) ? m_edgeSampler.get_weight(edge) : 0.;

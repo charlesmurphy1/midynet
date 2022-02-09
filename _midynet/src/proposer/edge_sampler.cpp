@@ -3,7 +3,7 @@
 
 namespace FastMIDyNet{
 
-void EdgeSampler::removeEdge(const BaseGraph::Edge& edge){
+void EdgeSampler::onEdgeRemoval(const BaseGraph::Edge& edge){
     // auto orderedEdge = getOrderedEdge(edge);
     if (not contains(edge))
         throw std::logic_error("Cannot remove non-exising edge.");
@@ -14,7 +14,7 @@ void EdgeSampler::removeEdge(const BaseGraph::Edge& edge){
         m_edgeSampler.set_weight(edge, edgeWeight-1);
 }
 
-void EdgeSampler::addEdge(const BaseGraph::Edge& edge){
+void EdgeSampler::onEdgeAddition(const BaseGraph::Edge& edge){
     // auto orderedEdge = getOrderedEdge(edge);
 
     if (m_edgeSampler.count(edge) == 0)
@@ -23,7 +23,7 @@ void EdgeSampler::addEdge(const BaseGraph::Edge& edge){
         m_edgeSampler.set_weight(edge, round(m_edgeSampler.get_weight(edge))+1);
 }
 
-void EdgeSampler::insertEdge(const BaseGraph::Edge& edge, double edgeWeight=1){
+void EdgeSampler::onEdgeInsertion(const BaseGraph::Edge& edge, double edgeWeight=1){
     // auto orderedEdge = getOrderedEdge(edge);
     if (contains(edge))
         m_edgeSampler.set_weight(edge, edgeWeight);
@@ -31,7 +31,7 @@ void EdgeSampler::insertEdge(const BaseGraph::Edge& edge, double edgeWeight=1){
         m_edgeSampler.insert(edge, edgeWeight);
 }
 
-double EdgeSampler::eraseEdge(const BaseGraph::Edge& edge){
+double EdgeSampler::onEdgeErasure(const BaseGraph::Edge& edge){
     // auto edge = getOrderedEdge(edge);
     if (not contains(edge))
         throw std::logic_error("Cannot erase non-exising edge.");

@@ -11,7 +11,6 @@ public:
     DummySBMGraph randomGraph = DummySBMGraph();
     LabeledDoubleEdgeSwapProposer proposer = LabeledDoubleEdgeSwapProposer();
     void SetUp(){
-        // seedWithTime();
         randomGraph.sample();
         proposer.setUp(randomGraph);
     }

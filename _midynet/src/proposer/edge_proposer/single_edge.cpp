@@ -30,10 +30,10 @@ GraphMove SingleEdgeProposer::proposeRawMove() const {
 void SingleEdgeProposer::setUpFromGraph(const MultiGraph& graph) {
     m_graphPtr = &graph;
     for (auto vertex : graph){
-        m_vertexSamplerPtr->insertVertex(vertex);
+        m_vertexSamplerPtr->onVertexInsertion(vertex);
         for (auto neighbor : graph.getNeighboursOfIdx(vertex)){
             if (vertex <= neighbor.vertexIndex)
-                m_vertexSamplerPtr->insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
+                m_vertexSamplerPtr->onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
 
         }
     }
@@ -54,9 +54,9 @@ const double SingleEdgeUniformProposer::getLogProposalProbRatio(const GraphMove&
 
 void SingleEdgeDegreeProposer::applyGraphMove(const GraphMove& move) {
     for (auto edge: move.removedEdges)
-        m_vertexDegreeSampler.removeEdge(edge);
+        m_vertexDegreeSampler.onEdgeRemoval(edge);
     for (auto edge: move.addedEdges)
-        m_vertexDegreeSampler.addEdge(edge);
+        m_vertexDegreeSampler.onEdgeAddition(edge);
 }
 
 const double SingleEdgeDegreeProposer::getGammaRatio(BaseGraph::Edge edge, const double difference) const{

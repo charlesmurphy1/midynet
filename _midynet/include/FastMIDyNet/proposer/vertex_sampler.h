@@ -18,11 +18,12 @@ class VertexSampler{
 public:
     virtual BaseGraph::VertexIndex sample() const = 0;
     virtual bool contains(const BaseGraph::VertexIndex&) const = 0;
-    virtual void insertVertex(const BaseGraph::VertexIndex& vertex) = 0;
-    virtual void insertEdge(const BaseGraph::Edge& edge, double edgeWeight) = 0;
-    virtual void eraseEdge(const BaseGraph::Edge&) = 0;
-    virtual void addEdge(const BaseGraph::Edge&) = 0;
-    virtual void removeEdge(const BaseGraph::Edge&) = 0;
+    virtual void onVertexInsertion(const BaseGraph::VertexIndex& vertex) = 0;
+    virtual void onVertexErasure(const BaseGraph::VertexIndex& vertex) = 0;
+    virtual void onEdgeInsertion(const BaseGraph::Edge& edge, double edgeWeight) = 0;
+    virtual void onEdgeErasure(const BaseGraph::Edge&) = 0;
+    virtual void onEdgeAddition(const BaseGraph::Edge&) = 0;
+    virtual void onEdgeRemoval(const BaseGraph::Edge&) = 0;
     virtual const double getVertexWeight(const BaseGraph::VertexIndex&) const = 0;
     virtual const double getTotalWeight() const = 0;
     virtual const size_t getSize() const = 0;
@@ -48,14 +49,19 @@ public:
     bool contains(const BaseGraph::VertexIndex& vertex) const override {
         return m_vertexSampler.count(vertex) > 0;
     };
-    void insertVertex(const BaseGraph::VertexIndex& vertex) override {
+    void onVertexInsertion(const BaseGraph::VertexIndex& vertex) override {
         if (not contains(vertex))
             m_vertexSampler.insert(vertex, 1);
     };
-    void insertEdge(const BaseGraph::Edge& edge, double edgeWeight) { };
-    void eraseEdge(const BaseGraph::Edge&) { };
-    void addEdge(const BaseGraph::Edge&) { };
-    void removeEdge(const BaseGraph::Edge&) { };
+    void onVertexErasure(const BaseGraph::VertexIndex& vertex) override {
+        if (not contains(vertex))
+            throw std::logic_error("Cannot remove non-exising vertex " + std::to_string(vertex) + ".");
+        m_vertexSampler.erase(vertex);
+    };
+    void onEdgeInsertion(const BaseGraph::Edge& edge, double edgeWeight) { };
+    void onEdgeErasure(const BaseGraph::Edge&) { };
+    void onEdgeAddition(const BaseGraph::Edge&) { };
+    void onEdgeRemoval(const BaseGraph::Edge&) { };
     const double getVertexWeight(const BaseGraph::VertexIndex& vertex) const override {
         return (contains(vertex)) ? m_vertexSampler.get_weight(vertex) : 0.;
     }
@@ -97,11 +103,12 @@ public:
     }
 
     BaseGraph::VertexIndex sample() const override;
-    void insertVertex(const BaseGraph::VertexIndex& vertex) override;
-    void insertEdge(const BaseGraph::Edge& edge, double edgeWeight) override ;
-    void eraseEdge(const BaseGraph::Edge& edge) override ;
-    void addEdge(const BaseGraph::Edge& edge) override ;
-    void removeEdge(const BaseGraph::Edge& edge) override ;
+    void onVertexInsertion(const BaseGraph::VertexIndex& vertex) override;
+    void onVertexErasure(const BaseGraph::VertexIndex& vertex) override;
+    void onEdgeInsertion(const BaseGraph::Edge& edge, double edgeWeight) override ;
+    void onEdgeErasure(const BaseGraph::Edge& edge) override ;
+    void onEdgeAddition(const BaseGraph::Edge& edge) override ;
+    void onEdgeRemoval(const BaseGraph::Edge& edge) override ;
     bool contains(const BaseGraph::VertexIndex& vertex) const override{
         return m_vertexSampler.count(vertex) > 0;
     }

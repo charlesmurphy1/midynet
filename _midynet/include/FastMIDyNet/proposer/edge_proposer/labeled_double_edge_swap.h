@@ -20,18 +20,13 @@ protected:
 public:
     LabeledDoubleEdgeSwapProposer(bool allowSelfLoops=true, bool allowMultiEdges=true, double labelPairShift=1):
         LabeledEdgeProposer(allowSelfLoops, allowMultiEdges, labelPairShift) { }
-    ~LabeledDoubleEdgeSwapProposer(){ clear(); }
+    virtual ~LabeledDoubleEdgeSwapProposer(){ clear(); }
     GraphMove proposeRawMove() const override ;
     void setUpFromGraph(const MultiGraph& graph) override ;
     const double getLogProposalProbRatio(const GraphMove& move) const override { return 0; }
     void applyGraphMove(const GraphMove& move) override ;
     void applyBlockMove(const BlockMove& move) override ;
-    size_t getTotalEdgeCount() const {
-        size_t edgeCount = 0;
-        for (auto s: m_labeledEdgeSampler)
-            edgeCount += s.second->getTotalWeight();
-        return edgeCount;
-    }
+    size_t getTotalEdgeCount() const ;
     void clear(){
         for (auto p : m_labeledEdgeSampler)
             delete p.second;

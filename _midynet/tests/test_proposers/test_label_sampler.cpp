@@ -49,31 +49,31 @@ TEST_F(TestLabelSampler, sample_returnLabelPairWithinGraph){
 
 TEST_F(TestLabelSampler, addEdge_forSomeEdge){
     double weightBefore = sampler.getEdgeSampler().getEdgeWeight(abscentEdge);
-    sampler.addEdge(abscentEdge);
+    sampler.onEdgeAddition(abscentEdge);
     EXPECT_EQ(weightBefore + 1, sampler.getEdgeSampler().getEdgeWeight(abscentEdge));
 }
 
 TEST_F(TestLabelSampler, addEdge_forSomeSelfLoop){
     abscentEdge.second = abscentEdge.first;
     double weightBefore = sampler.getEdgeSampler().getEdgeWeight(existingEdge);
-    sampler.addEdge(existingEdge);
+    sampler.onEdgeAddition(existingEdge);
     EXPECT_EQ(weightBefore + 1, sampler.getEdgeSampler().getEdgeWeight(existingEdge));
 }
 
 TEST_F(TestLabelSampler, removeEdge_forSomeEdge){
     double weightBefore = sampler.getEdgeSampler().getEdgeWeight(existingEdge);
-    sampler.removeEdge(existingEdge);
+    sampler.onEdgeRemoval(existingEdge);
     EXPECT_EQ(weightBefore - 1, sampler.getEdgeSampler().getEdgeWeight(existingEdge));
 }
 
 TEST_F(TestLabelSampler, insertEdge_forSomeEdge){
-    sampler.insertEdge(abscentEdge, 10);
+    sampler.onEdgeInsertion(abscentEdge, 10);
     EXPECT_EQ(10, sampler.getEdgeSampler().getEdgeWeight(abscentEdge));
 }
 
 TEST_F(TestLabelSampler, eraseEdge_forSomeEdge){
     double weight = sampler.getEdgeSampler().getEdgeWeight(existingEdge);
-    double oldWeight = sampler.eraseEdge(existingEdge);
+    double oldWeight = sampler.onEdgeErasure(existingEdge);
     EXPECT_EQ(weight, oldWeight);
     EXPECT_EQ(sampler.getEdgeSampler().getEdgeWeight(existingEdge), 0);
 

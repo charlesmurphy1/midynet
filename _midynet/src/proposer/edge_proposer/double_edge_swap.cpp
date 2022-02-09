@@ -30,15 +30,15 @@ void DoubleEdgeSwapProposer::setUpFromGraph( const MultiGraph& graph ) {
     for (auto vertex : graph)
         for (auto neighbor : graph.getNeighboursOfIdx(vertex))
             if (vertex <= neighbor.vertexIndex)
-                m_edgeSampler.insertEdge({vertex, neighbor.vertexIndex}, neighbor.label);
+                m_edgeSampler.onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
 }
 
 void DoubleEdgeSwapProposer::applyGraphMove(const GraphMove& move) {
     for (auto edge: move.removedEdges) {
-        m_edgeSampler.removeEdge(edge);
+        m_edgeSampler.onEdgeRemoval(edge);
     }
     for (auto edge: move.addedEdges) {
-        m_edgeSampler.addEdge(edge);
+        m_edgeSampler.onEdgeAddition(edge);
     }
 }
 
