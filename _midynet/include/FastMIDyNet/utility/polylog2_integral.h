@@ -4,8 +4,8 @@
 #include "FastMIDyNet/types.h"
 
 namespace FastMIDyNet{
-    
-    static double MACHEP = 1.11022302462515654042E-16;    /* 2**-53 */
+
+    // static double MACHEP = 1.11022302462515654042E-16;    /* 2**-53 */
     static double PI = 3.14159265358979323846264338;
 
     static double A[8] = {
