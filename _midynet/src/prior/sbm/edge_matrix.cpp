@@ -5,6 +5,7 @@
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/generators.h"
 
 
@@ -147,6 +148,38 @@ void EdgeMatrixPrior::checkSelfConsistency() const {
     if (sumEdges != 2*m_edgeCountPriorPtr->getState())
         throw ConsistencyError("EdgeMatrixPrior: Sum of edge matrix isn't equal to twice the number of edges.");
 }
+
+
+const double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+    CounterMap<std::pair<BlockIndex, BlockIndex>> map;
+
+    for (auto edge : move.addedEdges){
+        BlockIndex r = m_blockPriorPtr->getBlockOfIdx(edge.first);
+        BlockIndex s = m_blockPriorPtr->getBlockOfIdx(edge.second);
+        map.decrement({r, s});
+        map.decrement({s, r});
+    }
+    for (auto edge : move.addedEdges){
+        BlockIndex r = m_blockPriorPtr->getBlockOfIdx(edge.first);
+        BlockIndex s = m_blockPriorPtr->getBlockOfIdx(edge.second);
+        map.increment({r, s});
+        map.increment({s, r});
+    }
+
+    for (auto k: map){
+        if (k.second != 0)
+            return -INFINITY;
+    }
+    return 0.;
+}
+
+const double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+    if (move.prevBlockIdx != move.nextBlockIdx)
+        return -INFINITY;
+    return 0.;
+}
+
+
 
 /* DEFINITION OF EDGE MATRIX UNIFORM PRIOR */
 

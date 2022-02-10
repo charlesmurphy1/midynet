@@ -60,8 +60,8 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
         virtual const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const = 0;
 
-        const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move); }
-        const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromBlockMove(move) + m_blockPriorPtr->getLogJointRatioFromBlockMove(move); }
+        virtual const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move); }
+        virtual const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromBlockMove(move) + m_blockPriorPtr->getLogJointRatioFromBlockMove(move); }
 
         const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
             return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move); }, 0);
@@ -100,6 +100,50 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
             if (m_edgeCountPriorPtr == nullptr)
                 throw SafetyError("EdgeMatrixPrior: unsafe prior since `m_edgeCountPriorPtr` is empty.");
         }
+};
+
+class EdgeMatrixDeltaPrior: public EdgeMatrixPrior{
+public:
+    Matrix<size_t> m_edgeMatrix;
+
+public:
+    EdgeMatrixDeltaPrior(){}
+    EdgeMatrixDeltaPrior(const Matrix<size_t>& edgeMatrix) { setState(edgeMatrix); }
+    EdgeMatrixDeltaPrior(const Matrix<size_t>& edgeMatrix, EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
+        EdgeMatrixPrior(edgeCountPrior, blockPrior){ setState(edgeMatrix); }
+
+    EdgeMatrixDeltaPrior(const EdgeMatrixDeltaPrior& edgeMatrixDeltaPrior):
+        EdgeMatrixPrior(edgeMatrixDeltaPrior) {
+            setState(edgeMatrixDeltaPrior.getState());
+        }
+    virtual ~EdgeMatrixDeltaPrior(){}
+    const EdgeMatrixDeltaPrior& operator=(const EdgeMatrixDeltaPrior& other){
+        this->setState(other.getState());
+        return *this;
+    }
+
+    void setState(const Matrix<size_t>& edgeMatrix){
+        m_edgeMatrix = edgeMatrix;
+        m_state = edgeMatrix;
+    }
+    void sampleState() override { };
+    void samplePriors() override { };
+
+    const double getLogLikelihood() const override { return 0.; }
+    const double getLogPrior() const override { return 0.; };
+
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override ;
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override ;
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0.; };
+    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override{ return 0.; }
+
+    void checkSelfConsistency() const override { };
+    void checkSafety() const override {
+        if (m_edgeMatrix.size() == 0)
+            throw SafetyError("EdgeMatrixDeltaPrior: unsafe prior since `m_edgeMatrix` is empty.");
+    }
+
+    virtual void computationFinished() const override { m_isProcessed = false; }
 };
 
 class EdgeMatrixUniformPrior: public EdgeMatrixPrior {

@@ -7,32 +7,34 @@
 #include "fixtures.hpp"
 
 
-const FastMIDyNet::BlockSequence BLOCK_SEQUENCE = {0, 0, 1, 0, 0, 1, 1};
+namespace FastMIDyNet{
+
+const BlockSequence BLOCK_SEQUENCE = {0, 0, 1, 0, 0, 1, 1};
 
 
-class DummyEdgeMatrixPrior: public FastMIDyNet::EdgeMatrixPrior {
+class DummyEdgeMatrixPrior: public EdgeMatrixPrior {
     public:
         using EdgeMatrixPrior::EdgeMatrixPrior;
         void sampleState() {}
         const double getLogLikelihood() const { return 0.; }
-        const double getLogLikelihoodRatioFromGraphMove(const FastMIDyNet::GraphMove&) const { return 0; }
-        const double getLogLikelihoodRatioFromBlockMove(const FastMIDyNet::BlockMove&) const { return 0; }
+        const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const { return 0; }
+        const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const { return 0; }
 
-        void applyGraphMove(const FastMIDyNet::GraphMove&) { };
-        void applyBlockMove(const FastMIDyNet::BlockMove&) { };
+        void applyGraphMove(const GraphMove&) { };
+        void applyBlockMove(const BlockMove&) { };
 
 
         void _createBlock() { createBlock(); }
-        void _destroyBlock(const FastMIDyNet::BlockIndex& block) { destroyBlock(block); }
-        void _moveEdgeCountsInBlocks(const FastMIDyNet::BlockMove& move) { moveEdgeCountsInBlocks(move); }
+        void _destroyBlock(const BlockIndex& block) { destroyBlock(block); }
+        void _moveEdgeCountsInBlocks(const BlockMove& move) { moveEdgeCountsInBlocks(move); }
 };
 
 class TestEdgeMatrixPrior: public ::testing::Test {
     public:
-        FastMIDyNet::MultiGraph graph = getUndirectedHouseMultiGraph();
-        FastMIDyNet::EdgeCountPoissonPrior edgeCountPrior = {2};
-        FastMIDyNet::BlockCountPoissonPrior blockCountPrior = {2};
-        FastMIDyNet::BlockUniformPrior blockPrior = {graph.getSize(), blockCountPrior};
+        MultiGraph graph = getUndirectedHouseMultiGraph();
+        EdgeCountPoissonPrior edgeCountPrior = {2};
+        BlockCountPoissonPrior blockCountPrior = {2};
+        BlockUniformPrior blockPrior = {graph.getSize(), blockCountPrior};
 
         DummyEdgeMatrixPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
 
@@ -46,9 +48,9 @@ class TestEdgeMatrixPrior: public ::testing::Test {
 
 TEST_F(TestEdgeMatrixPrior, setGraph_anyGraph_edgeMatrixCorrectlySet) {
     EXPECT_EQ(edgeMatrixPrior.getState(),
-            FastMIDyNet::Matrix<size_t>({{8, 6}, {6, 2}})
+            Matrix<size_t>({{8, 6}, {6, 2}})
         );
-    EXPECT_EQ(edgeMatrixPrior.getEdgeCountsInBlocks(), FastMIDyNet::BlockSequence({14, 8}));
+    EXPECT_EQ(edgeMatrixPrior.getEdgeCountsInBlocks(), BlockSequence({14, 8}));
 }
 
 TEST_F(TestEdgeMatrixPrior, samplePriors_anyGraph_returnSumOfPriors) {
@@ -60,7 +62,7 @@ TEST_F(TestEdgeMatrixPrior, samplePriors_anyGraph_returnSumOfPriors) {
 TEST_F(TestEdgeMatrixPrior, createBlock_anySetup_addRowAndColumnToEdgeMatrix) {
     edgeMatrixPrior._createBlock();
     EXPECT_EQ(edgeMatrixPrior.getState(),
-            FastMIDyNet::Matrix<size_t>( {{8, 6, 0}, {6, 2, 0}, {0, 0, 0}} ));
+            Matrix<size_t>( {{8, 6, 0}, {6, 2, 0}, {0, 0, 0}} ));
 }
 
 TEST_F(TestEdgeMatrixPrior, createBlock_anySetup_addElementToEdgeCountOfBlocks) {
@@ -71,8 +73,8 @@ TEST_F(TestEdgeMatrixPrior, createBlock_anySetup_addElementToEdgeCountOfBlocks) 
 TEST_F(TestEdgeMatrixPrior, destroyBlock_anyBlock_removeFirstRowAndColumn) {
     size_t removedBlock = 0;
 
-    for (const FastMIDyNet::BlockSequence& blockSequence:
-            std::list<FastMIDyNet::BlockSequence>{{1, 1, 1, 1, 1, 2, 1}, {0, 0, 0, 0, 0, 2, 0}, {0, 0, 0, 0, 0, 1, 0}}) {
+    for (const BlockSequence& blockSequence:
+            std::list<BlockSequence>{{1, 1, 1, 1, 1, 2, 1}, {0, 0, 0, 0, 0, 2, 0}, {0, 0, 0, 0, 0, 1, 0}}) {
 
         blockPrior.setState(blockSequence);
         blockCountPrior.setState(3); // blockPrior setState changes blockCountPrior state
@@ -80,7 +82,7 @@ TEST_F(TestEdgeMatrixPrior, destroyBlock_anyBlock_removeFirstRowAndColumn) {
 
         edgeMatrixPrior._destroyBlock(removedBlock);
         EXPECT_EQ(edgeMatrixPrior.getState(),
-                FastMIDyNet::Matrix<size_t>( {{18, 1}, {1, 2}} ));
+                Matrix<size_t>( {{18, 1}, {1, 2}} ));
         EXPECT_EQ(edgeMatrixPrior.getEdgeCountsInBlocks(), std::vector<size_t>({19, 3}));
 
         removedBlock++;
@@ -90,14 +92,14 @@ TEST_F(TestEdgeMatrixPrior, destroyBlock_anyBlock_removeFirstRowAndColumn) {
 TEST_F(TestEdgeMatrixPrior, moveEdgesInBlocks_vertexChangingBlock_neighborsOfVertexChangedOfBlocks) {
     edgeMatrixPrior._moveEdgeCountsInBlocks({0, 0, 1});
     EXPECT_EQ(edgeMatrixPrior.getState(),
-            FastMIDyNet::Matrix<size_t>({{6, 4}, {4, 8}})
+            Matrix<size_t>({{6, 4}, {4, 8}})
         );
 }
 
 TEST_F(TestEdgeMatrixPrior, moveEdgesInBlocks_vertexChangingBlockWithSelfloop_neighborsOfVertexChangedOfBlocks) {
     edgeMatrixPrior._moveEdgeCountsInBlocks({5, 1, 0});
     EXPECT_EQ(edgeMatrixPrior.getState(),
-            FastMIDyNet::Matrix<size_t>({{12, 5}, {5, 0}})
+            Matrix<size_t>({{12, 5}, {5, 0}})
         );
 }
 TEST_F(TestEdgeMatrixPrior, checkSelfConsistency_validData_noThrow) {
@@ -106,40 +108,86 @@ TEST_F(TestEdgeMatrixPrior, checkSelfConsistency_validData_noThrow) {
 
 TEST_F(TestEdgeMatrixPrior, checkSelfConsistency_incorrectBlockNumber_throwConsistencyError) {
     blockCountPrior.setState(1);
-    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), ConsistencyError);
     blockCountPrior.setState(3);
-    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), ConsistencyError);
 }
 
 TEST_F(TestEdgeMatrixPrior, checkSelfConsistency_edgeMatrixNotOfBlockNumberSize_throwConsistencyError) {
-    FastMIDyNet::Matrix<size_t> edgeMatrix = {{2, 1}, {0, 2}, {0, 0}};
+    Matrix<size_t> edgeMatrix = {{2, 1}, {0, 2}, {0, 0}};
     edgeMatrixPrior.setState(edgeMatrix);
-    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), ConsistencyError);
     edgeMatrix = {{2, 1, 0}, {0, 2, 0}};
     edgeMatrixPrior.setState(edgeMatrix);
-    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), ConsistencyError);
 }
 
 TEST_F(TestEdgeMatrixPrior, checkSelfConsistency_asymmetricEdgeMatrix_throwConsistencyError) {
-    FastMIDyNet::Matrix<size_t> edgeMatrix = {{2, 1}, {0, 2}};
+    Matrix<size_t> edgeMatrix = {{2, 1}, {0, 2}};
     edgeMatrixPrior.setState(edgeMatrix);
-    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), ConsistencyError);
 }
 
 TEST_F(TestEdgeMatrixPrior, checkSelfConsistency_incorrectEdgeNumber_throwConsistencyError) {
-    FastMIDyNet::Matrix<size_t> edgeMatrix = {{2, 1}, {1, 2}};
+    Matrix<size_t> edgeMatrix = {{2, 1}, {1, 2}};
     edgeMatrixPrior.setState(edgeMatrix);
-    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    EXPECT_THROW(edgeMatrixPrior.checkSelfConsistency(), ConsistencyError);
+}
+
+class TestEdgeMatrixDeltaPrior: public ::testing::Test {
+    public:
+        MultiGraph graph = getUndirectedHouseMultiGraph();
+        Matrix<size_t> edgeMatrix = {{10, 2}, {2, 10}};
+        EdgeCountDeltaPrior edgeCountPrior = {7};
+        BlockCountPoissonPrior blockCountPrior = {2};
+        BlockUniformPrior blockPrior = {graph.getSize(), blockCountPrior};
+        EdgeMatrixDeltaPrior prior = {edgeMatrix, edgeCountPrior, blockPrior};
+
+        void SetUp() {
+            blockPrior.setState(BLOCK_SEQUENCE);
+            edgeCountPrior.setState(graph.getTotalEdgeNumber());
+            prior.setGraph(graph);
+        }
+};
+
+TEST_F(TestEdgeMatrixDeltaPrior, sample_returnSameEdgeMatrix){
+    Matrix<size_t> edgeMatrix = prior.getState();
+    prior.sample();
+    EXPECT_EQ(edgeMatrix, prior.getState());
+}
+
+TEST_F(TestEdgeMatrixDeltaPrior, getLogLikelihood_return0){
+    EXPECT_EQ(prior.getLogLikelihood(), 0);
+}
+
+TEST_F(TestEdgeMatrixDeltaPrior, getLogLikelihoodRatioFromGraphMove_forGraphMovePreservingEdgeMatrix_return0){
+    GraphMove move = {{}, {}};
+    EXPECT_EQ(prior.getLogLikelihoodRatioFromGraphMove(move), 0);
+}
+
+TEST_F(TestEdgeMatrixDeltaPrior, getLogLikelihoodRatioFromGraphMove_forGraphMoveNotPreservingEdgeMatrix_returnMinusInfinity){
+    GraphMove move = {{}, {{0, 1}}};
+    EXPECT_EQ(prior.getLogLikelihoodRatioFromGraphMove(move), -INFINITY);
+}
+
+TEST_F(TestEdgeMatrixDeltaPrior, getLogLikelihoodRatioFromBlockMove_forBlockMovePreservingEdgeMatrix_return0){
+    BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockOfIdx(0)};
+    EXPECT_EQ(prior.getLogLikelihoodRatioFromBlockMove(move), 0);
+}
+
+TEST_F(TestEdgeMatrixDeltaPrior, getLogLikelihoodRatioFromBlockMove_forBlockMoveNotPreservingEdgeMatrix_returnMinusInfinity){
+    BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockOfIdx(0) + 1};
+    EXPECT_EQ(prior.getLogLikelihoodRatioFromBlockMove(move), -INFINITY);
 }
 
 class TestEdgeMatrixUniformPrior: public ::testing::Test {
     public:
-        FastMIDyNet::MultiGraph graph = getUndirectedHouseMultiGraph();
-        FastMIDyNet::EdgeCountPoissonPrior edgeCountPrior = {2};
-        FastMIDyNet::BlockCountPoissonPrior blockCountPrior = {2};
-        FastMIDyNet::BlockUniformPrior blockPrior = {graph.getSize(), blockCountPrior};
+        MultiGraph graph = getUndirectedHouseMultiGraph();
+        EdgeCountPoissonPrior edgeCountPrior = {2};
+        BlockCountPoissonPrior blockCountPrior = {2};
+        BlockUniformPrior blockPrior = {graph.getSize(), blockCountPrior};
 
-        FastMIDyNet::EdgeMatrixUniformPrior prior = {edgeCountPrior, blockPrior};
+        EdgeMatrixUniformPrior prior = {edgeCountPrior, blockPrior};
 
         void SetUp() {
             blockPrior.setState(BLOCK_SEQUENCE);
@@ -168,19 +216,19 @@ TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihood_forSomeSampledMatrix_returnC
     prior.sample();
     auto E = prior.getEdgeCount(), B = prior.getBlockPrior().getBlockCount();
     double actualLogLikelihood = prior.getLogLikelihood();
-    double expectedLogLikelihood = -FastMIDyNet::logMultisetCoefficient( B * (B + 1) / 2, E);
+    double expectedLogLikelihood = -logMultisetCoefficient( B * (B + 1) / 2, E);
 
     EXPECT_EQ(actualLogLikelihood, expectedLogLikelihood);
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, applyMove_forSomeGraphMove_changeEdgeMatrix){
-    FastMIDyNet::GraphMove move = {{{0, 0}}, {{0, 2}}};
+    GraphMove move = {{{0, 0}}, {{0, 2}}};
     prior.applyGraphMove(move);
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveContainingASelfLoop_returnCorrectLogLikelihoodRatio){
-    FastMIDyNet::GraphMove move = {{{0, 0}}, {{0, 2}}};
+    GraphMove move = {{{0, 0}}, {{0, 2}}};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
     prior.applyGraphMove(move);
@@ -191,7 +239,7 @@ TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveContain
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveChangingTheEdgeCount_returnCorrectLogLikelihoodRatio){
-    FastMIDyNet::GraphMove move = {{}, {{0, 2}}};
+    GraphMove move = {{}, {{0, 2}}};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
     prior.applyGraphMove(move);
@@ -202,13 +250,13 @@ TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveChangin
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, applyMove_forSomeBlockMove_changeEdgeMatrix){
-    FastMIDyNet::BlockMove move = {0, BLOCK_SEQUENCE[0], BLOCK_SEQUENCE[0] + 1};
+    BlockMove move = {0, BLOCK_SEQUENCE[0], BLOCK_SEQUENCE[0] + 1};
     prior.applyBlockMove(move);
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeBlockMove_returnCorrectLogLikelihoodRatio){
-    FastMIDyNet::BlockMove move = {0, BLOCK_SEQUENCE[0], BLOCK_SEQUENCE[0]+1};
+    BlockMove move = {0, BLOCK_SEQUENCE[0], BLOCK_SEQUENCE[0]+1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
     prior.applyBlockMove(move);
@@ -225,10 +273,12 @@ TEST_F(TestEdgeMatrixUniformPrior, checkSelfConsistency_noError_noThrow){
 
 TEST_F(TestEdgeMatrixUniformPrior, checkSelfConsistency_inconsistenBlockCount_ThrowConsistencyError){
     blockCountPrior.setState(10);
-    EXPECT_THROW(prior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, checkSelfConsistency_inconsistentEdgeCount_ThrowConsistencyError){
     edgeCountPrior.setState(50);
-    EXPECT_THROW(prior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
+}
+
 }

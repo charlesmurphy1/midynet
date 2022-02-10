@@ -149,8 +149,6 @@ public:
     }
 
     virtual void computationFinished() const override { m_isProcessed = false; }
-
-
 };
 
 class DegreeUniformPrior: public DegreePrior{
