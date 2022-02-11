@@ -1,6 +1,5 @@
 import numpy as np
 from config import (
-    get_config_figure2Exact,
     PATH_TO_RUN_EXEC,
     PATH_TO_DATA,
     EXECUTION_COMMAND,
@@ -25,7 +24,7 @@ def get_config(
     )
     N = 5
     E = 5
-    T = np.linspace(1, 100, 100).astype("int")
+    T = np.unique(np.logspace(0, 3, 100).astype("int"))
     if dynamics == "sis":
         coupling = np.linspace(0, 1, 10)
         config.dynamics.set_coupling(coupling)
