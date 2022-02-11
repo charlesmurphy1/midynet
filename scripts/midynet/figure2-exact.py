@@ -26,11 +26,11 @@ def get_config(
     E = 5
     T = np.unique(np.logspace(0, 3, 20).astype("int"))
     if dynamics == "sis":
-        coupling = [0.1, 0.25, 0.5, 1.0]
+        coupling = np.array([0.1, 0.5, 1]) / config.dynamics.beta
     elif dynamics == "ising":
-        coupling = [0.1, 1., 2, 4]
+        coupling = [0.1, 1, 2]
     elif dynamics == "cowan":
-        coupling = [0.1, 2, 4, 8]
+        coupling = [0.1, 1, 2]
     config.dynamics.set_coupling(coupling)
 
     config.graph.set_value("size", N)
