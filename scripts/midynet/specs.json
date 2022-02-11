@@ -9,7 +9,7 @@
         "device": "cpu"
     },
     "hector":{
-        "path_to_data": "/home/charles_murphy/Documents/ulaval/doctorat/projects/data/midynet-data/",
+        "path_to_data": "/home/charles_murphy/Documents/ulaval/doctorat/projects/local-data/midynet-data/",
         "path_to_script": "/home/charles_murphy/Documents/ulaval/doctorat/projects/codes/midynet/midynet/scripts",
         "modules_to_load": [],
         "virtualenv": "",
@@ -18,7 +18,7 @@
         "device": "cpu"
     },
     "bernard":{
-        "path_to_data": "/home/charles/Documents/ulaval/doctorat/projects/data/midynet-data/",
+        "path_to_data": "/home/charles/Documents/ulaval/doctorat/projects/local-data/midynet-data/",
         "path_to_script": "/home/charles/Documents/ulaval/doctorat/projects/codes/midynet/midynet/scripts",
         "modules_to_load": [],
         "virtualenv": "",

@@ -24,14 +24,15 @@ def get_config(
     )
     N = 5
     E = 5
-    T = np.unique(np.logspace(0, 3, 100).astype("int"))
+    T = np.unique(np.logspace(0, 3, 20).astype("int"))
     if dynamics == "sis":
-        coupling = np.linspace(0, 1, 10)
-        config.dynamics.set_coupling(coupling)
-        config.dynamics.set_value("normalize", False)
-    else:
-        coupling = np.linspace(0, 4, 10)
-        config.dynamics.set_coupling(coupling)
+        coupling = [0.1, 0.25, 0.5, 1.0]
+    elif dynamics == "ising":
+        coupling = [0.1, 1., 2, 4]
+    elif dynamics == "cowan":
+        coupling = [0.1, 2, 4, 8]
+    config.dynamics.set_coupling(coupling)
+
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
@@ -50,9 +51,9 @@ def get_config(
 
 
 def main():
-    for dynamics in ["sis", "ising", "cowan"]:
+    for dynamics in ["ising", "sis", "cowan"]:
         config = get_config(
-            dynamics, num_procs=32, time="5:00:00", mem=12
+            dynamics, num_procs=4, time="5:00:00", mem=12
         )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
@@ -64,7 +65,7 @@ def main():
             resources=config.resources,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
-            extra_args=dict(verbose=2),
+            extra_args=dict(verbose=1),
             teardown=False,
         )
 

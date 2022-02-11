@@ -29,6 +29,20 @@ class DynamicsConfig(Config):
             )
             raise ValueError(message)
 
+    def get_coupling(self):
+        if self.name == "sis":
+            return self.infection_prob
+        elif self.name == "ising":
+            return self.coupling
+        elif self.name == "cowan":
+            return self.nu
+        else:
+            message = (
+                f"Invalid entry {self.name} for dynamics,"
+                + "expected ['sis', 'ising', 'cowan']."
+            )
+            raise ValueError(message)
+
     @classmethod
     def ising(
         cls,

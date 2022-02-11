@@ -1,4 +1,5 @@
 import time
+import numpy as np
 
 from dataclasses import dataclass, field
 from collections import defaultdict
@@ -36,11 +37,15 @@ class MutualInformation(Expectation):
             self.config.graph.sample_graph_prior_prob,
         )
         dynamics.sample()
-        hg = -dynamics.get_log_prior()
-        hxg = -dynamics.get_log_likelihood()
-        hx = -get_log_evidence(mcmc, self.config.metrics.mutualinfo)
+        hg = -dynamics.get_log_prior() / np.log(2)
+        hxg = -dynamics.get_log_likelihood() / np.log(2)
+        hx = -get_log_evidence(mcmc, self.config.metrics.mutualinfo) / np.log(
+            2
+        )
         hgx = hg + hxg - hx
-        return {"hx": hx, "hg": hg, "hxg": hxg, "hgx": hgx}
+        mi = hg - hgx
+        out = {"hx": hx, "hg": hg, "hxg": hxg, "hgx": hgx, "mi": mi}
+        return out
 
 
 class MutualInformationMetrics(Metrics):
@@ -50,6 +55,7 @@ class MutualInformationMetrics(Metrics):
             num_procs=config.get_value("num_procs", 1),
             seed=config.get_value("seed", int(time.time())),
         )
+
         samples = mutual_info.compute(
             config.metrics.mutualinfo.get_value("num_samples", 10)
         )
@@ -63,9 +69,11 @@ class MutualInformationMetrics(Metrics):
             )
             for k, v in sample_dict.items()
         }
-        return {
+
+        out = {
             f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()
         }
+        return out
 
 
 if __name__ == "__main__":
