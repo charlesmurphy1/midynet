@@ -26,7 +26,7 @@ def get_config(
     E = 5
     T = np.unique(np.logspace(0, 3, 20).astype("int"))
     if dynamics == "sis":
-        coupling = np.array([0.1, 0.5, 1]) / config.dynamics.beta
+        coupling = np.array([0.1, 0.5, 1]) / config.dynamics.recovery_prob
     elif dynamics == "ising":
         coupling = [0.1, 1, 2]
     elif dynamics == "cowan":
