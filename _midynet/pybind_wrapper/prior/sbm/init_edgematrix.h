@@ -29,6 +29,11 @@ void initEdgeMatrixPrior(py::module& m){
         ;
 
 
+    py::class_<EdgeMatrixDeltaPrior, EdgeMatrixPrior>(m, "EdgeMatrixDeltaPrior")
+        .def(py::init<>())
+        .def(py::init<Matrix<size_t>>(), py::arg("edge_matrix"))
+        .def(py::init<Matrix<size_t>, EdgeCountPrior&, BlockPrior&>(),
+            py::arg("edge_matrix"), py::arg("edge_count_prior"), py::arg("block_prior"));
     py::class_<EdgeMatrixUniformPrior, EdgeMatrixPrior>(m, "EdgeMatrixUniformPrior")
         .def(py::init<>())
         .def(py::init<EdgeCountPrior&, BlockPrior&>(), py::arg("edge_count_prior"), py::arg("block_prior"));
