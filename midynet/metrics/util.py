@@ -1,11 +1,8 @@
-import importlib
-
 import numpy as np
 from _midynet.mcmc import DynamicsMCMC
 from _midynet.mcmc.callbacks import (
     CollectEdgeMultiplicityOnSweep,
     CollectLikelihoodOnSweep,
-    CollectPartitionOnSweep,
 )
 from midynet.config import Config
 from midynet.util import enumerate_all_graphs, log_mean_exp, log_sum_exp
@@ -156,7 +153,6 @@ def get_log_posterior_meanfield(dynamicsMCMC: DynamicsMCMC, config: Config):
     s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
 
     for i in range(config.num_sweeps):
-        print(i)
         _s, _f = dynamicsMCMC.do_MH_sweep(burn=burn)
         s += _s
         f += _f
