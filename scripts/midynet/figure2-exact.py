@@ -24,13 +24,13 @@ def get_config(
     )
     N = 5
     E = 5
-    T = np.unique(np.logspace(0, 3, 20).astype("int"))
+    T = np.unique(np.logspace(0, 3, 100).astype("int"))
     if dynamics == "sis":
         coupling = np.array([0.1, 0.5, 1]) / config.dynamics.recovery_prob
     elif dynamics == "ising":
-        coupling = [0.1, 1, 2]
+        coupling = [0.5, 1, 2]
     elif dynamics == "cowan":
-        coupling = [0.1, 1, 2]
+        coupling = [1, 1.5, 2]
     config.dynamics.set_coupling(coupling)
 
     config.graph.set_value("size", N)
@@ -53,7 +53,7 @@ def get_config(
 def main():
     for dynamics in ["ising", "sis", "cowan"]:
         config = get_config(
-            dynamics, num_procs=4, time="5:00:00", mem=12
+            dynamics, num_procs=4, time="1:00:00", mem=12
         )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
