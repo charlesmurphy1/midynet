@@ -54,8 +54,8 @@ def get_config(
 
 
 def main():
-    for dynamics in ["ising","sis","cowan"]:
-        config = get_config(dynamics=dynamics, num_procs=4, mem=12)
+    for dynamics in ["ising", "sis", "cowan"]:
+        config = get_config(dynamics=dynamics, num_procs=40, mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
