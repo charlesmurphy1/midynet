@@ -1,8 +1,8 @@
 import json
 import os
 import pathlib
-
 import numpy as np
+import midynet
 
 from midynet.config import ExperimentConfig
 

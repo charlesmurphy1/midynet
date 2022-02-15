@@ -1,4 +1,4 @@
-from .script_util import (
+from script_util import (
     get_config_figure4Nbinom,
     PATH_TO_RUN_EXEC,
     EXECUTION_COMMAND,
