@@ -1,5 +1,8 @@
 import numpy as np
 
+from midynet.config import ExperimentConfig
+from midynet.scripts import ScriptManager
+
 from script_util import (
     PATH_TO_DATA,
     PATH_TO_LOG,
@@ -7,9 +10,6 @@ from script_util import (
     EXECUTION_COMMAND,
     SPECS,
 )
-
-from midynet.config import ExperimentConfig
-from midynet.scripts import ScriptManager
 
 
 def get_config_base(
