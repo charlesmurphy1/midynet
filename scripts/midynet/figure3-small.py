@@ -28,7 +28,9 @@ def get_config_base(
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.metrics.mutualinfo.set_value("num_samples", 1000)
-    config.metrics.mutualinfo.set_value("method", ["meanfield", "annealed"])
+    config.metrics.mutualinfo.set_value(
+        "method", ["annealed", "exact", "meanfield"]
+    )
 
     resources = {
         "account": "def-aallard",
@@ -78,23 +80,34 @@ def launch(config):
         execution_command=EXECUTION_COMMAND,
         path_to_scripts="./scripts",
     )
-    ais_config, mf_config = script.split_param(
+    ais_config, exact_config, mf_config = script.split_param(
         config, "metrics.mutualinfo.method"
-    )
-    mf_config.resources["time"] = "04:00:00"
-    script.run(
-        mf_config,
-        resources=mf_config.resources,
-        modules_to_load=SPECS["modules_to_load"],
-        virtualenv=SPECS["virtualenv"],
-        extra_args=dict(verbose=2),
-        teardown=False,
     )
 
     ais_config.resources["time"] = "16:00:00"
     script.run(
         ais_config,
         resources=ais_config.resources,
+        modules_to_load=SPECS["modules_to_load"],
+        virtualenv=SPECS["virtualenv"],
+        extra_args=dict(verbose=2),
+        teardown=False,
+    )
+
+    exact_config.resources["time"] = "1:00:00"
+    script.run(
+        exact_config,
+        resources=ais_config.resources,
+        modules_to_load=SPECS["modules_to_load"],
+        virtualenv=SPECS["virtualenv"],
+        extra_args=dict(verbose=2),
+        teardown=False,
+    )
+
+    mf_config.resources["time"] = "04:00:00"
+    script.run(
+        mf_config,
+        resources=mf_config.resources,
         modules_to_load=SPECS["modules_to_load"],
         virtualenv=SPECS["virtualenv"],
         extra_args=dict(verbose=2),
