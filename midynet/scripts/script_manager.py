@@ -1,7 +1,7 @@
 import os
 import pathlib
 import time
-import typing
+from typing import Optional, Generator, Iterable
 from dataclasses import dataclass, field
 
 from midynet.config import Config
@@ -10,8 +10,8 @@ __all__ = ["ScriptManager"]
 
 
 def split_into_chunks(
-    container: typing.Iterable, num_chunks=None
-) -> typing.Generator[typing.Iterable, None, None]:
+    container: Iterable, num_chunks=None
+) -> Generator[Iterable, None, None]:
     """Yield num_chunks number of sequential chunks from container."""
     if num_chunks is None:
         for c in container:
@@ -30,12 +30,20 @@ class ScriptManager:
     path_to_scripts: pathlib.Path = field(
         repr=True, default_factory=pathlib.Path, init=True
     )
+    path_to_log: Optional[pathlib.Path] = field(
+        repr=True, default_factory=None, init=True
+    )
 
     def __post_init__(self):
         if isinstance(self.path_to_scripts, str):
             self.path_to_scripts = pathlib.Path(self.path_to_scripts)
         if not self.path_to_scripts.exists():
             self.path_to_scripts.mkdir(exist_ok=True, parents=True)
+
+        if isinstance(self.path_to_log, str):
+            self.path_to_log = pathlib.Path(self.path_to_log)
+        if self.path_to_log is not None and not self.path_to_log.exists():
+            self.path_to_log.mkdir(exist_ok=True, parents=True)
 
     def write_script(
         self,
@@ -51,6 +59,11 @@ class ScriptManager:
         resources = {} if resources is None else resources
         for k, r in resources.items():
             script += f"{resource_prefix} --{k}={r}\n"
+        if self.path_to_log is not None:
+            script += (
+                f"{resource_prefix} --output="
+                + f"{str(self.path_to_log)}/{config.name}.log\n"
+            )
 
         script += "\n"
         if modules_to_load:

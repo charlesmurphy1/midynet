@@ -43,7 +43,6 @@ def get_config(
         "mem": f"{mem}G",
         "cpus-per-task": f"{num_procs}",
         "job-name": f"{config.name}",
-        "output": PATH_TO_LOG / f"{config.name}.out",
     }
     config.insert("resources", resources, force_non_sequence=True, unique=True)
     return config
@@ -56,6 +55,7 @@ def main():
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
             path_to_scripts="./scripts",
+            path_to_log=PATH_TO_LOG,
         )
         ais_config, mf_config = script.split_param(
             config, "metrics.mutualinfo.method"

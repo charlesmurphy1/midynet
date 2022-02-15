@@ -24,7 +24,7 @@ def get_config(
     )
     N = 5
     E = 5
-    T = np.unique(np.logspace(0, 3, 100).astype("int"))
+    T = np.unique(np.logspace(0, 4, 100).astype("int"))
     if dynamics == "sis":
         coupling = np.array([0.1, 0.5, 1]) / config.dynamics.recovery_prob
     elif dynamics == "ising":
@@ -44,7 +44,6 @@ def get_config(
         "mem": f"{mem}G",
         "cpus-per-task": f"{num_procs}",
         "job-name": f"{config.name}",
-        "output": PATH_TO_LOG / f"{config.name}.out",
     }
     config.insert("resources", resources, force_non_sequence=True, unique=True)
     return config
@@ -52,13 +51,12 @@ def get_config(
 
 def main():
     for dynamics in ["ising", "sis", "cowan"]:
-        config = get_config(
-            dynamics, num_procs=4, time="1:00:00", mem=12
-        )
+        config = get_config(dynamics, num_procs=4, time="1:00:00", mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
             path_to_scripts="./scripts",
+            path_to_log=PATH_TO_LOG,
         )
         script.run(
             config,
