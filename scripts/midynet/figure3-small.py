@@ -117,10 +117,10 @@ def launch(config):
 
 def main():
     for dynamics in ["sis", "ising", "cowan"]:
-        config = get_config_vs_time(dynamics, num_procs=40, mem=12)
+        config = get_config_vs_time(dynamics=dynamics, num_procs=40, mem=12)
         launch(config)
 
-        config = get_config_vs_coupling(dynamics, num_procs=40, mem=12)
+        config = get_config_vs_coupling(dynamics=dynamics, num_procs=40, mem=12)
         launch(config)
 
 

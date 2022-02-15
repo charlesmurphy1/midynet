@@ -61,5 +61,5 @@
         "account": "def-aallard",
         "command": "sbatch",
         "device": "cpu"
-    },
+    }
 }
