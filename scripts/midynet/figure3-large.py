@@ -1,5 +1,5 @@
 import numpy as np
-from script_util import (
+from load_specs import (
     PATH_TO_DATA,
     PATH_TO_LOG,
     PATH_TO_RUN_EXEC,
