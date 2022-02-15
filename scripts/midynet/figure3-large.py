@@ -61,18 +61,18 @@ def main():
             config, "metrics.mutualinfo.method"
         )
 
-        # mf_config.resources["time"] = "12:00:00"
-        # mf_config.metrics.mutualinfo.set_value("num_sweeps", 1000)
-        # script.run(
-        #     mf_config,
-        #     resources=mf_config.resources,
-        #     modules_to_load=SPECS["modules_to_load"],
-        #     virtualenv=SPECS["virtualenv"],
-        #     extra_args=dict(verbose=2),
-        #     teardown=False,
-        # )
+        mf_config.resources["time"] = "12:00:00"
+        mf_config.metrics.mutualinfo.set_value("num_sweeps", 1000)
+        script.run(
+            mf_config,
+            resources=mf_config.resources,
+            modules_to_load=SPECS["modules_to_load"],
+            virtualenv=SPECS["virtualenv"],
+            extra_args=dict(verbose=2),
+            teardown=False,
+        )
 
-        ais_config.resources["time"] = "24:00:00"
+        ais_config.resources["time"] = "36:00:00"
         ais_config.metrics.mutualinfo.set_value("num_sweeps", 100)
         ais_config.metrics.mutualinfo.set_value("num_betas", 50)
         script.run(
