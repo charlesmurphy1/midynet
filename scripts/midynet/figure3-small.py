@@ -46,6 +46,7 @@ def get_config_base(
 
 def get_config_vs_time(**kwargs):
     config = get_config_base(**kwargs)
+    config.set_value("name", config.name + "_vs_numsteps")
     T = np.unique(np.logspace(0, 3, 20).astype("int"))
     dynamics = kwargs.get("dynamics")
     if dynamics == "sis":
@@ -61,6 +62,7 @@ def get_config_vs_time(**kwargs):
 
 def get_config_vs_coupling(**kwargs):
     config = get_config_base(**kwargs)
+    config.set_value("name", config.name + "_vs_coupling")
     T = [10, 100, 500]
     dynamics = kwargs.get("dynamics")
     if dynamics == "sis":
@@ -94,7 +96,7 @@ def launch(config):
         teardown=False,
     )
 
-    exact_config.resources["time"] = "1:00:00"
+    exact_config.resources["time"] = "0:10:00"
     script.run(
         exact_config,
         resources=ais_config.resources,
@@ -120,7 +122,9 @@ def main():
         config = get_config_vs_time(dynamics=dynamics, num_procs=40, mem=12)
         launch(config)
 
-        config = get_config_vs_coupling(dynamics=dynamics, num_procs=40, mem=12)
+        config = get_config_vs_coupling(
+            dynamics=dynamics, num_procs=40, mem=12
+        )
         launch(config)
 
 
