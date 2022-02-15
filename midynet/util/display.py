@@ -2,6 +2,7 @@ import os
 import pathlib
 
 import matplotlib.pyplot as plt
+from typing import Optional, Union
 from cycler import cycler
 from palettable.palette import Palette
 
@@ -12,7 +13,7 @@ __all__ = (
     "markers",
     "linestyles",
     "cycle",
-    "label_plot",
+    "Label",
 )
 
 
@@ -49,14 +50,6 @@ def clean_dir(path: pathlib.Path = ".", prefix: str = None):
                     p = pathlib.Path(local) / f
                     p.unlink()
 
-
-locations = {
-    "center center": (0.5, 0.5, "center", "center"),
-    "upper right": (0.95, 0.95, "top", "right"),
-    "lower right": (0.95, 0.05, "bottom", "right"),
-    "upper left": (0.05, 0.95, "top", "left"),
-    "lower left": (0.05, 0.05, "bottom", "left"),
-}
 
 hex_colors = {
     "blue": ["#7bafd3", "#1f77b4", "#1f53ff"],
@@ -119,27 +112,73 @@ plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
 plt.rc("axes", prop_cycle=cycle)
 
 
-def label_plot(ax, label, loc="center center", fontsize=18, box=None):
-    if isinstance(loc, tuple):
-        h, v, va, ha = loc
-    elif isinstance(loc, str):
-        h, v, va, ha = locations[loc]
-    if isinstance(box, bool):
+class Label:
+    alphabet: str = "abcdefghijklmnopqrstuvwxyz"
+    locations = {
+        "center center": (0.5, 0.5, "center", "center"),
+        "top right": (0.95, 0.95, "top", "right"),
+        "bottom right": (0.95, 0.05, "bottom", "right"),
+        "top left": (0.05, 0.95, "top", "left"),
+        "bottom left": (0.05, 0.05, "bottom", "left"),
+    }
+    counter: int = 0
+    type: str = "bold"
+    left: str = "("
+    right: str = ")"
+
+    def __init__(self):
+        raise NotImplementedError()
+
+    @classmethod
+    def init(cls):
+        cls.counter = 0
+
+    @classmethod
+    def clear(cls):
+        cls.counter = 0
+
+    @classmethod
+    def getLabel(cls):
+        label = cls.alphabet[cls.counter]
+        cls.counter += 1
+        if cls.type == "normal":
+            return rf"{cls.left}{label}{cls.right}"
+        elif cls.type == "bold":
+            return rf"\textbf{{ {cls.left}{label}{cls.right} }}"
+        elif cls.type == "italic":
+            return rf"\textit{{ {cls.left}{label}{cls.right} }}"
+
+    @classmethod
+    def plot(
+        cls,
+        ax,
+        label: Optional[str] = None,
+        loc: Union[tuple, str] = "center center",
+        fontsize: int = 18,
+        box: bool = True,
+    ):
+        label = cls.getLabel() if label is None else label
+        if isinstance(loc, tuple):
+            h, v, va, ha = loc
+        elif isinstance(loc, str):
+            h, v, va, ha = cls.locations[loc]
+
         box = (
             dict(boxstyle="round", color="white", alpha=0.75) if box else None
         )
 
-    ax.text(
-        h,
-        v,
-        label,
-        color="k",
-        transform=ax.transAxes,
-        verticalalignment=va,
-        horizontalalignment=ha,
-        fontsize=fontsize,
-        bbox=box,
-    )
+        ax.text(
+            h,
+            v,
+            label,
+            color="k",
+            transform=ax.transAxes,
+            verticalalignment=va,
+            horizontalalignment=ha,
+            fontsize=fontsize,
+            bbox=box,
+        )
+        return ax
 
 
 def main():
