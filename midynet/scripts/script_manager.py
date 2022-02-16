@@ -31,7 +31,7 @@ class ScriptManager:
         repr=True, default_factory=pathlib.Path, init=True
     )
     path_to_log: Optional[pathlib.Path] = field(
-        repr=True, default_factory=None, init=True
+        repr=True, default=None, init=True
     )
 
     def __post_init__(self):
