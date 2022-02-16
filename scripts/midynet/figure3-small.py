@@ -33,7 +33,7 @@ def get_config(
         config.dynamics.set_value("normalize", False)
     else:
         coupling = np.concatenate(
-            np.linspace(0, 1, 10), np.linspace(1.1, 4, 15)
+            [np.linspace(0, 1, 10), np.linspace(1.1, 4, 15)]
         )
         config.dynamics.set_coupling(coupling)
     config.dynamics.set_value("num_steps", T)
