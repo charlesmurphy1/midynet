@@ -61,9 +61,9 @@ class DynamicsConfig(Config):
     def sis(
         cls,
         num_steps: int = 100,
-        infection_prob: float = 0.5,
-        recovery_prob: float = 0.5,
-        auto_infection_prob: float = 1e-6,
+        infection_prob: float = 0.1,
+        recovery_prob: float = 0.1,
+        auto_infection_prob: float = 1e-4,
         normalize: bool = True,
     ) -> DynamicsConfig:
         return cls(
