@@ -58,7 +58,7 @@ def get_log_evidence_annealed(
     burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
     logp = []
 
-    beta_k = np.linspace(0, 1, config.num_betas) ** config.exp_betas
+    beta_k = np.linspace(0, 1, config.num_betas + 1) ** (1 / config.exp_betas)
     for lb, ub in zip(beta_k[:-1], beta_k[1:]):
         if verbose:
             print(f"beta: {lb}")

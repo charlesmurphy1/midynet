@@ -94,17 +94,34 @@ class Statistics:
         return Statistics(data)
 
     @staticmethod
-    def plot(ax, x, y, fill_alpha=0.2, **kwargs):
+    def plot(
+        ax, x, y, fill_alpha=0.2, fill_color=None, spacing=None, **kwargs
+    ):
         c = kwargs.get("color", "grey")
         a = kwargs.get("alpha", 1)
         index = np.argsort(x)
         x = np.array(x)
-        ax.plot(x[index], y["mid"][index], **kwargs)
+        if spacing is not None:
+            marker = kwargs.pop("marker")
+            ax.plot(x[index], y["mid"][index], marker="None", **kwargs)
+            kwargs.pop("linestyle", None)
+            kwargs.pop("ls", None)
+            ax.plot(
+                x[index[::spacing]],
+                y["mid"][index[::spacing]],
+                marker=marker,
+                linestyle="None",
+                **kwargs,
+            )
+
+        else:
+            ax.plot(x[index], y["mid"][index], **kwargs)
+        fill_color = c if fill_color is None else fill_color
         ax.fill_between(
             x[index],
             y["mid"][index] - y["low"][index],
             y["mid"][index] + y["high"][index],
-            color=c,
+            color=fill_color,
             alpha=a * fill_alpha,
         )
         return ax
