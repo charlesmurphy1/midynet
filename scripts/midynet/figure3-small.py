@@ -32,7 +32,9 @@ def get_config(
         config.dynamics.set_coupling(coupling)
         config.dynamics.set_value("normalize", False)
     else:
-        coupling = np.linspace(0, 4, 20)
+        coupling = np.concatenate(
+            np.linspace(0, 1, 10), np.linspace(1.1, 4, 15)
+        )
         config.dynamics.set_coupling(coupling)
     config.dynamics.set_value("num_steps", T)
     config.graph.set_value("size", N)
@@ -54,7 +56,7 @@ def get_config(
 
 
 def main():
-    for dynamics in ["ising", "sis", "cowan"]:
+    for dynamics in ["ising"]:
         config = get_config(dynamics=dynamics, num_procs=40, mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
@@ -76,22 +78,22 @@ def main():
             teardown=False,
         )
 
-        exact_config.resources["time"] = "0:10:00"
-
-        if dynamics == "sis":
-            coupling = np.linspace(0, 1, 100)
-            exact_config.dynamics.set_value("normalize", False)
-        else:
-            coupling = np.linspace(0, 4, 100)
-        exact_config.dynamics.set_coupling(coupling)
-        script.run(
-            exact_config,
-            resources=ais_config.resources,
-            modules_to_load=SPECS["modules_to_load"],
-            virtualenv=SPECS["virtualenv"],
-            extra_args=dict(verbose=2),
-            teardown=False,
-        )
+        # exact_config.resources["time"] = "0:10:00"
+        #
+        # if dynamics == "sis":
+        #     coupling = np.linspace(0, 1, 100)
+        #     exact_config.dynamics.set_value("normalize", False)
+        # else:
+        #     coupling = np.linspace(0, 4, 100)
+        # exact_config.dynamics.set_coupling(coupling)
+        # script.run(
+        #     exact_config,
+        #     resources=ais_config.resources,
+        #     modules_to_load=SPECS["modules_to_load"],
+        #     virtualenv=SPECS["virtualenv"],
+        #     extra_args=dict(verbose=2),
+        #     teardown=False,
+        # )
 
         mf_config.resources["time"] = "04:00:00"
         script.run(
