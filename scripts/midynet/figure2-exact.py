@@ -27,11 +27,11 @@ def get_config(
     T = np.unique(np.logspace(0, 4, 100).astype("int"))
     if dynamics == "sis":
         coupling = np.array([0.5, 2, 4]) * config.dynamics.recovery_prob
-        config.dynamics.set_value("auto_infection_prob", 1e-3)
+        config.dynamics.set_value("auto_infection_prob", 1e-4)
     elif dynamics == "ising":
         coupling = [0.5, 1, 2]
     elif dynamics == "cowan":
-        coupling = [1, 1.5, 2]
+        coupling = [1, 2, 4]
     config.dynamics.set_coupling(coupling)
 
     config.graph.set_value("size", N)
@@ -51,7 +51,7 @@ def get_config(
 
 
 def main():
-    for dynamics in ["ising", "sis", "cowan"]:
+    for dynamics in ["sis", "cowan"]:
         config = get_config(dynamics, num_procs=40, time="1:00:00", mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
