@@ -12,7 +12,7 @@ from load_specs import (
 )
 
 
-def get_config_figure4Nbinom(
+def get_config(
     dynamics="sis", num_procs=4, time="24:00:00", mem=12, seed=None
 ):
     config = ExperimentConfig.default(
@@ -25,7 +25,7 @@ def get_config_figure4Nbinom(
         num_procs=num_procs,
     )
     N, E = 100, 250
-    T = [10, 100]
+    T = [10, 100, 1000]
     h = np.linspace(0.001, 5, 20)
     if dynamics == "sis" or dynamics == "ising":
         coupling = np.unique(
@@ -46,9 +46,9 @@ def get_config_figure4Nbinom(
     config.graph.set_value("heterogeneity", h)
     config.dynamics.set_value("num_steps", T)
     config.dynamics.set_coupling(coupling)
-    config.metrics.mutualinfo.set_value("num_samples", 32)
+    config.metrics.mutualinfo.set_value("num_samples", num_procs)
     config.metrics.mutualinfo.set_value("method", "meanfield")
-    config.metrics.mutualinfo.set_value("num_sweeps", 200)
+    config.metrics.mutualinfo.set_value("num_sweeps", 500)
 
     resources = {
         "account": "def-aallard",
@@ -63,34 +63,43 @@ def get_config_figure4Nbinom(
 
 
 def main():
-    for dynamics in ["sis", "cowan", "ising"]:
-        config = get_config_figure4Nbinom(dynamics, num_procs=32, mem=12)
+    for dynamics in ["ising"]:
+        config = get_config(dynamics, num_procs=4, mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
             path_to_scripts="./scripts",
         )
-        config10, config100 = script.split_param(config, "dynamics.num_steps")
+        config10, config100, config1000 = script.split_param(
+            config, "dynamics.num_steps"
+        )
 
         config10.resources["time"] = "2:00:00"
         script.run(
             config10,
-            resources=config10.resources,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
             extra_args=dict(verbose=2),
             teardown=False,
         )
 
-        config100.resources["time"] = "6:00:00"
+        config100.resources["time"] = "24:00:00"
         script.run(
             config100,
-            resources=config100.resources,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
             extra_args=dict(verbose=2),
             teardown=False,
         )
+
+        # config1000.resources["time"] = "24:00:00"
+        # script.run(
+        #     config1000,
+        #     modules_to_load=SPECS["modules_to_load"],
+        #     virtualenv=SPECS["virtualenv"],
+        #     extra_args=dict(verbose=2),
+        #     teardown=False,
+        # )
 
 
 if __name__ == "__main__":
