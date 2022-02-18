@@ -76,10 +76,9 @@ def main():
         #     teardown=False,
         # )
 
-        ais_config.resources["time"] = "36:00:00"
-        ais_config.metrics.mutualinfo.set_value("num_sweeps", 500)
+        ais_config.resources["time"] = "48:00:00"
+        ais_config.metrics.mutualinfo.set_value("num_sweeps", 250)
         ais_config.metrics.mutualinfo.set_value("num_betas", 20)
-        ais_config.metrics.mutualinfo.set_value("exp_betas", 1)
         script.run(
             ais_config,
             resources=ais_config.resources,
