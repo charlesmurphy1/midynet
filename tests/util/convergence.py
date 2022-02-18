@@ -1,9 +1,9 @@
 import time
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from _midynet.mcmc import DynamicsMCMC
+from _midynet.mcmc.callbacks import CollectEdgeMultiplicityOnSweep
 from netrd.distance import Frobenius
 
 from midynet.config import (
@@ -19,18 +19,18 @@ from midynet.util import MCMCConvergenceAnalysis
 @pytest.fixture
 def config():
     c = ExperimentConfig.default("test", "ising", "nbinom_cm")
-    c.graph.set_value("size", 50)
-    c.graph.edge_count.set_value("state", 100)
+    c.graph.set_value("size", 100)
+    c.graph.edge_count.set_value("state", 250)
     c.graph.set_value("sample_graph_prior_prob", 0.0)
-    c.graph.set_value("heterogeneity", 0.001)
-    c.dynamics.set_value("num_steps", 1000)
-    c.dynamics.set_coupling([0.0, 0.5])
-    c.insert("num_samples", 1000)
+    c.graph.set_value("heterogeneity", 1.)
+    c.dynamics.set_value("num_steps", [100])
+    c.dynamics.set_coupling([1.0])
+    c.insert("num_sweeps", 1000)
     c.insert("numsteps_between_samples", 5)
     return c
 
 
-def mcmc_analysis(c):
+def mcmc_analysis(c, callbacks=None):
     g = RandomGraphFactory.build(c.graph)
     d = DynamicsFactory.build(c.dynamics)
     d.set_random_graph(g.get_wrap())
@@ -41,35 +41,53 @@ def mcmc_analysis(c):
     d.sample()
     d.sample_graph()
     mcmc.set_up()
-    distance = Frobenius()
+    measure = Frobenius().dist
     return Wrapper(
-        MCMCConvergenceAnalysis(mcmc, distance),
+        MCMCConvergenceAnalysis(mcmc, measure, callbacks=callbacks),
         D_MCMC=mcmc,
-        distance=distance,
+        distance=measure,
         g_mcmc=g_mcmc,
         d=d,
         g=g,
     )
 
 
-def test_generic(config):
+# def test_generic(config):
+#
+#     t = time.time()
+#     distance = None
+#     for c in config.sequence():
+#         conv = mcmc_analysis(c)
+#         collected = conv.collect(
+#             burn=500,
+#             num_sweeps=c.num_sweeps,
+#             numsteps_between_samples=c.numsteps_between_samples,
+#         )
+#         x = np.arange(c.num_sweeps) * c.numsteps_between_samples
+#         coupling = c.dynamics.coupling
+#         plt.plot(x, collected, label=rf"$\alpha = {coupling}$")
+#         distance = conv.get_other("distance") if distance is None else distance
+#     print(f"Computation time: {time.time() - t}")
+#     plt.xlabel("Number of MH steps")
+#     plt.ylabel(f"{distance.__class__.__name__} distance")
+#     plt.legend()
+#     plt.show()
 
-    t = time.time()
-    distance = None
+
+def test_meanfield(config):
     for c in config.sequence():
-        conv = mcmc_analysis(c)
-        collected = conv.collect(
-            burn=500,
-            num_samples=c.num_samples,
-            numsteps_between_samples=c.numsteps_between_samples,
-        )
-        x = np.arange(c.num_samples) * c.numsteps_between_samples
-        coupling = c.dynamics.coupling
-        plt.plot(x, collected, label=rf"$\alpha = {coupling}$")
-        distance = conv.get_other("distance") if distance is None else distance
-    print(f"Computation time: {time.time() - t}")
-    plt.xlabel("Number of MH steps")
-    plt.ylabel(f"{distance.__class__.__name__} distance")
+        callback = CollectEdgeMultiplicityOnSweep()
+        conv = mcmc_analysis(c, [callback])
+        entropy = []
+        conv.burn(1000)
+        for n in range(c.num_sweeps):
+            if (n % 10) == 0:
+                print(n)
+            conv.burn(250)
+            entropy.append(callback.get_marginal_entropy())
+
+        plt.loglog(entropy, label=rf"$C = {c.dynamics.num_steps}$")
+        plt.axhline(-conv.mcmc.get_log_prior(), color="grey", linestyle="--")
     plt.legend()
     plt.show()
 

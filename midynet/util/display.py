@@ -7,6 +7,7 @@ from cycler import cycler
 from palettable.palette import Palette
 
 __all__ = (
+    "fontsizes",
     "hex_to_rgb",
     "rgb_to_hex",
     "palettes",
@@ -15,6 +16,8 @@ __all__ = (
     "cycle",
     "Label",
 )
+
+fontsizes = {"small": 6, "medium": 8, "large": 10}
 
 
 def hex_to_rgb(value):
@@ -101,13 +104,10 @@ linestyles = [
 cycle = cycler(
     color=list(dark_colors.values())[:-2], marker=markers, linestyle=linestyles
 )
-large_fontsize = 18
-small_fontsize = 14
-
 
 plt.rc("text", usetex=True)
-plt.rc("font", family="serif", size=small_fontsize)
-plt.rc("lines", linewidth=2)
+plt.rc("font", family="serif", size=fontsizes["medium"])
+plt.rc("lines", linewidth=1)
 plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
 plt.rc("axes", prop_cycle=cycle)
 
@@ -154,7 +154,7 @@ class Label:
         ax,
         label: Optional[str] = None,
         loc: Union[tuple, str] = "center center",
-        fontsize: int = 18,
+        fontsize: int = fontsizes["large"],
         box: bool = True,
     ):
         label = cls.getLabel() if label is None else label
