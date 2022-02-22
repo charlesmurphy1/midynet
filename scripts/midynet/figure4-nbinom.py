@@ -63,7 +63,7 @@ def get_config(
 
 
 def main():
-    for dynamics in ["ising"]:
+    for dynamics in ["sis", "cowan"]:
         config = get_config(dynamics, num_procs=4, mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
