@@ -1,10 +1,9 @@
 from __future__ import annotations
-
 import importlib
-import typing
-
 import basegraph
+from typing import Callable, Optional
 from _midynet.mcmc import DynamicsMCMC
+from _midynet.mcmc.callbacks import CallBack
 from _midynet.utility import get_edge_list
 
 
@@ -15,15 +14,21 @@ class MCMCConvergenceAnalysis:
     def __init__(
         self,
         mcmc: DynamicsMCMC,
-        distance: typing.Callable,
+        distance: Optional[Callable] = None,
+        callbacks: Optional[list[CallBack]] = None,
     ):
         self.mcmc = mcmc
         self.distance = distance
         self.collected = []
+        self.callbacks = [] if callbacks is None else callbacks
+        for c in self.callbacks:
+            self.mcmc.add_callback(c)
+
+    def burn(self, numsteps=1000):
+        return self.mcmc.do_MH_sweep(numsteps)
 
     def collect(
         self,
-        burn=1000,
         num_samples=100,
         numsteps_between_samples=10,
         numsteps_between_resets=None,
@@ -33,15 +38,15 @@ class MCMCConvergenceAnalysis:
             self.mcmc.get_graph()
         )
 
-        s, f = self.mcmc.do_MH_sweep(burn)
         for i in range(num_samples):
             s, f = self.mcmc.do_MH_sweep(numsteps_between_samples)
             current_graph = self.convert_basegraph_to_networkx(
                 self.mcmc.get_graph()
             )
-            self.collected.append(
-                self.distance.dist(original_graph, current_graph)
-            )
+            if self.distance is not None:
+                self.collected.append(
+                    self.distance(original_graph, current_graph)
+                )
         return self.collected
 
     def clear(self):
