@@ -42,19 +42,21 @@ def bnbinomial(k, r, a, b):
     return p
 
 
-def poisson_degreeseq(size, avg_deg):
-    xk = np.arange(size)
-    pk = poisson.pmf(xk, mu=avg_deg)
-    return generate_degseq(xk, pk, size)
+def poisson_degreeseq(size, avgk):
+    x = np.linspace(1./size, 1 - 1./size, size)
+    k = poisson.ppf(x, avgk)
+    k[k < 1] = 1
+    return k
 
 
 def nbinom_degreeseq(size, avgk, heterogeneity):
     var = avgk + heterogeneity * avgk ** 2
     q = avgk / var
     n = avgk ** 2 / (var - avgk)
-    xk = np.arange(size)
-    pk = nbinom.pmf(xk, n, q)
-    return generate_degseq(xk, pk, size)
+    x = np.linspace(1./size, 1 - 1./size, size)
+    k = nbinom.ppf(x, n, q)
+    k[k < 1] = 1
+    return k
 
 
 def scalefree_degreeseq(avg, exponent, size, maxiter=1000, kmax=None):

@@ -5,8 +5,9 @@ from scipy.optimize import bisect
 def dominant_eigenvalue(cfg):
     eigen_values = []
     N, E = cfg.size, cfg.edge_count.state
-    for h in cfg.heterogeneity:
-        degrees = midynet.util.degree_sequences.nbinom_degreeseq(N, E, h)
+    for c in cfg.sequence():
+        graph = midynet.config.RandomGraphFactory.build(c)
+        degrees = np.array(graph.get_degrees())
         eigen_value = max(np.sqrt(np.max(degrees)), (np.mean(degrees**2) - np.mean(degrees)) / np.mean(degrees))
         eigen_values.append(eigen_value)
     return np.array(eigen_values)
