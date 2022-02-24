@@ -54,7 +54,7 @@ def get_config(
 
 def main():
     for dynamics in ["ising"]:
-        config = get_config(dynamics, num_procs=32, mem=12)
+        config = get_config(dynamics, num_procs=64, mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
@@ -76,17 +76,27 @@ def main():
             teardown=False,
         )
 
-        ais_config.resources["time"] = "48:00:00"
-        ais_config.metrics.mutualinfo.set_value("num_sweeps", 250)
+        ais_config.resources["time"] = "52:00:00"
+        ais_config.metrics.mutualinfo.set_value("num_sweeps", 1000)
         ais_config.metrics.mutualinfo.set_value("num_betas", 20)
-        script.run(
-            ais_config,
-            resources=ais_config.resources,
-            modules_to_load=SPECS["modules_to_load"],
-            virtualenv=SPECS["virtualenv"],
-            extra_args=dict(verbose=2),
-            teardown=False,
-        )
+        if dynamics == "sis":
+            coupling = np.linspace(0, 1, 10)
+            ais_config.dynamics.set_coupling(coupling)
+            ais_config.dynamics.set_value("normalize", False)
+        else:
+            coupling = np.concatenate(
+                [np.linspace(0, 1, 7), np.linspace(1, 4, 6)]
+            )
+            ais_config.dynamics.set_coupling(coupling)
+
+#        script.run(
+#            ais_config,
+#            resources=ais_config.resources,
+#            modules_to_load=SPECS["modules_to_load"],
+#            virtualenv=SPECS["virtualenv"],
+#            extra_args=dict(verbose=2),
+#            teardown=False,
+#        )
 
 
 if __name__ == "__main__":
