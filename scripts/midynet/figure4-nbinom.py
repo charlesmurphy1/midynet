@@ -64,8 +64,13 @@ def get_config(
 
 
 def main():
+<<<<<<< HEAD
     for dynamics in ["ising", "sis", "cowan"]:
         config = get_config(dynamics, num_procs=64, mem=12, time="40:00:00")
+=======
+    for dynamics in ["sis", "cowan"]:
+        config = get_config(dynamics, num_procs=4, mem=12)
+>>>>>>> 821bd93ba1b037e3d9256ee8de8ceffea3a25ff0
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,

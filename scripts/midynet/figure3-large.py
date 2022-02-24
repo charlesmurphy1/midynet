@@ -14,7 +14,7 @@ def get_config(
     dynamics="sis", num_procs=4, time="24:00:00", mem=12, seed=None
 ):
     config = ExperimentConfig.default(
-        f"figure3-large-{dynamics}",
+        f"figure3-large-T1000-{dynamics}",
         dynamics,
         "ser",
         metrics=["mutualinfo"],
@@ -55,7 +55,11 @@ def get_config(
 
 def main():
     for dynamics in ["ising"]:
+<<<<<<< HEAD
         config = get_config(dynamics, num_procs=1, mem=12)
+=======
+        config = get_config(dynamics, num_procs=32, mem=12)
+>>>>>>> 821bd93ba1b037e3d9256ee8de8ceffea3a25ff0
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
@@ -66,16 +70,16 @@ def main():
             config, "metrics.mutualinfo.method"
         )
 
-        # mf_config.resources["time"] = "12:00:00"
-        # mf_config.metrics.mutualinfo.set_value("num_sweeps", 1000)
-        # script.run(
-        #     mf_config,
-        #     resources=mf_config.resources,
-        #     modules_to_load=SPECS["modules_to_load"],
-        #     virtualenv=SPECS["virtualenv"],
-        #     extra_args=dict(verbose=2),
-        #     teardown=False,
-        # )
+        mf_config.resources["time"] = "6:00:00"
+        mf_config.metrics.mutualinfo.set_value("num_sweeps", 1000)
+        script.run(
+            mf_config,
+            resources=mf_config.resources,
+            modules_to_load=SPECS["modules_to_load"],
+            virtualenv=SPECS["virtualenv"],
+            extra_args=dict(verbose=2),
+            teardown=False,
+        )
 
         ais_config.resources["time"] = "48:00:00"
         ais_config.metrics.mutualinfo.set_value("num_sweeps", 250)
