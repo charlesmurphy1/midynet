@@ -46,6 +46,8 @@ def get_config(
     config.graph.set_value("heterogeneity", h)
     config.dynamics.set_value("num_steps", T)
     config.dynamics.set_coupling(coupling)
+    if dynamics == "sis":
+        config.dynamics.set_value("recovery_prob", 0.5)
     config.metrics.mutualinfo.set_value("num_samples", num_procs)
     config.metrics.mutualinfo.set_value("method", "meanfield")
     config.metrics.mutualinfo.set_value("num_sweeps", 1000)
@@ -64,13 +66,8 @@ def get_config(
 
 
 def main():
-<<<<<<< HEAD
     for dynamics in ["ising", "sis", "cowan"]:
         config = get_config(dynamics, num_procs=64, mem=12, time="40:00:00")
-=======
-    for dynamics in ["sis", "cowan"]:
-        config = get_config(dynamics, num_procs=4, mem=12)
->>>>>>> 821bd93ba1b037e3d9256ee8de8ceffea3a25ff0
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
