@@ -42,6 +42,7 @@ void initCollectors(py::module& m){
         .def("get_edge_count_prob", [](const CollectEdgeMultiplicityOnSweep& self, size_t v, size_t u, size_t count){
                 return self.getEdgeCountProb(getOrderedPair<BaseGraph::VertexIndex>({u, v}), count);
             }, py::arg("v"), py::arg("u"), py::arg("count"))
+        .def("get_edge_probs", &CollectEdgeMultiplicityOnSweep::getEdgeProbs)
         ;
     py::class_<CollectPartitionOnSweep, SweepCollector>(m, "CollectPartitionOnSweep")
         .def(py::init<>())
