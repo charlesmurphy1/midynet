@@ -28,16 +28,18 @@ def get_config(
         coupling = np.linspace(0, 1, 20)
         config.dynamics.set_coupling(coupling)
         config.dynamics.set_value("normalize", False)
+        config.dynamics.set_value("recovery_prob", 0.5)
     else:
-        coupling = np.concatenate(
-            [np.linspace(0, 1, 10), np.linspace(1, 4, 15)]
-        )
+        # coupling = np.concatenate(
+        #     [np.linspace(0, 1, 10), np.linspace(1, 4, 15)]
+        # )
+        coupling = [1.]
         config.dynamics.set_coupling(coupling)
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
     config.metrics.mutualinfo.set_value(
-        "num_samples", max(1, 32 // num_procs) * num_procs
+        "num_samples", 1  # max(1, 32 // num_procs) * num_procs
     )
     config.metrics.mutualinfo.set_value("method", ["meanfield", "annealed"])
 
@@ -79,24 +81,14 @@ def main():
         ais_config.resources["time"] = "52:00:00"
         ais_config.metrics.mutualinfo.set_value("num_sweeps", 1000)
         ais_config.metrics.mutualinfo.set_value("num_betas", 20)
-        if dynamics == "sis":
-            coupling = np.linspace(0, 1, 10)
-            ais_config.dynamics.set_coupling(coupling)
-            ais_config.dynamics.set_value("normalize", False)
-        else:
-            coupling = np.concatenate(
-                [np.linspace(0, 1, 7), np.linspace(1, 4, 6)]
-            )
-            ais_config.dynamics.set_coupling(coupling)
-
-#        script.run(
-#            ais_config,
-#            resources=ais_config.resources,
-#            modules_to_load=SPECS["modules_to_load"],
-#            virtualenv=SPECS["virtualenv"],
-#            extra_args=dict(verbose=2),
-#            teardown=False,
-#        )
+        script.run(
+            ais_config,
+            resources=ais_config.resources,
+            modules_to_load=SPECS["modules_to_load"],
+            virtualenv=SPECS["virtualenv"],
+            extra_args=dict(verbose=1),
+            teardown=False,
+        )
 
 
 if __name__ == "__main__":

@@ -52,4 +52,18 @@ const double CollectEdgeMultiplicityOnSweep::getMarginalEntropy() {
     return marginalEntropy;
 }
 
+const std::map<BaseGraph::Edge, std::vector<double>> CollectEdgeMultiplicityOnSweep::getEdgeProbs() {
+    std::map<BaseGraph::Edge, std::vector<double>> edgeProbs;
+
+    for (auto edge : m_observedEdges){
+        edgeProbs.insert({edge.first, {}});
+        for (size_t count = 0; count <= m_observedEdgesMaxCount[edge.first]; ++count){
+            double p = getEdgeCountProb(edge.first, count);
+            edgeProbs[edge.first].push_back(p);
+        }
+    }
+    return edgeProbs;
+}
+
+
 } // FastMIDyNet

@@ -53,6 +53,7 @@ public:
     size_t getTotalCount() const { return m_totalCount; }
     size_t getEdgeObservationCount(BaseGraph::Edge edge) const { return m_observedEdges[edge]; }
     const double getEdgeCountProb(BaseGraph::Edge edge, size_t count) const ;
+    const std::map<BaseGraph::Edge, std::vector<double>> getEdgeProbs() ;
 
 };
 
