@@ -39,9 +39,9 @@ class MutualInformation(Expectation):
         dynamics.sample()
         hg = -dynamics.get_log_prior() / np.log(2)
         hxg = -dynamics.get_log_likelihood() / np.log(2)
-        hx = -get_log_evidence(mcmc, self.config.metrics.mutualinfo) / np.log(
-            2
-        )
+        hx = -get_log_evidence(
+            mcmc, self.config.metrics.mutualinfo, verbose=0
+        ) / np.log(2)
         hgx = hg + hxg - hx
         mi = hg - hgx
         out = {"hx": hx, "hg": hg, "hxg": hxg, "hgx": hgx, "mi": mi}
@@ -70,9 +70,7 @@ class MutualInformationMetrics(Metrics):
             for k, v in sample_dict.items()
         }
 
-        out = {
-            f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()
-        }
+        out = {f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()}
         return out
 
 

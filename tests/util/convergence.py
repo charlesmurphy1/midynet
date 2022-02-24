@@ -18,13 +18,15 @@ from midynet.util import MCMCConvergenceAnalysis
 
 @pytest.fixture
 def config():
-    c = ExperimentConfig.default("test", "ising", "nbinom_cm")
+    c = ExperimentConfig.default("test", "sis", "nbinom_cm")
     c.graph.set_value("size", 100)
     c.graph.edge_count.set_value("state", 250)
     c.graph.set_value("sample_graph_prior_prob", 0.0)
-    c.graph.set_value("heterogeneity", 1.)
+    c.graph.set_value("heterogeneity", 0.001)
     c.dynamics.set_value("num_steps", [100])
-    c.dynamics.set_coupling([1.0])
+    c.dynamics.set_coupling([0.5, 1, 2])
+    # c.dynamics.set_value("infection_prob", 0.5)
+    c.dynamics.set_value("recovery_prob", 0.5)
     c.insert("num_sweeps", 1000)
     c.insert("numsteps_between_samples", 5)
     return c
@@ -38,8 +40,9 @@ def mcmc_analysis(c, callbacks=None):
     mcmc = DynamicsMCMC(
         d, g_mcmc.get_wrap(), 1, 1, c.graph.sample_graph_prior_prob
     )
-    d.sample()
-    d.sample_graph()
+    x = d.sample()
+    print(x)
+    # d.sample_graph()
     mcmc.set_up()
     measure = Frobenius().dist
     return Wrapper(
@@ -81,12 +84,12 @@ def test_meanfield(config):
         entropy = []
         conv.burn(1000)
         for n in range(c.num_sweeps):
+            s, f = conv.burn(500)
             if (n % 10) == 0:
-                print(n)
-            conv.burn(250)
+                print(n, s, f)
             entropy.append(callback.get_marginal_entropy())
 
-        plt.loglog(entropy, label=rf"$C = {c.dynamics.num_steps}$")
+        plt.loglog(entropy, label=rf"$C = {c.dynamics.get_coupling()}$")
         plt.axhline(-conv.mcmc.get_log_prior(), color="grey", linestyle="--")
     plt.legend()
     plt.show()

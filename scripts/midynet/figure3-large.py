@@ -29,15 +29,16 @@ def get_config(
         config.dynamics.set_coupling(coupling)
         config.dynamics.set_value("normalize", False)
     else:
-        coupling = np.concatenate(
-            [np.linspace(0, 1, 10), np.linspace(1, 4, 15)]
-        )
+        # coupling = np.concatenate(
+        #     [np.linspace(0, 1, 10), np.linspace(1, 4, 15)]
+        # )
+        coupling = [1.]
         config.dynamics.set_coupling(coupling)
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
     config.metrics.mutualinfo.set_value(
-        "num_samples", max(1, 32 // num_procs) * num_procs
+        "num_samples", 1  # max(1, 32 // num_procs) * num_procs
     )
     config.metrics.mutualinfo.set_value("method", ["meanfield", "annealed"])
 
@@ -54,7 +55,7 @@ def get_config(
 
 def main():
     for dynamics in ["ising"]:
-        config = get_config(dynamics, num_procs=4, mem=12)
+        config = get_config(dynamics, num_procs=1, mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
@@ -84,7 +85,7 @@ def main():
             resources=ais_config.resources,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
-            extra_args=dict(verbose=2),
+            extra_args=dict(verbose=1),
             teardown=False,
         )
 

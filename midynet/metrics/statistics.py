@@ -93,6 +93,21 @@ class Statistics:
             data["high"] /= other
         return Statistics(data)
 
+    def __ge__(self, other):
+        return self["mid"] >= other["mid"]
+
+    def __gt__(self, other):
+        return self["mid"] > other["mid"]
+
+    def __le__(self, other):
+        return self["mid"] <= other["mid"]
+
+    def __lt__(self, other):
+        return self["mid"] < other["mid"]
+
+    def __eq__(self, other):
+        return self["mid"] == other["mid"]
+
     @staticmethod
     def plot(
         ax, x, y, fill_alpha=0.2, fill_color=None, spacing=None, **kwargs

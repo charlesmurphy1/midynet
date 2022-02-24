@@ -25,19 +25,19 @@ def get_config(
         num_procs=num_procs,
     )
     N, E = 100, 250
-    T = [10, 100, 1000]
-    h = np.linspace(0.001, 5, 20)
+    T = [500]
+    h = np.linspace(0.001, 5, 40)
     if dynamics == "sis" or dynamics == "ising":
         coupling = np.unique(
-            np.concatenate([np.linspace(0, 1, 10), np.linspace(1, 4, 10)])
+            np.concatenate([np.linspace(0, 1, 20), np.linspace(1, 4, 20)])
         )
     elif dynamics == "cowan":
         coupling = np.unique(
             np.concatenate(
                 [
-                    np.linspace(0, 1, 5),
-                    np.linspace(1, 2, 10),
-                    np.linspace(2, 4, 5),
+                    np.linspace(0, 1, 10),
+                    np.linspace(1, 2, 20),
+                    np.linspace(2, 4, 10),
                 ]
             )
         )
@@ -48,7 +48,8 @@ def get_config(
     config.dynamics.set_coupling(coupling)
     config.metrics.mutualinfo.set_value("num_samples", num_procs)
     config.metrics.mutualinfo.set_value("method", "meanfield")
-    config.metrics.mutualinfo.set_value("num_sweeps", 500)
+    config.metrics.mutualinfo.set_value("num_sweeps", 1000)
+    config.metrics.mutualinfo.set_value("burn_per_vertex", 1)
 
     resources = {
         "account": "def-aallard",
@@ -63,43 +64,21 @@ def get_config(
 
 
 def main():
-    for dynamics in ["ising"]:
-        config = get_config(dynamics, num_procs=4, mem=12)
+    for dynamics in ["ising", "sis", "cowan"]:
+        config = get_config(dynamics, num_procs=64, mem=12, time="40:00:00")
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
             path_to_scripts="./scripts",
         )
-        config10, config100, config1000 = script.split_param(
-            config, "dynamics.num_steps"
-        )
 
-        config10.resources["time"] = "2:00:00"
         script.run(
-            config10,
+            config,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
             extra_args=dict(verbose=2),
             teardown=False,
         )
-
-        config100.resources["time"] = "24:00:00"
-        script.run(
-            config100,
-            modules_to_load=SPECS["modules_to_load"],
-            virtualenv=SPECS["virtualenv"],
-            extra_args=dict(verbose=2),
-            teardown=False,
-        )
-
-        # config1000.resources["time"] = "24:00:00"
-        # script.run(
-        #     config1000,
-        #     modules_to_load=SPECS["modules_to_load"],
-        #     virtualenv=SPECS["virtualenv"],
-        #     extra_args=dict(verbose=2),
-        #     teardown=False,
-        # )
 
 
 if __name__ == "__main__":
