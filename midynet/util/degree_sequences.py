@@ -46,7 +46,7 @@ def poisson_degreeseq(size, avgk):
     x = np.linspace(1./size, 1 - 1./size, size)
     k = poisson.ppf(x, avgk)
     k[k < 1] = 1
-    return k
+    return k.astype("int")
 
 
 def nbinom_degreeseq(size, avgk, heterogeneity):
@@ -56,7 +56,7 @@ def nbinom_degreeseq(size, avgk, heterogeneity):
     x = np.linspace(1./size, 1 - 1./size, size)
     k = nbinom.ppf(x, n, q)
     k[k < 1] = 1
-    return k
+    return k.astype("int")
 
 
 def scalefree_degreeseq(avg, exponent, size, maxiter=1000, kmax=None):
