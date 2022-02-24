@@ -19,10 +19,18 @@ def generate_degseq(xk, pk, size):
     inv_cdf = interp1d(cdf, xk)
     y = np.linspace(cdf.min(), cdf.max(), size + 2)[1:-1]
     degrees = inv_cdf(y).astype("int")
-    if sum(degrees) % 2:
+    if sum(degrees) % 2 != 0:
         idx = np.random.randint(size)
         degrees[idx] += 1
     return degrees
+
+
+def generate_valid_degree_sequence(degrees):
+    size = degrees.shape[0]
+    if sum(degrees) % 2 != 0:
+        idx = np.random.randint(size)
+        degrees[idx] += 1
+    return degrees.astype("int")
 
 
 def logbeta(a, b):
@@ -46,7 +54,7 @@ def poisson_degreeseq(size, avgk):
     x = np.linspace(1./size, 1 - 1./size, size)
     k = poisson.ppf(x, avgk)
     k[k < 1] = 1
-    return k.astype("int")
+    return generate_valid_degree_sequence(k)
 
 
 def nbinom_degreeseq(size, avgk, heterogeneity):
@@ -56,7 +64,7 @@ def nbinom_degreeseq(size, avgk, heterogeneity):
     x = np.linspace(1./size, 1 - 1./size, size)
     k = nbinom.ppf(x, n, q)
     k[k < 1] = 1
-    return k.astype("int")
+    return generate_valid_degree_sequence(k)
 
 
 def scalefree_degreeseq(avg, exponent, size, maxiter=1000, kmax=None):
