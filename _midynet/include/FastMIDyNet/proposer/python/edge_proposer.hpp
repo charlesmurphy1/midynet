@@ -34,16 +34,16 @@ public:
     GraphMove proposeMove() const override { PYBIND11_OVERRIDE(GraphMove, BaseClass, proposeMove, ); }
 };
 
-template<typename BaseClass = HingeFlipProposer>
-class PyHingeFlipProposer: public PyEdgeProposer<BaseClass>{
-public:
-    using PyEdgeProposer<BaseClass>::PyEdgeProposer;
-    /* Pure abstract methods */
-    const double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
-
-    /* Abstract & overloaded methods */
-    ~PyHingeFlipProposer() override = default;
-};
+// template<typename BaseClass = HingeFlipProposer>
+// class PyHingeFlipProposer: public PyEdgeProposer<BaseClass>{
+// public:
+//     using PyEdgeProposer<BaseClass>::PyEdgeProposer;
+//     /* Pure abstract methods */
+//     // const double getVertexWeightRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getVertexWeightRatio, move); }
+//
+//     /* Abstract & overloaded methods */
+//     ~PyHingeFlipProposer() override = default;
+// };
 
 template<typename BaseClass = SingleEdgeProposer>
 class PySingleEdgeProposer: public PyEdgeProposer<BaseClass>{

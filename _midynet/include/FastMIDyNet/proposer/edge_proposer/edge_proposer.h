@@ -28,6 +28,9 @@ public:
     GraphMove proposeMove() const override ;
     virtual GraphMove proposeRawMove() const = 0;
     virtual const double getLogProposalProbRatio(const GraphMove& move) const = 0;
+    const GraphMove getReverseMove(const GraphMove& move) const {
+        return {move.addedEdges, move.removedEdges};
+    }
     virtual void setUp( const RandomGraph& randomGraph ) { clear(); setUpFromGraph(randomGraph.getGraph()); }
     virtual void setUpFromGraph( const MultiGraph& graph ) { m_graphPtr = &graph; }
     virtual void applyGraphMove(const GraphMove& move) {};

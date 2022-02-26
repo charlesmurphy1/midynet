@@ -52,6 +52,13 @@ const double CollectEdgeMultiplicityOnSweep::getMarginalEntropy() {
     return marginalEntropy;
 }
 
+const double CollectEdgeMultiplicityOnSweep::getLogPosteriorEstimate(const MultiGraph& graph) {
+    double logPosterior = 0;
+    for (auto edge : m_observedEdges)
+        logPosterior += log(getEdgeCountProb(edge.first, graph.getEdgeMultiplicityIdx(edge.first)));
+    return logPosterior;
+}
+
 const std::map<BaseGraph::Edge, std::vector<double>> CollectEdgeMultiplicityOnSweep::getEdgeProbs() {
     std::map<BaseGraph::Edge, std::vector<double>> edgeProbs;
 

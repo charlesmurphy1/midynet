@@ -51,7 +51,7 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
             neighborIdx = neighbor.vertexIndex;
             edgeMult = neighbor.label;
-            if (idx < neighborIdx){
+            if (idx > neighborIdx){
                 continue;
             }else if (idx == neighborIdx){
                 logLikelihood -= logDoubleFactorial(2 * edgeMult);

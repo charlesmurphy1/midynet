@@ -36,21 +36,21 @@ TEST_F(TestDoubleEdgeSwapProposer, setup_anyGraph_samplerHasOnlyOrderedEdges) {
                 EXPECT_EQ(swapProposer.getEdgeSampler().getEdgeWeight({vertex, neighbor.vertexIndex}), 0);
 }
 
-TEST_F(TestDoubleEdgeSwapProposer, updateProbabilities_addExistentEdge_edgeWeightIncreased) {
+TEST_F(TestDoubleEdgeSwapProposer, applyGraphMove_addExistentEdge_edgeWeightIncreased) {
     BaseGraph::Edge edge = {0, 2};
     GraphMove move = {{}, {edge}};
     swapProposer.applyGraphMove(move);
     EXPECT_EQ(swapProposer.getEdgeSampler().getEdgeWeight(edge), graph.getEdgeMultiplicityIdx(edge)+1);
 }
 
-TEST_F(TestDoubleEdgeSwapProposer, updateProbabilities_addInexistentMultiEdge_edgeWeightIncreased) {
+TEST_F(TestDoubleEdgeSwapProposer, applyGraphMove_addInexistentMultiEdge_edgeWeightIncreased) {
     BaseGraph::Edge edge = {0, 1};
     GraphMove move = {{}, {edge, edge}};
     swapProposer.applyGraphMove(move);
     EXPECT_EQ(swapProposer.getEdgeSampler().getEdgeWeight(edge), graph.getEdgeMultiplicityIdx(edge)+2);
 }
 
-TEST_F(TestDoubleEdgeSwapProposer, updateProbabilities_addInexistentEdge_edgeWeightIncreased) {
+TEST_F(TestDoubleEdgeSwapProposer, applyGraphMove_addInexistentEdge_edgeWeightIncreased) {
     BaseGraph::Edge edge = {0, 1};
     BaseGraph::Edge reversedEdge = {1, 0};
     GraphMove move = {{}, {edge}};
@@ -59,25 +59,35 @@ TEST_F(TestDoubleEdgeSwapProposer, updateProbabilities_addInexistentEdge_edgeWei
     EXPECT_EQ(swapProposer.getEdgeSampler().getEdgeWeight(reversedEdge), 0);
 }
 
-TEST_F(TestDoubleEdgeSwapProposer, updateProbabilities_removeEdge_edgeWeightDecreased) {
+TEST_F(TestDoubleEdgeSwapProposer, applyGraphMove_removeEdge_edgeWeightDecreased) {
     BaseGraph::Edge edge = {0, 2};
     GraphMove move = {{edge}, {}};
     swapProposer.applyGraphMove(move);
     EXPECT_EQ(swapProposer.getEdgeSampler().getEdgeWeight(edge), graph.getEdgeMultiplicityIdx(edge)-1);
 }
 
-TEST_F(TestDoubleEdgeSwapProposer, updateProbabilities_removeMultiEdge_edgeWeightDecreased) {
+TEST_F(TestDoubleEdgeSwapProposer, applyGraphMove_removeMultiEdge_edgeWeightDecreased) {
     BaseGraph::Edge edge = {0, 2};
     GraphMove move = {{edge, edge}, {}};
     swapProposer.applyGraphMove(move);
     EXPECT_EQ(swapProposer.getEdgeSampler().getEdgeWeight(edge), graph.getEdgeMultiplicityIdx(edge)-2);
 }
 
-TEST_F(TestDoubleEdgeSwapProposer, updateProbabilities_removeAllEdges_edgeRemovedFromSamplableSet) {
+TEST_F(TestDoubleEdgeSwapProposer, applyGraphMove_removeAllEdges_edgeRemovedFromSamplableSet) {
     BaseGraph::Edge edge = {0, 2};
     GraphMove move = {{edge, edge, edge}, {}};
     swapProposer.applyGraphMove(move);
     EXPECT_EQ(swapProposer.getEdgeSampler().getEdgeWeight(edge), 0);
+}
+
+TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forSomeGraphMove_returnCorrectValue) {
+    auto move = swapProposer.proposeMove();
+    auto reversedMove = swapProposer.getReverseMove(move);
+    double weight = swapProposer.getLogProposalWeight(move);
+    swapProposer.applyGraphMove(move);
+    double weightAfterMove = swapProposer.getLogProposalWeight(reversedMove);
+    swapProposer.applyGraphMove(reversedMove);
+    EXPECT_FLOAT_EQ(weightAfterMove - weight, swapProposer.getLogProposalProbRatio(move));
 }
 
 

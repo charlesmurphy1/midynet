@@ -50,6 +50,8 @@ public:
     void collect() override ;
     void clear() override { m_observedEdges.clear(); m_observedEdgesCount.clear(); m_observedEdgesMaxCount.clear();}
     const double getMarginalEntropy() ;
+    const double getLogPosteriorEstimate(const MultiGraph&) ;
+    const double getLogPosteriorEstimate() { return getLogPosteriorEstimate(m_mcmcPtr->getGraph()); }
     size_t getTotalCount() const { return m_totalCount; }
     size_t getEdgeObservationCount(BaseGraph::Edge edge) const { return m_observedEdges[edge]; }
     const double getEdgeCountProb(BaseGraph::Edge edge, size_t count) const ;

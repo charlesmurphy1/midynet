@@ -43,6 +43,8 @@ void initCollectors(py::module& m){
                 return self.getEdgeCountProb(getOrderedPair<BaseGraph::VertexIndex>({u, v}), count);
             }, py::arg("v"), py::arg("u"), py::arg("count"))
         .def("get_edge_probs", &CollectEdgeMultiplicityOnSweep::getEdgeProbs)
+        .def("get_log_posterior_estimate", py::overload_cast<const MultiGraph&>(&CollectEdgeMultiplicityOnSweep::getLogPosteriorEstimate), py::arg("graph"))
+        .def("get_log_posterior_estimate", py::overload_cast<>(&CollectEdgeMultiplicityOnSweep::getLogPosteriorEstimate))
         ;
     py::class_<CollectPartitionOnSweep, SweepCollector>(m, "CollectPartitionOnSweep")
         .def(py::init<>())

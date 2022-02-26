@@ -19,19 +19,19 @@ public:
 
 class TestHingeFlipUniformProposer: public::testing::Test {
     public:
-        EdgeCountDeltaPrior edgeCountPrior = {10};
-        ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
+        EdgeCountDeltaPrior edgeCountPrior = {3};
+        ErdosRenyiFamily randomGraph = ErdosRenyiFamily(3, edgeCountPrior);
         DummyEdgeProposer proposer;
         MultiGraph graph;
-        BaseGraph::Edge existingEdge = {0, 2};
+        // BaseGraph::Edge existingEdge = {0, 2};
         void SetUp() {
             randomGraph.sample();
             graph = randomGraph.getGraph();
 
-            if (graph.getEdgeMultiplicityIdx(existingEdge)==0)
-                graph.addEdgeIdx(existingEdge);
-            else
-                graph.setEdgeMultiplicityIdx(existingEdge, 1);
+            // if (graph.getEdgeMultiplicityIdx(existingEdge)==0)
+            //     graph.addEdgeIdx(existingEdge);
+            // else
+            //     graph.setEdgeMultiplicityIdx(existingEdge, 1);
             randomGraph.setGraph(graph);
             proposer.setUp(randomGraph);
         }
@@ -54,7 +54,7 @@ TEST_F(TestHingeFlipUniformProposer, setup_anyGraph_samplableSetHasOnlyOrderedEd
 }
 
 
-TEST_F(TestHingeFlipUniformProposer, updateProbabilities_addExistentEdge_edgeWeightIncreased) {
+TEST_F(TestHingeFlipUniformProposer, applyGraphMove_addExistentEdge_edgeWeightIncreased) {
     BaseGraph::Edge edge = {0, 2};
     GraphMove move = {{}, {edge}};
     proposer.applyGraphMove(move);
@@ -62,7 +62,7 @@ TEST_F(TestHingeFlipUniformProposer, updateProbabilities_addExistentEdge_edgeWei
 }
 
 
-TEST_F(TestHingeFlipUniformProposer, updateProbabilities_addMultiEdge_edgeWeightIncreased) {
+TEST_F(TestHingeFlipUniformProposer, applyGraphMove_addMultiEdge_edgeWeightIncreased) {
     BaseGraph::Edge edge = {0, 1};
     GraphMove move = {{}, {edge, edge}};
     proposer.applyGraphMove(move);
@@ -70,7 +70,7 @@ TEST_F(TestHingeFlipUniformProposer, updateProbabilities_addMultiEdge_edgeWeight
 }
 
 
-TEST_F(TestHingeFlipUniformProposer, updateProbabilities_addInexistentEdge_edgeWeightIncreased) {
+TEST_F(TestHingeFlipUniformProposer, applyGraphMove_addInexistentEdge_edgeWeightIncreased) {
     BaseGraph::Edge edge = {0, 1};
     BaseGraph::Edge reversedEdge = {1, 0};
     GraphMove move = {{}, {edge}};
@@ -80,7 +80,7 @@ TEST_F(TestHingeFlipUniformProposer, updateProbabilities_addInexistentEdge_edgeW
 }
 
 
-TEST_F(TestHingeFlipUniformProposer, updateProbabilities_removeEdge_edgeWeightDecreased) {
+TEST_F(TestHingeFlipUniformProposer, applyGraphMove_removeEdge_edgeWeightDecreased) {
     auto edge = proposer.getEdgeSampler().sample();
 
     size_t edgeMult = graph.getEdgeMultiplicityIdx(edge);
@@ -88,6 +88,21 @@ TEST_F(TestHingeFlipUniformProposer, updateProbabilities_removeEdge_edgeWeightDe
     proposer.applyGraphMove(move);
     if (edgeMult > 1)
         EXPECT_EQ(proposer.getEdgeSampler().getEdgeWeight(edge), graph.getEdgeMultiplicityIdx(edge)-1);
+}
+
+TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forSomeGraphMove_returnCorrectValue) {
+
+    for (size_t i=0; i<100; ++i){
+        auto move = proposer.proposeMove();
+        auto reversedMove = proposer.getReverseMove(move);
+        double weight = proposer.getLogProposalWeight(move);
+        proposer.applyGraphMove(move);
+        double weightAfterMove = proposer.getLogProposalWeight(reversedMove);
+        proposer.applyGraphMove(reversedMove);
+        EXPECT_FLOAT_EQ(weightAfterMove - weight, proposer.getLogProposalProbRatio(move));
+        proposer.applyGraphMove(move);
+        randomGraph.applyGraphMove(move);
+    }
 }
 
 }

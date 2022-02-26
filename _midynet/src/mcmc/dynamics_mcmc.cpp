@@ -41,6 +41,20 @@ bool DynamicsMCMC::doMetropolisHastingsStep() {
         m_isLastAccepted = false;
 
         double r = m_uniform(rng), p = exp(m_lastLogAcceptance);
+        for(auto e : move.removedEdges){
+            e = getOrderedEdge(e);
+            if (m_removedEdgeCounter.count(e) == 0)
+                m_removedEdgeCounter.insert({e, 0});
+            ++m_removedEdgeCounter[e];
+        }
+
+        for(auto e : move.addedEdges){
+            e = getOrderedEdge(e);
+            if (m_addedEdgeCounter.count(e) == 0)
+                m_addedEdgeCounter.insert({e, 0});
+            ++m_addedEdgeCounter[e];
+        }
+
         if (r < p){
             m_isLastAccepted = true;
             m_dynamics.applyGraphMove(move);

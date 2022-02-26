@@ -83,6 +83,8 @@ void initMCMCBaseClass(py::module& m){
         .def("get_random_graph_mcmc", &DynamicsMCMC::getRandomGraphMCMC )
         .def("get_graph", &DynamicsMCMC::getGraph )
         .def("set_graph", &DynamicsMCMC::setGraph )
+        .def("get_added_edge_counter", &DynamicsMCMC::getAddedEdgeCounter )
+        .def("get_removed_edge_counter", &DynamicsMCMC::getRemovedEdgeCounter )
         ;
 }
 

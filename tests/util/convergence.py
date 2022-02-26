@@ -1,11 +1,12 @@
-import time
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+from scipy.special import loggamma
+
+from netrd.distance import Frobenius
 from _midynet.mcmc import DynamicsMCMC
 from _midynet.mcmc.callbacks import CollectEdgeMultiplicityOnSweep
-from netrd.distance import Frobenius
-
+from _midynet.utility import get_edge_list
 from midynet.config import (
     DynamicsFactory,
     RandomGraphFactory,
@@ -13,21 +14,25 @@ from midynet.config import (
     ExperimentConfig,
     Wrapper,
 )
-from midynet.util import MCMCConvergenceAnalysis
+from midynet.util import MCMCConvergenceAnalysis, enumerate_all_graphs
+from midynet.metrics.util import (
+    get_log_posterior_exact,
+    get_log_posterior_exact_meanfield,
+)
 
 
 @pytest.fixture
 def config():
-    c = ExperimentConfig.default("test", "sis", "nbinom_cm")
-    c.graph.set_value("size", 100)
-    c.graph.edge_count.set_value("state", 250)
+    c = ExperimentConfig.default("test", "ising", "nbinom_cm")
+    c.graph.set_value("size", 3)
+    c.graph.edge_count.set_value("state", 3)
     c.graph.set_value("sample_graph_prior_prob", 0.0)
-    c.graph.set_value("heterogeneity", 0.001)
-    c.dynamics.set_value("num_steps", [100])
-    c.dynamics.set_coupling([0.5, 1, 2])
+    c.graph.set_value("heterogeneity", 0.0)
+    c.dynamics.set_value("num_steps", [10])
+    c.dynamics.set_coupling(0.)
     # c.dynamics.set_value("infection_prob", 0.5)
-    c.dynamics.set_value("recovery_prob", 0.5)
-    c.insert("num_sweeps", 1000)
+    # c.dynamics.set_value("recovery_prob", 0.5)
+    c.insert("num_sweeps", 10000)
     c.insert("numsteps_between_samples", 5)
     return c
 
@@ -40,9 +45,7 @@ def mcmc_analysis(c, callbacks=None):
     mcmc = DynamicsMCMC(
         d, g_mcmc.get_wrap(), 1, 1, c.graph.sample_graph_prior_prob
     )
-    x = d.sample()
-    print(x)
-    # d.sample_graph()
+    d.sample()
     mcmc.set_up()
     measure = Frobenius().dist
     return Wrapper(
@@ -55,26 +58,13 @@ def mcmc_analysis(c, callbacks=None):
     )
 
 
-# def test_generic(config):
-#
-#     t = time.time()
-#     distance = None
-#     for c in config.sequence():
-#         conv = mcmc_analysis(c)
-#         collected = conv.collect(
-#             burn=500,
-#             num_sweeps=c.num_sweeps,
-#             numsteps_between_samples=c.numsteps_between_samples,
-#         )
-#         x = np.arange(c.num_sweeps) * c.numsteps_between_samples
-#         coupling = c.dynamics.coupling
-#         plt.plot(x, collected, label=rf"$\alpha = {coupling}$")
-#         distance = conv.get_other("distance") if distance is None else distance
-#     print(f"Computation time: {time.time() - t}")
-#     plt.xlabel("Number of MH steps")
-#     plt.ylabel(f"{distance.__class__.__name__} distance")
-#     plt.legend()
-#     plt.show()
+def logfac(n):
+    return loggamma(n + 1)
+
+
+def logdfac(n):
+    k = n // 2
+    return logfac(k) + np.log(2) * k
 
 
 def test_meanfield(config):
@@ -82,15 +72,45 @@ def test_meanfield(config):
         callback = CollectEdgeMultiplicityOnSweep()
         conv = mcmc_analysis(c, [callback])
         entropy = []
-        conv.burn(1000)
+        og_graph = conv.mcmc.get_graph()
+        hgx = -get_log_posterior_exact(conv.mcmc, None)
+        hxg = -conv.mcmc.get_log_likelihood()
+        hg = -conv.mcmc.get_log_prior()
+        hx = hg + hxg - hgx
+        hgx_mf = -get_log_posterior_exact_meanfield(conv.mcmc, None)
+        # conv.burn(5000)
+        print(conv.mcmc.get_random_graph_mcmc().get_edge_proposer())
+        s, f = 0, 0
+        print("Setting up")
+        conv.mcmc.set_graph(og_graph)
         for n in range(c.num_sweeps):
-            s, f = conv.burn(500)
-            if (n % 10) == 0:
-                print(n, s, f)
-            entropy.append(callback.get_marginal_entropy())
+            _s, _f = conv.burn(25)
+            s += _s
+            f += _f
 
+            # entropy.append(callback.get_marginal_entropy())
+            entropy.append(-callback.get_log_posterior_estimate(og_graph))
+            # if (n % 10) == 0:
+            #     print(n, s, f, entropy[-1] / -conv.mcmc.get_log_prior())
+        # print(conv.mcmc.get_random_graph_mcmc().get_edge_proposer().get_edge_proposal_counts())
+        # print(conv.mcmc.get_random_graph_mcmc().get_edge_proposer().get_vertex_proposal_counts())
+        print(conv.mcmc.get_added_edge_counter())
+        print(conv.mcmc.get_removed_edge_counter())
+        for e, w in callback.get_edge_probs().items():
+            print("MCMC", e, w)
         plt.loglog(entropy, label=rf"$C = {c.dynamics.get_coupling()}$")
-        plt.axhline(-conv.mcmc.get_log_prior(), color="grey", linestyle="--")
+        plt.axhline(hg, color="grey", linestyle="--")
+
+        plt.axhline(hgx, color="grey", linestyle="-.")
+        plt.axhline(hgx_mf, color="grey", linestyle="dotted")
+        print("Graph", og_graph)
+        print("MCMC hgx", entropy[-1])
+        print("hg", hg)
+        print("hgx", hgx)
+        print("hgx_mf", hgx_mf)
+        print("hxg", hxg)
+        print("hx", hx)
+
     plt.legend()
     plt.show()
 

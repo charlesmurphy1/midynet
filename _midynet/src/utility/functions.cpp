@@ -83,9 +83,18 @@ std::list<BaseGraph::Edge> getEdgeList(const MultiGraph& graph){
     std::list<BaseGraph::Edge> edgeList;
     for (auto vertex : graph)
         for (auto neighbor : graph.getNeighboursOfIdx(vertex))
-            if (vertex < neighbor.vertexIndex)
+            if (vertex <= neighbor.vertexIndex)
                 for (size_t l=0; l < neighbor.label; ++l)
                     edgeList.push_back({vertex, neighbor.vertexIndex});
+    return edgeList;
+}
+
+std::map<BaseGraph::Edge, size_t> getWeightedEdgeList(const MultiGraph& graph){
+    std::map<BaseGraph::Edge, size_t> edgeList;
+    for (auto vertex : graph)
+        for (auto neighbor : graph.getNeighboursOfIdx(vertex))
+            if (vertex <= neighbor.vertexIndex)
+                edgeList.insert({{vertex, neighbor.vertexIndex}, neighbor.label});
     return edgeList;
 }
 

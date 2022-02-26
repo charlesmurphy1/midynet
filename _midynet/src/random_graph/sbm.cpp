@@ -32,7 +32,7 @@ void StochasticBlockModelFamily::samplePriors(){
 }
 
 const double StochasticBlockModelFamily::getLogLikelihood() const{
-    double logLikelihood = 0;
+    double edgePart = 0;
 
     const EdgeMatrix& edgeMat = getEdgeMatrix() ;
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
@@ -40,30 +40,31 @@ const double StochasticBlockModelFamily::getLogLikelihood() const{
 
     const size_t& numBlocks = edgeMat.size();
     for (size_t r = 0; r < numBlocks; r++) {
-        logLikelihood += logDoubleFactorial(edgeMat[r][r]);
-        logLikelihood -= edgeCountsInBlocks[r] * log(vertexCountsInBlocks[r]);
+        edgePart += logDoubleFactorial(edgeMat[r][r]);
+        edgePart -= edgeCountsInBlocks[r] * log(vertexCountsInBlocks[r]);
         for (size_t s = r + 1; s < numBlocks; s++) {
-            logLikelihood += logFactorial(edgeMat[r][s]);
+            edgePart += logFactorial(edgeMat[r][s]);
         }
     }
-
     const MultiGraph& graph = getGraph();
     size_t neighborIdx, edgeMult;
+    double adjPart = 0;
     for (auto idx : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(idx)){
             neighborIdx = neighbor.vertexIndex;
             edgeMult = neighbor.label;
-            if (idx < neighborIdx){
+            if (idx > neighborIdx){
                 continue;
-            }else if (idx == neighborIdx){
-                logLikelihood -= logDoubleFactorial(2 * edgeMult);
+            }
+            if (idx == neighborIdx){
+                adjPart -= logDoubleFactorial(2 * edgeMult);
             }else{
-                logLikelihood -= logFactorial(edgeMult);
+                adjPart -= logFactorial(edgeMult);
             }
         }
     }
 
-    return logLikelihood;
+    return edgePart + adjPart;
 };
 
 const double StochasticBlockModelFamily::getLogPrior() const {

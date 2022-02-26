@@ -17,6 +17,8 @@ private:
 protected:
     EdgeSampler m_edgeSampler;
     VertexSampler* m_vertexSamplerPtr = nullptr;
+    mutable std::map<BaseGraph::Edge, size_t> m_edgeProposalCounter;
+    mutable std::map<BaseGraph::VertexIndex, size_t> m_vertexProposalCounter;
 public:
     using EdgeProposer::EdgeProposer;
     GraphMove proposeRawMove() const override;
@@ -24,6 +26,33 @@ public:
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     void applyGraphMove(const GraphMove& move) override;
     void applyBlockMove(const BlockMove& move) override { };
+    const double getLogProposalProbRatio(const GraphMove& move) const override {
+        if (getOrderedEdge(move.addedEdges[0]) == getOrderedEdge(move.removedEdges[0]))
+            return 0.;
+        double weight = getLogProposalWeight(move);
+        GraphMove reversedMove = getReverseMove(move);
+        double reversedWeight = getLogReverseProposalWeight(move);
+        return reversedWeight - weight;
+    }
+    const double getLogProposalWeight(const GraphMove& move) const {
+        auto gainingVertex = move.addedEdges[0].second;
+        double edgeWeight = m_edgeSampler.getEdgeWeight(getOrderedEdge(move.removedEdges[0]));
+        double vertexWeight = m_vertexSamplerPtr->getVertexWeight(gainingVertex);
+        return log(edgeWeight) + log(vertexWeight);
+    }
+    const double getLogReverseProposalWeight(const GraphMove& move) const {
+        auto losingVertex = move.removedEdges[0].second;
+        double edgeWeight = m_edgeSampler.getEdgeWeight(getOrderedEdge(move.addedEdges[0])) + 1;
+        double vertexWeight = m_vertexSamplerPtr->getVertexWeight(losingVertex);
+        return log(edgeWeight) + log(vertexWeight);
+    }
+
+    const std::map<BaseGraph::Edge, size_t>& getEdgeProposalCounts() const {
+        return m_edgeProposalCounter;
+    }
+    const std::map<BaseGraph::VertexIndex, size_t>& getVertexProposalCounts() const {
+        return m_vertexProposalCounter;
+    }
     void checkSafety() const override {
         if (m_vertexSamplerPtr == nullptr)
             throw SafetyError("HingeFlipProposer: unsafe proposer since `m_vertexSamplerPtr` is NULL.");
@@ -44,7 +73,6 @@ public:
     HingeFlipUniformProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
         HingeFlipProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
     virtual ~HingeFlipUniformProposer(){}
-    const double getLogProposalProbRatio(const GraphMove&) const override{ return 0.; }
     void checkConsistency() const override {
         for (auto vertex : *m_graphPtr)
             if (not m_vertexUniformSampler.contains(vertex))
@@ -65,14 +93,6 @@ public:
         HingeFlipProposer(allowSelfLoops, allowMultiEdges),
         m_vertexDegreeSampler(shift){ m_vertexSamplerPtr = &m_vertexDegreeSampler; }
     virtual ~HingeFlipDegreeProposer(){}
-
-    const double getLogProposalProbRatio(const GraphMove& move) const override{
-        auto commonVertex = move.addedEdges[0].first;
-        auto gainingVertex = move.addedEdges[0].second;
-        auto losingVertex = move.removedEdges[0].second;
-        return log(m_vertexDegreeSampler.getVertexWeight(losingVertex) - 1)
-             - log(m_vertexDegreeSampler.getVertexWeight(gainingVertex));
-    }
 
     void checkConsistency() const override { }
 };

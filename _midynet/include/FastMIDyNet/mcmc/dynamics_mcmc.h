@@ -6,8 +6,10 @@
 #include "FastMIDyNet/mcmc/graph_mcmc.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.h"
 #include "FastMIDyNet/proposer/edge_proposer/edge_proposer.h"
+#include "FastMIDyNet/utility/maps.hpp"
 
 namespace FastMIDyNet{
+
 
 class DynamicsMCMC: public MCMC{
 private:
@@ -16,6 +18,8 @@ private:
     double m_betaLikelihood, m_betaPrior, m_sampleGraphPriorProb;
     std::uniform_real_distribution<double> m_uniform;
     bool m_lastMoveWasGraphMove;
+    std::map<BaseGraph::Edge, size_t> m_addedEdgeCounter;
+    std::map<BaseGraph::Edge, size_t> m_removedEdgeCounter;
 public:
     DynamicsMCMC(
         Dynamics& dynamics,
@@ -58,6 +62,8 @@ public:
     const double getLogLikelihood() const override { return m_dynamics.getLogLikelihood(); }
     const double getLogPrior() const override { return m_dynamics.getLogPrior(); }
     const double getLogJoint() const override { return m_dynamics.getLogJoint(); }
+    const std::map<BaseGraph::Edge, size_t>& getAddedEdgeCounter() const { return m_addedEdgeCounter; }
+    const std::map<BaseGraph::Edge, size_t>& getRemovedEdgeCounter() const { return m_removedEdgeCounter; }
     bool doMetropolisHastingsStep() override ;
 
     void checkSafety() const override {

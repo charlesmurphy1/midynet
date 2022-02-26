@@ -52,6 +52,7 @@ inline size_t choose2(size_t n) { return n*(n-1)/2; }
 std::pair<size_t, size_t> getUndirectedPairFromIndex(size_t index, size_t n);
 
 std::list<BaseGraph::Edge> getEdgeList(const MultiGraph& graph);
+std::map<BaseGraph::Edge, size_t> getWeightedEdgeList(const MultiGraph& graph);
 
 template<typename T>
 T sumElementsOfMatrix(Matrix<T> mat, T init){

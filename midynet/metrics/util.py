@@ -1,9 +1,11 @@
 import numpy as np
+from collections import defaultdict
 from _midynet.mcmc import DynamicsMCMC
 from _midynet.mcmc.callbacks import (
     CollectEdgeMultiplicityOnSweep,
     CollectLikelihoodOnSweep,
 )
+from _midynet.utility import get_weighted_edge_list
 from midynet.config import Config, MCMCVerboseFactory
 from midynet.util import enumerate_all_graphs, log_mean_exp, log_sum_exp
 
@@ -177,6 +179,7 @@ def get_log_posterior_meanfield(
     if verbose:
         dynamicsMCMC.add_callback(verboseCallback.get_wrap())
     dynamicsMCMC.set_up()
+    original_graph = dynamicsMCMC.get_graph()
     burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
     s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
 
@@ -184,13 +187,14 @@ def get_log_posterior_meanfield(
         _s, _f = dynamicsMCMC.do_MH_sweep(burn=burn)
         s += _s
         f += _f
-    logp = -graph_callback.get_marginal_entropy()  # -H(G|X)
 
     dynamicsMCMC.tear_down()
     dynamicsMCMC.pop_callback()
     if verbose:
         dynamicsMCMC.pop_callback()
-
+    dynamicsMCMC.set_graph(original_graph)
+    # logp = graph_callback.get_log_posterior_estimate()  # -H(G|X)
+    logp = -graph_callback.get_marginal_entropy()  # -H(G|X)
     return logp
 
 
@@ -221,22 +225,35 @@ def get_log_posterior_exact_meanfield(
     allow_self_loops = edge_proposer.allow_self_loops()
     allow_multiedges = edge_proposer.allow_multiedges()
 
-    graph_callback = CollectEdgeMultiplicityOnSweep()
-    dynamicsMCMC.add_callback(graph_callback)
     dynamicsMCMC.set_up()
+    i = 0
+    edge_weights = defaultdict(lambda: defaultdict(list))
+    edge_total = defaultdict(list)
+    evidence = get_log_evidence_exact(dynamicsMCMC, config)
     for g in enumerate_all_graphs(
         size, edge_count, allow_self_loops, allow_multiedges
     ):
         if graph.is_compatible(g):
-            dynamicsMCMC.set_graph(g)
-            graph_callback.collect()
-    logp = -graph_callback.get_marginal_entropy()  # -H(G|X)
-
+            i += 1
+            dynamicsMCMC.get_dynamics().set_graph(g)
+            weight = dynamicsMCMC.get_log_joint() - evidence
+            for e, w in get_weighted_edge_list(g).items():
+                edge_weights[e][w].append(weight)
+                edge_total[e].append(weight)
     dynamicsMCMC.tear_down()
-    dynamicsMCMC.pop_callback()
     dynamicsMCMC.set_graph(original_graph)
+    log_posterior = 0
+    for e, weights in edge_weights.items():
+        probs = np.zeros(len(weights) + 1)
+        probs[0] = 1 - np.exp(log_sum_exp(edge_total[e]))
+        for w, ww in weights.items():
+            probs[w] = np.exp(log_sum_exp(ww))
+        probs = np.array(probs)
+        print("exact", e, probs)
+        w = original_graph.get_edge_multiplicity_idx(*e)
+        log_posterior += np.log(probs[w])
 
-    return logp
+    return log_posterior
 
 
 def get_log_posterior(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):

@@ -58,6 +58,8 @@ def poisson_degreeseq(size, avgk):
 
 
 def nbinom_degreeseq(size, avgk, heterogeneity):
+    if heterogeneity == 0:
+        return poisson_degreeseq(size, avgk)
     var = avgk + heterogeneity * avgk ** 2
     q = avgk / var
     n = avgk ** 2 / (var - avgk)
