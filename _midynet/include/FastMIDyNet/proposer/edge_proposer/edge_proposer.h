@@ -18,6 +18,7 @@ protected:
     const bool m_allowMultiEdges;
     const size_t m_maxIteration = 100;
     const MultiGraph* m_graphPtr = nullptr;
+    mutable std::uniform_real_distribution<double> m_uniform01;
     bool isSelfLoop(BaseGraph::Edge edge) const { return edge.first == edge.second; }
     bool isExistingEdge(BaseGraph::Edge edge) const { return m_graphPtr->getEdgeMultiplicityIdx(edge) >= 1;}
 public:
@@ -37,6 +38,7 @@ public:
     virtual void applyBlockMove(const BlockMove& move) {};
     const bool& allowSelfLoops() const { return m_allowSelfLoops; }
     const bool& allowMultiEdges() const { return m_allowMultiEdges; }
+
     virtual void clear() override { m_graphPtr = nullptr; }
 
 };

@@ -14,6 +14,11 @@ namespace FastMIDyNet {
 class HingeFlipProposer: public EdgeProposer {
 private:
     mutable std::bernoulli_distribution m_flipOrientationDistribution = std::bernoulli_distribution(.5);
+    bool isTrivialMove(const GraphMove&) const;
+    const double getLogPropRatioForNormalMove(const GraphMove&) const;
+    const double getLogPropRatioForLoopyMove(const GraphMove&) const;
+    const double getLogPropRatioForSelfieMove(const GraphMove&) const;
+    const double getLogPropRatioForSelfieLoopy(const GraphMove&) const;
 protected:
     EdgeSampler m_edgeSampler;
     VertexSampler* m_vertexSamplerPtr = nullptr;
@@ -26,26 +31,8 @@ public:
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     void applyGraphMove(const GraphMove& move) override;
     void applyBlockMove(const BlockMove& move) override { };
-    const double getLogProposalProbRatio(const GraphMove& move) const override {
-        if (getOrderedEdge(move.addedEdges[0]) == getOrderedEdge(move.removedEdges[0]))
-            return 0.;
-        double weight = getLogProposalWeight(move);
-        GraphMove reversedMove = getReverseMove(move);
-        double reversedWeight = getLogReverseProposalWeight(move);
-        return reversedWeight - weight;
-    }
-    const double getLogProposalWeight(const GraphMove& move) const {
-        auto gainingVertex = move.addedEdges[0].second;
-        double edgeWeight = m_edgeSampler.getEdgeWeight(getOrderedEdge(move.removedEdges[0]));
-        double vertexWeight = m_vertexSamplerPtr->getVertexWeight(gainingVertex);
-        return log(edgeWeight) + log(vertexWeight);
-    }
-    const double getLogReverseProposalWeight(const GraphMove& move) const {
-        auto losingVertex = move.removedEdges[0].second;
-        double edgeWeight = m_edgeSampler.getEdgeWeight(getOrderedEdge(move.addedEdges[0])) + 1;
-        double vertexWeight = m_vertexSamplerPtr->getVertexWeight(losingVertex);
-        return log(edgeWeight) + log(vertexWeight);
-    }
+    const double getLogProposalProbRatio(const GraphMove& move) const override ;
+    virtual const double getLogVertexWeightRatio(const GraphMove& move) const = 0;
 
     const std::map<BaseGraph::Edge, size_t>& getEdgeProposalCounts() const {
         return m_edgeProposalCounter;
@@ -73,6 +60,8 @@ public:
     HingeFlipUniformProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
         HingeFlipProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
     virtual ~HingeFlipUniformProposer(){}
+    const double getLogVertexWeightRatio(const GraphMove& move) const override { return 0; }
+
     void checkConsistency() const override {
         for (auto vertex : *m_graphPtr)
             if (not m_vertexUniformSampler.contains(vertex))
@@ -81,6 +70,7 @@ public:
                     + std::to_string(vertex) + " is not in sampler."
                 );
     }
+
 };
 
 
@@ -93,6 +83,14 @@ public:
         HingeFlipProposer(allowSelfLoops, allowMultiEdges),
         m_vertexDegreeSampler(shift){ m_vertexSamplerPtr = &m_vertexDegreeSampler; }
     virtual ~HingeFlipDegreeProposer(){}
+    const double getLogVertexWeightRatio(const GraphMove& move) const override {
+        BaseGraph::VertexIndex gainingVertex = move.addedEdges[0].second;
+        double wk = m_vertexDegreeSampler.getVertexWeight(gainingVertex);
+        if (move.addedEdges[0].first == move.addedEdges[0].second)
+            return log(wk + 2) - log(wk);
+        else
+            return log(wk + 1) - log(wk);
+    }
 
     void checkConsistency() const override { }
 };

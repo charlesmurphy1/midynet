@@ -35,6 +35,23 @@ class TestHingeFlipUniformProposer: public::testing::Test {
             randomGraph.setGraph(graph);
             proposer.setUp(randomGraph);
         }
+
+        const MultiGraph getToyMultiGraph() {
+            /*
+            0 --- 1<>
+            ||
+            ||
+            ||
+            2     3
+            */
+            MultiGraph graph(4);
+
+            graph.addEdgeIdx(0, 1);
+            graph.addEdgeIdx(1, 1);
+            graph.addEdgeIdx(0, 2);
+            graph.addEdgeIdx(0, 2);
+            return graph;
+        }
 };
 
 
@@ -50,6 +67,7 @@ TEST_F(TestHingeFlipUniformProposer, setup_anyGraph_samplableSetHasOnlyOrderedEd
             if (vertex <= neighbor.vertexIndex)
                 EXPECT_EQ(round(proposer.getEdgeSampler().getEdgeWeight({vertex, neighbor.vertexIndex})), neighbor.label);
             else
+
                 EXPECT_EQ(proposer.getEdgeSampler().getEdgeWeight({vertex, neighbor.vertexIndex}), 0);
 }
 
@@ -90,19 +108,54 @@ TEST_F(TestHingeFlipUniformProposer, applyGraphMove_removeEdge_edgeWeightDecreas
         EXPECT_EQ(proposer.getEdgeSampler().getEdgeWeight(edge), graph.getEdgeMultiplicityIdx(edge)-1);
 }
 
-TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forSomeGraphMove_returnCorrectValue) {
+TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forNormalMove_returnCorrectValue) {
+    auto toyGraph = getToyMultiGraph();
+    proposer.setUpFromGraph(toyGraph);
 
-    for (size_t i=0; i<100; ++i){
-        auto move = proposer.proposeMove();
-        auto reversedMove = proposer.getReverseMove(move);
-        double weight = proposer.getLogProposalWeight(move);
-        proposer.applyGraphMove(move);
-        double weightAfterMove = proposer.getLogProposalWeight(reversedMove);
-        proposer.applyGraphMove(reversedMove);
-        EXPECT_FLOAT_EQ(weightAfterMove - weight, proposer.getLogProposalProbRatio(move));
-        proposer.applyGraphMove(move);
-        randomGraph.applyGraphMove(move);
-    }
+    GraphMove normalMove1 = {{{0, 1}}, {{0, 3}}};
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(normalMove1), 0);
+
+    GraphMove normalMove2 = {{{0, 2}}, {{0, 1}}};
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(normalMove2), 0);
+
+    GraphMove normalMove3 = {{{0, 2}}, {{0, 3}}};
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(normalMove3), -log(2));
+}
+
+TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopyMove_returnCorrectValue) {
+    auto toyGraph = getToyMultiGraph();
+    proposer.setUpFromGraph(toyGraph);
+
+    GraphMove loopyMove1 = {{{1, 1}}, {{1, 3}}};
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(loopyMove1), -log(2));
+
+    GraphMove loopyMove2 = {{{1, 1}}, {{1, 0}}};
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(loopyMove2), 0);
+}
+
+TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forSelfieMove_returnCorrectValue) {
+    auto toyGraph = getToyMultiGraph();
+    proposer.setUpFromGraph(toyGraph);
+
+    GraphMove selfieMove1 = {{{0, 1}}, {{0, 0}}};
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(selfieMove1), log(2));
+
+    GraphMove selfieMove2 = {{{1, 0}}, {{1, 0}}};
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(selfieMove2), 0);
+
+    GraphMove selfieMove3 = {{{1, 0}}, {{1, 1}}};
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(selfieMove3), 2 * log(2));
+
+    GraphMove selfieMove4 = {{{0, 1}}, {{0, 1}}};
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(selfieMove4), 0);
+}
+
+TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopySelfieMove_returnCorrectValue) {
+    auto toyGraph = getToyMultiGraph();
+    proposer.setUpFromGraph(toyGraph);
+
+    GraphMove selfieMove1 = {{{1, 1}}, {{1, 1}}};
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(selfieMove1), 0);
 }
 
 }

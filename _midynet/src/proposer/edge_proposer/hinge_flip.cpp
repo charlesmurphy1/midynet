@@ -17,11 +17,6 @@ GraphMove HingeFlipProposer::proposeRawMove() const {
         m_vertexProposalCounter.insert({vertex, 0});
     ++m_vertexProposalCounter[vertex];
 
-    if (vertex == edge.first)
-        return {{{edge.first, edge.second}}, {{vertex, vertex}}};
-    if (vertex == edge.second)
-        return {{{edge.second, edge.first}}, {{vertex, vertex}}};
-
     BaseGraph::Edge newEdge;
     if (m_flipOrientationDistribution(rng)) {
         newEdge = {edge.first, vertex};
@@ -37,12 +32,13 @@ GraphMove HingeFlipProposer::proposeRawMove() const {
                                 + std::to_string(edge.first) + ", "
                                 + std::to_string(edge.second)
                                 + ") exists in sampler with multiplicity 0 in graph.");
-    // if (edge == newEdge)
-    //     return {{}, {}};
     return {{edge}, {newEdge}};
 };
 
 void HingeFlipProposer::setUpFromGraph(const MultiGraph& graph){
+    m_edgeSampler.clear();
+    m_vertexSamplerPtr->clear();
+
     m_graphPtr = &graph;
     for (auto vertex : graph)
         m_vertexSamplerPtr->onVertexInsertion(vertex);
@@ -58,14 +54,6 @@ void HingeFlipProposer::setUpFromGraph(const MultiGraph& graph){
 
 void HingeFlipProposer::applyGraphMove(const GraphMove& move) {
 
-    // move.display();
-    // for (auto vertex : (*m_graphPtr))
-    //     for (auto neighbor : m_graphPtr->getNeighboursOfIdx(vertex))
-    //         if (vertex <= neighbor.vertexIndex)
-    //             std::cout << vertex << ", " << neighbor.vertexIndex << ": " << m_edgeSampler.getEdgeWeight({vertex, neighbor.vertexIndex}) << std::endl;
-    //
-    // std::cout << std::endl;
-
     for (auto edge : move.removedEdges){
         edge = getOrderedEdge(edge);
         m_vertexSamplerPtr->onEdgeRemoval(edge);
@@ -76,6 +64,54 @@ void HingeFlipProposer::applyGraphMove(const GraphMove& move) {
         m_vertexSamplerPtr->onEdgeAddition(edge);
         m_edgeSampler.onEdgeAddition(edge);
     }
+}
+
+const double HingeFlipProposer::getLogProposalProbRatio(const GraphMove& move) const{
+    BaseGraph::VertexIndex i = move.addedEdges[0].first;
+    BaseGraph::VertexIndex j = move.removedEdges[0].second;
+    BaseGraph::VertexIndex k = move.addedEdges[0].second;
+
+    if ( isTrivialMove(move) ){
+        // printf("Trivial move\n");
+        return 0;
+    }
+    if (i == j and i != k){
+        // printf("Loopy move\n");
+        return getLogPropRatioForLoopyMove(move);
+    }
+    if ((i == k or j == k) and i != j){
+        // printf("Selfie move\n");
+        return getLogPropRatioForSelfieMove(move);
+    }
+    // printf("Normal move\n");
+    return getLogPropRatioForNormalMove(move);
+
+}
+
+bool HingeFlipProposer::isTrivialMove(const GraphMove& move) const {
+    const auto& addedEdge = getOrderedEdge(move.addedEdges[0]);
+    const auto& removedEdge = getOrderedEdge(move.removedEdges[0]);
+
+    if (addedEdge == removedEdge)
+        return true;
+    return false;
+}
+
+const double HingeFlipProposer::getLogPropRatioForNormalMove(const GraphMove& move) const {
+    auto addedEdge = getOrderedEdge(move.addedEdges[0]);
+    auto removedEdge = getOrderedEdge(move.removedEdges[0]);
+    double addedEdgeWeight = m_edgeSampler.getEdgeWeight(addedEdge);
+    double removedEdgeWeight = m_edgeSampler.getEdgeWeight(removedEdge);
+    return log(addedEdgeWeight + 1) - log(removedEdgeWeight) + getLogVertexWeightRatio(move);
+}
+
+const double HingeFlipProposer::getLogPropRatioForLoopyMove(const GraphMove& move) const {
+    return getLogPropRatioForNormalMove(move) - log(2);
+}
+
+const double HingeFlipProposer::getLogPropRatioForSelfieMove(const GraphMove& move) const {
+    return getLogPropRatioForNormalMove(move) + log(2);
+
 }
 
 

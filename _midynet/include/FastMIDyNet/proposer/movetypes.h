@@ -18,14 +18,12 @@ struct GraphMove{
     std::vector<BaseGraph::Edge> addedEdges;
 
     void display() const{
-
-        std::cout << "edges added : { ";
-        for (auto e : addedEdges){
+        std::cout << "edges removed : { ";
+        for (auto e : removedEdges){
             std::cout << "{ " << e.first << ", " << e.second << "}, ";
         }
-        std::cout << "}\t edges removed : { ";
-
-        for (auto e : removedEdges){
+        std::cout << "}\t edges added : { ";
+        for (auto e : addedEdges){
             std::cout << "{ " << e.first << ", " << e.second << "}, ";
         }
         std::cout << "}" << std::endl;
