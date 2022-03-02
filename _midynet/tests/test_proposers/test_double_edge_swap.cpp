@@ -144,7 +144,7 @@ TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forDoubleEdgeGraphMov
 
     move = {{{0, 1}, {0, 1}}, {{0, 1}, {0, 1}}};
     double w01 = toyGraph.getEdgeMultiplicityIdx(0, 1);
-    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(move), -INFINITY);
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(move), 0);
 
     move = {{{0, 1}, {0, 1}}, {{0, 0}, {1, 1}}};
     double w00 = toyGraph.getEdgeMultiplicityIdx(0, 0), w11 = toyGraph.getEdgeMultiplicityIdx(1, 1);
@@ -158,7 +158,7 @@ TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forHingeGraphMove_ret
 
     move = {{{1, 3}, {2, 3}}, {{1, 3}, {2, 3}}};
     double w13 = toyGraph.getEdgeMultiplicityIdx(1, 3), w23 = toyGraph.getEdgeMultiplicityIdx(2, 3);
-    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(move), -INFINITY);
+    EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(move), 0);
 
     move = {{{1, 3}, {2, 3}}, {{1, 2}, {3, 3}}};
     double w12 = toyGraph.getEdgeMultiplicityIdx(1, 2), w33 = toyGraph.getEdgeMultiplicityIdx(3, 3);
