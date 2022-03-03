@@ -20,12 +20,12 @@ from midynet.metrics.util import (
 
 
 def makeConfig():
-    c = ExperimentConfig.default("test", "sis", "nbinom_cm")
-    c.graph.set_value("size", 100)
-    c.graph.edge_count.set_value("state", 250)
+    c = ExperimentConfig.default("test", "sis", "er")
+    c.graph.set_value("size", 4)
+    c.graph.edge_count.set_value("state", 4)
     c.graph.set_value("sample_graph_prior_prob", 0.0)
     c.graph.set_value("heterogeneity", 0.0)
-    c.dynamics.set_value("num_steps", 1000)
+    c.dynamics.set_value("num_steps", 10)
     c.dynamics.set_coupling(0.3)
     c.dynamics.set_value("recovery_prob", 0.5)
     return c
@@ -54,7 +54,7 @@ def main():
     dynamics.sample()
     original_graph = dynamics.get_graph()
     hg = dynamics.get_log_prior()
-    if (cfg.graph.size < 6):
+    if cfg.graph.size < 6:
         mf = get_log_posterior_exact_meanfield(mcmc, cfg)
         exact = get_log_posterior_exact(mcmc, cfg)
         print(mf, exact, hg)

@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pytest
 from scipy.special import loggamma
 
 from netrd.distance import Frobenius
@@ -21,7 +20,6 @@ from midynet.metrics.util import (
 )
 
 
-@pytest.fixture
 def config():
     c = ExperimentConfig.default("test", "ising", "nbinom_cm")
     c.graph.set_value("size", 4)
@@ -42,9 +40,7 @@ def mcmc_analysis(c, callbacks=None):
     d = DynamicsFactory.build(c.dynamics)
     d.set_random_graph(g.get_wrap())
     g_mcmc = RandomGraphMCMCFactory.build(c.graph)
-    mcmc = DynamicsMCMC(
-        d, g_mcmc.get_wrap(), 1, 1, c.graph.sample_graph_prior_prob
-    )
+    mcmc = DynamicsMCMC(d, g_mcmc.get_wrap(), 1, 1, c.graph.sample_graph_prior_prob)
     d.sample()
     mcmc.set_up()
     measure = Frobenius().dist

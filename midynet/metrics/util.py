@@ -12,9 +12,7 @@ from midynet.util import enumerate_all_graphs, log_mean_exp, log_sum_exp
 __all__ = ("get_log_evidence", "get_log_posterior")
 
 
-def get_log_evidence_arithmetic(
-    dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs
-):
+def get_log_evidence_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
     logp = []
     g = dynamicsMCMC.get_graph()
     for k in range(config.K):
@@ -72,7 +70,7 @@ def get_log_evidence_annealed(
     if verbose:
         dynamicsMCMC.add_callback(verboseCallback.get_wrap())
 
-    g = dynamicsMCMC.get_graph()
+    original_graph = dynamicsMCMC.get_graph()
     dynamicsMCMC.set_up()
     burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
     logp = []
@@ -82,8 +80,11 @@ def get_log_evidence_annealed(
         if verbose:
             print(f"beta: {lb}")
         dynamicsMCMC.set_beta_likelihood(lb)
-        if config.reset_to_original:
-            dynamicsMCMC.set_graph(g)
+        if config.start_from_original:
+            dynamicsMCMC.set_graph(original_graph)
+        else:
+            dynamicsMCMC.get_dynamics().sample_graph()
+            dynamicsMCMC.set_graph(dynamicsMCMC.get_graph())
         s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
         for i in range(config.num_sweeps):
             dynamicsMCMC.do_MH_sweep(burn=burn)
@@ -94,14 +95,12 @@ def get_log_evidence_annealed(
     dynamicsMCMC.pop_callback()
     if verbose:
         dynamicsMCMC.pop_callback()
-    dynamicsMCMC.set_graph(g)
+    dynamicsMCMC.set_graph(original_graph)
 
     return sum(logp)
 
 
-def get_log_evidence_exact(
-    dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs
-):
+def get_log_evidence_exact(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
     logevidence = []
     original_graph = dynamicsMCMC.get_graph()
     size = dynamicsMCMC.get_dynamics().get_size()
@@ -113,9 +112,7 @@ def get_log_evidence_exact(
 
     dynamicsMCMC.set_up()
     counter = 0
-    for g in enumerate_all_graphs(
-        size, edge_count, allow_self_loops, allow_multiedges
-    ):
+    for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
         counter += 1
         if graph.is_compatible(g):
             dynamicsMCMC.set_graph(g)
@@ -148,23 +145,18 @@ def get_log_evidence(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
         return functions[method](dynamicsMCMC, config, **kwargs)
     else:
         message = (
-            f"Invalid method {method}, valid methods"
-            + f"are {list(functions.keys())}."
+            f"Invalid method {method}, valid methods" + f"are {list(functions.keys())}."
         )
         raise ValueError(message)
 
 
-def get_log_posterior_arithmetic(
-    dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs
-):
+def get_log_posterior_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
     return dynamicsMCMC.get_log_joint() - get_log_evidence_arithmetic(
         dynamicsMCMC, config, **kwargs
     )
 
 
-def get_log_posterior_harmonic(
-    dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs
-):
+def get_log_posterior_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
     return dynamicsMCMC.get_log_joint() - get_log_evidence_harmonic(
         dynamicsMCMC, config, **kwargs
     )
@@ -178,8 +170,11 @@ def get_log_posterior_meanfield(
     verboseCallback = MCMCVerboseFactory.build_console()
     if verbose:
         dynamicsMCMC.add_callback(verboseCallback.get_wrap())
-    dynamicsMCMC.set_up()
     original_graph = dynamicsMCMC.get_graph()
+    if not config.start_from_original:
+        dynamicsMCMC.get_dynamics().sample_graph()
+        dynamicsMCMC.set_graph(dynamicsMCMC.get_graph())
+    dynamicsMCMC.set_up()
     burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
     s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
 
@@ -198,17 +193,13 @@ def get_log_posterior_meanfield(
     return logp
 
 
-def get_log_posterior_annealed(
-    dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs
-):
+def get_log_posterior_annealed(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
     return dynamicsMCMC.get_log_joint() - get_log_evidence_annealed(
         dynamicsMCMC, config, **kwargs
     )
 
 
-def get_log_posterior_exact(
-    dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs
-):
+def get_log_posterior_exact(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
     return dynamicsMCMC.get_log_joint() - get_log_evidence_exact(
         dynamicsMCMC, config, **kwargs
     )
@@ -230,9 +221,7 @@ def get_log_posterior_exact_meanfield(
     edge_weights = defaultdict(lambda: defaultdict(list))
     edge_total = defaultdict(list)
     evidence = get_log_evidence_exact(dynamicsMCMC, config)
-    for g in enumerate_all_graphs(
-        size, edge_count, allow_self_loops, allow_multiedges
-    ):
+    for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
         if graph.is_compatible(g):
             i += 1
             dynamicsMCMC.get_dynamics().set_graph(g)
@@ -270,7 +259,6 @@ def get_log_posterior(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
         return functions[method](dynamicsMCMC, config, **kwargs)
     else:
         message = (
-            f"Invalid method {method}, valid methods"
-            + f"are {list(functions.keys())}."
+            f"Invalid method {method}, valid methods" + f"are {list(functions.keys())}."
         )
         raise ValueError(message)
