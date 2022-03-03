@@ -30,17 +30,17 @@ def get_config(
         config.dynamics.set_value("normalize", False)
         config.dynamics.set_value("recovery_prob", 0.5)
     else:
-        # coupling = np.concatenate(
-        #     [np.linspace(0, 1, 10), np.linspace(1, 4, 15)]
-        # )
-        coupling = [1.]
+        coupling = np.concatenate(
+            [np.linspace(0, 1, 10), np.linspace(1, 4, 15)]
+        )
         config.dynamics.set_coupling(coupling)
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
     config.dynamics.set_value("num_steps", T)
-    config.metrics.mutualinfo.set_value(
-        "num_samples", 1  # max(1, 32 // num_procs) * num_procs
-    )
+    config.metrics.mutualinfo.set_value("num_samples", num_procs)
+    config.metrics.mutualinfo.set_value("burn_per_vertex", 5)
+    config.metrics.mutualinfo.set_value("start_from_original", False)
+    config.metrics.mutualinfo.set_value("initial_burn", 10000)
     config.metrics.mutualinfo.set_value("method", ["meanfield", "annealed"])
 
     resources = {
@@ -56,7 +56,7 @@ def get_config(
 
 def main():
     for dynamics in ["ising"]:
-        config = get_config(dynamics, num_procs=64, mem=12)
+        config = get_config(dynamics, num_procs=1, mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
@@ -80,7 +80,7 @@ def main():
 
         ais_config.resources["time"] = "52:00:00"
         ais_config.metrics.mutualinfo.set_value("num_sweeps", 1000)
-        ais_config.metrics.mutualinfo.set_value("num_betas", 20)
+        ais_config.metrics.mutualinfo.set_value("num_betas", 10)
         script.run(
             ais_config,
             resources=ais_config.resources,
