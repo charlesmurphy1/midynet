@@ -56,7 +56,7 @@ def get_config(
 
 def main():
     for dynamics in ["ising"]:
-        config = get_config(dynamics, num_procs=1, mem=12)
+        config = get_config(dynamics, num_procs=64, mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
@@ -78,7 +78,7 @@ def main():
             teardown=False,
         )
 
-        ais_config.resources["time"] = "52:00:00"
+        ais_config.resources["time"] = "1:00:00"
         ais_config.metrics.mutualinfo.set_value("num_sweeps", 1000)
         ais_config.metrics.mutualinfo.set_value("num_betas", 10)
         script.run(
