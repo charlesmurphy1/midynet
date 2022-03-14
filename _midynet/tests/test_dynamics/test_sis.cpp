@@ -10,6 +10,8 @@
 namespace FastMIDyNet{
 
 const double INFECTION_PROB(0.7), RECOVERY_PROB(0.3), AUTO_INFECTION_PROB(1e-6);
+const size_t NUM_INITIAL_ACTIVE(3);
+const bool NORMALIZE_COUPLING(false);
 const std::list<std::vector<int>> neighbor_states = {{1, 3}, {2, 2}, {3, 1}};
 
 
@@ -18,12 +20,22 @@ public:
     EdgeCountDeltaPrior edgeCountPrior = {10};
     ErdosRenyiFamily graph = ErdosRenyiFamily(10, edgeCountPrior);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    FastMIDyNet::SISDynamics dynamics = FastMIDyNet::SISDynamics(graph, NUM_STEPS, INFECTION_PROB, RECOVERY_PROB, AUTO_INFECTION_PROB, false);
+    FastMIDyNet::SISDynamics dynamics = FastMIDyNet::SISDynamics(
+        graph, NUM_STEPS, INFECTION_PROB, RECOVERY_PROB, AUTO_INFECTION_PROB, NORMALIZE_COUPLING, NUM_INITIAL_ACTIVE);
 };
 
+TEST_F(TestSISDynamics, getRandomState_forGivenInitialActives_returnCorrectState) {
+    for (size_t numActive = 1; numActive < 10; numActive++){
+        dynamics.setNumInitialActive(numActive);
+        auto state = dynamics.getRandomState();
+        size_t expectedNumActive = 0;
+        for (auto s : state)
+            expectedNumActive += s;
+        EXPECT_EQ(expectedNumActive, numActive);
+    }
+}
 
 TEST_F(TestSISDynamics, getActivationProb_forEachStateTransition_returnCorrectProbability) {
-
     for (auto neighbor_state: neighbor_states)
     EXPECT_EQ( (1-AUTO_INFECTION_PROB) * ( 1 - std::pow(1-INFECTION_PROB, neighbor_state[1])) + AUTO_INFECTION_PROB,
     dynamics.getActivationProb(neighbor_state));

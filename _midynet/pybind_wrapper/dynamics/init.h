@@ -19,14 +19,15 @@ void initDynamics(py::module& m){
     initBinaryDynamicsBaseClass(m);
 
     py::class_<CowanDynamics, BinaryDynamics>(m, "CowanDynamics")
-        .def(py::init<size_t, double, double, double, double, bool>(),
+        .def(py::init<size_t, double, double, double, double, bool, size_t>(),
             py::arg("num_steps"), py::arg("nu"),
             py::arg("a")=1, py::arg("mu")=1,
-            py::arg("eta")=0.5, py::arg("normalize")=true)
-        .def(py::init<RandomGraph&, size_t, double, double, double, double, bool>(),
+            py::arg("eta")=0.5, py::arg("normalize")=true,
+            py::arg("num_active")=1)
+        .def(py::init<RandomGraph&, size_t, double, double, double, double, bool, size_t>(),
             py::arg("random_graph"), py::arg("num_steps"), py::arg("nu"),
             py::arg("a")=1, py::arg("mu")=1, py::arg("eta")=0.5,
-            py::arg("normalize")=true)
+            py::arg("normalize")=true, py::arg("num_active")=1)
         .def("get_a", &CowanDynamics::getA)
         .def("set_a", &CowanDynamics::setA, py::arg("a"))
         .def("get_nu", &CowanDynamics::getNu)
@@ -56,14 +57,14 @@ void initDynamics(py::module& m){
         .def("set_coupling", &IsingGlauberDynamics::setCoupling, py::arg("coupling"));
 
     py::class_<SISDynamics, BinaryDynamics>(m, "SISDynamics")
-        .def(py::init<size_t, double, double, double, bool>(),
+        .def(py::init<size_t, double, double, double, bool, size_t>(),
             py::arg("num_steps"), py::arg("infection_prob"),
             py::arg("recovery_prob")=0.5, py::arg("auto_infection_prob")=1e-6,
-            py::arg("normalize")=true)
-        .def(py::init<RandomGraph&, size_t, double, double, double, bool>(),
+            py::arg("normalize")=true, py::arg("num_active")=1)
+        .def(py::init<RandomGraph&, size_t, double, double, double, bool, size_t>(),
             py::arg("random_graph"), py::arg("num_steps"), py::arg("infection_prob"),
             py::arg("recovery_prob")=0.5, py::arg("auto_infection_prob")=1e-6,
-            py::arg("normalize")=true)
+            py::arg("normalize")=true, py::arg("num_active")=1)
         .def("get_infection_prob", &SISDynamics::getInfectionProb)
         .def("set_infection_prob", &SISDynamics::setInfectionProb, py::arg("infection_prob"))
         .def("get_recovery_prob", &SISDynamics::getRecoveryProb)

@@ -18,8 +18,9 @@ public:
                     double infectionProb,
                     double recoveryProb=0.5,
                     double autoInfectionProb=1e-6,
-                    bool normalizeCoupling=true) :
-            BinaryDynamics(numSteps, normalizeCoupling),
+                    bool normalizeCoupling=true,
+                    size_t numInitialActive=1) :
+            BinaryDynamics(numSteps, normalizeCoupling, numInitialActive),
             m_infectionProb(infectionProb),
             m_recoveryProb(recoveryProb),
             m_autoInfectionProb(autoInfectionProb)  { }
@@ -28,8 +29,9 @@ public:
                     double infectionProb,
                     double recoveryProb=0.5,
                     double autoInfectionProb=1e-6,
-                    bool normalizeCoupling=true) :
-            BinaryDynamics(randomGraph, numSteps, normalizeCoupling),
+                    bool normalizeCoupling=true,
+                    size_t numInitialActive=1) :
+            BinaryDynamics(randomGraph, numSteps, normalizeCoupling, numInitialActive),
             m_infectionProb(infectionProb),
             m_recoveryProb(recoveryProb),
             m_autoInfectionProb(autoInfectionProb)  { }

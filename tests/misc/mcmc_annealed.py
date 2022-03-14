@@ -26,15 +26,15 @@ def makeConfig():
     c.graph.edge_count.set_value("state", 250)
     c.graph.set_value("sample_graph_prior_prob", 0.0)
     c.graph.set_value("heterogeneity", 0.0)
-    c.dynamics.set_value("num_steps", 500)
+    c.dynamics.set_value("num_steps", 100)
     c.dynamics.set_coupling(1.0)
     c.dynamics.set_value("recovery_prob", 0.5)
-    c.insert("burn_per_vertex", 2)
+    c.insert("burn_per_vertex", 5)
     c.insert("num_betas", 10)
     c.insert("exp_betas", 0.5)
     c.insert("start_from_original", False)
     c.insert("initial_burn", 10000)
-    c.insert("num_sweeps", 250)
+    c.insert("num_sweeps", 1000)
     return c
 
 
@@ -70,29 +70,6 @@ def main():
     annealed = hxg - get_log_evidence_annealed(mcmc, cfg, verbose=1)
     meanfield = hxg - get_log_evidence_meanfield(mcmc, cfg, verbose=1)
     print(f"{exact=}", f"{annealed=}", f"{meanfield=}", f"{hg=}")
-    """
-    RESET_TO_OG=FALSE
-    exact=None
-    annealed=1177.2967190252893
-    meanfield=983.9390864308552
-    hg=-988.5738784761488
-
-    """
-
-    """
-    RESET_TO_OG=TRUE
-    exact=None
-    annealed=903.7005344450808
-    meanfield=986.0834404541056
-    hg=-988.5738784761488
-    """
-
-    """
-    exact=None
-    annealed=1295.6440021090748
-    meanfield=797.1758910815624
-    hg=-988.5738784761488
-    """
     # if cfg.graph.size < 6:
     #     mf = get_log_posterior_exact_meanfield(mcmc, cfg)
     #     print(mf, exact, hg)

@@ -65,6 +65,7 @@ class DynamicsConfig(Config):
         recovery_prob: float = 0.1,
         auto_infection_prob: float = 1e-4,
         normalize: bool = True,
+        num_active: int = 1,
     ) -> DynamicsConfig:
         return cls(
             name="sis",
@@ -73,6 +74,7 @@ class DynamicsConfig(Config):
             recovery_prob=recovery_prob,
             auto_infection_prob=auto_infection_prob,
             normalize=normalize,
+            num_active=num_active,
         )
 
     @classmethod
@@ -84,6 +86,7 @@ class DynamicsConfig(Config):
         mu: float = 1.0,
         eta: float = 0.5,
         normalize: bool = True,
+        num_active: int = 1,
     ) -> DynamicsConfig:
         return cls(
             name="cowan",
@@ -93,6 +96,7 @@ class DynamicsConfig(Config):
             mu=mu,
             eta=eta,
             normalize=normalize,
+            num_active=num_active,
         )
 
     @classmethod
@@ -115,6 +119,7 @@ class DynamicsFactory(Factory):
             config.recovery_prob,
             config.auto_infection_prob,
             config.normalize,
+            config.num_active,
         )
 
     @staticmethod
@@ -126,6 +131,7 @@ class DynamicsFactory(Factory):
             config.mu,
             config.eta,
             config.normalize,
+            config.num_active,
         )
 
     @staticmethod
