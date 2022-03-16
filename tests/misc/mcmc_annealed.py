@@ -21,7 +21,7 @@ from midynet.metrics.util import (
 
 
 def makeConfig():
-    c = ExperimentConfig.default("test", "ising", "ser")
+    c = ExperimentConfig.default("test", "ising", "nbinom_cm")
     c.graph.set_value("size", 100)
     c.graph.edge_count.set_value("state", 250)
     c.graph.set_value("sample_graph_prior_prob", 0.0)

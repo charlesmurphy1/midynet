@@ -1,10 +1,11 @@
 import os
 import sys
 import setuptools
+
 # import importlib
-from setuptools import setup
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
-from setuptools import Extension
+from setuptools.config import read_configuration
 
 # if importlib.util.find_spec("pybind11") is None:
 #     from setuptools.command.build_ext import build_ext
@@ -214,7 +215,25 @@ class BuildExt(build_ext):
 
 
 setup(
+    name="midynet",
     version=0.1,
+    author="Charles Murphy",
+    author_email="charles.murphy.1@ulaval.ca",
+    url="https://github.com/charlesmurphy1/fast-midynet",
+    license="MIT",
+    description="A package for the analysis of stochastic processes on random graphs.",
+    packages=setuptools.find_packages(),
+    install_requires=[
+        "pybind11>=2.3",
+        "numpy>=1.20.3",
+        "scipy>=1.7.1",
+        "psutil>=5.8.0",
+        "tqdm>=4.56.0",
+        "basegraph==1.0.0",
+        "SamplableSet>=2.0.0",
+    ],
+    python_requires=">=3.6",
+    zip_safe=False,
     ext_modules=ext_modules,
     include_package_data=True,
     cmdclass={"build_ext": BuildExt},

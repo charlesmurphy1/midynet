@@ -193,8 +193,12 @@ const double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move)
 
     for (const auto& idx: verticesAffected){
         for (size_t t = 0; t < m_numSteps; t++) {
-            logLikelihoodRatio += log(getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], nextNeighborMap[idx][t]));
-            logLikelihoodRatio -= log(getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], prevNeighborMap[idx][t]));
+            logLikelihoodRatio += log(
+                getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], nextNeighborMap[idx][t])
+            );
+            logLikelihoodRatio -= log(
+                getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], prevNeighborMap[idx][t])
+            );
         }
     }
 

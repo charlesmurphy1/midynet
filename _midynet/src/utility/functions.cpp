@@ -122,4 +122,15 @@ MultiGraph getSubGraphByBlocks(const MultiGraph& graph, const BlockSequence& blo
     return subGraph;
 }
 
+double clip(double x, double min, double max){
+    if (x < min)
+        return min;
+    else if (x > max)
+        return max;
+    else
+        return x;
+}
+
+double clipProb(double p, double epsilon){ return clip(p, epsilon, 1 - epsilon); }
+
 } // namespace FastMIDyNet

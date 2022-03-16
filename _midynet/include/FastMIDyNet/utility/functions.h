@@ -26,6 +26,8 @@ double logRestrictedPartitionNumber(size_t n, size_t k);
 double logApproxRestrictedPartitionNumber(size_t n, size_t k);
 
 MultiGraph getSubGraphByBlocks(const MultiGraph& graph, const BlockSequence& blocks, BlockIndex r, BlockIndex s);
+double clip(double x, double min, double max);
+double clipProb(double p, double epsilon=1e-15);
 
 template<typename T>
 std::vector<T> listToVec(std::list<T> other){

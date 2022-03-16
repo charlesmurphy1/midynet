@@ -20,7 +20,7 @@ def split_into_chunks(
     d, r = divmod(len(container), num_chunks)
     for i in range(num_chunks):
         si = (d + 1) * (i if i < r else r) + d * (0 if i < r else i - r)
-        yield container[si : si + (d + 1 if i < r else d)]
+        yield container[si:si + (d + 1 if i < r else d)]
 
 
 @dataclass
@@ -57,7 +57,8 @@ class ScriptManager:
     ):
         script = "#!/bin/bash\n"
         resources = (
-            config.get_value("resources", {}) if resources is None else resources
+            config.get_value("resources", {})
+            if resources is None else resources
         )
         for k, r in resources.items():
             script += f"{resource_prefix} --{k}={r}\n"
