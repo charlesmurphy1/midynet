@@ -1,15 +1,14 @@
-import _midynet
-from midynet import metadata
-from midynet import util
-from midynet import config
-from midynet import metrics
-from midynet import experiments
-from midynet import scripts
-from _midynet import dynamics, mcmc, prior, proposer, random_graph
+from . import metadata
+from . import util
+from . import config
+from . import metrics
+from . import experiments
+from . import scripts
+from _midynet import dynamics, mcmc, prior, proposer, random_graph, utility
 
 from .metadata import __version__
 
-_midynet.utility.seedWithTime()
+utility.seedWithTime()
 
 
 __all__ = (

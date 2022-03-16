@@ -1,24 +1,25 @@
 import os
 import sys
 import setuptools
-import importlib
+# import importlib
 from setuptools import setup
+from setuptools.command.build_ext import build_ext
+from setuptools import Extension
 
-
-if importlib.util.find_spec("pybind11") is None:
-    from setuptools.command.build_ext import build_ext
-    from setuptools import Extension
-else:
-    from pybind11.setup_helpers import (
-        ParallelCompile,
-        naive_recompile,
-        Pybind11Extension,
-        build_ext
-    )
-    Extension = Pybind11Extension
-    ParallelCompile(
-        "NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile
-    ).install()
+# if importlib.util.find_spec("pybind11") is None:
+#     from setuptools.command.build_ext import build_ext
+#     from setuptools import Extension
+# else:
+#     from pybind11.setup_helpers import (
+#         ParallelCompile,
+#         naive_recompile,
+#         Pybind11Extension,
+#         build_ext
+#     )
+#     Extension = Pybind11Extension
+#     ParallelCompile(
+#         "NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile
+#     ).install()
 
 
 class get_pybind_include(object):
@@ -87,55 +88,55 @@ ext_modules = [
         include_dirs=[
             get_pybind_include(),
             get_pybind_include(user=True),
-            "./_midynet/include",
-            "./_midynet/base_graph/include",
-            "./_midynet/SamplableSet/src",
+            "_midynet/include",
+            "_midynet/base_graph/include",
+            "_midynet/SamplableSet/src",
         ],
         sources=[
-            "./_midynet/src/rng.cpp",
-            "./_midynet/src/exceptions.cpp",
-            "./_midynet/src/generators.cpp",
-            "./_midynet/src/utility/functions.cpp",
-            "./_midynet/src/prior/sbm/block_count.cpp",
-            "./_midynet/src/prior/sbm/vertex_count.cpp",
-            "./_midynet/src/prior/sbm/block.cpp",
-            "./_midynet/src/prior/sbm/edge_count.cpp",
-            "./_midynet/src/prior/sbm/edge_matrix.cpp",
-            "./_midynet/src/prior/sbm/degree.cpp",
-            "./_midynet/src/random_graph/random_graph.cpp",
-            "./_midynet/src/random_graph/sbm.cpp",
-            "./_midynet/src/random_graph/dcsbm.cpp",
-            "./_midynet/src/dynamics/dynamics.cpp",
-            "./_midynet/src/dynamics/binary_dynamics.cpp",
-            "./_midynet/src/dynamics/cowan.cpp",
-            "./_midynet/src/dynamics/degree.cpp",
-            "./_midynet/src/dynamics/ising-glauber.cpp",
-            "./_midynet/src/dynamics/sis.cpp",
-            "./_midynet/src/proposer/sampler/vertex_sampler.cpp",
-            "./_midynet/src/proposer/sampler/edge_sampler.cpp",
-            "./_midynet/src/proposer/sampler/label_sampler.cpp",
-            "./_midynet/src/proposer/edge_proposer/edge_proposer.cpp",
-            "./_midynet/src/proposer/edge_proposer/double_edge_swap.cpp",
-            "./_midynet/src/proposer/edge_proposer/hinge_flip.cpp",
-            "./_midynet/src/proposer/edge_proposer/single_edge.cpp",
-            "./_midynet/src/proposer/edge_proposer/labeled_edge_proposer.cpp",
-            "./_midynet/src/proposer/edge_proposer/labeled_double_edge_swap.cpp",
-            "./_midynet/src/proposer/edge_proposer/labeled_hinge_flip.cpp",
-            "./_midynet/src/proposer/block_proposer/generic.cpp",
-            "./_midynet/src/proposer/block_proposer/uniform.cpp",
-            "./_midynet/src/proposer/block_proposer/peixoto.cpp",
-            "./_midynet/src/mcmc/mcmc.cpp",
-            "./_midynet/src/mcmc/callbacks/callback.cpp",
-            "./_midynet/src/mcmc/callbacks/verbose.cpp",
-            "./_midynet/src/mcmc/callbacks/collector.cpp",
-            "./_midynet/src/mcmc/graph_mcmc.cpp",
-            "./_midynet/src/mcmc/dynamics_mcmc.cpp",
-            "./_midynet/pybind_wrapper/pybind_main.cpp",
+            "_midynet/src/rng.cpp",
+            "_midynet/src/exceptions.cpp",
+            "_midynet/src/generators.cpp",
+            "_midynet/src/utility/functions.cpp",
+            "_midynet/src/prior/sbm/block_count.cpp",
+            "_midynet/src/prior/sbm/vertex_count.cpp",
+            "_midynet/src/prior/sbm/block.cpp",
+            "_midynet/src/prior/sbm/edge_count.cpp",
+            "_midynet/src/prior/sbm/edge_matrix.cpp",
+            "_midynet/src/prior/sbm/degree.cpp",
+            "_midynet/src/random_graph/random_graph.cpp",
+            "_midynet/src/random_graph/sbm.cpp",
+            "_midynet/src/random_graph/dcsbm.cpp",
+            "_midynet/src/dynamics/dynamics.cpp",
+            "_midynet/src/dynamics/binary_dynamics.cpp",
+            "_midynet/src/dynamics/cowan.cpp",
+            "_midynet/src/dynamics/degree.cpp",
+            "_midynet/src/dynamics/ising-glauber.cpp",
+            "_midynet/src/dynamics/sis.cpp",
+            "_midynet/src/proposer/sampler/vertex_sampler.cpp",
+            "_midynet/src/proposer/sampler/edge_sampler.cpp",
+            "_midynet/src/proposer/sampler/label_sampler.cpp",
+            "_midynet/src/proposer/edge_proposer/edge_proposer.cpp",
+            "_midynet/src/proposer/edge_proposer/double_edge_swap.cpp",
+            "_midynet/src/proposer/edge_proposer/hinge_flip.cpp",
+            "_midynet/src/proposer/edge_proposer/single_edge.cpp",
+            "_midynet/src/proposer/edge_proposer/labeled_edge_proposer.cpp",
+            "_midynet/src/proposer/edge_proposer/labeled_double_edge_swap.cpp",
+            "_midynet/src/proposer/edge_proposer/labeled_hinge_flip.cpp",
+            "_midynet/src/proposer/block_proposer/generic.cpp",
+            "_midynet/src/proposer/block_proposer/uniform.cpp",
+            "_midynet/src/proposer/block_proposer/peixoto.cpp",
+            "_midynet/src/mcmc/mcmc.cpp",
+            "_midynet/src/mcmc/callbacks/callback.cpp",
+            "_midynet/src/mcmc/callbacks/verbose.cpp",
+            "_midynet/src/mcmc/callbacks/collector.cpp",
+            "_midynet/src/mcmc/graph_mcmc.cpp",
+            "_midynet/src/mcmc/dynamics_mcmc.cpp",
+            "_midynet/pybind_wrapper/pybind_main.cpp",
         ],
         language="c++",
         extra_objects=[
-            find_compiled_basegraph("./_midynet/base_graph/build"),
-            find_compiled_SamplableSet("./_midynet/SamplableSet/src/build"),
+            find_compiled_basegraph("_midynet/base_graph/build"),
+            find_compiled_SamplableSet("_midynet/SamplableSet/src/build"),
         ],
     ),
 ]

@@ -1,6 +1,6 @@
 import copy
-
 import numpy as np
+from scipy.interpolate import interp1d
 
 __all__ = ("Statistics",)
 
@@ -110,35 +110,68 @@ class Statistics:
 
     @staticmethod
     def plot(
-        ax, x, y, fill_alpha=0.2, fill_color=None, spacing=None, **kwargs
+        ax,
+        x,
+        y,
+        fill=True,
+        fill_alpha=0.2,
+        fill_color=None,
+        bar=True,
+        spacing=1,
+        interpolate=None,
+        interp_num_points=1000,
+        **kwargs,
     ):
         c = kwargs.get("color", "grey")
         a = kwargs.get("alpha", 1)
         index = np.argsort(x)
         x = np.array(x)
-        if spacing is not None:
-            marker = kwargs.pop("marker")
-            ax.plot(x[index], y["mid"][index], marker="None", **kwargs)
-            kwargs.pop("linestyle", None)
-            kwargs.pop("ls", None)
+        marker = kwargs.pop("marker")
+        linestyle = kwargs.pop("linestyle", None)
+        kwargs.pop("ls", None)
+        if interpolate is not None:
+            interpF = interp1d(x, y["mid"], kind=interpolate)
+            interpX = np.linspace(min(x), max(x), interp_num_points)
+            interpY = interpF(interpX)
             ax.plot(
-                x[index[::spacing]],
-                y["mid"][index[::spacing]],
-                marker=marker,
+                interpX, interpY, marker="None", linestyle=linestyle, **kwargs
+            )
+        else:
+            ax.plot(
+                x[index],
+                y["mid"][index],
+                marker="None",
+                linestyle=linestyle,
+                **kwargs,
+            )
+        ax.plot(
+            x[index[::spacing]],
+            y["mid"][index[::spacing]],
+            marker=marker,
+            linestyle="None",
+            **kwargs,
+        )
+
+        if fill:
+            fill_color = c if fill_color is None else fill_color
+            ax.fill_between(
+                x[index],
+                y["mid"][index] - y["low"][index],
+                y["mid"][index] + y["high"][index],
+                color=fill_color,
+                alpha=a * fill_alpha,
+                linestyle="None",
+            )
+        if bar:
+            ax.errorbar(
+                x[index],
+                y["mid"][index],
+                np.vstack((y["low"][index], y["high"][index])),
+                ecolor=c,
+                marker="None",
                 linestyle="None",
                 **kwargs,
             )
-
-        else:
-            ax.plot(x[index], y["mid"][index], **kwargs)
-        fill_color = c if fill_color is None else fill_color
-        ax.fill_between(
-            x[index],
-            y["mid"][index] - y["low"][index],
-            y["mid"][index] + y["high"][index],
-            color=fill_color,
-            alpha=a * fill_alpha,
-        )
         return ax
 
     @staticmethod
