@@ -27,7 +27,7 @@ def makeConfig():
     c.graph.set_value("sample_graph_prior_prob", 0.0)
     c.graph.set_value("heterogeneity", 0.0)
     c.dynamics.set_value("num_steps", 1000)
-    c.dynamics.set_coupling(0.1)
+    c.dynamics.set_coupling(0.3)
     c.dynamics.set_value("recovery_prob", 0.5)
     c.dynamics.set_value("auto_infection_prob", 0.001)
     c.dynamics.set_value("initial_active", 1)
@@ -91,20 +91,10 @@ def main():
     edge_proposer = gmcmc.get_edge_proposer()
     entropy = []
     logPosterior = []
-    # s, f = mcmc.do_MH_sweep(10000)
+    s, f = mcmc.do_MH_sweep(10000)
     s, f = 0, 0
     for i in range(200):
-        # s, f = mcmc.do_MH_sweep(250)
-        for j in range(250):
-            move = edge_proposer.propose_move()
-            logp = dynamics.get_log_joint_ratio_from_graph_move(move)
-            if np.random.rand() < np.exp(logp):
-                s += 1
-                dynamics.apply_graph_move(move)
-                gmcmc.apply_graph_move(move)
-            else:
-                f += 1
-        callback.collect()
+        s, f = mcmc.do_MH_sweep(250)
         logPosterior.append(callback.get_log_posterior_estimate(original_graph))
         entropy.append(callback.get_marginal_entropy())
         if i % 10 == 0:
