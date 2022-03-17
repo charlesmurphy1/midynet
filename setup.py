@@ -213,6 +213,11 @@ class BuildExt(build_ext):
             ext.extra_link_args = link_opts
         build_ext.build_extensions(self)
 
+
+description = (
+    "Package for the analysis of stochastic processes on random graphs."
+)
+
 setup(
     name="midynet",
     version=0.1,
@@ -220,8 +225,8 @@ setup(
     author_email="charles.murphy.1@ulaval.ca",
     url="https://github.com/charlesmurphy1/fast-midynet",
     license="MIT",
-    description="A package for the analysis of stochastic processes on random graphs.",
-    packages=["midynet", "_midynet"],
+    description=description,
+    packages=["midynet"],
     install_requires=[
         "pybind11>=2.3",
         "numpy>=1.20.3",
@@ -236,16 +241,4 @@ setup(
     ext_modules=ext_modules,
     include_package_data=True,
     cmdclass={"build_ext": BuildExt},
-    extra_requires={
-        "full": [
-            "networkx>=2.5",
-            "netrd>=0.3.0",
-            "graph_tool>=2.37",
-            "palettable>=3.0.0",
-            ],
-        "testing": [
-            "flake8>=3.9.0",
-            "pytest>=6.2.3",
-            ]
-    }
 )
