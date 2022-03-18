@@ -18,7 +18,7 @@ class DynamicsConfig(Config):
     def set_coupling(self, coupling: float) -> None:
         if self.name == "sis":
             self.set_value("infection_prob", coupling)
-        elif self.name == "glauber" or "ising":
+        elif self.name == "glauber" or self.name == "ising":
             self.set_value("coupling", coupling)
         elif self.name == "cowan":
             self.set_value("nu", coupling)
