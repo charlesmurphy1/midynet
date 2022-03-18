@@ -1,5 +1,4 @@
-#include "FastMIDyNet/dynamics/cowan.h"
-
+#include "FastMIDyNet/dynamics/glauber.h"
 
 namespace FastMIDyNet{
 

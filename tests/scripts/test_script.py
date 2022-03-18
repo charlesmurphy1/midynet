@@ -7,7 +7,7 @@ DISPLAY = False
 
 @pytest.fixture
 def config():
-    yield ExperimentConfig.default("test", ["ising", "sis"], "uniform_sbm")
+    yield ExperimentConfig.default("test", ["glauber", "sis"], "uniform_sbm")
 
 
 @pytest.fixture

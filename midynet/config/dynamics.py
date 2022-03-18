@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Set
 from _midynet.dynamics import (
     SISDynamics,
-    IsingGlauberDynamics,
+    GlauberDynamics,
     CowanDynamics,
     DegreeDynamics,
 )
@@ -18,44 +18,56 @@ class DynamicsConfig(Config):
     def set_coupling(self, coupling: float) -> None:
         if self.name == "sis":
             self.set_value("infection_prob", coupling)
-        elif self.name == "ising":
+        elif self.name == "glauber" or "ising":
             self.set_value("coupling", coupling)
         elif self.name == "cowan":
             self.set_value("nu", coupling)
         else:
             message = (
                 f"Invalid entry {self.name} for dynamics,"
-                + "expected ['sis', 'ising', 'cowan']."
+                + "expected ['sis', 'glauber', 'ising', 'cowan']."
             )
             raise ValueError(message)
 
     def get_coupling(self):
         if self.name == "sis":
             return self.infection_prob
-        elif self.name == "ising":
+        elif self.name == "glauber" or "ising":
             return self.coupling
         elif self.name == "cowan":
             return self.nu
         else:
             message = (
                 f"Invalid entry {self.name} for dynamics,"
-                + "expected ['sis', 'ising', 'cowan']."
+                + "expected ['sis', 'glauber', 'ising', 'cowan']."
             )
             raise ValueError(message)
 
     @classmethod
-    def ising(
+    def glauber(
         cls,
         num_steps: int = 100,
         coupling: float = 1.0,
+        auto_activation_prob=0,
+        auto_deactivation_prob=0,
         normalize: bool = True,
+        num_active: int = 2**31-1,
     ) -> DynamicsConfig:
         return cls(
-            name="ising",
+            name="glauber",
             num_steps=num_steps,
             coupling=coupling,
+            auto_activation_prob=auto_activation_prob,
+            auto_deactivation_prob=auto_deactivation_prob,
             normalize=normalize,
+            num_active=num_active,
         )
+
+    @classmethod
+    def ising(cls, **kwargs):
+        cfg = cls.glauber(**kwargs)
+        cfg.set_value("name", "ising")
+        return cfg
 
     @classmethod
     def sis(
@@ -63,7 +75,8 @@ class DynamicsConfig(Config):
         num_steps: int = 100,
         infection_prob: float = 0.1,
         recovery_prob: float = 0.1,
-        auto_infection_prob: float = 1e-4,
+        auto_activation_prob=0,
+        auto_deactivation_prob=0,
         normalize: bool = True,
         num_active: int = 1,
     ) -> DynamicsConfig:
@@ -72,7 +85,8 @@ class DynamicsConfig(Config):
             num_steps=num_steps,
             infection_prob=infection_prob,
             recovery_prob=recovery_prob,
-            auto_infection_prob=auto_infection_prob,
+            auto_activation_prob=auto_activation_prob,
+            auto_deactivation_prob=auto_deactivation_prob,
             normalize=normalize,
             num_active=num_active,
         )
@@ -85,6 +99,8 @@ class DynamicsConfig(Config):
         a: float = 8.0,
         mu: float = 1.0,
         eta: float = 0.5,
+        auto_activation_prob=0,
+        auto_deactivation_prob=0,
         normalize: bool = True,
         num_active: int = 1,
     ) -> DynamicsConfig:
@@ -95,21 +111,48 @@ class DynamicsConfig(Config):
             a=a,
             mu=mu,
             eta=eta,
+            auto_activation_prob=auto_activation_prob,
+            auto_deactivation_prob=auto_deactivation_prob,
             normalize=normalize,
             num_active=num_active,
         )
 
     @classmethod
-    def degree(cls, num_steps: int = 100, C: float = 1.0) -> DynamicsConfig:
-        return cls(name="degree", num_steps=num_steps, C=C)
+    def degree(
+        cls,
+        num_steps: int = 100,
+        C: float = 1.0,
+        auto_activation_prob=0,
+        auto_deactivation_prob=0,
+        normalize: bool = True,
+        num_active: int = 2**31-1,
+    ) -> DynamicsConfig:
+        return cls(
+            name="degree",
+            num_steps=num_steps,
+            C=C,
+            auto_activation_prob=auto_activation_prob,
+            auto_deactivation_prob=auto_deactivation_prob,
+            normalize=normalize,
+            num_active=num_active,
+        )
 
 
 class DynamicsFactory(Factory):
     @staticmethod
-    def build_ising(config: DynamicsConfig) -> IsingGlauberDynamics:
-        return IsingGlauberDynamics(
-            config.num_steps, config.coupling, config.normalize
+    def build_glauber(config: DynamicsConfig) -> GlauberDynamics:
+        return GlauberDynamics(
+            config.num_steps,
+            config.coupling,
+            config.auto_activation_prob,
+            config.auto_deactivation_prob,
+            config.normalize,
+            config.num_active,
         )
+
+    @staticmethod
+    def build_ising(config: DynamicsConfig) -> GlauberDynamics:
+        return DynamicsFactory.build_glauber(config)
 
     @staticmethod
     def build_sis(config: DynamicsConfig) -> SISDynamics:
@@ -117,7 +160,8 @@ class DynamicsFactory(Factory):
             config.num_steps,
             config.infection_prob,
             config.recovery_prob,
-            config.auto_infection_prob,
+            config.auto_activation_prob,
+            config.auto_deactivation_prob,
             config.normalize,
             config.num_active,
         )
@@ -130,6 +174,8 @@ class DynamicsFactory(Factory):
             config.a,
             config.mu,
             config.eta,
+            config.auto_activation_prob,
+            config.auto_deactivation_prob,
             config.normalize,
             config.num_active,
         )

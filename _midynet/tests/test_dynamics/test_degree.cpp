@@ -9,7 +9,6 @@
 namespace FastMIDyNet{
 
 const double C = 10.;
-const double EPSILON = 0.05;
 const std::list<std::vector<int>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}, {2, 0}};
 
 
@@ -18,15 +17,14 @@ public:
     EdgeCountDeltaPrior edgeCountPrior = {10};
     ErdosRenyiFamily graph = ErdosRenyiFamily(10, edgeCountPrior);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    FastMIDyNet::DegreeDynamics dynamics = FastMIDyNet::DegreeDynamics(graph, NUM_STEPS, C, EPSILON);
+    FastMIDyNet::DegreeDynamics dynamics = FastMIDyNet::DegreeDynamics(graph, NUM_STEPS, C);
 };
 
 
 TEST_F(TestDegreeDynamics, getActivationProb_forEachStateTransition_returnCorrectProbability) {
     for (auto neighbor_state: NEIGHBOR_STATES)
         EXPECT_EQ(
-            (1 - EPSILON) * (neighbor_state[0] + neighbor_state[1])/C + EPSILON,
-            dynamics.getActivationProb(neighbor_state)
+            (neighbor_state[0] + neighbor_state[1])/C, dynamics.getActivationProb(neighbor_state)
         );
 }
 

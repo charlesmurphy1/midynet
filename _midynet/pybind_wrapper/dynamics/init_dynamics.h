@@ -68,14 +68,23 @@ void initDynamicsBaseClass(py::module& m){
 
 void initBinaryDynamicsBaseClass(py::module& m){
     py::class_<BinaryDynamics, Dynamics, PyBinaryDynamics<>>(m, "BinaryDynamics")
-        .def(py::init<RandomGraph&, size_t, bool, size_t>(),
+        .def(py::init<RandomGraph&, size_t, double, double, bool, size_t>(),
              py::arg("random_graph"), py::arg("num_steps"),
+             py::arg("auto_activation_prob")=0., py::arg("auto_deactivation_prob")=0.,
+             py::arg("normalize")=true, py::arg("num_inital_active")=-1)
+        .def(py::init<size_t, double, double, bool, size_t>(),
+             py::arg("num_steps"),
+             py::arg("auto_activation_prob")=0., py::arg("auto_deactivation_prob")=0.,
              py::arg("normalize")=true, py::arg("num_inital_active")=-1)
         .def("get_initial_active", &BinaryDynamics::getNumInitialActive)
         .def("set_initial_active", &BinaryDynamics::setNumInitialActive, py::arg("num_active"))
         .def("get_activation_prob", &BinaryDynamics::getActivationProb, py::arg("neighbor_state"))
         .def("get_activation_prob", &BinaryDynamics::getActivationProb, py::arg("neighbor_state"))
-        .def("get_deactivation_prob", &BinaryDynamics::getDeactivationProb, py::arg("neighbor_state"));
+        .def("get_deactivation_prob", &BinaryDynamics::getDeactivationProb, py::arg("neighbor_state"))
+        .def("set_auto_activation_prob", &BinaryDynamics::setAutoActivationProb, py::arg("auto_activation_prob"))
+        .def("set_auto_deactivation_prob", &BinaryDynamics::setAutoDeactivationProb, py::arg("auto_deactivation_prob"))
+        .def("get_auto_activation_prob", &BinaryDynamics::getAutoActivationProb)
+        .def("get_auto_deactivation_prob", &BinaryDynamics::getAutoDeactivationProb);
 }
 
 }

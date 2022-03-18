@@ -22,12 +22,12 @@ const double BinaryDynamics::getTransitionProb(VertexState prevVertexState, Vert
     double p;
     double transProb;
     if ( prevVertexState == 0 ) {
-        p = getActivationProb(neighborhoodState);
+        p = (1 - m_autoActivationProb) * getActivationProb(neighborhoodState) + m_autoActivationProb;
         if (nextVertexState == 0) transProb = 1 - p;
         else transProb = p;
     }
     else {
-        p = getDeactivationProb(neighborhoodState);
+        p = (1 - m_autoDeactivationProb) * getDeactivationProb(neighborhoodState) + m_autoDeactivationProb;
         if (nextVertexState == 1) transProb = 1 - p;
         else transProb = p;
     }

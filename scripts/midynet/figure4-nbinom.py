@@ -25,23 +25,23 @@ def get_config(
         num_procs=num_procs,
     )
     N, E = 100, 250
-    T = [200]
-    h = np.linspace(0.001, 5, 40)
+    T = [1000]
+    h = [0, 0.25, 0.5, 0.75, 1]
     if dynamics == "sis":
         coupling = np.unique(
-            np.concatenate([np.linspace(0, 0.75, 20), np.linspace(0.75, 2, 20)])
+            np.concatenate([np.linspace(0, 0.75, 10), np.linspace(0.75, 1, 10)])
         )
     elif dynamics == "ising":
         coupling = np.unique(
-            np.concatenate([np.linspace(0, 1, 20), np.linspace(1, 4, 20)])
+            np.concatenate([np.linspace(0, 1, 10), np.linspace(1, 2, 10)])
         )
     elif dynamics == "cowan":
         coupling = np.unique(
             np.concatenate(
                 [
-                    np.linspace(0, 1, 10),
-                    np.linspace(1, 2, 20),
-                    np.linspace(2, 4, 10),
+                    np.linspace(0, 1, 5),
+                    np.linspace(1, 2, 10),
+                    np.linspace(2, 4, 5),
                 ]
             )
         )
@@ -52,6 +52,8 @@ def get_config(
     config.dynamics.set_coupling(coupling)
     if dynamics == "sis":
         config.dynamics.set_value("recovery_prob", 0.5)
+    if dynamics == "sis" or dynamics == "cowan":
+        config.dynamics.set_value("auto_activation_prob", 0.001)
     config.metrics.mutualinfo.set_value("num_samples", num_procs)
     config.metrics.mutualinfo.set_value("method", "meanfield")
     config.metrics.mutualinfo.set_value("num_sweeps", 500)
@@ -71,7 +73,7 @@ def get_config(
 
 def main():
     for dynamics in ["ising", "sis", "cowan"]:
-        config = get_config(dynamics, num_procs=40, mem=12, time="60:00:00")
+        config = get_config(dynamics, num_procs=4, mem=12, time="24:00:00")
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,

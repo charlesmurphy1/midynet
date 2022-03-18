@@ -111,7 +111,7 @@ ext_modules = [
             "_midynet/src/dynamics/binary_dynamics.cpp",
             "_midynet/src/dynamics/cowan.cpp",
             "_midynet/src/dynamics/degree.cpp",
-            "_midynet/src/dynamics/ising-glauber.cpp",
+            "_midynet/src/dynamics/glauber.cpp",
             "_midynet/src/dynamics/sis.cpp",
             "_midynet/src/proposer/sampler/vertex_sampler.cpp",
             "_midynet/src/proposer/sampler/edge_sampler.cpp",

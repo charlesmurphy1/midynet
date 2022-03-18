@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <map>
+#include <cmath>
 
 #include "FastMIDyNet/dynamics/binary_dynamics.h"
 
@@ -14,47 +15,65 @@ namespace FastMIDyNet{
 class SISDynamics: public BinaryDynamics{
 
 public:
-        SISDynamics(size_t numSteps,
-                    double infectionProb,
-                    double recoveryProb=0.5,
-                    double autoInfectionProb=1e-6,
-                    bool normalizeCoupling=true,
-                    size_t numInitialActive=1) :
-            BinaryDynamics(numSteps, normalizeCoupling, numInitialActive),
+        explicit SISDynamics(
+                size_t numSteps,
+                double infectionProb,
+                double recoveryProb=0.5,
+                double autoActivationProb=1e-6,
+                double autoDeactivationProb=0,
+                bool normalizeCoupling=true,
+                size_t numInitialActive=1) :
+            BinaryDynamics(
+                numSteps,
+                autoActivationProb,
+                autoDeactivationProb,
+                normalizeCoupling,
+                numInitialActive),
             m_infectionProb(infectionProb),
-            m_recoveryProb(recoveryProb),
-            m_autoInfectionProb(autoInfectionProb)  { }
-        SISDynamics(RandomGraph& randomGraph,
-                    size_t numSteps,
-                    double infectionProb,
-                    double recoveryProb=0.5,
-                    double autoInfectionProb=1e-6,
-                    bool normalizeCoupling=true,
-                    size_t numInitialActive=1) :
-            BinaryDynamics(randomGraph, numSteps, normalizeCoupling, numInitialActive),
+            m_recoveryProb(recoveryProb){ }
+        explicit SISDynamics(
+                RandomGraph& randomGraph,
+                size_t numSteps,
+                double infectionProb,
+                double recoveryProb=0.5,
+                double autoActivationProb=1e-6,
+                double autoDeactivationProb=0,
+                bool normalizeCoupling=true,
+                size_t numInitialActive=1) :
+            BinaryDynamics(
+                randomGraph,
+                numSteps,
+                autoActivationProb,
+                autoDeactivationProb,
+                normalizeCoupling,
+                numInitialActive),
             m_infectionProb(infectionProb),
-            m_recoveryProb(recoveryProb),
-            m_autoInfectionProb(autoInfectionProb)  { }
+            m_recoveryProb(recoveryProb){ }
 
-        const double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
-        const double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const override;
+        const double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override{
+            return 1 - std::pow(1 - getInfectionProb(), vertexNeighborState[1]);
+        }
+        const double getDeactivationProb(const VertexNeighborhoodState& vertexNeighborState) const override{
+            return m_recoveryProb;
+        }
 
         const double getInfectionProb() const {
             if (not m_normalizeCoupling)
                 return m_infectionProb;
             double infProb = m_infectionProb / m_randomGraphPtr->getAverageDegree();
-            if (infProb > 1 - 1E-5)
-                return 1 - 1E-5;
+            if (infProb > 1 - EPSILON)
+                return 1 - EPSILON;
+            if (infProb < 0)
+                return 0;
             return infProb;
         }
         void setInfectionProb(double infectionProb) { m_infectionProb = infectionProb; }
         const double getRecoveryProb() const { return m_recoveryProb; }
         void setRecoveryProb(double recoveryProb) { m_recoveryProb = recoveryProb; }
-        const double getAutoInfectionProb() const { return m_autoInfectionProb; }
-        void setAutoInfectionProb(double autoInfectionProb) { m_autoInfectionProb = autoInfectionProb; }
 
 private:
-        double m_infectionProb, m_recoveryProb, m_autoInfectionProb;
+        double m_infectionProb, m_recoveryProb;
+        const double EPSILON = 1e-6;
 };
 
 } // namespace FastMIDyNet

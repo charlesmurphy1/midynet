@@ -185,10 +185,10 @@ def sample_dynamics(obj):
 
 dynamics_setup = {
     pytest.param(
-        DynamicsConfig.ising(),
+        DynamicsConfig.glauber(),
         DynamicsFactory,
         sample_dynamics,
-        id="ising",
+        id="glauber",
     ),
     pytest.param(
         DynamicsConfig.sis(),
@@ -270,7 +270,7 @@ random_graph_mcmc_setup = [
 metrics_setup = [
     pytest.param(
         ExperimentConfig.default(
-            "test", "ising", "er", metrics=["dynamics_entropy"]
+            "test", "glauber", "er", metrics=["dynamics_entropy"]
         ),
         MetricsFactory,
         lambda obj: None,

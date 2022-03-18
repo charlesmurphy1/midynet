@@ -12,16 +12,12 @@ namespace FastMIDyNet {
 const double A = 1., NU = 7., MU = 1., ETA = 0.5;
 const std::list<std::vector<int>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}, {2, 0}};
 
-inline double sigmoid(double x) {
-    return 1/(1+exp(-x));
-}
-
 class TestWilsonCowan: public::testing::Test{
 public:
     EdgeCountDeltaPrior edgeCountPrior = {10};
     ErdosRenyiFamily graph = ErdosRenyiFamily(10, edgeCountPrior);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    FastMIDyNet::CowanDynamics dynamics = FastMIDyNet::CowanDynamics(graph, NUM_STEPS, NU, A, MU, ETA, false);
+    FastMIDyNet::CowanDynamics dynamics = FastMIDyNet::CowanDynamics(graph, NUM_STEPS, NU, A, MU, ETA, 0, 0, false, -1);
 };
 
 
