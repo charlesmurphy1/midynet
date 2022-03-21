@@ -44,6 +44,8 @@ class MetricsConfig(Config):
     def graph_entropy(cls):
         obj = cls.monte_carlo()
         obj.set_value("name", "graph_entropy")
+        obj.insert("num_sweeps", 1000)
+        obj.insert("method", "exact")
         return obj
 
     @classmethod

@@ -36,10 +36,11 @@ class Metrics:
             self.__class__.__name__, total=len(self.config)
         )
         raw_data = defaultdict(lambda: defaultdict(list))
+        num_async_process = self.config.get_value("num_async_process", 1)
         for batch in to_batch(
-            self.config.sequence(), self.config.num_async_process
+            self.config.sequence(), num_async_process
         ):
-            pool = NestablePool(self.config.num_async_process)
+            pool = NestablePool(num_async_process)
             vals = pool.map(self.eval, batch)
             pool.close()
             pool.join()

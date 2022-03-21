@@ -21,7 +21,7 @@ __all__ = ("GraphEntropy", "GraphEntropyMetrics")
 class GraphEntropy(Expectation):
     config: Config = field(repr=False, default_factory=Config)
 
-    def func(self, seed: int, numSweeps: int) -> float:
+    def func(self, seed: int) -> float:
         utility.seed(seed)
         graph = RandomGraphFactory.build(self.config.graph)
         dynamics = DynamicsFactory.build(self.config.dynamics)
