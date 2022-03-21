@@ -90,5 +90,12 @@ def test_log_evidence_exact_meanfield(mcmc, metrics_config):
         print("exact_meanfield", logp)
 
 
+def test_log_prior_meanfield(mcmc, metrics_config):
+    logp = midynet.metrics.util.get_log_prior_meanfield(mcmc, metrics_config)
+
+    if DISPLAY:
+        print("prior-meanfield", logp)
+
+
 if __name__ == "__main__":
     pass
