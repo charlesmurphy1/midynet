@@ -1,10 +1,31 @@
 import multiprocessing as mp
+import multiprocessing.pool
 import time
 from dataclasses import dataclass, field
 
 import numpy as np
 
 __all__ = ("MultiProcess", "Expectation")
+
+
+class NoDaemonProcess(mp.Process):
+    @property
+    def daemon(self):
+        return False
+
+    @daemon.setter
+    def daemon(self, value):
+        pass
+
+
+class NoDaemonContext(type(mp.get_context())):
+    Process = NoDaemonProcess
+
+
+class NestablePool(multiprocessing.pool.Pool):
+    def __init__(self, *args, **kwargs):
+        kwargs['context'] = NoDaemonContext()
+        super(NestablePool, self).__init__(*args, **kwargs)
 
 
 @dataclass

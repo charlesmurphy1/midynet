@@ -3,11 +3,11 @@ import pickle
 import typing
 from collections import defaultdict
 from dataclasses import dataclass, field
-
 import numpy as np
 
 from midynet.config import Config
-from midynet.util import Verbose
+from midynet.util import Verbose, to_batch
+from .multiprocess import NestablePool
 
 __all__ = ("Metrics",)
 
@@ -19,6 +19,7 @@ class Metrics:
         repr=False, default_factory=dict, init=False
     )
     counter: int = field(repr=False, default=0, init=False)
+    raw_data: dict = field(repr=False, default_factory=dict)
 
     def set_up(self):
         self.counter = 0
@@ -35,14 +36,21 @@ class Metrics:
             self.__class__.__name__, total=len(self.config)
         )
         raw_data = defaultdict(lambda: defaultdict(list))
-        for c in self.config.sequence():
-            val = self.eval(c)
-            for k, v in val.items():
-                raw_data[c.name][k].append(v)
-            if pb is not None:
-                pb.update()
-            verbose.update_progress()
+        for batch in to_batch(
+            self.config.sequence(), self.config.num_async_process
+        ):
+            pool = NestablePool(self.config.num_async_process)
+            vals = pool.map(self.eval, batch)
+            pool.close()
+            pool.join()
+            for val, c in zip(vals, batch):
+                for k, v in val.items():
+                    raw_data[c.name][k].append(v)
+                if pb is not None:
+                    pb.update()
+                verbose.update_progress()
         verbose.end_progress()
+
         self.data = self.format(raw_data)
         self.tear_down()
 

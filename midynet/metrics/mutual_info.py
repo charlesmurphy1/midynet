@@ -47,7 +47,6 @@ class MutualInformation(Expectation):
                 mcmc, self.config.metrics.mutualinfo, verbose=0
             ) / np.log(2)
             hx = hg + hxg - hgx
-            print(hx, hxg, hg, hgx)
         else:
             hg = -dynamics.get_log_prior() / np.log(2)
             hx = -get_log_evidence(
@@ -83,7 +82,6 @@ class MutualInformationMetrics(Metrics):
         }
 
         out = {f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()}
-        print(out)
         return out
 
 

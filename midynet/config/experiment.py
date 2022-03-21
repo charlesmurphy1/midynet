@@ -34,6 +34,7 @@ class ExperimentConfig(Config):
         metrics: Optional[List[str]] = None,
         path: Union[str, pathlib.Path] = ".",
         num_procs: int = 1,
+        num_async_process: int = 1,
         seed: Optional[int] = None,
     ) -> ExperimentConfig:
         obj = cls(name=name)
@@ -58,6 +59,12 @@ class ExperimentConfig(Config):
         )
         obj.insert(
             "num_procs", num_procs, force_non_sequence=True, unique=True
+        )
+        obj.insert(
+            "num_async_process",
+            num_async_process,
+            force_non_sequence=True,
+            unique=True,
         )
         obj.insert(
             "seed",
