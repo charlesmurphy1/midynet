@@ -14,7 +14,7 @@ from midynet.config import (
 from .metrics import Metrics
 from .multiprocess import Expectation
 from .statistics import Statistics
-from .util import get_log_evidence
+from .util import get_log_evidence, get_log_posterior, get_log_prior_meanfield
 
 __all__ = ("MutualInformation", "MutualInformationMetrics")
 
@@ -37,12 +37,24 @@ class MutualInformation(Expectation):
             self.config.graph.sample_graph_prior_prob,
         )
         dynamics.sample()
-        hg = -dynamics.get_log_prior() / np.log(2)
         hxg = -dynamics.get_log_likelihood() / np.log(2)
-        hx = -get_log_evidence(
-            mcmc, self.config.metrics.mutualinfo, verbose=0
-        ) / np.log(2)
-        hgx = hg + hxg - hx
+        if self.config.metrics.mutualinfo.method == "full-meanfield":
+            hg = -get_log_prior_meanfield(
+                mcmc, self.config.metrics.mutualinfo
+            ) / np.log(2)
+
+            hgx = -get_log_posterior(
+                mcmc, self.config.metrics.mutualinfo, verbose=0
+            ) / np.log(2)
+            hx = hg + hxg - hgx
+            print(hx, hxg, hg, hgx)
+        else:
+            hg = -dynamics.get_log_prior() / np.log(2)
+            hx = -get_log_evidence(
+                mcmc, self.config.metrics.mutualinfo, verbose=0
+            ) / np.log(2)
+            hxg = -dynamics.get_log_likelihood() / np.log(2)
+            hgx = hg + hxg - hx
         mi = hg - hgx
         out = {"hx": hx, "hg": hg, "hxg": hxg, "hgx": hgx, "mi": mi}
         return out
@@ -71,6 +83,7 @@ class MutualInformationMetrics(Metrics):
         }
 
         out = {f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()}
+        print(out)
         return out
 
 

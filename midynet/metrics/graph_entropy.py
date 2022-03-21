@@ -1,13 +1,18 @@
 import time
+
 from dataclasses import dataclass, field
 from _midynet import utility
+from _midynet.mcmc import DynamicsMCMC
 from midynet.config import (
     Config,
+    DynamicsFactory,
     RandomGraphFactory,
+    RandomGraphMCMCFactory,
 )
 from .metrics import Metrics
 from .multiprocess import Expectation
 from .statistics import Statistics
+from .util import get_log_prior_meanfield
 
 __all__ = ("GraphEntropy", "GraphEntropyMetrics")
 
@@ -16,22 +21,36 @@ __all__ = ("GraphEntropy", "GraphEntropyMetrics")
 class GraphEntropy(Expectation):
     config: Config = field(repr=False, default_factory=Config)
 
-    def func(self, seed: int) -> float:
+    def func(self, seed: int, numSweeps: int) -> float:
         utility.seed(seed)
         graph = RandomGraphFactory.build(self.config.graph)
-        graph.sample()
-        hg = -graph.get_log_likelihood()
-        return hg
+        dynamics = DynamicsFactory.build(self.config.dynamics)
+        dynamics.set_random_graph(graph.get_wrap())
+        random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
+        mcmc = DynamicsMCMC(
+            dynamics,
+            random_graph_mcmc.get_wrap(),
+            1,
+            1,
+            self.config.graph.sample_graph_prior_prob,
+        )
+        dynamics.sample()
+        if self.config.metrics.graph_entropy.method == "meanfield":
+            return -get_log_prior_meanfield(
+                mcmc, self.config.metrics.graph_entropy
+            )
+        else:
+            return -mcmc.get_log_prior()
 
 
 class GraphEntropyMetrics(Metrics):
     def eval(self, config: Config):
-        dynamics_entropy = GraphEntropy(
+        graph_entropy = GraphEntropy(
             config=config,
             num_procs=config.get_value("num_procs", 1),
             seed=config.get_value("seed", int(time.time())),
         )
-        samples = dynamics_entropy.compute(
+        samples = graph_entropy.compute(
             config.metrics.graph_entropy.get_value("num_samples", 10)
         )
 

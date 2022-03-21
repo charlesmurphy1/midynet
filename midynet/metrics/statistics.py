@@ -18,11 +18,30 @@ class Statistics:
     def copy(self):
         return Statistics(copy.deepcopy(self.__data__))
 
+    def __contains__(self, key):
+        return key in self.__data__
+
+    def clip(self, min=None, max=None):
+        if "mid" not in self:
+            return
+        min = self["mid"].min() if min is None else min
+        max = self["mid"].max() if max is None else max
+        other = self.copy()
+        other["mid"] = np.clip(self["mid"], min, max)
+        return other
+
     def __getitem__(self, key):
         if isinstance(key, str) and key in self.__data__:
             return self.__data__[key]
         else:
             return {k: v[key] for k, v in self.__data__.items()}
+
+    def __setitem__(self, key, value):
+        if isinstance(key, str) and key in self.__data__:
+            self.__data__[key] = value
+        else:
+            msg = f"Key {key} not found in Statistics {self}."
+            raise LookupError(msg)
 
     def __add__(self, other):
         data = self.copy().__data__
@@ -80,12 +99,12 @@ class Statistics:
             other_copy["mid"][other.__data__["mid"] == 0] = 1
 
             data["low"] = data["mid"] * (
-                self.__data__["low"] / self.__data__["mid"]
-                - other.__data__["low"] / other.__data__["mid"]
+                self.__data__["low"] / self_copy["mid"]
+                - other.__data__["low"] / self_copy["mid"]
             )
             data["high"] = data["mid"] * (
-                self.__data__["high"] / self.__data__["mid"]
-                - other.__data__["high"] / other.__data__["mid"]
+                self.__data__["high"] / self_copy["mid"]
+                - other.__data__["high"] / other_copy["mid"]
             )
         else:
             data["mid"] /= other

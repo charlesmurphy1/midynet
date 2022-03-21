@@ -48,6 +48,7 @@ public:
 
 
     const MultiGraph& getGraph() const override { return m_randomGraphPtr->getGraph(); }
+    void setGraph(const MultiGraph& graph) { m_randomGraphPtr->setGraph(graph); setUp(); }
     const BlockSequence& getBlocks() const override { return m_randomGraphPtr->getBlocks(); }
     double getBetaPrior() const { return m_betaPrior; }
     void setBetaPrior(double betaPrior) { m_betaPrior = betaPrior; }

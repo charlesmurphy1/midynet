@@ -57,6 +57,8 @@ void initMCMCBaseClass(py::module& m){
         .def("set_beta_likelihood", &RandomGraphMCMC::setBetaLikelihood, py::arg("beta_likelihood"))
         .def("get_random_graph", &RandomGraphMCMC::getRandomGraph )
         .def("set_random_graph", &RandomGraphMCMC::setRandomGraph, py::arg("random_graph") )
+        .def("get_graph", &RandomGraphMCMC::getGraph )
+        .def("set_graph", &RandomGraphMCMC::setGraph )
         .def("get_edge_proposer", &RandomGraphMCMC::getEdgeProposer )
         .def("get_block_proposer", &RandomGraphMCMC::getBlockProposer )
         .def("propose_edge_move", &RandomGraphMCMC::proposeEdgeMove )
