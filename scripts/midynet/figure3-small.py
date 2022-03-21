@@ -41,7 +41,7 @@ def get_config(
     config.graph.edge_count.set_value("state", E)
     config.metrics.mutualinfo.set_value("num_samples", 1000)
     config.metrics.mutualinfo.set_value(
-        "method", ["annealed", "exact", "meanfield"]
+        "method", ["annealed", "exact", "full-meanfield", "meanfield"]
     )
 
     resources = {
@@ -64,19 +64,19 @@ def main():
             path_to_scripts="./scripts",
             path_to_log=pathlib.Path(PATH_TO_LOG),
         )
-        ais_config, exact_config, mf_config = script.split_param(
+        ais_config, exact_config, fmf_config, mf_config = script.split_param(
             config, "metrics.mutualinfo.method"
         )
 
-        ais_config.resources["time"] = "16:00:00"
-        script.run(
-            ais_config,
-            resources=ais_config.resources,
-            modules_to_load=SPECS["modules_to_load"],
-            virtualenv=SPECS["virtualenv"],
-            extra_args=dict(verbose=2),
-            teardown=False,
-        )
+#        ais_config.resources["time"] = "16:00:00"
+#        script.run(
+#            ais_config,
+#            resources=ais_config.resources,
+#            modules_to_load=SPECS["modules_to_load"],
+#            virtualenv=SPECS["virtualenv"],
+#            extra_args=dict(verbose=2),
+#            teardown=False,
+#        )
 
         # exact_config.resources["time"] = "0:10:00"
         #
@@ -95,15 +95,26 @@ def main():
         #     teardown=False,
         # )
 
-        mf_config.resources["time"] = "04:00:00"
+        fmf_config.resources["time"] = "06:00:00"
         script.run(
-            mf_config,
-            resources=mf_config.resources,
+            fmf_config,
+            resources=fmf_config.resources,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
             extra_args=dict(verbose=2),
             teardown=False,
         )
+
+
+#        mf_config.resources["time"] = "04:00:00"
+#        script.run(
+#            mf_config,
+#            resources=mf_config.resources,
+#            modules_to_load=SPECS["modules_to_load"],
+#            virtualenv=SPECS["virtualenv"],
+#            extra_args=dict(verbose=2),
+#            teardown=False,
+#        )
 
 
 if __name__ == "__main__":

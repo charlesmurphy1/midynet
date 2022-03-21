@@ -59,7 +59,7 @@ def get_config(
     config.metrics.mutualinfo.set_value("num_samples", num_procs)
     config.metrics.mutualinfo.set_value("method", "full-meanfield")
     config.metrics.mutualinfo.set_value("initial_burn", 2000)
-    config.metrics.mutualinfo.set_value("num_sweeps", 500)
+    config.metrics.mutualinfo.set_value("num_sweeps", 1000)
     config.metrics.mutualinfo.set_value("burn_per_vertex", 5)
 
     resources = {
@@ -75,9 +75,9 @@ def get_config(
 
 
 def main():
-    for dynamics in ["cowan"]:
+    for dynamics in ["ising", "sis", "cowan"]:
         config = get_config(
-            dynamics, num_procs=40, mem=12, time="4:00:00"
+            dynamics, num_procs=40, mem=12, time="8:00:00"
         )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],

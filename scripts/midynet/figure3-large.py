@@ -41,7 +41,7 @@ def get_config(
     config.metrics.mutualinfo.set_value("burn_per_vertex", 5)
     config.metrics.mutualinfo.set_value("start_from_original", False)
     config.metrics.mutualinfo.set_value("initial_burn", 2000)
-    config.metrics.mutualinfo.set_value("method", ["meanfield", "annealed"])
+    config.metrics.mutualinfo.set_value("method", ["meanfield", "full-meanfield", "annealed"])
 
     resources = {
         "account": "def-aallard",
@@ -63,20 +63,32 @@ def main():
             path_to_scripts="./scripts",
             path_to_log=PATH_TO_LOG,
         )
-        ais_config, mf_config = script.split_param(
+        ais_config, fmf_config, mf_config = script.split_param(
             config, "metrics.mutualinfo.method"
         )
 
-        mf_config.resources["time"] = "10:00:00"
-        mf_config.metrics.mutualinfo.set_value("num_sweeps", 1000)
+#        mf_config.resources["time"] = "10:00:00"
+#        mf_config.metrics.mutualinfo.set_value("num_sweeps", 1000)
+#        script.run(
+#            mf_config,
+#            resources=mf_config.resources,
+#            modules_to_load=SPECS["modules_to_load"],
+#            virtualenv=SPECS["virtualenv"],
+#            extra_args=dict(verbose=2),
+#            teardown=False,
+#        )
+        
+        fmf_config.resources["time"] = "20:00:00"
+        fmf_config.metrics.mutualinfo.set_value("num_sweeps", 1000)
         script.run(
-            mf_config,
-            resources=mf_config.resources,
+            fmf_config,
+            resources=fmf_config.resources,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
             extra_args=dict(verbose=2),
             teardown=False,
         )
+
 
 #        ais_config.resources["time"] = "48:00:00"
 #        ais_config.metrics.mutualinfo.set_value("num_sweeps", 500)
