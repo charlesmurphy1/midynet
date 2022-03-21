@@ -26,7 +26,7 @@ def get_config(
     )
     N, E = 100, 250
     T = [1000]
-    h = [0, 0.25, 0.5, 0.75, 1]
+    h = [0, 0.5, 1]
     if dynamics == "sis":
         coupling = np.unique(
             np.concatenate([np.linspace(0, 0.75, 10), np.linspace(0.75, 1, 10)])
@@ -73,7 +73,7 @@ def get_config(
 
 def main():
     for dynamics in ["ising", "sis", "cowan"]:
-        config = get_config(dynamics, num_procs=4, mem=12, time="24:00:00")
+        config = get_config(dynamics, num_procs=40, mem=12, time="24:00:00")
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
