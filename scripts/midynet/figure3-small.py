@@ -68,32 +68,31 @@ def main():
             config, "metrics.mutualinfo.method"
         )
 
-#        ais_config.resources["time"] = "16:00:00"
-#        script.run(
-#            ais_config,
-#            resources=ais_config.resources,
-#            modules_to_load=SPECS["modules_to_load"],
-#            virtualenv=SPECS["virtualenv"],
-#            extra_args=dict(verbose=2),
-#            teardown=False,
-#        )
+        ais_config.resources["time"] = "16:00:00"
+        script.run(
+            ais_config,
+            resources=ais_config.resources,
+            modules_to_load=SPECS["modules_to_load"],
+            virtualenv=SPECS["virtualenv"],
+            extra_args=dict(verbose=2),
+            teardown=False,
+        )
 
-        # exact_config.resources["time"] = "0:10:00"
-        #
-        # if dynamics == "sis":
-        #     coupling = np.linspace(0, 1, 100)
-        #     exact_config.dynamics.set_value("normalize", False)
-        # else:
-        #     coupling = np.linspace(0, 4, 100)
-        # exact_config.dynamics.set_coupling(coupling)
-        # script.run(
-        #     exact_config,
-        #     resources=ais_config.resources,
-        #     modules_to_load=SPECS["modules_to_load"],
-        #     virtualenv=SPECS["virtualenv"],
-        #     extra_args=dict(verbose=2),
-        #     teardown=False,
-        # )
+        exact_config.resources["time"] = "0:10:00"
+        if dynamics == "sis":
+            coupling = np.linspace(0, 1, 100)
+            exact_config.dynamics.set_value("normalize", False)
+        else:
+            coupling = np.linspace(0, 4, 100)
+        exact_config.dynamics.set_coupling(coupling)
+        script.run(
+            exact_config,
+            resources=ais_config.resources,
+            modules_to_load=SPECS["modules_to_load"],
+            virtualenv=SPECS["virtualenv"],
+            extra_args=dict(verbose=2),
+            teardown=False,
+        )
 
         fmf_config.resources["time"] = "06:00:00"
         script.run(
@@ -106,15 +105,15 @@ def main():
         )
 
 
-#        mf_config.resources["time"] = "04:00:00"
-#        script.run(
-#            mf_config,
-#            resources=mf_config.resources,
-#            modules_to_load=SPECS["modules_to_load"],
-#            virtualenv=SPECS["virtualenv"],
-#            extra_args=dict(verbose=2),
-#            teardown=False,
-#        )
+        mf_config.resources["time"] = "04:00:00"
+        script.run(
+            mf_config,
+            resources=mf_config.resources,
+            modules_to_load=SPECS["modules_to_load"],
+            virtualenv=SPECS["virtualenv"],
+            extra_args=dict(verbose=2),
+            teardown=False,
+        )
 
 
 if __name__ == "__main__":

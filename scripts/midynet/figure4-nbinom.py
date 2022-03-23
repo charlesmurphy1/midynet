@@ -21,7 +21,7 @@ def get_config(
     seed=None,
 ):
     config = ExperimentConfig.default(
-        f"figure4-nbinom-{dynamics}",
+        f"figure4-large-nbinom-{dynamics}",
         dynamics,
         "nbinom_cm",
         metrics=["mutualinfo"],
@@ -30,22 +30,22 @@ def get_config(
         num_procs=num_procs,
         num_async_process=num_async_process,
     )
-    N, E = 100, 250
-    T = [100]
-    h = [0, 0.5, 1]
+    N, E = 500, 1250
+    T = [1000]
+    h = 1
     if dynamics == "sis":
         coupling = np.unique(
             np.concatenate(
-                [np.linspace(0, 1., 20), np.linspace(1., 2, 20)]
+                [np.linspace(0.5, 1.5, 10), np.linspace(1.5, 2, 10)]
             )
         )
     elif dynamics == "ising":
         coupling = np.unique(
-            np.concatenate([np.linspace(0, 1, 20), np.linspace(1, 4, 20)])
+            np.concatenate([np.linspace(0, 1, 10), np.linspace(1, 4, 10)])
         )
     elif dynamics == "cowan":
         coupling = np.unique(
-            np.concatenate([np.linspace(1, 2, 20), np.linspace(2, 6, 20)])
+            np.concatenate([np.linspace(1.5, 3, 15), np.linspace(3, 6, 5)])
         )
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
@@ -54,11 +54,13 @@ def get_config(
     config.dynamics.set_coupling(coupling)
     if dynamics == "sis":
         config.dynamics.set_value("recovery_prob", 0.5)
-    if dynamics == "sis" or dynamics == "cowan":
         config.dynamics.set_value("auto_activation_prob", 0.001)
+        config.dynamics.set_value("num_active", 1)
+    if dynamics == "cowan":
+        config.dynamics.set_value("num_active", config.graph.size)
     config.metrics.mutualinfo.set_value("num_samples", num_procs)
-    config.metrics.mutualinfo.set_value("method", "full-meanfield")
-    config.metrics.mutualinfo.set_value("initial_burn", 2000)
+    config.metrics.mutualinfo.set_value("method", "meanfield")
+    config.metrics.mutualinfo.set_value("initial_burn", 10000)
     config.metrics.mutualinfo.set_value("num_sweeps", 1000)
     config.metrics.mutualinfo.set_value("burn_per_vertex", 5)
 
@@ -77,7 +79,7 @@ def get_config(
 def main():
     for dynamics in ["ising", "sis", "cowan"]:
         config = get_config(
-            dynamics, num_procs=40, mem=12, time="8:00:00"
+            dynamics, num_procs=64, num_async_process=2, mem=12, time="24:00:00"
         )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
