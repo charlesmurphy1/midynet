@@ -40,7 +40,8 @@ def log_mean_exp(x):
 
 
 def to_batch(x, size):
-    return zip(*[x[i::size] for i in range(size)])
+    for i in range(0, len(x), size):
+        yield x[i:i+size]
 
 
 def delete_path(path: pathlib.Path):

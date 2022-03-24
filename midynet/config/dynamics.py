@@ -75,7 +75,7 @@ class DynamicsConfig(Config):
         num_steps: int = 100,
         infection_prob: float = 0.1,
         recovery_prob: float = 0.1,
-        auto_activation_prob=0,
+        auto_activation_prob=0.001,
         auto_deactivation_prob=0,
         normalize: bool = True,
         num_active: int = 1,
