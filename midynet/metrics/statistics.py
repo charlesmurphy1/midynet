@@ -139,6 +139,7 @@ class Statistics:
         spacing=1,
         interpolate=None,
         interp_num_points=1000,
+        error_scaling=1,
         **kwargs,
     ):
         c = kwargs.get("color", "grey")
@@ -175,8 +176,8 @@ class Statistics:
             fill_color = c if fill_color is None else fill_color
             ax.fill_between(
                 x[index],
-                y["mid"][index] - y["low"][index],
-                y["mid"][index] + y["high"][index],
+                y["mid"][index] - np.abs(y["low"][index]) / error_scaling,
+                y["mid"][index] + np.abs(y["high"][index]) / error_scaling,
                 color=fill_color,
                 alpha=a * fill_alpha,
                 linestyle="None",
@@ -185,7 +186,8 @@ class Statistics:
             ax.errorbar(
                 x[index],
                 y["mid"][index],
-                np.vstack((y["low"][index], y["high"][index])),
+                np.vstack((np.abs(y["low"][index]), np.abs(y["high"][index])))
+                / error_scaling,
                 ecolor=c,
                 marker="None",
                 linestyle="None",
