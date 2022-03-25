@@ -36,16 +36,16 @@ def get_config(
     if dynamics == "sis":
         coupling = np.unique(
             np.concatenate(
-                [np.linspace(0., 1.5, 10), np.linspace(1.5, 2, 10)]
+                [np.linspace(0., 0.5, 20), np.linspace(0.5, 1.5, 10)]
             )
         )
     elif dynamics == "ising":
         coupling = np.unique(
-            np.concatenate([np.linspace(0, 1, 10), np.linspace(1, 4, 10)])
+            np.concatenate([np.linspace(0, 1, 20), np.linspace(1, 3, 10)])
         )
     elif dynamics == "cowan":
         coupling = np.unique(
-            np.concatenate([np.linspace(0., 2, 15), np.linspace(2, 6, 5)])
+            np.concatenate([np.linspace(1., 2, 20), np.linspace(2, 4, 10)])
         )
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
@@ -79,7 +79,7 @@ def get_config(
 def main():
     for dynamics in ["ising", "sis", "cowan"]:
         config = get_config(
-            dynamics, num_procs=64, num_async_process=8, mem=12, time="6:00:00"
+            dynamics, num_procs=64, num_async_process=4, mem=12, time="24:00:00"
         )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
