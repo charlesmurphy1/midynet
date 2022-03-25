@@ -36,7 +36,7 @@ def get_config(
     if dynamics == "sis":
         coupling = np.unique(
             np.concatenate(
-                [np.linspace(0.5, 1.5, 10), np.linspace(1.5, 2, 10)]
+                [np.linspace(0., 1.5, 10), np.linspace(1.5, 2, 10)]
             )
         )
     elif dynamics == "ising":
@@ -45,7 +45,7 @@ def get_config(
         )
     elif dynamics == "cowan":
         coupling = np.unique(
-            np.concatenate([np.linspace(1.5, 3, 15), np.linspace(3, 6, 5)])
+            np.concatenate([np.linspace(0., 2, 15), np.linspace(2, 6, 5)])
         )
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
@@ -58,7 +58,7 @@ def get_config(
         config.dynamics.set_value("num_active", 1)
     if dynamics == "cowan":
         config.dynamics.set_value("num_active", config.graph.size)
-    config.metrics.mutualinfo.set_value("num_samples", num_procs)
+    config.metrics.mutualinfo.set_value("num_samples", num_procs // num_async_process)
     config.metrics.mutualinfo.set_value("method", "meanfield")
     config.metrics.mutualinfo.set_value("initial_burn", 10000)
     config.metrics.mutualinfo.set_value("num_sweeps", 1000)
@@ -79,7 +79,7 @@ def get_config(
 def main():
     for dynamics in ["ising", "sis", "cowan"]:
         config = get_config(
-            dynamics, num_procs=64, num_async_process=2, mem=12, time="24:00:00"
+            dynamics, num_procs=64, num_async_process=8, mem=12, time="6:00:00"
         )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
