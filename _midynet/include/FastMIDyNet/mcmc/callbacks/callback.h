@@ -1,6 +1,7 @@
 #ifndef FAST_MIDYNET_CALLBACK_H
 #define FAST_MIDYNET_CALLBACK_H
 
+#include <cstddef>
 #include <vector>
 
 namespace FastMIDyNet{
