@@ -216,7 +216,7 @@ class Statistics:
         elif error_type == "percentile":
             return np.median(samples) - np.percentile(samples, 16)
         elif error_type == "confidence":
-            return np.mean(samples) - np.percentile(samples, 5)
+            return np.median(samples) - np.percentile(samples, 5)
         else:
             raise ValueError(
                 f"Error_type `{error_type}` is invalid. Valid choices"
@@ -230,7 +230,7 @@ class Statistics:
         elif error_type == "percentile":
             return np.percentile(samples, 84) - np.median(samples)
         elif error_type == "confidence":
-            return np.percentile(samples, 95) - np.mean(samples)
+            return np.percentile(samples, 95) - np.median(samples)
         else:
             raise ValueError(
                 f"Error_type `{error_type}` is invalid. Valid choices"

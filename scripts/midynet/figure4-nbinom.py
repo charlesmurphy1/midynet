@@ -36,16 +36,34 @@ def get_config(
     if dynamics == "sis":
         coupling = np.unique(
             np.concatenate(
-                [np.linspace(0., 0.5, 20), np.linspace(0.5, 1.5, 10)]
+                [
+                    np.linspace(0.25, 0.75, 50),
+                    np.linspace(0.75, 2.0, 10),
+                ]
             )
         )
     elif dynamics == "ising":
         coupling = np.unique(
-            np.concatenate([np.linspace(0, 1, 20), np.linspace(1, 3, 10)])
+            np.concatenate([np.linspace(0, 1, 50), np.linspace(1, 3, 10)])
         )
-    elif dynamics == "cowan":
+    elif dynamics == "cowan_backward":
         coupling = np.unique(
-            np.concatenate([np.linspace(1., 2, 20), np.linspace(2, 4, 10)])
+            np.concatenate(
+                [
+                    np.linspace(1.0, 1.5, 50),
+                    np.linspace(1.5, 3, 10),
+                ]
+            )
+        )
+    elif dynamics == "cowan_forward" or dynamics == "cowan":
+        coupling = np.unique(
+            np.concatenate(
+                [
+                    np.linspace(1.0, 1.5, 5),
+                    np.linspace(1.5, 2.25, 50),
+                    np.linspace(2.25, 3, 5),
+                ]
+            )
         )
     config.graph.set_value("size", N)
     config.graph.edge_count.set_value("state", E)
@@ -56,14 +74,15 @@ def get_config(
         config.dynamics.set_value("recovery_prob", 0.5)
         config.dynamics.set_value("auto_activation_prob", 0.001)
         config.dynamics.set_value("num_active", 1)
-    if dynamics == "cowan":
-        config.dynamics.set_value("num_active", config.graph.size)
-    config.metrics.mutualinfo.set_value("num_samples", num_procs // num_async_process)
+    config.metrics.mutualinfo.set_value(
+        "num_samples", num_procs // num_async_process
+    )
     config.metrics.mutualinfo.set_value("method", "meanfield")
     config.metrics.mutualinfo.set_value("initial_burn", 10000)
     config.metrics.mutualinfo.set_value("num_sweeps", 1000)
     config.metrics.mutualinfo.set_value("burn_per_vertex", 5)
-
+    if dynamics == "cowan_backward":
+        config.dynamics.set_value("num_active", config.graph.size)
     resources = {
         "account": "def-aallard",
         "time": time,
@@ -77,9 +96,13 @@ def get_config(
 
 
 def main():
-    for dynamics in ["ising", "sis", "cowan"]:
+    for dynamics in ["ising", "sis", "cowan_forward", "cowan_backward"]:
         config = get_config(
-            dynamics, num_procs=64, num_async_process=4, mem=12, time="24:00:00"
+            dynamics,
+            num_procs=1,
+            num_async_process=4,
+            mem=12,
+            time="30:00:00",
         )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],

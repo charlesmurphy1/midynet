@@ -16,7 +16,7 @@ class MetricsConfig(Config):
     def mcmc(cls):
         obj = cls(
             num_sweeps=1000,
-            error_type="confidence",
+            error_type="percentile",
             method="meanfield",
             num_samples=100,
             burn_per_vertex=5,
