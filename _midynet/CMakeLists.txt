@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 project(FastMIDyNet)
 
-add_compile_definitions(DEBUG=true)
-option(BUILD_TESTS "build gtest unit tests" ON)
+option(DEBUG_MODE "check consistency of objects at runtime" OFF)
+option(BUILD_TESTS "build gtest unit tests" OFF)
+
+if (DEBUG_MODE)
+    add_compile_definitions(DEBUG)
+endif()
 
 include_directories(include)
 include_directories(base_graph/include)
