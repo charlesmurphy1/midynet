@@ -16,8 +16,10 @@ void initDynamicsBaseClass(py::module& m){
         .def(py::init<RandomGraph&, size_t, size_t, bool>(),
             py::arg("random_graph"), py::arg("num_states"),
             py::arg("num_steps"), py::arg("normalize")=true)
-        .def("get_state", &Dynamics::getState)
+        .def("get_current_state", &Dynamics::getCurrentState)
+        .def("get_current_neighbors_state", &Dynamics::getCurrentNeighborsState)
         .def("get_past_states", &Dynamics::getPastStates)
+        .def("get_past_neighbors_states", &Dynamics::getNeighborsPastStates)
         .def("get_future_states", &Dynamics::getFutureStates)
         .def("set_state", &Dynamics::setState, py::arg("state"))
         .def("get_graph", &Dynamics::getGraph)
@@ -39,7 +41,7 @@ void initDynamicsBaseClass(py::module& m){
         .def("sample_graph", &Dynamics::sampleGraph)
         .def("get_random_state", &Dynamics::getRandomState)
         .def("normalizeCoupling", &Dynamics::normalizeCoupling)
-        .def("get_neighbors_state", &Dynamics::getNeighborsState,
+        .def("compute_neighbors_state", &Dynamics::computeNeighborsState,
             py::arg("state"))
         .def("get_vertex_neighbor_state", &Dynamics::getVertexNeighborsState,
             py::arg("idx"))

@@ -41,7 +41,7 @@ TEST_F(TestGlauberDynamics, getDeactivationProb_forEachStateTransition_returnCor
 TEST_F(TestGlauberDynamics, afterSample_getCorrectNeighborState){
     dynamics.sample();
     auto past = dynamics.getPastStates();
-    auto expectedNeighborState = dynamics.getNeighborStates();
+    auto expectedNeighborState = dynamics.getNeighborsPastStates();
 
     for(size_t t=0; t<dynamics.getNumSteps(); ++t){
         for (auto vertex : dynamics.getGraph()){
@@ -59,7 +59,7 @@ TEST_F(TestGlauberDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
     dynamics.sample();
     auto past = dynamics.getPastStates();
     auto future = dynamics.getFutureStates();
-    auto neighborState = dynamics.getNeighborStates();
+    auto neighborState = dynamics.getNeighborsPastStates();
 
     double expected = dynamics.getLogLikelihood();
     double actual = 0;

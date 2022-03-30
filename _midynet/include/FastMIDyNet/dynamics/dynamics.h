@@ -12,6 +12,7 @@
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/dynamics/types.h"
+#include "FastMIDyNet/utility/functions.h"
 
 
 namespace FastMIDyNet{
@@ -21,11 +22,13 @@ protected:
     size_t m_numStates;
     size_t m_numSteps;
     State m_state;
+    std::vector<State> m_neighborsState;
     const bool m_normalizeCoupling;
     StateSequence m_pastStateSequence;
     StateSequence m_futureStateSequence;
-    RandomGraph* m_randomGraphPtr;
-    NeighborsStateSequence m_neighborsStateSequence;
+    RandomGraph* m_randomGraphPtr = nullptr;
+    NeighborsStateSequence m_neighborsPastStateSequence;
+    std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence> m_vertexMapNeighborsPastStateSequence;
 
     void updateNeighborStateInPlace(
         BaseGraph::VertexIndex vertexIdx,
@@ -52,10 +55,11 @@ public:
         m_normalizeCoupling(normalizeCoupling)
         { }
 
-    const State& getState() const { return m_state; }
+    const State& getCurrentState() const { return m_state; }
+    const NeighborsState& getCurrentNeighborsState() const { return m_neighborsState; }
     const StateSequence& getPastStates() const { return m_pastStateSequence; }
     const StateSequence& getFutureStates() const { return m_futureStateSequence; }
-    const NeighborsStateSequence& getNeighborStates() const { return m_neighborsStateSequence; }
+    const NeighborsStateSequence& getNeighborsPastStates() const { return m_neighborsPastStateSequence; }
     const bool normalizeCoupling() const { return m_normalizeCoupling; }
     void setState(State& state) {
         m_state = state;
@@ -63,9 +67,13 @@ public:
     const MultiGraph& getGraph() const { return m_randomGraphPtr->getGraph(); }
     void setGraph(const MultiGraph& graph) {
         m_randomGraphPtr->setGraph(graph);
-        for (size_t t = 0 ; t < m_pastStateSequence.size() ; t++){
-            m_neighborsStateSequence[t] = getNeighborsState(m_pastStateSequence[t]);
+        m_neighborsState = computeNeighborsState(m_state);
+        if (m_pastStateSequence.size() == 0)
+            return;
+        for (size_t t = 0 ; t < m_numSteps ; t++){
+            m_neighborsPastStateSequence[t] = computeNeighborsState(m_pastStateSequence[t]);
         }
+        computeVertexNeighborsStateMap();
     }
 
     const RandomGraph& getRandomGraph() const { return *m_randomGraphPtr; }
@@ -80,15 +88,21 @@ public:
     const State& sample(const State& initialState, bool async=true){
         m_randomGraphPtr->sample();
         sampleState(initialState, async);
-        return getState();
+        return getCurrentState();
     }
     const State& sample(bool async=true){ return sample(getRandomState(), async); }
     void sampleState(const State& initialState, bool async=true);
     void sampleState(bool async=true){ sampleState(getRandomState(), async); }
     void sampleGraph() { setGraph(m_randomGraphPtr->sample()); }
     virtual const State getRandomState() const;
-    const NeighborsState getNeighborsState(const State& state) const;
+    const NeighborsState computeNeighborsState(const State& state) const;
     const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const;
+    void computeVertexNeighborsStateMap(){
+        m_vertexMapNeighborsPastStateSequence;
+        for (const auto& idx : getGraph()){
+            m_vertexMapNeighborsPastStateSequence[idx] = getVertexNeighborsState(idx);
+        }
+    }
 
     void syncUpdateState();
     void asyncUpdateState(int num_updates);

@@ -51,7 +51,7 @@ TEST_F(TestSISDynamics, getDeactivationProb_forEachStateTransition_returnCorrect
 TEST_F(TestSISDynamics, afterSample_getCorrectNeighborState){
     dynamics.sample();
     auto past = dynamics.getPastStates();
-    auto expectedNeighborState = dynamics.getNeighborStates();
+    auto expectedNeighborState = dynamics.getNeighborsPastStates();
 
     for(size_t t=0; t<dynamics.getNumSteps(); ++t){
         for (auto vertex : dynamics.getGraph()){
@@ -69,7 +69,7 @@ TEST_F(TestSISDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
     dynamics.sample();
     auto past = dynamics.getPastStates();
     auto future = dynamics.getFutureStates();
-    auto neighborState = dynamics.getNeighborStates();
+    auto neighborState = dynamics.getNeighborsPastStates();
 
     double expected = dynamics.getLogLikelihood();
     double actual = 0;

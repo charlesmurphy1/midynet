@@ -34,7 +34,7 @@ TEST_F(TestWilsonCowan, getDeactivationProb_forEachStateTransition_returnCorrect
 TEST_F(TestWilsonCowan, afterSample_getCorrectNeighborState){
     dynamics.sample();
     auto past = dynamics.getPastStates();
-    auto expectedNeighborState = dynamics.getNeighborStates();
+    auto expectedNeighborState = dynamics.getNeighborsPastStates();
 
     for(size_t t=0; t<dynamics.getNumSteps(); ++t){
         for (auto vertex : dynamics.getGraph()){
@@ -52,7 +52,7 @@ TEST_F(TestWilsonCowan, getLogLikelihood_returnCorrectLogLikelikehood){
     dynamics.sample();
     auto past = dynamics.getPastStates();
     auto future = dynamics.getFutureStates();
-    auto neighborState = dynamics.getNeighborStates();
+    auto neighborState = dynamics.getNeighborsPastStates();
 
     double expected = dynamics.getLogLikelihood();
     double actual = 0;

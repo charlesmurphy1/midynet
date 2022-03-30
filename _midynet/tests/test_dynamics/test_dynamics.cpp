@@ -5,6 +5,7 @@
 
 #include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/utility/functions.h"
 #include "BaseGraph/types.h"
 #include "fixtures.hpp"
 
@@ -35,9 +36,15 @@ class TestDynamicsBaseClass: public::testing::Test{
         }
 };
 
-TEST_F(TestDynamicsBaseClass, getState_returnCurrentState){
-    auto x = dynamics.getState();
+TEST_F(TestDynamicsBaseClass, getCurrentState_returnCurrentState){
+    auto x = dynamics.getCurrentState();
     EXPECT_EQ(x, STATE);
+}
+
+TEST_F(TestDynamicsBaseClass, getCurrentNeighborsState_returnCurrentState){
+    auto n = dynamics.getCurrentNeighborsState();
+    displayMatrix(n);
+    EXPECT_EQ(n, dynamics.computeNeighborsState(STATE));
 }
 
 TEST_F(TestDynamicsBaseClass, getGraph_returnCurrentGraph){
@@ -66,11 +73,11 @@ TEST_F(TestDynamicsBaseClass, getRandomState_returnRandomState){
     }
 }
 
-TEST_F(TestDynamicsBaseClass, getNeighborsState_forSomeState_returnThatNeighborState){
-    auto neighborState = dynamics.getNeighborsState(STATE);
-    EXPECT_EQ(neighborState.size(), NUM_VERTICES);
+TEST_F(TestDynamicsBaseClass, computeNeighborsState_forSomeState_returnThatNeighborState){
+    auto neighborsState = dynamics.computeNeighborsState(STATE);
+    EXPECT_EQ(neighborsState.size(), NUM_VERTICES);
     int i = 0, j = 0;
-    for (auto vertexNeighborState: neighborState){
+    for (auto vertexNeighborState: neighborsState){
         j = 0;
         EXPECT_EQ(vertexNeighborState.size(), NUM_STATES);
         for (auto l : vertexNeighborState){
@@ -94,6 +101,9 @@ TEST_F(TestDynamicsBaseClass, getTransitionProbs_forEachVertexState_returnTransi
 
 TEST_F(TestDynamicsBaseClass, sampleState_forSomeNumSteps_returnNothing){
     dynamics.sampleState();
+    auto n = dynamics.getCurrentNeighborsState();
+    EXPECT_EQ(n, dynamics.computeNeighborsState(dynamics.getCurrentState()));
+
 }
 
 TEST_F(TestDynamicsBaseClass, getPastStates_returnPastStates){
@@ -124,7 +134,7 @@ TEST_F(TestDynamicsBaseClass, applyMove_forSomeGraphMove_expectChangesInTheGraph
     dynamics.sampleState();
     auto past = dynamics.getPastStates();
     dynamics.applyGraphMove(GRAPH_MOVE);
-    auto expected = dynamics.getNeighborStates();
+    auto expected = dynamics.getNeighborsPastStates();
     auto graph = dynamics.getGraph();
     EXPECT_EQ(graph.getEdgeMultiplicityIdx(0, 2), 2);
     EXPECT_EQ(graph.getEdgeMultiplicityIdx(0, 5), 1);
@@ -138,6 +148,7 @@ TEST_F(TestDynamicsBaseClass, applyMove_forSomeGraphMove_expectChangesInTheGraph
                 EXPECT_EQ(expected[t][vertex][s], actual[s]);
         }
     }
+    EXPECT_EQ(dynamics.getCurrentNeighborsState(), dynamics.computeNeighborsState(dynamics.getCurrentState()));
 }
 
 TEST_F(TestDynamicsBaseClass, updateNeighborStateMapFromEdgeMove_fromAddedEdge_expectCorrectionInNeighborState){
@@ -147,9 +158,9 @@ TEST_F(TestDynamicsBaseClass, updateNeighborStateMapFromEdgeMove_fromAddedEdge_e
 
     dynamics.updateNeighborStateMapFromEdgeMove(edge, 1, actualBefore, actualAfter);
 
-    auto expectedBefore = dynamics.getNeighborStates();
+    auto expectedBefore = dynamics.getNeighborsPastStates();
     dynamics.applyGraphMove({{}, {edge}});
-    auto expectedAfter = dynamics.getNeighborStates();
+    auto expectedAfter = dynamics.getNeighborsPastStates();
 
     for (auto actual : actualBefore)
         for (size_t t=0; t<dynamics.getNumSteps(); ++t)
@@ -169,9 +180,9 @@ TEST_F(TestDynamicsBaseClass, updateNeighborStateMapFromEdgeMove_fromRemovedEdge
 
     dynamics.updateNeighborStateMapFromEdgeMove(edge, -1, actualBefore, actualAfter);
 
-    auto expectedBefore = dynamics.getNeighborStates();
+    auto expectedBefore = dynamics.getNeighborsPastStates();
     dynamics.applyGraphMove({{edge}, {}});
-    auto expectedAfter = dynamics.getNeighborStates();
+    auto expectedAfter = dynamics.getNeighborsPastStates();
 
     for (auto actual : actualBefore)
         for (size_t t=0; t<dynamics.getNumSteps(); ++t)

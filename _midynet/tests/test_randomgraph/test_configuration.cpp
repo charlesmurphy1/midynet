@@ -44,8 +44,10 @@ TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromBlockMove_returnMi
 }
 
 TEST_F(TestConfigurationModelFamily, applyBlockMove_throwConsistencyError){
+    #if DEBUG
     BlockMove move = {0, 0, 1, 1};
     EXPECT_THROW(randomGraph.applyBlockMove(move), ConsistencyError);
+    #endif
 }
 
 TEST_F(TestConfigurationModelFamily, isCompatible_forGraphSampledFromSBM_returnTrue){

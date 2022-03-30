@@ -42,8 +42,10 @@ TEST_F(TestErdosRenyiFamily, getLogLikelihoodRatioFromBlockMove_returnMinusInfin
 }
 
 TEST_F(TestErdosRenyiFamily, applyBlockMove_throwConsistencyError){
+    #if DEBUG
     BlockMove move = {0, 0, 1, 1};
     EXPECT_THROW(randomGraph.applyBlockMove(move), ConsistencyError);
+    #endif
 }
 
 TEST_F(TestErdosRenyiFamily, isCompatible_forGraphSampledFromSBM_returnTrue){
