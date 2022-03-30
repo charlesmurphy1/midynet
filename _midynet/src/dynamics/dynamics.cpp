@@ -159,12 +159,12 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(
 
 
     if (prevNeighborMap.count(v) == 0){
-        prevNeighborMap.insert({v, m_vertexMapNeighborsPastStateSequence.at(v)}) ;
-        nextNeighborMap.insert({v, m_vertexMapNeighborsPastStateSequence.at(v)}) ;
+        prevNeighborMap.insert({v, m_vertexMapNeighborsPastStateSequence[v]}) ;
+        nextNeighborMap.insert({v, m_vertexMapNeighborsPastStateSequence[v]}) ;
     }
     if (prevNeighborMap.count(u) == 0){
-        prevNeighborMap.insert({u, m_vertexMapNeighborsPastStateSequence.at(u)}) ;
-        nextNeighborMap.insert({u, m_vertexMapNeighborsPastStateSequence.at(u)}) ;
+        prevNeighborMap.insert({u, m_vertexMapNeighborsPastStateSequence[u]}) ;
+        nextNeighborMap.insert({u, m_vertexMapNeighborsPastStateSequence[u]}) ;
     }
 
     VertexState vState, uState;
@@ -250,10 +250,27 @@ void Dynamics::applyGraphMove(const GraphMove& move){
     for (const auto& idx: verticesAffected){
         for (size_t t = 0; t < m_numSteps; t++) {
             m_neighborsPastStateSequence[t][idx] = nextNeighborMap[idx][t];
-            m_vertexMapNeighborsPastStateSequence.at(idx)[t] = nextNeighborMap[idx][t];
+            m_vertexMapNeighborsPastStateSequence[idx][t] = nextNeighborMap[idx][t];
         }
     }
     m_randomGraphPtr->applyGraphMove(move);
+}
+
+void Dynamics::checkConsistencyOfNeighborsPastState() const {
+    for (const auto& idx : getGraph()){
+        for (size_t t = 0; t < m_numSteps; t++){
+            if (m_neighborsPastStateSequence[t][idx] != m_vertexMapNeighborsPastStateSequence[idx][t])
+                throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsisten with vertex map.");
+        }
+    }
+    auto n = getCurrentNeighborsState();
+    if (n != computeNeighborsState(m_state))
+        throw ConsistencyError("Dynamics: `m_neighborsState` is inconsisten with `m_state`.");
+
+}
+
+void Dynamics::checkConsistency() const {
+
 }
 
 void Dynamics::checkSafety() const {
@@ -268,6 +285,8 @@ void Dynamics::checkSafety() const {
     if (m_futureStateSequence.size() == 0)
         throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
     if (m_neighborsPastStateSequence.size() == 0)
+        throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
+    if (m_vertexMapNeighborsPastStateSequence.size() == 0)
         throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
 }
 

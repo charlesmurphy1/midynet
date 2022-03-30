@@ -28,7 +28,7 @@ protected:
     StateSequence m_futureStateSequence;
     RandomGraph* m_randomGraphPtr = nullptr;
     NeighborsStateSequence m_neighborsPastStateSequence;
-    std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence> m_vertexMapNeighborsPastStateSequence;
+    std::vector<VertexNeighborhoodStateSequence> m_vertexMapNeighborsPastStateSequence;
 
     void updateNeighborStateInPlace(
         BaseGraph::VertexIndex vertexIdx,
@@ -98,7 +98,7 @@ public:
     const NeighborsState computeNeighborsState(const State& state) const;
     const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const;
     void computeVertexNeighborsStateMap(){
-        m_vertexMapNeighborsPastStateSequence;
+        m_vertexMapNeighborsPastStateSequence.resize(getSize());
         for (const auto& idx : getGraph()){
             m_vertexMapNeighborsPastStateSequence[idx] = getVertexNeighborsState(idx);
         }
@@ -126,6 +126,8 @@ public:
     void applyGraphMove(const GraphMove& move);
 
     virtual void checkSafety() const ;
+    virtual void checkConsistencyOfNeighborsPastState() const ;
+    virtual void checkConsistency() const ;
 
 
 };
