@@ -31,8 +31,8 @@ class TestDynamicsBaseClass: public::testing::Test{
         MultiGraph graph = GRAPH;
         State state = STATE;
         void SetUp() {
-            dynamics.setState(state);
             dynamics.setGraph(graph);
+            dynamics.setState(state);
         }
 };
 
@@ -42,8 +42,8 @@ TEST_F(TestDynamicsBaseClass, getCurrentState_returnCurrentState){
 }
 
 TEST_F(TestDynamicsBaseClass, getCurrentNeighborsState_returnCurrentState){
+
     auto n = dynamics.getCurrentNeighborsState();
-    displayMatrix(n);
     EXPECT_EQ(n, dynamics.computeNeighborsState(STATE));
 }
 
@@ -109,18 +109,18 @@ TEST_F(TestDynamicsBaseClass, sampleState_forSomeNumSteps_returnNothing){
 TEST_F(TestDynamicsBaseClass, getPastStates_returnPastStates){
     dynamics.sampleState();
     StateSequence past_states = dynamics.getPastStates();
-    EXPECT_EQ(past_states.size(), NUM_STEPS) ;
+    EXPECT_EQ(past_states.size(), NUM_VERTICES) ;
     for (auto state : past_states){
-        EXPECT_EQ(state.size(), NUM_VERTICES) ;
+        EXPECT_EQ(state.size(), NUM_STEPS) ;
     }
 }
 
 TEST_F(TestDynamicsBaseClass, getFutureStates_returnFutureStates){
     dynamics.sampleState();
     StateSequence future_states = dynamics.getFutureStates();
-    EXPECT_EQ(future_states.size(), NUM_STEPS) ;
+    EXPECT_EQ(future_states.size(), NUM_VERTICES) ;
     for (auto state : future_states){
-        EXPECT_EQ(state.size(), NUM_VERTICES) ;
+        EXPECT_EQ(state.size(), NUM_STEPS) ;
     }
 }
 
@@ -139,24 +139,24 @@ TEST_F(TestDynamicsBaseClass, applyMove_forSomeGraphMove_expectChangesInTheGraph
     EXPECT_EQ(graph.getEdgeMultiplicityIdx(0, 2), 2);
     EXPECT_EQ(graph.getEdgeMultiplicityIdx(0, 5), 1);
     for(size_t t=0; t<dynamics.getNumSteps(); ++t){
-        for(auto vertex: graph){
+        for(const auto vertex: graph){
             std::vector<size_t> actual(dynamics.getNumStates(), 0);
             for(auto neighbor: graph.getNeighboursOfIdx(vertex)){
-                actual[past[t][neighbor.vertexIndex]] += neighbor.label;
+                actual[past[neighbor.vertexIndex][t]] += neighbor.label;
             }
             for (size_t s=0; s<dynamics.getNumStates(); ++s)
-                EXPECT_EQ(expected[t][vertex][s], actual[s]);
+                EXPECT_EQ(expected[vertex][t][s], actual[s]);
         }
     }
     EXPECT_EQ(dynamics.getCurrentNeighborsState(), dynamics.computeNeighborsState(dynamics.getCurrentState()));
 }
 
-TEST_F(TestDynamicsBaseClass, updateNeighborStateMapFromEdgeMove_fromAddedEdge_expectCorrectionInNeighborState){
+TEST_F(TestDynamicsBaseClass, updateNeighborsStateFromEdgeMove_fromAddedEdge_expectCorrectionInNeighborState){
     dynamics.sampleState();
     BaseGraph::Edge edge = GRAPH_MOVE.addedEdges[0];
     map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence> actualBefore, actualAfter;
 
-    dynamics.updateNeighborStateMapFromEdgeMove(edge, 1, actualBefore, actualAfter);
+    dynamics.updateNeighborsStateFromEdgeMove(edge, 1, actualBefore, actualAfter);
 
     auto expectedBefore = dynamics.getNeighborsPastStates();
     dynamics.applyGraphMove({{}, {edge}});
@@ -165,20 +165,20 @@ TEST_F(TestDynamicsBaseClass, updateNeighborStateMapFromEdgeMove_fromAddedEdge_e
     for (auto actual : actualBefore)
         for (size_t t=0; t<dynamics.getNumSteps(); ++t)
             for (size_t s=0; s<dynamics.getNumStates(); ++s)
-                EXPECT_EQ(expectedBefore[t][actual.first][s], actual.second[t][s]);
+                EXPECT_EQ(expectedBefore[actual.first][t][s], actual.second[t][s]);
 
     for (auto actual : actualAfter)
         for (size_t t=0; t<dynamics.getNumSteps(); ++t)
             for (size_t s=0; s<dynamics.getNumStates(); ++s)
-                EXPECT_EQ(expectedAfter[t][actual.first][s], actual.second[t][s]);
+                EXPECT_EQ(expectedAfter[actual.first][t][s], actual.second[t][s]);
 }
 
-TEST_F(TestDynamicsBaseClass, updateNeighborStateMapFromEdgeMove_fromRemovedEdge_expectCorrectionInNeighborState){
+TEST_F(TestDynamicsBaseClass, updateNeighborsStateFromEdgeMove_fromRemovedEdge_expectCorrectionInNeighborState){
     dynamics.sampleState();
     BaseGraph::Edge edge = GRAPH_MOVE.removedEdges[0];
     map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence> actualBefore, actualAfter;
 
-    dynamics.updateNeighborStateMapFromEdgeMove(edge, -1, actualBefore, actualAfter);
+    dynamics.updateNeighborsStateFromEdgeMove(edge, -1, actualBefore, actualAfter);
 
     auto expectedBefore = dynamics.getNeighborsPastStates();
     dynamics.applyGraphMove({{edge}, {}});
@@ -187,12 +187,12 @@ TEST_F(TestDynamicsBaseClass, updateNeighborStateMapFromEdgeMove_fromRemovedEdge
     for (auto actual : actualBefore)
         for (size_t t=0; t<dynamics.getNumSteps(); ++t)
             for (size_t s=0; s<dynamics.getNumStates(); ++s)
-                EXPECT_EQ(expectedBefore[t][actual.first][s], actual.second[t][s]);
+                EXPECT_EQ(expectedBefore[actual.first][t][s], actual.second[t][s]);
 
     for (auto actual : actualAfter)
         for (size_t t=0; t<dynamics.getNumSteps(); ++t)
             for (size_t s=0; s<dynamics.getNumStates(); ++s)
-                EXPECT_EQ(expectedAfter[t][actual.first][s], actual.second[t][s]);
+                EXPECT_EQ(expectedAfter[actual.first][t][s], actual.second[t][s]);
 }
 
 

@@ -20,20 +20,52 @@ void Dynamics::sampleState(const State& x0, bool async){
     m_state = x0;
     m_neighborsState = computeNeighborsState(m_state);
 
-    m_pastStateSequence.clear();
-    m_futureStateSequence.clear();
-    m_neighborsPastStateSequence.clear();
-
+    StateSequence reversedPastState;
+    StateSequence reversedFutureState;
+    NeighborsStateSequence reversedNeighborsPastState;
     for (size_t t = 0; t < m_numSteps; t++) {
-        m_pastStateSequence.push_back(m_state);
-        m_neighborsPastStateSequence.push_back(m_neighborsState);
+        reversedPastState.push_back(m_state);
+        reversedNeighborsPastState.push_back(m_neighborsState);
         if (async) { asyncUpdateState(getSize()); }
         else { syncUpdateState(); }
-        m_futureStateSequence.push_back(m_state);
+        reversedFutureState.push_back(m_state);
     }
 
-    computeVertexNeighborsStateMap();
-};
+
+    m_pastStateSequence.clear();
+    m_pastStateSequence.resize(getSize());
+    m_futureStateSequence.clear();
+    m_futureStateSequence.resize(getSize());
+    m_neighborsPastStateSequence.clear();
+    m_neighborsPastStateSequence.resize(getSize());
+    for (const auto& idx : getGraph()){
+        m_pastStateSequence[idx].resize(m_numSteps);
+        m_futureStateSequence[idx].resize(m_numSteps);
+        m_neighborsPastStateSequence[idx].resize(m_numSteps);
+        for (size_t t = 0; t < m_numSteps; t++){
+            m_pastStateSequence[idx][t] = reversedPastState[t][idx];
+            m_futureStateSequence[idx][t] = reversedFutureState[t][idx];
+            m_neighborsPastStateSequence[idx][t] = reversedNeighborsPastState[t][idx];
+        }
+    }
+
+    #if DEBUG
+    checkConsistency();
+    #endif
+
+}
+
+void Dynamics::setGraph(const MultiGraph& graph) {
+    m_randomGraphPtr->setGraph(graph);
+    if (m_pastStateSequence.size() == 0)
+        return;
+    m_neighborsState = computeNeighborsState(m_state);
+    m_neighborsPastStateSequence = computeNeighborsStateSequence(m_pastStateSequence);
+
+    #if DEBUG
+    checkConsistency();
+    #endif
+}
 
 const State Dynamics::getRandomState() const{
     size_t N = m_randomGraphPtr->getSize();
@@ -48,64 +80,69 @@ const State Dynamics::getRandomState() const{
 
 const NeighborsState Dynamics::computeNeighborsState(const State& state) const {
     size_t N = m_randomGraphPtr->getSize();
-    NeighborsState neighborSates(N);
+    NeighborsState neighborsState(N);
     int neighborIdx, edgeMultiplicity;
 
     for ( auto idx: getGraph() ){
-        neighborSates[idx].resize(m_numStates);
+        neighborsState[idx].resize(m_numStates);
         for ( auto neighbor: getGraph().getNeighboursOfIdx(idx) ){
             neighborIdx = neighbor.vertexIndex;
             edgeMultiplicity = neighbor.label;
-            neighborSates[ idx ][ state[neighborIdx] ] += edgeMultiplicity;
+            neighborsState[ idx ][ state[neighborIdx] ] += edgeMultiplicity;
         }
     }
-    return neighborSates;
+    return neighborsState;
 };
 
-const VertexNeighborhoodStateSequence Dynamics::getVertexNeighborsState ( const VertexIndex& vertexIdx ) const {
-    VertexNeighborhoodStateSequence neighborState(m_numSteps);
-    for (auto t=0; t<m_numSteps; t++) {
-        neighborState[t] = m_neighborsPastStateSequence[t][vertexIdx];
+const NeighborsStateSequence Dynamics::computeNeighborsStateSequence(const StateSequence& stateSequence) const {
+
+    NeighborsStateSequence neighborsStateSequence(getSize());
+    for ( const auto& idx: getGraph() ){
+        neighborsStateSequence[idx].resize(m_numSteps);
+        for (size_t t=0; t<m_numSteps; t++){
+            neighborsStateSequence[idx][t].resize(m_numStates);
+            for ( const auto& neighbor: getGraph().getNeighboursOfIdx(idx) )
+                neighborsStateSequence[ idx ][t][ stateSequence[neighbor.vertexIndex][t] ] += neighbor.label;
+        }
     }
-    return neighborState;
+    return neighborsStateSequence;
 };
 
-void Dynamics::updateNeighborStateInPlace(
+
+void Dynamics::updateNeighborsStateInPlace(
     VertexIndex vertexIdx,
     VertexState prevVertexState,
     VertexState newVertexState,
-    NeighborsState& neighborState) const {
+    NeighborsState& neighborsState) const {
     int neighborIdx, edgeMultiplicity;
     if (prevVertexState == newVertexState)
         return;
     for ( auto neighbor: getGraph().getNeighboursOfIdx(vertexIdx) ){
         neighborIdx = neighbor.vertexIndex;
         edgeMultiplicity = neighbor.label;
-        neighborState[neighborIdx][prevVertexState] -= edgeMultiplicity;
-        neighborState[neighborIdx][newVertexState] += edgeMultiplicity;
+        neighborsState[neighborIdx][prevVertexState] -= edgeMultiplicity;
+        neighborsState[neighborIdx][newVertexState] += edgeMultiplicity;
     }
 };
 
 void Dynamics::syncUpdateState(){
     State futureState(m_state);
     vector<double> transProbs(m_numStates);
-    NeighborsState newNeighborsState = m_neighborsState;
 
-    for (auto idx: getGraph()){
+    for (const auto idx: getGraph()){
         transProbs = getTransitionProbs(m_state[idx], m_neighborsState[idx]);
         futureState[idx] = generateCategorical<double, size_t>(transProbs);
-        updateNeighborStateInPlace(idx, m_state[idx], futureState[idx], newNeighborsState);
-
     }
+    for (const auto idx: getGraph())
+        updateNeighborsStateInPlace(idx, m_state[idx], futureState[idx], m_neighborsState);
+    displayMatrix(m_neighborsState, "n");
     m_state = futureState;
-    m_neighborsState = newNeighborsState;
 };
 
 void Dynamics::asyncUpdateState(int numUpdates){
     size_t N = m_randomGraphPtr->getSize();
     VertexState newVertexState;
     State currentState(m_state);
-    // m_neighborsState = getNeighborsState(m_state);
     vector<double> transProbs(m_numStates);
     uniform_int_distribution<VertexIndex> idxGenerator(0, N-1);
 
@@ -113,7 +150,7 @@ void Dynamics::asyncUpdateState(int numUpdates){
         VertexIndex idx = idxGenerator(rng);
         transProbs = getTransitionProbs(currentState[idx], m_neighborsState[idx]);
         newVertexState = generateCategorical<double, size_t>(transProbs);
-        updateNeighborStateInPlace(idx, currentState[idx], newVertexState, m_neighborsState);
+        updateNeighborsStateInPlace(idx, currentState[idx], newVertexState, m_neighborsState);
         currentState[idx] = newVertexState;
     }
     m_state = currentState;
@@ -121,14 +158,14 @@ void Dynamics::asyncUpdateState(int numUpdates){
 
 const double Dynamics::getLogLikelihood() const {
     double logLikelihood = 0;
-    vector<int> neighborState(getNumStates(), 0);
+    vector<int> neighborsState(getNumStates(), 0);
     int neighborIdx, edgeMultiplicity;
-    for (size_t t = 0; t < m_pastStateSequence.size(); t++){
+    for (size_t t = 0; t < m_numSteps; t++){
         for (auto idx: getGraph()){
             logLikelihood += log(getTransitionProb(
-                m_pastStateSequence[t][idx],
-                m_futureStateSequence[t][idx],
-                m_neighborsPastStateSequence[t][idx]
+                m_pastStateSequence[idx][t],
+                m_futureStateSequence[idx][t],
+                m_neighborsPastStateSequence[idx][t]
             ));
         }
     }
@@ -143,7 +180,7 @@ const std::vector<double> Dynamics::getTransitionProbs(VertexState prevVertexSta
     return transProbs;
 };
 
-void Dynamics::updateNeighborStateMapFromEdgeMove(
+void Dynamics::updateNeighborsStateFromEdgeMove(
     BaseGraph::Edge edge,
     int counter,
     map<VertexIndex, VertexNeighborhoodStateSequence>& prevNeighborMap,
@@ -159,18 +196,18 @@ void Dynamics::updateNeighborStateMapFromEdgeMove(
 
 
     if (prevNeighborMap.count(v) == 0){
-        prevNeighborMap.insert({v, m_vertexMapNeighborsPastStateSequence[v]}) ;
-        nextNeighborMap.insert({v, m_vertexMapNeighborsPastStateSequence[v]}) ;
+        prevNeighborMap.insert({v, m_neighborsPastStateSequence[v]}) ;
+        nextNeighborMap.insert({v, m_neighborsPastStateSequence[v]}) ;
     }
     if (prevNeighborMap.count(u) == 0){
-        prevNeighborMap.insert({u, m_vertexMapNeighborsPastStateSequence[u]}) ;
-        nextNeighborMap.insert({u, m_vertexMapNeighborsPastStateSequence[u]}) ;
+        prevNeighborMap.insert({u, m_neighborsPastStateSequence[u]}) ;
+        nextNeighborMap.insert({u, m_neighborsPastStateSequence[u]}) ;
     }
 
     VertexState vState, uState;
     for (size_t t = 0; t < m_numSteps; t++) {
-        uState = m_pastStateSequence[t][u];
-        vState = m_pastStateSequence[t][v];
+        uState = m_pastStateSequence[u][t];
+        vState = m_pastStateSequence[v][t];
         if (u == v)
             nextNeighborMap[u][t][uState] += counter;
         else{
@@ -190,22 +227,22 @@ const double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move)
         size_t v = edge.first, u = edge.second;
         verticesAffected.insert(v);
         verticesAffected.insert(u);
-        updateNeighborStateMapFromEdgeMove(edge, 1, prevNeighborMap, nextNeighborMap);
+        updateNeighborsStateFromEdgeMove(edge, 1, prevNeighborMap, nextNeighborMap);
     }
     for (const auto& edge : move.removedEdges){
         size_t v = edge.first, u = edge.second;
         verticesAffected.insert(v);
         verticesAffected.insert(u);
-        updateNeighborStateMapFromEdgeMove(edge, -1, prevNeighborMap, nextNeighborMap);
+        updateNeighborsStateFromEdgeMove(edge, -1, prevNeighborMap, nextNeighborMap);
     }
 
     for (const auto& idx: verticesAffected){
         for (size_t t = 0; t < m_numSteps; t++) {
             logLikelihoodRatio += log(
-                getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], nextNeighborMap[idx][t])
+                getTransitionProb(m_pastStateSequence[idx][t], m_futureStateSequence[idx][t], nextNeighborMap[idx][t])
             );
             logLikelihoodRatio -= log(
-                getTransitionProb(m_pastStateSequence[t][idx], m_futureStateSequence[t][idx], prevNeighborMap[idx][t])
+                getTransitionProb(m_pastStateSequence[idx][t], m_futureStateSequence[idx][t], prevNeighborMap[idx][t])
             );
         }
     }
@@ -225,7 +262,7 @@ const double Dynamics::getLogJointRatioFromGraphMove(const GraphMove& move) cons
 void Dynamics::applyGraphMove(const GraphMove& move){
     set<VertexIndex> verticesAffected;
     map<VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
-    VertexNeighborhoodStateSequence neighborState(m_numSteps);
+    VertexNeighborhoodStateSequence neighborsState(m_numSteps);
     size_t v, u;
 
     for (const auto& edge : move.addedEdges){
@@ -233,7 +270,7 @@ void Dynamics::applyGraphMove(const GraphMove& move){
         u = edge.second;
         verticesAffected.insert(v);
         verticesAffected.insert(u);
-        updateNeighborStateMapFromEdgeMove(edge, 1, prevNeighborMap, nextNeighborMap);
+        updateNeighborsStateFromEdgeMove(edge, 1, prevNeighborMap, nextNeighborMap);
         m_neighborsState[u][m_state[v]] += 1;
         m_neighborsState[v][m_state[u]] += 1;
     }
@@ -242,30 +279,24 @@ void Dynamics::applyGraphMove(const GraphMove& move){
         u = edge.second;
         verticesAffected.insert(v);
         verticesAffected.insert(u);
-        updateNeighborStateMapFromEdgeMove(edge, -1, prevNeighborMap, nextNeighborMap);
+        updateNeighborsStateFromEdgeMove(edge, -1, prevNeighborMap, nextNeighborMap);
         m_neighborsState[u][m_state[v]] -= 1;
         m_neighborsState[v][m_state[u]] -= 1;
     }
 
     for (const auto& idx: verticesAffected){
         for (size_t t = 0; t < m_numSteps; t++) {
-            m_neighborsPastStateSequence[t][idx] = nextNeighborMap[idx][t];
-            m_vertexMapNeighborsPastStateSequence[idx][t] = nextNeighborMap[idx][t];
+            m_neighborsPastStateSequence[idx][t] = nextNeighborMap[idx][t];
         }
     }
     m_randomGraphPtr->applyGraphMove(move);
 }
 
 void Dynamics::checkConsistencyOfNeighborsPastState() const {
-    for (const auto& idx : getGraph()){
-        for (size_t t = 0; t < m_numSteps; t++){
-            if (m_neighborsPastStateSequence[t][idx] != m_vertexMapNeighborsPastStateSequence[idx][t])
-                throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsisten with vertex map.");
-        }
-    }
-    auto n = getCurrentNeighborsState();
-    if (n != computeNeighborsState(m_state))
-        throw ConsistencyError("Dynamics: `m_neighborsState` is inconsisten with `m_state`.");
+    if (m_neighborsPastStateSequence != computeNeighborsStateSequence(m_pastStateSequence))
+        throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsistent with past states.");
+    if (m_neighborsState != computeNeighborsState(m_state))
+        throw ConsistencyError("Dynamics: `m_neighborsState` is inconsistent with `m_state`.");
 
 }
 
@@ -285,8 +316,6 @@ void Dynamics::checkSafety() const {
     if (m_futureStateSequence.size() == 0)
         throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
     if (m_neighborsPastStateSequence.size() == 0)
-        throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
-    if (m_vertexMapNeighborsPastStateSequence.size() == 0)
         throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
 }
 

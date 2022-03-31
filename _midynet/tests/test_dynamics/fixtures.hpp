@@ -69,12 +69,12 @@ class DummyDynamics: public Dynamics{
             VertexNeighborhoodState vertexNeighborhoodState
         ) const { return 1. / getNumStates(); }
 
-        void updateNeighborStateMapFromEdgeMove(
+        void updateNeighborsStateFromEdgeMove(
             BaseGraph::Edge edge,
             int direction,
             std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&prev,
             std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&next
-        ) const { Dynamics::updateNeighborStateMapFromEdgeMove(edge, direction, prev, next); }
+        ) const { Dynamics::updateNeighborsStateFromEdgeMove(edge, direction, prev, next); }
 };
 
 static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
