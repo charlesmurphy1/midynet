@@ -30,27 +30,29 @@ def get_config(
         num_procs=num_procs,
         num_async_process=num_async_process,
     )
-    N, E = 500, 1250
-    T = [1000]
+    N, E = 1000, 2500
+    T = [2000]
     h = 1
     if dynamics == "sis":
         coupling = np.unique(
             np.concatenate(
                 [
-                    np.linspace(0.25, 0.75, 50),
+                    np.linspace(0., 0.25, 2),
+                    np.linspace(0.25, 0.75, 20),
                     np.linspace(0.75, 2.0, 10),
                 ]
             )
         )
     elif dynamics == "ising":
         coupling = np.unique(
-            np.concatenate([np.linspace(0, 1, 50), np.linspace(1, 3, 10)])
+            np.concatenate([np.linspace(0, 1, 20), np.linspace(1, 3, 11)])
         )
     elif dynamics == "cowan_backward":
         coupling = np.unique(
             np.concatenate(
                 [
-                    np.linspace(1.0, 1.5, 50),
+                    np.linspace(1.0, 1.25, 2),
+                    np.linspace(1.25, 1.5, 20),
                     np.linspace(1.5, 3, 10),
                 ]
             )
@@ -59,9 +61,9 @@ def get_config(
         coupling = np.unique(
             np.concatenate(
                 [
-                    np.linspace(1.0, 1.5, 5),
-                    np.linspace(1.5, 2.25, 50),
-                    np.linspace(2.25, 3, 5),
+                    np.linspace(2., 2.1, 2),
+                    np.linspace(2.1, 2.5, 20),
+                    np.linspace(2.5, 4, 10),
                 ]
             )
         )
@@ -79,7 +81,7 @@ def get_config(
     )
     config.metrics.mutualinfo.set_value("method", "meanfield")
     config.metrics.mutualinfo.set_value("initial_burn", 10000)
-    config.metrics.mutualinfo.set_value("num_sweeps", 1000)
+    config.metrics.mutualinfo.set_value("num_sweeps", 500)
     config.metrics.mutualinfo.set_value("burn_per_vertex", 5)
     if dynamics == "cowan_backward":
         config.dynamics.set_value("num_active", config.graph.size)
@@ -96,13 +98,13 @@ def get_config(
 
 
 def main():
-    for dynamics in ["ising", "sis", "cowan_forward", "cowan_backward"]:
+    for dynamics in ["cowan_forward", "cowan_backward"]:
         config = get_config(
             dynamics,
-            num_procs=1,
-            num_async_process=4,
+            num_procs=64,
+            num_async_process=2,
             mem=12,
-            time="30:00:00",
+            time="60:00:00",
         )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
