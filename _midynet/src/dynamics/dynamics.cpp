@@ -301,7 +301,7 @@ void Dynamics::checkConsistencyOfNeighborsPastState() const {
 }
 
 void Dynamics::checkConsistency() const {
-
+    checkConsistencyOfNeighborsPastState();
 }
 
 void Dynamics::checkSafety() const {

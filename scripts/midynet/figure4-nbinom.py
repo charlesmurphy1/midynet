@@ -31,7 +31,7 @@ def get_config(
         num_async_process=num_async_process,
     )
     N, E = 1000, 2500
-    T = [2000]
+    T = 2000
     h = 1
     if dynamics == "sis":
         coupling = np.unique(
@@ -98,7 +98,7 @@ def get_config(
 
 
 def main():
-    for dynamics in ["cowan_forward", "cowan_backward"]:
+    for dynamics in ["ising", "sis", "cowan_forat", "cowan_backward"]:
         config = get_config(
             dynamics,
             num_procs=64,
@@ -112,10 +112,8 @@ def main():
             path_to_scripts="./scripts",
         )
 
-        configT = script.split_param(config, "dynamics.num_steps")
-
         script.run(
-            configT,
+            config,
             modules_to_load=SPECS["modules_to_load"],
             virtualenv=SPECS["virtualenv"],
             extra_args=dict(verbose=2),
