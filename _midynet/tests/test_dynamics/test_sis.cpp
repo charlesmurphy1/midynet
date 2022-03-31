@@ -50,19 +50,7 @@ TEST_F(TestSISDynamics, getDeactivationProb_forEachStateTransition_returnCorrect
 
 TEST_F(TestSISDynamics, afterSample_getCorrectNeighborState){
     dynamics.sample();
-    auto past = dynamics.getPastStates();
-    auto expectedNeighborState = dynamics.getNeighborsPastStates();
-
-    for(size_t t=0; t<dynamics.getNumSteps(); ++t){
-        for (auto vertex : dynamics.getGraph()){
-            std::vector<size_t> actualNeighborState(dynamics.getNumStates(), 0);
-            for (auto neighbor : dynamics.getGraph().getNeighboursOfIdx(vertex)){
-                actualNeighborState[past[t][neighbor.vertexIndex]]+= neighbor.label;
-            }
-            for (size_t s=0 ; s< dynamics.getNumStates(); ++s)
-                EXPECT_EQ(actualNeighborState[s], expectedNeighborState[t][vertex][s]);
-        }
-    }
+    dynamics.checkConsistencyOfNeighborsPastState();
 }
 
 TEST_F(TestSISDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
@@ -75,7 +63,7 @@ TEST_F(TestSISDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
     double actual = 0;
     for(size_t t=0; t<dynamics.getNumSteps(); ++t){
         for (auto vertex : dynamics.getGraph()){
-            actual += log(dynamics.getTransitionProb(past[t][vertex], future[t][vertex], neighborState[t][vertex]));
+            actual += log(dynamics.getTransitionProb(past[vertex][t], future[vertex][t], neighborState[vertex][t]));
         }
     }
     EXPECT_NEAR(expected, actual, 1E-6);

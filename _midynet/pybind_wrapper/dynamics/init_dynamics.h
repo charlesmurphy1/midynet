@@ -41,10 +41,6 @@ void initDynamicsBaseClass(py::module& m){
         .def("sample_graph", &Dynamics::sampleGraph)
         .def("get_random_state", &Dynamics::getRandomState)
         .def("normalizeCoupling", &Dynamics::normalizeCoupling)
-        .def("compute_neighbors_state", &Dynamics::computeNeighborsState,
-            py::arg("state"))
-        .def("get_vertex_neighbor_state", &Dynamics::getVertexNeighborsState,
-            py::arg("idx"))
         .def("sync_update_state", &Dynamics::syncUpdateState)
         .def("async_update_state", &Dynamics::asyncUpdateState,
             py::arg("num_updates")=1)

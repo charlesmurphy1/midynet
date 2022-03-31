@@ -28,15 +28,15 @@ protected:
     StateSequence m_futureStateSequence;
     RandomGraph* m_randomGraphPtr = nullptr;
     NeighborsStateSequence m_neighborsPastStateSequence;
-    std::vector<VertexNeighborhoodStateSequence> m_vertexMapNeighborsPastStateSequence;
+    // std::vector<VertexNeighborhoodStateSequence> m_vertexMapNeighborsPastStateSequence;
 
-    void updateNeighborStateInPlace(
+    void updateNeighborsStateInPlace(
         BaseGraph::VertexIndex vertexIdx,
         VertexState prevVertexState,
         VertexState newVertexState,
-        NeighborsState& neighborState
+        NeighborsState& neighborsState
     ) const ;
-    void updateNeighborStateMapFromEdgeMove(
+    void updateNeighborsStateFromEdgeMove(
         BaseGraph::Edge,
         int direction,
         std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&,
@@ -63,18 +63,13 @@ public:
     const bool normalizeCoupling() const { return m_normalizeCoupling; }
     void setState(State& state) {
         m_state = state;
+        m_neighborsState = computeNeighborsState(m_state);
+        #if DEBUG
+        checkConsistency();
+        #endif
     }
     const MultiGraph& getGraph() const { return m_randomGraphPtr->getGraph(); }
-    void setGraph(const MultiGraph& graph) {
-        m_randomGraphPtr->setGraph(graph);
-        m_neighborsState = computeNeighborsState(m_state);
-        if (m_pastStateSequence.size() == 0)
-            return;
-        for (size_t t = 0 ; t < m_numSteps ; t++){
-            m_neighborsPastStateSequence[t] = computeNeighborsState(m_pastStateSequence[t]);
-        }
-        computeVertexNeighborsStateMap();
-    }
+    void setGraph(const MultiGraph& graph) ;
 
     const RandomGraph& getRandomGraph() const { return *m_randomGraphPtr; }
     RandomGraph& getRandomGraphRef() const { return *m_randomGraphPtr; }
@@ -96,13 +91,17 @@ public:
     void sampleGraph() { setGraph(m_randomGraphPtr->sample()); }
     virtual const State getRandomState() const;
     const NeighborsState computeNeighborsState(const State& state) const;
-    const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const;
-    void computeVertexNeighborsStateMap(){
-        m_vertexMapNeighborsPastStateSequence.resize(getSize());
-        for (const auto& idx : getGraph()){
-            m_vertexMapNeighborsPastStateSequence[idx] = getVertexNeighborsState(idx);
-        }
-    }
+    const NeighborsStateSequence computeNeighborsStateSequence(const StateSequence& stateSequence) const;
+    // const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const{
+    //     NeighborsState neighborsState;
+    //     for (size_t t=0)
+    // }
+    // void computeVertexNeighborsStateMap(){
+    //     m_vertexMapNeighborsPastStateSequence.resize(getSize());
+    //     for (const auto& idx : getGraph()){
+    //         m_vertexMapNeighborsPastStateSequence[idx] = getVertexNeighborsState(idx);
+    //     }
+    // }
 
     void syncUpdateState();
     void asyncUpdateState(int num_updates);
