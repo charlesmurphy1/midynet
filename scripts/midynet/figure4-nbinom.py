@@ -98,7 +98,7 @@ def get_config(
 
 
 def main():
-    for dynamics in ["ising", "sis", "cowan_forat", "cowan_backward"]:
+    for dynamics in ["ising", "sis", "cowan_forward", "cowan_backward"]:
         config = get_config(
             dynamics,
             num_procs=64,
