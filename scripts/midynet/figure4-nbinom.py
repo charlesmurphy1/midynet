@@ -25,7 +25,7 @@ def get_config(
         dynamics,
         "nbinom_cm",
         metrics=["mutualinfo"],
-        path=PATH_TO_DATA / "figure4",
+        path=PATH_TO_DATA / "figure4" / f"figure4-large-nbinom-{dynamics}",
         seed=seed,
         num_procs=num_procs,
         num_async_process=num_async_process,
