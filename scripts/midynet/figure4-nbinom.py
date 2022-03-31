@@ -102,7 +102,7 @@ def main():
         config = get_config(
             dynamics,
             num_procs=64,
-            num_async_process=2,
+            num_async_process=4,
             mem=12,
             time="60:00:00",
         )
