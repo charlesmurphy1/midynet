@@ -135,7 +135,6 @@ void Dynamics::syncUpdateState(){
     }
     for (const auto idx: getGraph())
         updateNeighborsStateInPlace(idx, m_state[idx], futureState[idx], m_neighborsState);
-    displayMatrix(m_neighborsState, "n");
     m_state = futureState;
 };
 
