@@ -25,7 +25,7 @@ def get_config(
         dynamics,
         "nbinom_cm",
         metrics=["mutualinfo"],
-        path=PATH_TO_DATA / "figure4" / f"figure4-large-nbinom-{dynamics}",
+        path=PATH_TO_DATA / "figure4_" / f"figure4-large-nbinom-{dynamics}",
         seed=seed,
         num_procs=num_procs,
         num_async_process=num_async_process,
@@ -37,21 +37,20 @@ def get_config(
         coupling = np.unique(
             np.concatenate(
                 [
-                    np.linspace(0., 0.25, 2),
-                    np.linspace(0.25, 0.75, 20),
-                    np.linspace(0.75, 2.0, 10),
+                    np.linspace(0., 0.125, 3),
+                    np.linspace(0.125, 0.5, 30),
                 ]
             )
         )
     elif dynamics == "ising":
         coupling = np.unique(
-            np.concatenate([np.linspace(0, 1, 20), np.linspace(1, 3, 11)])
+            np.concatenate([np.linspace(0., 0.5, 6), np.linspace(0.5, 0.75, 22), np.linspace(0.75, 1.5, 6)])
         )
     elif dynamics == "cowan_backward":
         coupling = np.unique(
             np.concatenate(
                 [
-                    np.linspace(1.0, 1.25, 2),
+                    np.linspace(1.0, 1.25, 4),
                     np.linspace(1.25, 1.5, 20),
                     np.linspace(1.5, 3, 10),
                 ]
@@ -61,8 +60,7 @@ def get_config(
         coupling = np.unique(
             np.concatenate(
                 [
-                    np.linspace(2., 2.1, 2),
-                    np.linspace(2.1, 2.5, 20),
+                    np.linspace(2., 2.5, 23),
                     np.linspace(2.5, 4, 10),
                 ]
             )
@@ -102,9 +100,9 @@ def main():
         config = get_config(
             dynamics,
             num_procs=64,
-            num_async_process=4,
-            mem=12,
-            time="60:00:00",
+            num_async_process=2,
+            mem=18,
+            time="32:00:00",
         )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
