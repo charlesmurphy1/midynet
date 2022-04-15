@@ -153,9 +153,33 @@ class Statistics:
             interpF = interp1d(x, y["mid"], kind=interpolate)
             interpX = np.linspace(min(x), max(x), interp_num_points)
             interpY = interpF(interpX)
+            interpErrorLowF = interp1d(
+                x,
+                y["mid"] - np.abs(y["low"]) / error_scaling,
+                kind=interpolate,
+            )
+            interpErrorHighF = interp1d(
+                x,
+                y["mid"] + np.abs(y["high"]) / error_scaling,
+                kind=interpolate,
+            )
+            interpErrorLowY = interpErrorLowF(interpX)
+            interpErrorHighY = interpErrorHighF(interpX)
+
             ax.plot(
                 interpX, interpY, marker="None", linestyle=linestyle, **kwargs
             )
+
+            if fill:
+                fill_color = c if fill_color is None else fill_color
+                ax.fill_between(
+                    interpX,
+                    interpErrorLowY,
+                    interpErrorHighY,
+                    color=fill_color,
+                    alpha=a * fill_alpha,
+                    linestyle="None",
+                )
         else:
             ax.plot(
                 x[index],
@@ -164,6 +188,16 @@ class Statistics:
                 linestyle=linestyle,
                 **kwargs,
             )
+            if fill:
+                fill_color = c if fill_color is None else fill_color
+                ax.fill_between(
+                    x[index],
+                    y["mid"][index] - np.abs(y["low"][index]) / error_scaling,
+                    y["mid"][index] + np.abs(y["high"][index]) / error_scaling,
+                    color=fill_color,
+                    alpha=a * fill_alpha,
+                    linestyle="None",
+                )
         ax.plot(
             x[index[::spacing]],
             y["mid"][index[::spacing]],
@@ -172,16 +206,6 @@ class Statistics:
             **kwargs,
         )
 
-        if fill:
-            fill_color = c if fill_color is None else fill_color
-            ax.fill_between(
-                x[index],
-                y["mid"][index] - np.abs(y["low"][index]) / error_scaling,
-                y["mid"][index] + np.abs(y["high"][index]) / error_scaling,
-                color=fill_color,
-                alpha=a * fill_alpha,
-                linestyle="None",
-            )
         if bar:
             ax.errorbar(
                 x[index],
