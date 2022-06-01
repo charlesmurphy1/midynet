@@ -1,6 +1,7 @@
 #ifndef FAST_MIDYNET_DEGREE_H
 #define FAST_MIDYNET_DEGREE_H
 
+#include <map>
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/prior/sbm/degree_count.h"
@@ -161,8 +162,15 @@ public:
     const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
 };
 
-class DegreeHyperPrior: public DegreePrior{
+class DegreeUniformHyperPrior: public DegreePrior{
+public:
 
+    using DegreePrior::DegreePrior;
+    void sampleState() override;
+
+    const double getLogLikelihood() const override;
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const;
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const;
 };
 
 

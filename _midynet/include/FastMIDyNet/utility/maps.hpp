@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <map>
+#include <set>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -35,6 +36,9 @@ public:
         }
         return true;
     }
+    const std::set<KeyType>& keys() const{
+        return m_keys;
+    }
     const ValueType& get(const KeyType& key) const {
         if ( isEmpty(key) ) return m_defaultValue;
         else return m_map.at(key);
@@ -42,10 +46,11 @@ public:
 
     void set(const KeyType& key, const ValueType& value) {
         m_map[key] = value;
+        m_keys.insert(key);
     }
 
     bool isEmpty(KeyType key) const{
-        return m_map.count(key) == 0;
+        return m_keys.count(key) == 0;
     }
 
     void erase(KeyType key){ if (not isEmpty(key)) { m_map.erase(key); }}
@@ -64,6 +69,7 @@ public:
 protected:
     std::map<KeyType, ValueType> m_map;
     ValueType m_defaultValue;
+    std::set<KeyType> m_keys;
 };
 
 template < typename KeyType>

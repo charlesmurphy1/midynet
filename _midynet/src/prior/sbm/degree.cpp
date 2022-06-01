@@ -1,10 +1,12 @@
 #include <map>
+#include <random>
 #include <string>
 #include <vector>
 
 #include "FastMIDyNet/prior/sbm/degree.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/utility/integer_partition.h"
 #include "FastMIDyNet/utility/maps.hpp"
 
 using namespace std;
@@ -248,6 +250,84 @@ const double DegreeUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockM
         logLikelihoodRatio -= logMultisetCoefficient(er + der, nr + dnr) - logMultisetCoefficient(er, nr);
     }
 
+    return logLikelihoodRatio;
+}
+
+void DegreeUniformHyperPrior::sampleState() {
+    auto nr = m_blockPriorPtr->getVertexCountsInBlocks();
+    auto er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks();
+    auto B = m_blockPriorPtr->getBlockCount();
+    std::vector<std::list<size_t>> unorderedDegrees;
+    for (size_t r = 0; r < B; ++r){
+        unorderedDegrees[r] = sampleRandomRestrictedPartition(er[r], nr[r]);
+        std::shuffle(std::begin(unorderedDegrees[r]), std::end(unorderedDegrees[r]), rng);
+    }
+
+    std::vector<size_t> degreeSeq(m_blockPriorPtr->getSize(), 0);
+    for (size_t v=0; v<m_blockPriorPtr->getSize(); ++v){
+        BlockIndex r = m_blockPriorPtr->getBlockOfIdx(v);
+        degreeSeq[v] = unorderedDegrees[r].front();
+        unorderedDegrees[r].pop_front();
+    }
+    setState(degreeSeq);
+}
+
+const double DegreeUniformHyperPrior::getLogLikelihood() const {
+    double logP = 0;
+    for (size_t r = 0; r < m_blockPriorPtr->getBlockCount(); ++r){
+        auto nr = m_blockPriorPtr->getVertexCountsInBlocks()[r];
+        auto er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[r];
+        for (auto k : m_degreeCountsInBlocks[r].keys())
+            logP += logFactorial(m_degreeCountsInBlocks[r].get(k));
+        logP -= logFactorial(nr);
+        logP -= logFactorial(log_q_approx(er, nr));
+    }
+    return logP;
+}
+const double DegreeUniformHyperPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+    IntMap<BaseGraph::VertexIndex> diffDegreeMap;
+    IntMap<BaseGraph::VertexIndex> diffEdgeMap;
+    for (auto edge : move.addedEdges){
+        diffDegreeMap.increment(edge.first);
+        diffDegreeMap.increment(edge.second);
+
+        diffEdgeMap.increment(m_blockPriorPtr->getBlockOfIdx(edge.first));
+        diffEdgeMap.increment(m_blockPriorPtr->getBlockOfIdx(edge.second));
+    }
+    for (auto edge : move.removedEdges){
+        diffDegreeMap.decrement(edge.first);
+        diffDegreeMap.decrement(edge.second);
+
+        diffEdgeMap.decrement(m_blockPriorPtr->getBlockOfIdx(edge.first));
+        diffEdgeMap.decrement(m_blockPriorPtr->getBlockOfIdx(edge.second));
+    }
+
+    double logLikelihoodRatio = 0;
+    for (auto diff : diffDegreeMap){
+        size_t k = m_state[diff.first], r = m_blockPriorPtr->getBlockOfIdx(diff.first);
+        logLikelihoodRatio += logFactorial(m_degreeCountsInBlocks[r].get(k) + diff.second);
+        logLikelihoodRatio -= logFactorial(m_degreeCountsInBlocks[r].get(k));
+    }
+
+    for (auto diff : diffEdgeMap){
+        logLikelihoodRatio -= logFactorial(m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[diff.first] + diff.second);
+        logLikelihoodRatio += logFactorial(m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[diff.first]);
+    }
+
+    return logLikelihoodRatio;
+
+}
+
+const double DegreeUniformHyperPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+    BlockIndex r = move.prevBlockIdx, s = move.nextBlockIdx;
+    size_t k = m_state[move.vertexIdx];
+    size_t nr = m_blockPriorPtr->getVertexCountsInBlocks()[r], ns = m_blockPriorPtr->getVertexCountsInBlocks()[s] ;
+    size_t er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[r], es = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[s] ;
+    
+    double logLikelihoodRatio = 0;
+    logLikelihoodRatio += log(m_degreeCountsInBlocks[s].get(k) + 1) - log(m_degreeCountsInBlocks[r].get(k));
+    logLikelihoodRatio -= logFactorial(er - k) + logFactorial(es + k) - logFactorial(er) - logFactorial(es);
+    logLikelihoodRatio += log(nr) - log(ns + 1);
     return logLikelihoodRatio;
 }
 

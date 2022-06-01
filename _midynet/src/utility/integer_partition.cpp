@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+#include <algorithm>
 #include "FastMIDyNet/utility/integer_partition.h"
 #include "FastMIDyNet/utility/polylog2_integral.h"
 #include "FastMIDyNet/utility/functions.h"
@@ -23,6 +24,25 @@ using namespace std;
 
 namespace FastMIDyNet
 {
+
+
+std::vector<size_t> getConjugatePartitionWithFixedSize(std::list<size_t> partition, size_t maxSize){
+    std::vector<size_t> conjugate(maxSize, 0);
+    for (auto n: partition){
+        conjugate[n]++;
+    }
+    return conjugate;
+}
+
+std::vector<size_t> getCompactConjugatePartition(std::list<size_t> partition){
+    size_t maxSize = *std::max_element(partition.begin(), partition.end()) + 1;
+    return getConjugatePartitionWithFixedSize(partition, maxSize);
+}
+
+std::vector<size_t> getConjugatePartition(std::list<size_t> partition){
+    size_t maxSize = std::accumulate(partition.begin(), partition.end(), 1);
+    return getConjugatePartitionWithFixedSize(partition, maxSize);
+}
 
 
 double q_rec(int n, int k)

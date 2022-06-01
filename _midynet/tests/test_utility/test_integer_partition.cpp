@@ -3,6 +3,19 @@
 
 namespace FastMIDyNet{
 
+template<typename T>
+void printContent(T container){
+    std::cout << "{";
+    size_t counter = 0;
+    for (auto n : container){
+        std::cout << n;
+        ++counter;
+        if (counter < container.size())
+             std::cout << ", ";
+    }
+    std::cout << "}" << std::endl;
+}
+
 TEST(TestIntegerPartitionNumber, q_rec_recursiveExpression){
     for (size_t i=2; i<100; ++i)
         EXPECT_EQ(q_rec(i, 1), 1);
@@ -18,6 +31,23 @@ TEST(TestIntegerPartitionNumber, log_q_approx_returnResult){
     double exact = log(q_rec(n, m));
     double approx = log_q_approx(n, m);
     EXPECT_NEAR(exact, approx, 1);
+}
+
+TEST(TestIntegerPartitionNumber, conjugatePartition_returnsCorrectConjugate){
+    std::list<size_t> partition;
+    std::vector<size_t> conjugate, compact;
+    partition = {1,1,3,4};
+    conjugate = {0,2,0,1,1,0,0,0,0,0};
+    compact = {0,2,0,1,1};
+
+    EXPECT_EQ(conjugate, getConjugatePartition(partition));
+    EXPECT_EQ(compact, getCompactConjugatePartition(partition));
+
+    partition = {0,9};
+    conjugate = {1,0,0,0,0,0,0,0,0,1};
+    compact = conjugate;
+    EXPECT_EQ(conjugate, getConjugatePartition(partition));
+    EXPECT_EQ(compact, getCompactConjugatePartition(partition));
 }
 
 }

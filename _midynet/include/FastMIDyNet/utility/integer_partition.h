@@ -6,6 +6,9 @@
 
 namespace FastMIDyNet{
 
+std::vector<size_t> getConjugatePartition(std::list<size_t> partition);
+std::vector<size_t> getCompactConjugatePartition(std::list<size_t> partition);
+std::vector<size_t> getConjugatePartition(std::list<size_t> partition, size_t maxSize);
 double q_rec(int n, int k);
 double log_q_approx(size_t n, size_t k);
 double log_q_approx_big(size_t n, size_t k);

@@ -57,9 +57,7 @@ class BlockCountPriorConfig(Config):
     @classmethod
     def delta(cls, block_count: int):
         if block_count < 1:
-            raise ValueError(
-                "`block_count` must be greater than or equal to 1."
-            )
+            raise ValueError("`block_count` must be greater than or equal to 1.")
         return cls(name="delta", state=block_count)
 
     @classmethod
@@ -115,9 +113,7 @@ class BlockPriorConfig(Config):
 class EdgeMatrixPriorConfig(Config):
     @classmethod
     def uniform(cls, edge_count):
-        return cls(
-            name="uniform", edge_count=EdgeCountPriorConfig.auto(edge_count)
-        )
+        return cls(name="uniform", edge_count=EdgeCountPriorConfig.auto(edge_count))
 
 
 class DegreePriorConfig(Config):
@@ -238,7 +234,7 @@ class DegreePriorFactory(Factory):
 
     @staticmethod
     def build_hyperuniform(config: DegreePriorConfig) -> sbm.DegreePrior:
-        UnavailableOption(config.name)
+        return sbm.DegreeHyperUniformPrior()
 
 
 if __name__ == "__main__":
