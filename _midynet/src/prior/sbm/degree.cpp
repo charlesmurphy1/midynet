@@ -1,6 +1,7 @@
 #include <map>
 #include <random>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "FastMIDyNet/prior/sbm/degree.h"
@@ -257,10 +258,12 @@ void DegreeUniformHyperPrior::sampleState() {
     auto nr = m_blockPriorPtr->getVertexCountsInBlocks();
     auto er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks();
     auto B = m_blockPriorPtr->getBlockCount();
-    std::vector<std::list<size_t>> unorderedDegrees;
+    std::vector<std::list<size_t>> unorderedDegrees(B);
     for (size_t r = 0; r < B; ++r){
-        unorderedDegrees[r] = sampleRandomRestrictedPartition(er[r], nr[r]);
-        std::shuffle(std::begin(unorderedDegrees[r]), std::end(unorderedDegrees[r]), rng);
+        auto p = sampleRandomRestrictedPartition(er[r], nr[r]);
+        std::vector<size_t> v(p.begin(), p.end());
+        std::shuffle(std::begin(v), std::end(v), rng);
+        unorderedDegrees[r].assign(v.begin(), v.end());
     }
 
     std::vector<size_t> degreeSeq(m_blockPriorPtr->getSize(), 0);
@@ -280,23 +283,31 @@ const double DegreeUniformHyperPrior::getLogLikelihood() const {
         for (auto k : m_degreeCountsInBlocks[r].keys())
             logP += logFactorial(m_degreeCountsInBlocks[r].get(k));
         logP -= logFactorial(nr);
-        logP -= logFactorial(log_q_approx(er, nr));
+        logP -= log_q_approx(er, nr);
     }
     return logP;
 }
 const double DegreeUniformHyperPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
-    IntMap<BaseGraph::VertexIndex> diffDegreeMap;
-    IntMap<BaseGraph::VertexIndex> diffEdgeMap;
+    IntMap<std::pair<BlockIndex, size_t>> diffDegreeMap;
+    IntMap<BlockIndex> diffEdgeMap;
     for (auto edge : move.addedEdges){
-        diffDegreeMap.increment(edge.first);
-        diffDegreeMap.increment(edge.second);
+        size_t ki = m_state[edge.first], kj = m_state[edge.second];
+        BlockIndex r = m_blockPriorPtr->getBlockOfIdx(edge.first), s = m_blockPriorPtr->getBlockOfIdx(edge.second);
+        diffDegreeMap.increment({r, ki + 1});
+        diffDegreeMap.decrement({r, ki});
+        diffDegreeMap.increment({s, kj + 1});
+        diffDegreeMap.decrement({s, kj});
 
         diffEdgeMap.increment(m_blockPriorPtr->getBlockOfIdx(edge.first));
         diffEdgeMap.increment(m_blockPriorPtr->getBlockOfIdx(edge.second));
     }
     for (auto edge : move.removedEdges){
-        diffDegreeMap.decrement(edge.first);
-        diffDegreeMap.decrement(edge.second);
+        size_t ki = m_state[edge.first], kj = m_state[edge.second];
+        BlockIndex r = m_blockPriorPtr->getBlockOfIdx(edge.first), s = m_blockPriorPtr->getBlockOfIdx(edge.second);
+        diffDegreeMap.increment({r, ki - 1});
+        diffDegreeMap.decrement({r, ki});
+        diffDegreeMap.increment({s, kj - 1});
+        diffDegreeMap.decrement({s, kj});
 
         diffEdgeMap.decrement(m_blockPriorPtr->getBlockOfIdx(edge.first));
         diffEdgeMap.decrement(m_blockPriorPtr->getBlockOfIdx(edge.second));
@@ -304,14 +315,18 @@ const double DegreeUniformHyperPrior::getLogLikelihoodRatioFromGraphMove(const G
 
     double logLikelihoodRatio = 0;
     for (auto diff : diffDegreeMap){
-        size_t k = m_state[diff.first], r = m_blockPriorPtr->getBlockOfIdx(diff.first);
+        BlockIndex r = diff.first.first;
+        size_t k = diff.first.second;
         logLikelihoodRatio += logFactorial(m_degreeCountsInBlocks[r].get(k) + diff.second);
         logLikelihoodRatio -= logFactorial(m_degreeCountsInBlocks[r].get(k));
     }
 
+    auto er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks();
+    auto nr = m_blockPriorPtr->getVertexCountsInBlocks();
+
     for (auto diff : diffEdgeMap){
-        logLikelihoodRatio -= logFactorial(m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[diff.first] + diff.second);
-        logLikelihoodRatio += logFactorial(m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[diff.first]);
+        logLikelihoodRatio -= log_q_approx(er[diff.first] + diff.second, nr[diff.first]);
+        logLikelihoodRatio += log_q_approx(er[diff.first], nr[diff.first]);
     }
 
     return logLikelihoodRatio;
@@ -323,11 +338,12 @@ const double DegreeUniformHyperPrior::getLogLikelihoodRatioFromBlockMove(const B
     size_t k = m_state[move.vertexIdx];
     size_t nr = m_blockPriorPtr->getVertexCountsInBlocks()[r], ns = m_blockPriorPtr->getVertexCountsInBlocks()[s] ;
     size_t er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[r], es = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[s] ;
-    
+
     double logLikelihoodRatio = 0;
     logLikelihoodRatio += log(m_degreeCountsInBlocks[s].get(k) + 1) - log(m_degreeCountsInBlocks[r].get(k));
-    logLikelihoodRatio -= logFactorial(er - k) + logFactorial(es + k) - logFactorial(er) - logFactorial(es);
-    logLikelihoodRatio += log(nr) - log(ns + 1);
+    logLikelihoodRatio -= log(ns + 1) - log(nr);
+    logLikelihoodRatio -= log_q_approx(er - k, nr - 1) - log_q_approx(er, nr);
+    logLikelihoodRatio -= log_q_approx(es + k, ns + 1) - log_q_approx(es, ns);
     return logLikelihoodRatio;
 }
 

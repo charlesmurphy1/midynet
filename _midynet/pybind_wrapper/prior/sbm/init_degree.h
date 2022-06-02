@@ -37,6 +37,10 @@ void initDegreePrior(py::module& m){
         .def(py::init<>())
         .def(py::init<BlockPrior&, EdgeMatrixPrior&>(), py::arg("block_prior"), py::arg("edge_matrix"));
 
+    py::class_<DegreeUniformHyperPrior, DegreePrior>(m, "DegreeUniformHyperPrior")
+        .def(py::init<>())
+        .def(py::init<BlockPrior&, EdgeMatrixPrior&>(), py::arg("block_prior"), py::arg("edge_matrix"));
+
 
 }
 

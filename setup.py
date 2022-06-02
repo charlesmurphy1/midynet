@@ -44,9 +44,7 @@ def find_compiled_basegraph(build_path):
         raise RuntimeError("Submodule BaseGraph was not compiled.")
     lib_path = None
     for extension in [".a"]:
-        if os.path.isfile(
-            os.path.join(build_path, "libBaseGraph" + extension)
-        ):
+        if os.path.isfile(os.path.join(build_path, "libBaseGraph" + extension)):
             lib_path = os.path.join(build_path, "libBaseGraph" + extension)
             break
 
@@ -98,6 +96,8 @@ ext_modules = [
             "_midynet/src/exceptions.cpp",
             "_midynet/src/generators.cpp",
             "_midynet/src/utility/functions.cpp",
+            "_midynet/src/utility/integer_partition.cpp",
+            "_midynet/src/utility/polylog2_integral.cpp",
             "_midynet/src/prior/sbm/block_count.cpp",
             "_midynet/src/prior/sbm/vertex_count.cpp",
             "_midynet/src/prior/sbm/block.cpp",
@@ -171,9 +171,7 @@ def cpp_flag(compiler):
         if has_flag(compiler, flag):
             return flag
 
-    raise RuntimeError(
-        "Unsupported compiler -- at least C++11 support " "is needed!"
-    )
+    raise RuntimeError("Unsupported compiler -- at least C++11 support " "is needed!")
 
 
 class BuildExt(build_ext):
@@ -198,25 +196,19 @@ class BuildExt(build_ext):
         opts = self.c_opts.get(ct, [])
         link_opts = self.l_opts.get(ct, [])
         if ct == "unix":
-            opts.append(
-                '-DVERSION_INFO="%s"' % self.distribution.get_version()
-            )
+            opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
             opts.append(cpp_flag(self.compiler))
             if has_flag(self.compiler, "-fvisibility=hidden"):
                 opts.append("-fvisibility=hidden")
         elif ct == "msvc":
-            opts.append(
-                '/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version()
-            )
+            opts.append('/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version())
         for ext in self.extensions:
             ext.extra_compile_args = opts
             ext.extra_link_args = link_opts
         build_ext.build_extensions(self)
 
 
-description = (
-    "Package for the analysis of stochastic processes on random graphs."
-)
+description = "Package for the analysis of stochastic processes on random graphs."
 
 setup(
     name="midynet",

@@ -16,15 +16,17 @@ public:
 
     Map(const std::vector<KeyType>& keys, const std::vector<ValueType>& values, ValueType defaultValue):
         m_map(), m_defaultValue(defaultValue){
-        for (size_t k = 0; k < keys.size(); ++k)
+        for (size_t k = 0; k < keys.size(); ++k){
             m_map.insert(std::pair<KeyType, ValueType>(keys[k], values[k]));
+            m_keys.insert(keys[k]);
+        }
     }
     Map(const Map<KeyType, ValueType>& other):
-        m_map(other.m_map), m_defaultValue(other.m_defaultValue){}
+        m_map(other.m_map), m_keys(other.m_keys), m_defaultValue(other.m_defaultValue){}
     Map(ValueType defaultValue):
         m_map(), m_defaultValue(defaultValue) { }
-        Map():
-            m_map(), m_defaultValue() { }
+    Map():
+        m_map(), m_defaultValue() { }
     size_t size(){
         return m_map.size();
     }
@@ -53,8 +55,8 @@ public:
         return m_keys.count(key) == 0;
     }
 
-    void erase(KeyType key){ if (not isEmpty(key)) { m_map.erase(key); }}
-    void clear(){ m_map.clear(); }
+    void erase(KeyType key){ if (not isEmpty(key)) { m_map.erase(key); m_keys.erase(key); }}
+    void clear(){ m_map.clear(); m_keys.clear(); }
     typename std::map<KeyType, ValueType>::iterator begin() { return m_map.begin(); }
     typename std::map<KeyType, ValueType>::iterator end() { return m_map.end(); }
 
