@@ -76,6 +76,8 @@ void DegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& move){
 
 void DegreePrior::applyBlockMoveToDegreeCounts(const BlockMove& move){
     const DegreeSequence& degreeSeq = getState();
+    if (move.addedBlocks == 1) createBlock();
+    else if (move.addedBlocks == -1) destroyBlock(move.prevBlockIdx);
     m_degreeCountsInBlocks[move.prevBlockIdx].decrement(degreeSeq[move.vertexIdx]);
     m_degreeCountsInBlocks[move.nextBlockIdx].increment(degreeSeq[move.vertexIdx]);
 }
@@ -226,31 +228,20 @@ const double DegreeUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphM
     return logLikelihoodRatio;
 
 }
-const double DegreeUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const{
-    const BlockSequence& blockSeq = m_blockPriorPtr->getState();
-    IntMap<BlockIndex> diffEdgeCountsInBlocksMap;
-    IntMap<BlockIndex> diffVertexCountsInBlocksMap;
-    diffVertexCountsInBlocksMap.decrement(move.prevBlockIdx);
-    diffVertexCountsInBlocksMap.increment(move.nextBlockIdx);
-    for (auto neighbor : getGraph().getNeighboursOfIdx(move.vertexIdx)){
-        auto neighborIdx = neighbor.vertexIndex;
-        auto neighborBlockIdx = blockSeq[neighborIdx];
-        auto edgeMult = neighbor.label;
-        diffEdgeCountsInBlocksMap.decrement(move.prevBlockIdx, edgeMult);
-        diffEdgeCountsInBlocksMap.increment(move.nextBlockIdx, edgeMult);
-    }
 
-    const vector<size_t>& edgeCountsInBlocks = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks() ;
-    const vector<size_t>& vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks() ;
+const double DegreeUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+    BlockIndex r = move.prevBlockIdx, s = move.nextBlockIdx;
+    size_t k = m_state[move.vertexIdx];
+    size_t nr = m_blockPriorPtr->getVertexCountsInBlocks()[r] ;
+    size_t er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[r] ;
+    size_t eta_r = m_degreeCountsInBlocks[r].get(k);
+    size_t ns = (move.addedBlocks > 0) ? 0 : m_blockPriorPtr->getVertexCountsInBlocks()[s] ;
+    size_t es = (move.addedBlocks > 0) ? 0 :  m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[s] ;
+    size_t eta_s =  (move.addedBlocks > 0) ? 0 : m_degreeCountsInBlocks[s].get(k);
+
     double logLikelihoodRatio = 0;
-    for (size_t r = 0 ; r < m_blockPriorPtr->getBlockCount() ; ++r){
-        auto er = edgeCountsInBlocks[r];
-        auto nr = vertexCountsInBlocks[r];
-        auto dnr = diffVertexCountsInBlocksMap.get(r);
-        auto der = diffEdgeCountsInBlocksMap.get(r);
-        logLikelihoodRatio -= logMultisetCoefficient(er + der, nr + dnr) - logMultisetCoefficient(er, nr);
-    }
-
+    logLikelihoodRatio -= logMultisetCoefficient(er - k, nr - 1) - logMultisetCoefficient(er, nr);
+    logLikelihoodRatio -= logMultisetCoefficient(es + k, ns + 1) - logMultisetCoefficient(es, ns);
     return logLikelihoodRatio;
 }
 
@@ -336,14 +327,20 @@ const double DegreeUniformHyperPrior::getLogLikelihoodRatioFromGraphMove(const G
 const double DegreeUniformHyperPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
     BlockIndex r = move.prevBlockIdx, s = move.nextBlockIdx;
     size_t k = m_state[move.vertexIdx];
-    size_t nr = m_blockPriorPtr->getVertexCountsInBlocks()[r], ns = m_blockPriorPtr->getVertexCountsInBlocks()[s] ;
-    size_t er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[r], es = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[s] ;
+    size_t nr = m_blockPriorPtr->getVertexCountsInBlocks()[r] ;
+    size_t er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[r] ;
+    size_t eta_r = m_degreeCountsInBlocks[r].get(k);
+    size_t ns = (move.addedBlocks > 0) ? 0 : m_blockPriorPtr->getVertexCountsInBlocks()[s] ;
+    size_t es = (move.addedBlocks > 0) ? 0 :  m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[s] ;
+    size_t eta_s =  (move.addedBlocks > 0) ? 0 : m_degreeCountsInBlocks[s].get(k);
 
     double logLikelihoodRatio = 0;
-    logLikelihoodRatio += log(m_degreeCountsInBlocks[s].get(k) + 1) - log(m_degreeCountsInBlocks[r].get(k));
+    logLikelihoodRatio += log(eta_s + 1) - log(eta_r);
     logLikelihoodRatio -= log(ns + 1) - log(nr);
     logLikelihoodRatio -= log_q_approx(er - k, nr - 1) - log_q_approx(er, nr);
-    logLikelihoodRatio -= log_q_approx(es + k, ns + 1) - log_q_approx(es, ns);
+    logLikelihoodRatio -= log_q_approx(es + k, ns + 1);
+    if (move.addedBlocks <= 0)
+        logLikelihoodRatio -= -log_q_approx(es, ns);
     return logLikelihoodRatio;
 }
 

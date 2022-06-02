@@ -133,6 +133,18 @@ TEST_F(TestDegreePrior, applyBlockMoveToState_forNonEmptyBlockMove_doNothing){
     }
 }
 
+TEST_F(TestDegreePrior, applyBlockMoveToState_forBlockMoveAddingBlock_doNothing){
+    FastMIDyNet::BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockCount(), 1};
+    FastMIDyNet::DegreeSequence degreeSeqBefore = prior.getState();
+    prior.applyBlockMoveToState(move);
+    FastMIDyNet::DegreeSequence degreeSeqAfter = prior.getState();
+
+    EXPECT_EQ(degreeSeqBefore.size(), degreeSeqAfter.size());
+    for(size_t i=0; i<degreeSeqBefore.size(); ++i){
+        EXPECT_EQ(degreeSeqBefore[i], degreeSeqAfter[i]);
+    }
+}
+
 TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
     blockPrior.setState(BLOCK_SEQ);
     FastMIDyNet::GraphMove move = {{}, {{0,1}}};
@@ -143,41 +155,50 @@ TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectD
     prior.applyGraphMoveToDegreeCounts(move);
     auto actual = prior.getDegreeCountsInBlocks();
 
-    for (size_t r = 0; r < prior.getBlockPrior().getBlockCount(); ++r){
+    for (size_t r = 0; r < blockPrior.getBlockCount(); ++r){
         EXPECT_TRUE(expected[r] == actual[r]);
     }
 }
 
 TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrectDegreeCounts){
-    blockPrior.setState(BLOCK_SEQ);
-    FastMIDyNet::GraphMove move = {{{0, 6}}, {}};
+    while(blockPrior.getBlockCount()==1) prior.sample();
+    FastMIDyNet::GraphMove move = {{{0, 4}}, {}};
     size_t E = prior.getEdgeMatrixPrior().getEdgeCount();
     auto expected = prior.getDegreeCountsInBlocks();
-    expected[0].decrement(E); expected[0].increment(E-1);
-    expected[1].decrement(E); expected[1].increment(E-1);
     prior.applyGraphMoveToDegreeCounts(move);
     auto actual = prior.getDegreeCountsInBlocks();
 
-    for (size_t r = 0; r < prior.getBlockPrior().getBlockCount(); ++r){
-        EXPECT_TRUE(expected[r] == actual[r]);
-    }
+    BlockIndex r = blockPrior.getBlockOfIdx(0), s = blockPrior.getBlockOfIdx(0);
+    size_t ki = prior.getState()[0],  kj = prior.getState()[0];
+
+    EXPECT_EQ(expected[r].get(ki) - 1, actual[r].get(ki));
+    EXPECT_EQ(expected[r].get(ki - 1) + 1, actual[r].get(ki - 1));
+
+    EXPECT_EQ(expected[s].get(kj) - 1, actual[s].get(kj));
+    EXPECT_EQ(expected[s].get(kj - 1) + 1, actual[s].get(kj - 1));
 }
 
 TEST_F(TestDegreePrior, applyBlockMoveToDegreeCounts_forNonEmptyBlockMove_returnCorrectDegreeCounts){
+    while(blockPrior.getBlockCount() == 1 || blockPrior.getBlockOfIdx(0) != 0) prior.sample();
     FastMIDyNet::BlockMove move = {0, 0, 1, 0};
-    while(prior.getBlockPrior().getBlockCount() == 1) prior.sample();
-    size_t E = prior.getEdgeMatrixPrior().getEdgeCount();
+    size_t k = prior.getState()[0], r = blockPrior.getBlockOfIdx(0);
     auto expected = prior.getDegreeCountsInBlocks();
-    expected[0].decrement(E);;
-    expected[1].increment(E);;
     prior.applyBlockMoveToDegreeCounts(move);
     auto actual = prior.getDegreeCountsInBlocks();
-
-    for (size_t r = 0; r < prior.getBlockPrior().getBlockCount(); ++r){
-        EXPECT_TRUE(expected[r] == actual[r]);
-    }
+    EXPECT_EQ(expected[0].get(k) - 1, actual[0].get(k));
+    EXPECT_EQ(expected[1].get(k) + 1, actual[1].get(k));
 }
 
+TEST_F(TestDegreePrior, applyBlockMoveToDegreeCounts_forAddedBlockMove_returnCorrectDegreeCounts){
+    while(blockPrior.getBlockCount() != 2 || blockPrior.getBlockOfIdx(0) != 0) prior.sample();
+    FastMIDyNet::BlockMove move = {0, 0, 2, 1};
+    size_t k = prior.getState()[0], r = 0, s = 2;
+    auto expected = prior.getDegreeCountsInBlocks();
+    prior.applyBlockMoveToDegreeCounts(move);
+    auto actual = prior.getDegreeCountsInBlocks();
+    EXPECT_EQ(expected[0].get(k) - 1, actual[0].get(k));
+    EXPECT_EQ(1, actual[2].get(k));
+}
 
 
 class TestDegreeUniformPrior: public ::testing::Test {
@@ -266,6 +287,19 @@ TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBl
     auto g = FastMIDyNet::generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState(), prior.getState());
     prior.setGraph(g);
     FastMIDyNet::BlockMove move = {idx, prior.getBlockPrior().getState()[idx], prior.getBlockPrior().getState()[idx] + 1, 0};
+    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
+    double logLikelihoodBefore = prior.getLogLikelihood();
+    prior.applyBlockMove(move);
+    double logLikelihoodAfter = prior.getLogLikelihood();
+
+    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
+}
+
+TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromBlockMove_forBlockMoveAddingNewBlock_returnCorrectRatio){
+    BaseGraph::VertexIndex idx = 0;
+    auto g = FastMIDyNet::generateDCSBM(blockPrior.getState(), prior.getEdgeMatrixPrior().getState(), prior.getState());
+    prior.setGraph(g);
+    FastMIDyNet::BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getBlockCount(), 1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
     prior.applyBlockMove(move);
