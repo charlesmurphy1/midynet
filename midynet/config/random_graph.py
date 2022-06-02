@@ -44,9 +44,7 @@ class RandomGraphConfig(Config):
         obj.insert("blocks", BlockPriorConfig.auto(blocks))
         obj.insert("edge_matrix", EdgeMatrixPriorConfig.auto(edge_matrix))
         if obj.edge_matrix.edge_count.name == "delta":
-            obj.insert(
-                "edge_proposer", EdgeProposerConfig.hinge_flip_uniform()
-            )
+            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("block_proposer", BlockProposerConfig.peixoto())
@@ -100,9 +98,7 @@ class RandomGraphConfig(Config):
         obj.insert("edge_count", EdgeCountPriorConfig.auto(edge_count))
 
         if obj.edge_count.name == "delta":
-            obj.insert(
-                "edge_proposer", EdgeProposerConfig.hinge_flip_uniform()
-            )
+            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("sample_graph_prior_prob", 0.0)
@@ -138,9 +134,7 @@ class RandomGraphConfig(Config):
         if obj.degrees.name == "delta":
             obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
         elif obj.edge_matrix.edge_count.name == "delta":
-            obj.insert(
-                "edge_proposer", EdgeProposerConfig.hinge_flip_uniform()
-            )
+            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("block_proposer", BlockProposerConfig.peixoto())
@@ -159,9 +153,7 @@ class RandomGraphConfig(Config):
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         degrees = DegreePriorConfig.uniform()
 
-        return cls.custom_dcsbm(
-            "uniform_dcsbm", size, blocks, edge_matrix, degrees
-        )
+        return cls.custom_dcsbm("uniform_dcsbm", size, blocks, edge_matrix, degrees)
 
     @classmethod
     def hyperuniform_dcsbm(
@@ -192,9 +184,7 @@ class RandomGraphConfig(Config):
         if obj.degrees.name == "delta":
             obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
         elif obj.edge_count.name == "delta":
-            obj.insert(
-                "edge_proposer", EdgeProposerConfig.hinge_flip_uniform()
-            )
+            obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         obj.insert("sample_graph_prior_prob", 0.0)
@@ -237,9 +227,7 @@ class RandomGraphConfig(Config):
         return cls.custom_cm("uniform_cm", size, edge_count, degrees)
 
     @classmethod
-    def hyperuniform_cm(
-        cls, size: int = 100, edge_count: Union[int, float] = 250
-    ):
+    def hyperuniform_cm(cls, size: int = 100, edge_count: Union[int, float] = 250):
         edge_count = EdgeCountPriorConfig.auto(edge_count)
         degrees = DegreePriorConfig.hyperuniform()
         return cls.custom_cm("hyperuniform_cm", size, edge_count, degrees)

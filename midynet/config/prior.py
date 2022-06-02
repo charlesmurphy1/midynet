@@ -234,7 +234,7 @@ class DegreePriorFactory(Factory):
 
     @staticmethod
     def build_hyperuniform(config: DegreePriorConfig) -> sbm.DegreePrior:
-        return sbm.DegreeHyperUniformPrior()
+        return sbm.DegreeUniformHyperPrior()
 
 
 if __name__ == "__main__":
