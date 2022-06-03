@@ -59,7 +59,7 @@ class BlockPeixotoProposer: public BlockProposer {
             if (m_graphPtr == nullptr)
                 throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_graphPtr` is NULL.");
         }
-    private:
+    protected:
         IntMap<std::pair<BlockIndex, BlockIndex>> getEdgeMatrixDiff(const BlockMove& move) const ;
         IntMap<BlockIndex> getEdgeCountsDiff(const BlockMove& move) const ;
         bool creatingNewBlock(const BlockIndex& newBlock) const { return newBlock == *m_blockCountPtr; }

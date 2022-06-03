@@ -17,7 +17,7 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
         BlockPrior* m_blockPriorPtr = nullptr;
         std::vector<size_t> m_edgeCountsInBlocks;
-        const MultiGraph* m_graph;
+        const MultiGraph* m_graphPtr;
 
         void createBlock();
         void destroyBlock(const BlockIndex&);
@@ -46,7 +46,7 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         void setBlockPrior(BlockPrior& blockPrior) { m_blockPriorPtr = &blockPrior;  m_blockPriorPtr->isRoot(false);}
 
         void setGraph(const MultiGraph& graph);
-        const MultiGraph& getGraph() { return *m_graph; }
+        const MultiGraph& getGraph() { return *m_graphPtr; }
         void setState(const EdgeMatrix&) override;
 
         const size_t& getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }

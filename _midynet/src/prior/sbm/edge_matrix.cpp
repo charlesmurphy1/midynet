@@ -14,7 +14,7 @@ namespace FastMIDyNet {
 /* DEFINITION OF EDGE MATRIX PRIOR BASE CLASS */
 
 void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
-    m_graph = &graph;
+    m_graphPtr = &graph;
     const auto& blockSeq = m_blockPriorPtr->getState();
     const auto& blockCount = m_blockPriorPtr->getBlockCount();
 
@@ -67,25 +67,41 @@ void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {
         return;
 
     const auto& blockSeq = m_blockPriorPtr->getState();
+    const auto& degree = m_graphPtr->getDegreeOfIdx(move.vertexIdx);
 
-    for (auto neighbor: m_graph->getNeighboursOfIdx(move.vertexIdx)) {
-        if (neighbor.vertexIndex == move.vertexIdx) {
-            m_state[move.prevBlockIdx][move.prevBlockIdx] -= 2*neighbor.label;
-            m_edgeCountsInBlocks[move.prevBlockIdx] -= 2*neighbor.label;
+    // move.display();
+    // std::cout <<  "actual block of vertex: "<< m_blockPriorPtr->getState()[move.vertexIdx] << std::endl;
+    m_edgeCountsInBlocks[move.prevBlockIdx] -= degree;
+    m_edgeCountsInBlocks[move.nextBlockIdx] += degree;
+    for (auto neighbor: m_graphPtr->getNeighboursOfIdx(move.vertexIdx)) {
+        auto neighborBlock = blockSeq[neighbor.vertexIndex];
 
-            m_state[move.nextBlockIdx][move.nextBlockIdx] += 2*neighbor.label;
-            m_edgeCountsInBlocks[move.nextBlockIdx] += 2*neighbor.label;
-        }
-        else {
-            const BlockIndex& neighborBlock = blockSeq[neighbor.vertexIndex];
-            m_state[move.prevBlockIdx][neighborBlock] -= neighbor.label;
-            m_state[neighborBlock][move.prevBlockIdx] -= neighbor.label;
-            m_edgeCountsInBlocks[move.prevBlockIdx] -= neighbor.label;
+        if (move.vertexIdx == neighbor.vertexIndex) // for self-loops
+            neighborBlock = move.prevBlockIdx;
+        m_state[move.prevBlockIdx][neighborBlock] -= neighbor.label;
+        m_state[neighborBlock][move.prevBlockIdx] -= neighbor.label;
 
-            m_state[move.nextBlockIdx][neighborBlock] += neighbor.label;
-            m_state[neighborBlock][move.nextBlockIdx] += neighbor.label;
-            m_edgeCountsInBlocks[move.nextBlockIdx] += neighbor.label;
-        }
+        if (move.vertexIdx == neighbor.vertexIndex) // for self-loops
+            neighborBlock = move.nextBlockIdx;
+        m_state[move.nextBlockIdx][neighborBlock] += neighbor.label;
+        m_state[neighborBlock][move.nextBlockIdx] += neighbor.label;
+        // if (neighbor.vertexIndex == move.vertexIdx) {
+        //     m_state[move.prevBlockIdx][move.prevBlockIdx] -= 2*neighbor.label;
+        //     m_edgeCountsInBlocks[move.prevBlockIdx] -= 2*neighbor.label;
+        //
+        //     m_state[move.nextBlockIdx][move.nextBlockIdx] += 2*neighbor.label;
+        //     m_edgeCountsInBlocks[move.nextBlockIdx] += 2*neighbor.label;
+        // }
+        // else {
+        //     const BlockIndex& neighborBlock = blockSeq[neighbor.vertexIndex];
+        //     m_state[move.prevBlockIdx][neighborBlock] -= neighbor.label;
+        //     m_state[neighborBlock][move.prevBlockIdx] -= neighbor.label;
+        //     m_edgeCountsInBlocks[move.prevBlockIdx] -= neighbor.label;
+        //
+        //     m_state[move.nextBlockIdx][neighborBlock] += neighbor.label;
+        //     m_state[neighborBlock][move.nextBlockIdx] += neighbor.label;
+        //     m_edgeCountsInBlocks[move.nextBlockIdx] += neighbor.label;
+        // }
     }
 }
 

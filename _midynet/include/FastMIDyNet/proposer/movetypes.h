@@ -40,8 +40,15 @@ struct BlockMove{
     int addedBlocks;
 
     void display()const{
-        std::cout << "vertex " << vertexIdx << ": " << prevBlockIdx << " -> " << nextBlockIdx << std::endl;
-    }
+        std::cout << "vertex " << vertexIdx << ": " << prevBlockIdx << " -> " << nextBlockIdx;
+        if (addedBlocks == 0)
+            std::cout << "(no block addded)";
+        else if (addedBlocks == 1)
+            std::cout << "(new block created)";
+        else if (addedBlocks == -1)
+            std::cout << "(block destroyed)";
+        std::cout  << std::endl;
+        }
 };
 
 struct NestedBlockMove{

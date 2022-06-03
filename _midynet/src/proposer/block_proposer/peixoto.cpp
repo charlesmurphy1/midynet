@@ -9,9 +9,9 @@ namespace FastMIDyNet {
 
 BlockMove BlockPeixotoProposer::proposeMove(BaseGraph::VertexIndex movedVertex) const {
     BlockIndex prevBlockIdx = (*m_blocksPtr)[movedVertex];
-    if (m_createNewBlockDistribution(rng) == 1){
+    if (m_createNewBlockDistribution(rng) == 1)
         return {movedVertex, prevBlockIdx, *m_blockCountPtr, 1};
-    } else if ( m_graphPtr->getDegreeOfIdx(movedVertex) == 0 ){
+    if ( m_graphPtr->getDegreeOfIdx(movedVertex) == 0 ){
         std::uniform_int_distribution<size_t> dist(0, *m_blockCountPtr-1);
         BlockIndex nextBlockIdx = dist(rng);
         int addedBlocks = 0;
@@ -20,28 +20,29 @@ BlockMove BlockPeixotoProposer::proposeMove(BaseGraph::VertexIndex movedVertex) 
         }
         return {movedVertex, prevBlockIdx, nextBlockIdx, addedBlocks};
 
-    } else {
-
-        auto neighbors = m_graphPtr->getNeighboursOfIdx(movedVertex);
-        const BaseGraph::VertexIndex& randomNeighbor = sampleUniformlyFrom(neighbors.begin(), neighbors.end())->vertexIndex;
-        BlockIndex t = (*m_blocksPtr)[randomNeighbor];
-        double probUniformSampling = m_shift * (*m_blockCountPtr) / ((*m_edgeCountsPtr)[t] + m_shift * (*m_blockCountPtr));
-
-        BlockIndex nextBlockIdx;
-        int addedBlocks = 0;
-        if ( m_uniform01(rng) < probUniformSampling){
-            std::uniform_int_distribution<size_t> dist(0, *m_blockCountPtr-1);
-            nextBlockIdx = dist(rng);
-        } else {
-            nextBlockIdx = generateCategorical<size_t, size_t>( (*m_edgeMatrixPtr)[t] );
-        }
-
-        if ( destroyingBlock(prevBlockIdx, nextBlockIdx) ){
-            --addedBlocks;
-        }
-
-        return {movedVertex, prevBlockIdx, nextBlockIdx, addedBlocks};
     }
+
+    auto neighbors = m_graphPtr->getNeighboursOfIdx(movedVertex);
+    BaseGraph::VertexIndex randomNeighbor = sampleUniformlyFrom(neighbors.begin(), neighbors.end())->vertexIndex;
+    while(randomNeighbor == movedVertex)
+        randomNeighbor = sampleUniformlyFrom(neighbors.begin(), neighbors.end())->vertexIndex;
+    BlockIndex t = (*m_blocksPtr)[randomNeighbor];
+    double probUniformSampling = m_shift * (*m_blockCountPtr) / ((*m_edgeCountsPtr)[t] + m_shift * (*m_blockCountPtr));
+
+    BlockIndex nextBlockIdx;
+    int addedBlocks = 0;
+    if ( m_uniform01(rng) < probUniformSampling){
+        std::uniform_int_distribution<size_t> dist(0, *m_blockCountPtr-1);
+        nextBlockIdx = dist(rng);
+    } else {
+        nextBlockIdx = generateCategorical<size_t, size_t>( (*m_edgeMatrixPtr)[t] );
+    }
+
+    if ( destroyingBlock(prevBlockIdx, nextBlockIdx) ){
+        --addedBlocks;
+    }
+
+    return {movedVertex, prevBlockIdx, nextBlockIdx, addedBlocks};
 }
 
 void BlockPeixotoProposer::setUp(const RandomGraph& randomGraph) {
@@ -55,27 +56,27 @@ void BlockPeixotoProposer::setUp(const RandomGraph& randomGraph) {
 }
 
 const double BlockPeixotoProposer::getLogProposalProb(const BlockMove& move) const {
-    if ( move.addedBlocks == 1){
+    size_t B = *m_blockCountPtr;
+    if ( move.addedBlocks == 1)
          return log(m_blockCreationProbability);
-    } else if (m_graphPtr->getDegreeOfIdx(move.vertexIdx) == 0){
-        return log(1 - m_blockCreationProbability) - log(*m_blockCountPtr);
-    } else {
-        size_t degree = 0;
-        double weight = 0;
-        auto r = move.prevBlockIdx, s = move.nextBlockIdx;
-        for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
-            auto t = (*m_blocksPtr) [ neighbor.vertexIndex];
-            auto label = neighbor.label;
-            if (move.vertexIdx == neighbor.label) label *= 2;
-            t = (*m_blocksPtr) [ neighbor.vertexIndex ];
+    double weight = 0, degree = 0;
+    auto r = move.prevBlockIdx, s = move.nextBlockIdx;
+    for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
+        if (move.vertexIdx == neighbor.vertexIndex)
+            continue;
+        auto t = (*m_blocksPtr) [ neighbor.vertexIndex ];
+        size_t Est = (*m_edgeMatrixPtr)[t][move.nextBlockIdx];
+        size_t Et = (*m_edgeCountsPtr)[t];
 
-            degree += label;
-            weight += label * ( (*m_edgeMatrixPtr)[t][s] + m_shift ) / ((*m_edgeCountsPtr)[t] + m_shift * (*m_blockCountPtr)) ;
-        }
-        double logProposal = log(1 - m_blockCreationProbability) + log(weight) - log(degree);
-
-        return logProposal;
+        degree += neighbor.label;
+        weight += neighbor.label * ( Est + m_shift ) / (Et + m_shift * B) ;
     }
+
+    if (degree == 0)
+       return log(1 - m_blockCreationProbability) - log(B);
+    double logProposal = log(1 - m_blockCreationProbability) + log(weight) - log(degree);
+    // std::cout << weight << ", " << degree << std::endl;
+    return logProposal;
 }
 
 
@@ -84,57 +85,51 @@ IntMap<std::pair<BlockIndex, BlockIndex>> BlockPeixotoProposer::getEdgeMatrixDif
     BlockIndex r = move.prevBlockIdx, s = move.nextBlockIdx;
     for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
         BlockIndex t = (*m_blocksPtr)[neighbor.vertexIndex];
-        if (r == t)
-            edgeMatDiff.decrement(getOrderedEdge({r, t}), 2 * neighbor.label);
-        else
-            edgeMatDiff.decrement(getOrderedEdge({r, t}), neighbor.label);
-        if (s == t)
-            edgeMatDiff.increment(getOrderedEdge({s, t}), 2 * neighbor.label);
-        else
-            edgeMatDiff.increment(getOrderedEdge({s, t}), neighbor.label);
+        if (move.vertexIdx == neighbor.vertexIndex)
+            t = move.prevBlockIdx;
+        edgeMatDiff.decrement({r, t}, neighbor.label);
+        edgeMatDiff.decrement({t, r}, neighbor.label);
+        if (move.vertexIdx == neighbor.vertexIndex)
+            t = move.nextBlockIdx;
+        edgeMatDiff.increment({s, t}, neighbor.label);
+        edgeMatDiff.increment({t, s}, neighbor.label);
     }
      return edgeMatDiff;
 }
 
 IntMap<BlockIndex> BlockPeixotoProposer::getEdgeCountsDiff(const BlockMove& move) const {
     IntMap<BlockIndex> edgeCountsDiff;
-    BlockIndex r = move.prevBlockIdx, s = move.nextBlockIdx;
-    for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
-        BlockIndex t = (*m_blocksPtr)[neighbor.vertexIndex];
-        auto label = neighbor.label;
-        if (move.vertexIdx == neighbor.vertexIndex) label *= 2;
-        edgeCountsDiff.decrement(r, label);
-        edgeCountsDiff.increment(s, label);
-    }
+    size_t degree = m_graphPtr->getDegreeOfIdx(move.vertexIdx);
+    edgeCountsDiff.decrement(move.prevBlockIdx, degree);
+    edgeCountsDiff.increment(move.nextBlockIdx, degree);
      return edgeCountsDiff;
 }
 
 const double BlockPeixotoProposer::getReverseLogProposalProb(const BlockMove& move) const {
-    if ( move.addedBlocks == -1){
+    size_t B = *m_blockCountPtr + move.addedBlocks;
+    if ( move.addedBlocks == -1)
          return log(m_blockCreationProbability);
-    } else if (m_graphPtr->getDegreeOfIdx(move.vertexIdx) == 0){
-        return log(1 - m_blockCreationProbability) - log(*m_blockCountPtr + move.addedBlocks);
-    } else {
-        auto edgeMatDiff = getEdgeMatrixDiff(move);
-        auto edgeCountsDiff = getEdgeCountsDiff(move);
-        size_t degree = 0;
-        double weight = 0;
-        auto r = move.prevBlockIdx, s = move.nextBlockIdx;
-        for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
-            auto label = neighbor.label;
-            if (neighbor.vertexIndex == move.vertexIdx) label *= 2;
-            BlockIndex t;
 
-            if (move.vertexIdx == neighbor.label) label *= 2;
-            t = (*m_blocksPtr) [ neighbor.vertexIndex ];
-            size_t nextErt = (*m_edgeMatrixPtr)[t][r] + edgeMatDiff.get(getOrderedEdge({r, t}));
-            size_t nextEt = (*m_edgeCountsPtr)[t] + edgeCountsDiff.get(t);
+    auto edgeMatDiff = getEdgeMatrixDiff(move);
+    auto edgeCountsDiff = getEdgeCountsDiff(move);
 
-            degree += neighbor.label;
-            weight += neighbor.label * ( nextErt + m_shift ) / (nextEt + m_shift * (*m_blockCountPtr + move.addedBlocks)) ;
-        }
-        return log(1 - m_blockCreationProbability) + log ( weight ) - log( degree );
+
+    double weight = 0, degree = 0;
+    for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIdx)){
+        if (move.vertexIdx == neighbor.vertexIndex)
+            continue;
+        auto t = (*m_blocksPtr) [ neighbor.vertexIndex ];
+        size_t Ert = (*m_edgeMatrixPtr)[t][move.prevBlockIdx] + edgeMatDiff.get({t, move.prevBlockIdx});
+        size_t Et = (*m_edgeCountsPtr)[t] + edgeCountsDiff.get(t);
+
+        degree += neighbor.label;
+        weight += neighbor.label * ( Ert + m_shift ) / (Et + m_shift * B) ;
     }
+
+    if (degree == 0)
+       return log(1 - m_blockCreationProbability) - log(B);
+    double logReverseProposal = log(1 - m_blockCreationProbability) + log ( weight ) - log( degree );
+    return logReverseProposal;
 }
 
 } // namespace FastMIDyNet
