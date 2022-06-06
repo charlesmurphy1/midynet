@@ -37,6 +37,10 @@ public:
         }
 
     void sampleGraph () override;
+    void sampleBlocks() {
+        m_blockPriorPtr->sample();
+        setGraph(m_graph);
+    }
 
 
     void setGraph(const MultiGraph& graph) override{
@@ -45,6 +49,11 @@ public:
         m_degreeCounts = computeDegreeCountsInBlocks();
         m_degrees = m_graph.getDegrees();
     }
+    void setBlocks(const BlockSequence& blocks){
+        m_blockPriorPtr->setState(blocks);
+        setGraph(m_graph);
+    }
+
 
 
     const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }

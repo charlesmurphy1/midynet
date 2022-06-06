@@ -59,9 +59,7 @@ class RandomGraphConfig(Config):
         edge_count: Union[int, float] = 250,
         block_count_max: Optional[Union[int, float]] = None,
     ):
-        blocks = BlockPriorConfig.uniform()
-        blocks = BlockPriorConfig.uniform()
-        blocks.block_count.set_value("max", block_count_max)
+        blocks = BlockPriorConfig.uniform(size, 1, block_count_max)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         return cls.custom_sbm("uniform_sbm", size, blocks, edge_matrix)
 
@@ -72,7 +70,7 @@ class RandomGraphConfig(Config):
         edge_count: Union[int, float] = 250,
         block_count_max: Optional[Union[int, float]] = None,
     ):
-        blocks = BlockPriorConfig.hyperuniform()
+        blocks = BlockPriorConfig.hyperuniform(size, 1, block_count_max)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         return cls.custom_sbm("hyperuniform_sbm", size, blocks, edge_matrix)
 
@@ -148,7 +146,7 @@ class RandomGraphConfig(Config):
         edge_count: Union[int, float] = 250,
         block_count_max: Optional[Union[int, float]] = None,
     ):
-        blocks = BlockPriorConfig.uniform()
+        blocks = BlockPriorConfig.uniform(size, 1, block_count_max)
         blocks.block_count.set_value("max", block_count_max)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         degrees = DegreePriorConfig.uniform()
@@ -162,7 +160,7 @@ class RandomGraphConfig(Config):
         edge_count: Union[int, float] = 250,
         block_count_max: Optional[Union[int, float]] = None,
     ):
-        blocks = BlockPriorConfig.hyperuniform()
+        blocks = BlockPriorConfig.hyperuniform(size, 1, block_count_max)
         blocks.block_count.set_value("max", block_count_max)
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         degrees = DegreePriorConfig.hyperuniform()

@@ -94,19 +94,31 @@ class BlockPriorConfig(Config):
         return cls(name="delta", state=blocks)
 
     @classmethod
-    def uniform(cls):
+    def uniform(
+        cls,
+        size: int,
+        bmin: int = 1,
+        bmax: int = None,
+    ):
+        bmax = size if bmax is None else bmax
         return cls(
             name="uniform",
-            block_count=BlockCountPriorConfig.uniform(),
+            size=size,
+            block_count=BlockCountPriorConfig.uniform(bmin, bmax),
         )
 
     @classmethod
     def hyperuniform(
         cls,
+        size: int,
+        bmin: int = 1,
+        bmax: int = None,
     ):
+        bmax = size if bmax is None else bmax
         return cls(
             name="hyperuniform",
-            block_count=BlockCountPriorConfig.uniform(),
+            size=size,
+            block_count=BlockCountPriorConfig.uniform(bmin, bmax),
         )
 
 
@@ -144,13 +156,13 @@ class DegreePriorConfig(Config):
 class EdgeCountPriorFactory(Factory):
     @staticmethod
     def build_delta(config: EdgeCountPriorConfig) -> sbm.EdgeCountDeltaPrior:
-        return sbm.EdgeCountDeltaPrior(config.get_value("state", 0))
+        return sbm.EdgeCountDeltaPrior(config.get_value("state"))
 
     @staticmethod
     def build_poisson(
         config: EdgeCountPriorConfig,
     ) -> sbm.EdgeCountPoissonPrior:
-        return sbm.EdgeCountPoissonPrior(config.get_value("mean", 0))
+        return sbm.EdgeCountPoissonPrior(config.get_value("mean"))
 
 
 class BlockCountPriorFactory(Factory):
@@ -182,7 +194,7 @@ class BlockPriorFactory(Factory):
     @staticmethod
     def build_uniform(config: BlockPriorConfig) -> sbm.BlockUniformPrior:
         B = BlockCountPriorFactory.build(config.get_value("block_count"))
-        b = sbm.BlockUniformPrior(100, B)
+        b = sbm.BlockUniformPrior(config.get_value("size"), B)
 
         return Wrapper(
             b,
@@ -197,7 +209,7 @@ class BlockPriorFactory(Factory):
         config: BlockPriorConfig,
     ) -> sbm.BlockUniformHyperPrior:
         B = BlockCountPriorFactory.build(config.get_value("block_count"))
-        b = sbm.BlockUniformHyperPrior(100, B)
+        b = sbm.BlockUniformHyperPrior(config.get_value("size"), B)
 
         return Wrapper(
             b,

@@ -67,7 +67,6 @@ const double BlockPeixotoProposer::getLogProposalProb(const BlockMove& move) con
         auto t = (*m_blocksPtr) [ neighbor.vertexIndex ];
         size_t Est = (*m_edgeMatrixPtr)[t][move.nextBlockIdx];
         size_t Et = (*m_edgeCountsPtr)[t];
-
         degree += neighbor.label;
         weight += neighbor.label * ( Est + m_shift ) / (Et + m_shift * B) ;
     }
@@ -75,7 +74,6 @@ const double BlockPeixotoProposer::getLogProposalProb(const BlockMove& move) con
     if (degree == 0)
        return log(1 - m_blockCreationProbability) - log(B);
     double logProposal = log(1 - m_blockCreationProbability) + log(weight) - log(degree);
-    // std::cout << weight << ", " << degree << std::endl;
     return logProposal;
 }
 
