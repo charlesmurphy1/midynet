@@ -22,10 +22,6 @@ protected:
     std::vector<size_t> m_degrees;
     std::vector<CounterMap<size_t>> m_degreeCounts;
     void samplePriors () ;
-    virtual void computationFinished() const {
-        m_blockPriorPtr->computationFinished();
-        m_edgeMatrixPriorPtr->computationFinished();
-    }
 
 public:
     StochasticBlockModelFamily(size_t graphSize): RandomGraph(graphSize) { }
@@ -54,6 +50,10 @@ public:
         setGraph(m_graph);
     }
 
+
+    void setPartition(const BlockSequence& blocks) override {
+
+    }
 
 
     const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }
@@ -99,20 +99,23 @@ public:
     virtual const double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
     virtual const double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
 
-    virtual void applyGraphMove (const GraphMove&) override;
-    virtual void applyBlockMove (const BlockMove&) override;
-
-
+    virtual void _applyGraphMove (const GraphMove&) override;
+    virtual void _applyBlockMove (const BlockMove&) override;
 
     static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
     static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
-    virtual void checkSelfConsistency() const ;
-    virtual void checkSafety() const ;
+
+    virtual void _checkSelfConsistency() const ;
+    virtual void _checkSafety() const ;
     virtual const bool isCompatible(const MultiGraph& graph) const override{
         if (not RandomGraph::isCompatible(graph)) return false;
         auto edgeMatrix = getEdgeMatrixFromGraph(graph, getBlocks());
         return edgeMatrix == getEdgeMatrix();
     };
+    virtual void computationFinished() const override {
+        m_blockPriorPtr->computationFinished();
+        m_edgeMatrixPriorPtr->computationFinished();
+    }
 };
 
 }// end FastMIDyNet

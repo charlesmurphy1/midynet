@@ -25,7 +25,7 @@ const double VertexCountUniformPrior::getLogLikelihoodRatioFromBlockMove(const B
 }
 
 
-void VertexCountUniformPrior::checkSelfConsistency() const{
+void VertexCountUniformPrior::_checkSelfConsistency() const{
     if (m_state.size() != getBlockCount())
         throw ConsistencyError("VertexCountPrior: state size is different from actual block count: "
         + to_string(m_state.size()) + " != " + to_string(getBlockCount()));

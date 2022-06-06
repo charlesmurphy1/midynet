@@ -50,7 +50,7 @@ void Dynamics::sampleState(const State& x0, bool async){
     }
 
     #if DEBUG
-    checkConsistency();
+    checkSelfConsistency();
     #endif
 
 }
@@ -63,7 +63,7 @@ void Dynamics::setGraph(const MultiGraph& graph) {
     m_neighborsPastStateSequence = computeNeighborsStateSequence(m_pastStateSequence);
 
     #if DEBUG
-    checkConsistency();
+    checkSelfConsistency();
     #endif
 }
 
@@ -258,7 +258,7 @@ const double Dynamics::getLogJointRatioFromGraphMove(const GraphMove& move) cons
 }
 
 
-void Dynamics::applyGraphMove(const GraphMove& move){
+void Dynamics::_applyGraphMove(const GraphMove& move){
     set<VertexIndex> verticesAffected;
     map<VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
     VertexNeighborhoodStateSequence neighborsState(m_numSteps);
@@ -299,11 +299,12 @@ void Dynamics::checkConsistencyOfNeighborsPastState() const {
 
 }
 
-void Dynamics::checkConsistency() const {
+void Dynamics::_checkSelfConsistency() const {
     checkConsistencyOfNeighborsPastState();
+    m_randomGraphPtr->checkSelfConsistency();
 }
 
-void Dynamics::checkSafety() const {
+void Dynamics::_checkSafety() const {
     if (m_randomGraphPtr == nullptr)
         throw SafetyError("Dynamics: unsafe graph family since `m_randomGraphPtr` is empty.");
     m_randomGraphPtr->checkSafety();

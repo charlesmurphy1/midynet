@@ -35,6 +35,9 @@ class TestHingeFlipUniformProposer: public::testing::Test {
             randomGraph.setGraph(graph);
             proposer.setUp(randomGraph);
         }
+        void TearDown(){
+            randomGraph.checkSelfConsistency();
+        }
 
         const MultiGraph getToyMultiGraph() {
             /*

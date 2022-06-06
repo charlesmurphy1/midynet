@@ -40,7 +40,7 @@ public:
     const std::map<BaseGraph::VertexIndex, size_t>& getVertexProposalCounts() const {
         return m_vertexProposalCounter;
     }
-    void checkSafety() const override {
+    void _checkSafety() const override {
         if (m_vertexSamplerPtr == nullptr)
             throw SafetyError("HingeFlipProposer: unsafe proposer since `m_vertexSamplerPtr` is NULL.");
         m_vertexSamplerPtr->checkSafety();
@@ -62,7 +62,7 @@ public:
     virtual ~HingeFlipUniformProposer(){}
     const double getLogVertexWeightRatio(const GraphMove& move) const override { return 0; }
 
-    void checkConsistency() const override {
+    void _checkSelfConsistency() const override {
         for (auto vertex : *m_graphPtr)
             if (not m_vertexUniformSampler.contains(vertex))
                 throw ConsistencyError(
@@ -92,7 +92,7 @@ public:
             return log(wk + 1) - log(wk);
     }
 
-    void checkConsistency() const override { }
+    void _checkSelfConsistency() const override { }
 };
 
 

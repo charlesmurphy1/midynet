@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/rv.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/utility/maps.hpp"
@@ -12,12 +13,11 @@
 
 namespace FastMIDyNet{
 
-class RandomGraph{
+class RandomGraph: public NestedRandomVariable{
 protected:
     size_t m_size;
     MultiGraph m_graph;
     virtual void samplePriors() = 0;
-    virtual void computationFinished() const { };
 public:
 
     RandomGraph(size_t size=0):
@@ -29,6 +29,8 @@ public:
     virtual void setGraph(const MultiGraph& state) {
         m_graph = state;
     }
+
+    virtual void setPartition(const BlockSequence& blocks) { }
 
     const int getSize() const { return m_size; }
     const double getAverageDegree() const {
@@ -78,12 +80,24 @@ public:
     const double getLogJointRatioFromBlockMove (const BlockMove& move) const{
         return getLogPriorRatioFromBlockMove(move) + getLogLikelihoodRatioFromBlockMove(move);
     }
-    virtual void applyGraphMove(const GraphMove& move);
-    virtual void applyBlockMove(const BlockMove& move) { };
+    virtual void _applyGraphMove(const GraphMove& move);
+    virtual void _applyBlockMove(const BlockMove& move) { };
+
+    void applyGraphMove (const GraphMove& move) {
+        processRecursiveFunction([&](){
+            _applyGraphMove(move);
+        });
+    };
+    void applyBlockMove (const BlockMove& move) {
+        processRecursiveFunction([&](){
+            _applyBlockMove(move);
+        });
+    };
 
     // void enumerateAllGraphs() const;
-    virtual void checkSelfConsistency() const { };
-    virtual void checkSafety() const { };
+    // virtual void checkSelfConsistency() const override { };
+    // virtual void checkSafety() const override { };
+    // virtual void computationFinished() const override { };
 
 };
 

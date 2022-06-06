@@ -20,13 +20,12 @@ public:
     void samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePriors, ); }
     const double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, ); }
     const double getLogPrior() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPrior, ); }
-    void checkSelfConsistency() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSelfConsistency, ); }
-    void checkSafety() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSafety, ); }
 
     /* Abstract methods */
     ~PyPrior() override = default;
     void setState(const StateType& state) override { PYBIND11_OVERRIDE(void, BaseClass, setState, state); }
-    void isRoot(bool condition) override { PYBIND11_OVERRIDE(void, BaseClass, isRoot, condition); }
+    void checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
+    void checkSafety() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSafety, ); }
     void computationFinished() const override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
 
 };

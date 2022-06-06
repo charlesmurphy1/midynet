@@ -9,6 +9,7 @@
 #include "BaseGraph/types.h"
 
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/rv.hpp"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/dynamics/types.h"
@@ -17,7 +18,7 @@
 
 namespace FastMIDyNet{
 
-class Dynamics{
+class Dynamics: public NestedRandomVariable{
 protected:
     size_t m_numStates;
     size_t m_numSteps;
@@ -49,11 +50,10 @@ public:
         m_normalizeCoupling(normalizeCoupling)
         { }
     explicit Dynamics(RandomGraph& randomGraph, size_t numStates, size_t numSteps, bool normalizeCoupling=true):
-        m_randomGraphPtr(&randomGraph),
         m_numStates(numStates),
         m_numSteps(numSteps),
         m_normalizeCoupling(normalizeCoupling)
-        { }
+        { setRandomGraph(randomGraph); }
 
     const State& getCurrentState() const { return m_state; }
     const NeighborsState& getCurrentNeighborsState() const { return m_neighborsState; }
@@ -65,7 +65,7 @@ public:
         m_state = state;
         m_neighborsState = computeNeighborsState(m_state);
         #if DEBUG
-        checkConsistency();
+        checkSelfConsistency();
         #endif
     }
     const MultiGraph& getGraph() const { return m_randomGraphPtr->getGraph(); }
@@ -73,7 +73,7 @@ public:
 
     const RandomGraph& getRandomGraph() const { return *m_randomGraphPtr; }
     RandomGraph& getRandomGraphRef() const { return *m_randomGraphPtr; }
-    void setRandomGraph(RandomGraph& randomGraph) { m_randomGraphPtr = &randomGraph; }
+    void setRandomGraph(RandomGraph& randomGraph) { m_randomGraphPtr = &randomGraph; m_randomGraphPtr->isRoot(false); }
 
     const int getSize() const { return m_randomGraphPtr->getSize(); }
     const int getNumStates() const { return m_numStates; }
@@ -92,16 +92,6 @@ public:
     virtual const State getRandomState() const;
     const NeighborsState computeNeighborsState(const State& state) const;
     const NeighborsStateSequence computeNeighborsStateSequence(const StateSequence& stateSequence) const;
-    // const VertexNeighborhoodStateSequence getVertexNeighborsState(const size_t& idx) const{
-    //     NeighborsState neighborsState;
-    //     for (size_t t=0)
-    // }
-    // void computeVertexNeighborsStateMap(){
-    //     m_vertexMapNeighborsPastStateSequence.resize(getSize());
-    //     for (const auto& idx : getGraph()){
-    //         m_vertexMapNeighborsPastStateSequence[idx] = getVertexNeighborsState(idx);
-    //     }
-    // }
 
     void syncUpdateState();
     void asyncUpdateState(int num_updates);
@@ -122,11 +112,20 @@ public:
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const;
     const double getLogPriorRatioFromGraphMove(const GraphMove& move) const;
     const double getLogJointRatioFromGraphMove(const GraphMove& move) const;
-    void applyGraphMove(const GraphMove& move);
+    void _applyGraphMove(const GraphMove& move);
+    void applyGraphMove(const GraphMove& move){
+        processRecursiveFunction([&](){
+            _applyGraphMove(move);
+        });
+    };
 
-    virtual void checkSafety() const ;
     virtual void checkConsistencyOfNeighborsPastState() const ;
-    virtual void checkConsistency() const ;
+    virtual void _checkSafety() const override  ;
+    virtual void _checkSelfConsistency() const override  ;
+    virtual void computationFinished() const {
+        m_isProcessed = false;
+        m_randomGraphPtr->computationFinished();
+    }
 
 
 };

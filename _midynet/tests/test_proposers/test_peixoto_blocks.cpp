@@ -37,7 +37,7 @@ class TestBlockPeixotoProposer: public::testing::Test {
         StochasticBlockModelFamily randomGraph = {GRAPH_SIZE, blockPrior, edgeMatrixPrior};
 
         DummyBlockPeixotoProposer blockProposer = FastMIDyNet::DummyBlockPeixotoProposer(NEW_BLOCK_PROBABILITY, SHIFT);
-        size_t numSamples = 1000;
+        size_t numSamples = 10;
 
         void SetUp() {
             seedWithTime();
@@ -45,6 +45,9 @@ class TestBlockPeixotoProposer: public::testing::Test {
             while (randomGraph.getBlockCount() != BLOCK_COUNT) randomGraph.sample();
 
             blockProposer.setUp(randomGraph);
+        }
+        void TearDown(){
+            randomGraph.checkSelfConsistency();
         }
 
         FastMIDyNet::BlockIndex findBlockMove(BaseGraph::VertexIndex idx){

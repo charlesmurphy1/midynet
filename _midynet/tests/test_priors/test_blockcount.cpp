@@ -17,7 +17,7 @@ class DummyBlockCountPrior: public FastMIDyNet::BlockCountPrior {
         const double getLogLikelihoodFromState(const size_t& state) const { return state; }
         const double getLogPrior() { return 0; }
 
-        void checkSelfConsistency() const {}
+        void _checkSelfConsistency() const override {}
         bool getIsProcessed() { return m_isProcessed; }
 };
 

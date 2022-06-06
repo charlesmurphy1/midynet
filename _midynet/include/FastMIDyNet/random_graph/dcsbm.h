@@ -20,11 +20,6 @@ class DegreeCorrectedStochasticBlockModelFamily: public StochasticBlockModelFami
 protected:
     DegreePrior* m_degreePriorPtr = nullptr;
     void samplePriors () override;
-    void computationFinished() const override{
-        m_blockPriorPtr->computationFinished();
-        m_edgeMatrixPriorPtr->computationFinished();
-        m_degreePriorPtr->computationFinished();
-    }
 public:
     DegreeCorrectedStochasticBlockModelFamily(size_t graphSize):
         StochasticBlockModelFamily(graphSize) { }
@@ -75,21 +70,25 @@ public:
     const double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
     const double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
 
-    void applyGraphMove (const GraphMove&) override;
-    void applyBlockMove (const BlockMove&) override;
+    void _applyGraphMove (const GraphMove&) override;
+    void _applyBlockMove (const BlockMove&) override;
 
 
 
     static DegreeSequence getDegreesFromGraph(const MultiGraph&) ;
     static void checkGraphConsistencyWithDegreeSequence(const MultiGraph&, const DegreeSequence&) ;
 
-
-    void checkSelfConsistency() const override;
-    virtual void checkSafety() const override;
+    void _checkSelfConsistency() const override;
+    virtual void _checkSafety() const override;
     virtual const bool isCompatible(const MultiGraph& graph) const override{
         if (not StochasticBlockModelFamily::isCompatible(graph)) return false;
         auto degrees = getDegreesFromGraph(graph);
         return degrees == getDegrees();
+    }
+    void computationFinished() const override{
+        m_blockPriorPtr->computationFinished();
+        m_edgeMatrixPriorPtr->computationFinished();
+        m_degreePriorPtr->computationFinished();
     }
 
 };

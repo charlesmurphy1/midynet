@@ -106,21 +106,21 @@ public:
         return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move);
     }
     const double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { return 0; }
-    void applyGraphMove(const GraphMove& move) override {
-        RandomGraph::applyGraphMove(move);
+    void _applyGraphMove(const GraphMove& move) override {
+        RandomGraph::_applyGraphMove(move);
         m_edgeCountPriorPtr->applyGraphMove(move);
         #if DEBUG
         checkSelfConsistency();
         #endif
     }
-    void checkSelfConsistency() const override {
+    void _checkSelfConsistency() const override {
         m_edgeCountPriorPtr->checkSelfConsistency();
         if (m_graph.getTotalEdgeNumber() != getEdgeCount())
             throw ConsistencyError("SimpleErdosRenyiFamily: edge count ("
             + std::to_string(getEdgeCount()) + ") state is not equal to the number of edges in the graph ("
             + std::to_string(m_graph.getTotalEdgeNumber()) +").");
     }
-    void checkSafety() const override {
+    void _checkSafety() const override {
         if (m_edgeCountPriorPtr == nullptr)
             throw SafetyError("SimpleErdosRenyiFamily: unsafe graph family since `m_edgeCountPriorPtr` is empty.");
         m_edgeCountPriorPtr->checkSafety();

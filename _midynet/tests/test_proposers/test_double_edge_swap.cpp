@@ -19,6 +19,10 @@ public:
     void SetUp() {
         proposer.setUpFromGraph(graph);
     }
+    void TearDown(){
+
+    }
+
     const MultiGraph getToyMultiGraph() {
         /*
         0 === 1<>

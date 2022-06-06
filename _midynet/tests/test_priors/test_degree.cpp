@@ -35,9 +35,9 @@ class DummyDegreePrior: public DegreePrior {
             degreeSeq[6] = m_edgeMatrixPriorPtr->getEdgeCount();
             setState(degreeSeq);
         }
-        const double getLogLikelihood() const { return 0; }
-        const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const { return 0; }
-        const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const { return 0; }
+        const double getLogLikelihood() const override { return 0; }
+        const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override { return 0; }
+        const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override { return 0; }
 
         void _createBlock(){ createBlock(); }
         void _destroyBlock(const BlockIndex& idx){ destroyBlock(idx); }

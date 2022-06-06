@@ -28,7 +28,7 @@ class DummyVertexCountPrior: public VertexCountPrior {
         }
         const double getLogPrior() { return 0; }
 
-        void checkSelfConsistency() const override {}
+        void _checkSelfConsistency() const override {}
         bool getIsProcessed() { return m_isProcessed; }
         const double getLogLikelihoodRatioFromBlockMove(const BlockMove& ) const override { return 0.; }
         void _createBlock(){ createBlock(); }
