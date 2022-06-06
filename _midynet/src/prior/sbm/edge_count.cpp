@@ -21,7 +21,7 @@ const double EdgeCountPoissonPrior::getLogLikelihoodFromState(const size_t& stat
     return logPoissonPMF(state, m_mean);
 }
 
-void EdgeCountPoissonPrior::checkSelfConsistency() const {
+void EdgeCountPoissonPrior::_checkSelfConsistency() const {
     if (m_mean < 0)
         throw ConsistencyError("EdgeCountPoissonPrior: Negative mean `" + std::to_string(m_mean) + "`.");
 

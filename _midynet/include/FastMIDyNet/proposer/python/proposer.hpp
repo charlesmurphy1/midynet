@@ -18,9 +18,6 @@ public:
     MoveType proposeMove() const override { PYBIND11_OVERRIDE_PURE(MoveType, BaseClass, proposeMove, ); }
 
     /* Abstract & overloaded methods */
-    void checkConsistency() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkConsistency, ); }
-    void checkSafety() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSafety, ); }
-
 };
 
 }

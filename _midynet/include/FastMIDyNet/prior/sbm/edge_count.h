@@ -36,7 +36,7 @@ class EdgeCountPrior: public Prior<size_t> {
         }
         void applyBlockMove(const BlockMove& move) { }
         size_t getStateAfterGraphMove(const GraphMove& move) const;
-        void checkSafety()const override {}
+        void _checkSafety()const override {}
 };
 
 class EdgeCountDeltaPrior: public EdgeCountPrior{
@@ -55,7 +55,7 @@ public:
     void sampleState() override { };
     const double getLogLikelihoodFromState(const size_t& state) const override { if (state == m_state) return 0.; else return -INFINITY; };
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { if (move.addedEdges.size() == move.removedEdges.size()) return 0; else return -INFINITY;}
-    void checkSelfConsistency() const override { };
+    void _checkSelfConsistency() const override { };
 
 };
 
@@ -81,7 +81,7 @@ class EdgeCountPoissonPrior: public EdgeCountPrior{
         }
         void sampleState() override;
         const double getLogLikelihoodFromState(const size_t& state) const override;
-        void checkSelfConsistency() const;
+        void _checkSelfConsistency() const;
 
 
 };
@@ -107,7 +107,7 @@ class EdgeCountPoissonPrior: public EdgeCountPrior{
 //     virtual double getWeight(size_t E) const {
 //         return logMultisetCoefficient(m_maxEdgeCount, E);
 //     }
-//     void checkSelfConsistency() const {};
+//     void _checkSelfConsistency() const {};
 // };
 //
 // class EdgeCountBinomialPrior: public EdgeCountMultisetPrior{

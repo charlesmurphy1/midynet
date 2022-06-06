@@ -34,6 +34,9 @@ class TestDynamicsBaseClass: public::testing::Test{
             dynamics.setGraph(graph);
             dynamics.setState(state);
         }
+        void TearDown(){
+            dynamics.checkSelfConsistency();
+        }
 };
 
 TEST_F(TestDynamicsBaseClass, getCurrentState_returnCurrentState){

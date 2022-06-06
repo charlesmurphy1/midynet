@@ -4,7 +4,6 @@
 #include <map>
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
-#include "FastMIDyNet/prior/sbm/degree_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/maps.hpp"
 
@@ -18,7 +17,6 @@ protected:
     BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
     DegreeCountsMap m_degreeCountsInBlocks;
-    const MultiGraph* m_graph;
 
     void createBlock();
     void destroyBlock(const BlockIndex&);
@@ -41,8 +39,12 @@ public:
         return *this;
     }
 
-    void setGraph(const MultiGraph&);
-    const MultiGraph& getGraph() const { return *m_graph; }
+    void _setGraph(const MultiGraph&);
+    void _setPartition(const BlockSequence&);
+    void setGraph(const MultiGraph& graph){ processRecursiveFunction([&](){ _setGraph(graph); }); }
+    void setPartition(const BlockSequence&blockSeq){ processRecursiveFunction([&](){ _setPartition(blockSeq); }); }
+    void recomputeState() ;
+    const MultiGraph& getGraph() const { return m_edgeMatrixPriorPtr->getGraph(); }
     virtual void setState(const DegreeSequence&) override;
 
     const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }
@@ -96,8 +98,11 @@ public:
     }
     static void checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence&, size_t);
     static void checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(const DegreeSequence&, const BlockSequence&, const std::vector<CounterMap<size_t>>&);
-    void checkSelfConsistency() const override;
-    virtual void checkSafety() const override{
+    virtual void _checkSelfConsistency() const override{
+        checkDegreeSequenceConsistencyWithEdgeCount(getState(), m_edgeMatrixPriorPtr->getEdgeCount());
+        checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(getState(), m_blockPriorPtr->getState(), getDegreeCountsInBlocks());
+    }
+    virtual void _checkSafety() const override{
         if (m_blockPriorPtr == nullptr)
             throw SafetyError("DegreePrior: unsafe prior since `m_blockPriorPtr` is empty.");
 
@@ -143,13 +148,11 @@ public:
     const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0.; };
     const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override{ return 0.; }
 
-    void checkSelfConsistency() const override { };
-    void checkSafety() const override {
+    void _checkSelfConsistency() const override { };
+    void _checkSafety() const override {
         if (m_degreeSeq.size() == 0)
             throw SafetyError("DegreeDeltaPrior: unsafe prior since `m_degreeSeq` is empty.");
     }
-
-    virtual void computationFinished() const override { m_isProcessed = false; }
 };
 
 class DegreeUniformPrior: public DegreePrior{

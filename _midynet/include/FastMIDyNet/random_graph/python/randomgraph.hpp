@@ -16,7 +16,6 @@ template<typename BaseClass = RandomGraph>
 class PyRandomGraph: public BaseClass{
 protected:
     void samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePriors, ); }
-    void computationFinished() const override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
 public:
     using BaseClass::BaseClass;
     /* Pure abstract methods */
@@ -55,10 +54,11 @@ public:
 
     /* Abstract methods */
     void setGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setGraph, graph); }
-    void applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
-    void applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
+    void _applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, _applyGraphMove, move); }
+    void _applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, _applyBlockMove, move); }
     const bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
-    void checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
+    void _checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, _checkSelfConsistency, ); }
+    void computationFinished() const override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
 };
 
 }

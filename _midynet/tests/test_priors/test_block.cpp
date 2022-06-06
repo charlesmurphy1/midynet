@@ -39,7 +39,7 @@ class DummyBlockPrior: public BlockPrior {
 
         const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { return 0; }
 
-        void checkSelfConsistency() const override { }
+        void _checkSelfConsistency() const override { }
         bool getIsProcessed() { return m_isProcessed; }
 };
 

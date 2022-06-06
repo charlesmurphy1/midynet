@@ -76,7 +76,7 @@ public:
         if (move.addedBlocks == -1){ destroyBlock(move.prevBlockIdx); }
     }
     virtual void computationFinished() const override { m_isProcessed = false; m_blockCountPriorPtr->computationFinished(); }
-    virtual void checkSafety() const override{
+    virtual void _checkSafety() const override{
         if (m_size < 0)
             throw SafetyError("BlockPrior: unsafe prior since `size` < 0: " + std::to_string(m_size) + ".");
 
@@ -93,7 +93,7 @@ public:
     void sampleState() override;
 
     const double getLogLikelihood() const override { return getLogLikelihoodFromState(getSize(), getBlockCount()); }
-    void checkSelfConsistency() const override;
+    void _checkSelfConsistency() const override;
 
     const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override;
     static size_t getSizeFromState(const std::vector<size_t> state){

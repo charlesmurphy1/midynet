@@ -16,9 +16,9 @@ class DummyEdgeMatrixPrior: public EdgeMatrixPrior {
     public:
         using EdgeMatrixPrior::EdgeMatrixPrior;
         void sampleState() {}
-        const double getLogLikelihood() const { return 0.; }
-        const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const { return 0; }
-        const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const { return 0; }
+        const double getLogLikelihood() const override { return 0.; }
+        const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override { return 0; }
+        const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const override { return 0; }
 
         void applyGraphMove(const GraphMove&) { };
         void applyBlockMove(const BlockMove&) { };

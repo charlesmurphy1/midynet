@@ -16,10 +16,10 @@ class DummyPrior: public FastMIDyNet::Prior<size_t> {
         void sampleState() override { }
         const double getLogLikelihood() const override { return m_state; }
         const double getLogPrior() const override{ return 0; }
-        void checkSelfConsistency() const override {}
+        void _checkSelfConsistency() const override {}
         const bool getIsProcessed() const { return m_isProcessed; }
         void computationFinished() const override{ m_isProcessed = false; }
-        void checkSafety() const override{ }
+        void _checkSafety() const override{ }
 };
 
 class TestPrior: public ::testing::Test {

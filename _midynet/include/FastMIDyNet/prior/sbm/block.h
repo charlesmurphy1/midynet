@@ -116,7 +116,7 @@ public:
         processRecursiveFunction( [&]() { applyBlockMoveToState(move); });
     }
 
-    void checkSelfConsistency() const override { };
+    void _checkSelfConsistency() const override { };
     void checkSafety() const override {
         // displayVector<size_t>(m_blockSeq);
         if (m_blockSeq.size() == 0)
@@ -181,7 +181,7 @@ public:
         m_blockCountPriorPtr->computationFinished();
     }
 
-    void checkSelfConsistency() const override {
+    void _checkSelfConsistency() const override {
         checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
     };
@@ -251,7 +251,7 @@ public:
         m_vertexCountPriorPtr->computationFinished();
     }
 
-    void checkSelfConsistency() const override {
+    void _checkSelfConsistency() const override {
         m_vertexCountPriorPtr->checkSelfConsistency();
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
     };

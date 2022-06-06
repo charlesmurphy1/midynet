@@ -14,7 +14,7 @@ using namespace BaseGraph;
 
 namespace FastMIDyNet {
 
-void RandomGraph::applyGraphMove(const GraphMove& move){
+void RandomGraph::_applyGraphMove(const GraphMove& move){
     for (auto edge: move.addedEdges){
         auto v = edge.first, u = edge.second;
         m_graph.addEdgeIdx(v, u);

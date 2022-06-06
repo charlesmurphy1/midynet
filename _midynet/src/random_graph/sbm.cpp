@@ -230,20 +230,18 @@ const double StochasticBlockModelFamily::getLogPriorRatioFromBlockMove (const Bl
     return logPriorRatio;
 };
 
-void StochasticBlockModelFamily::applyGraphMove (const GraphMove& move) {
+void StochasticBlockModelFamily::_applyGraphMove (const GraphMove& move) {
     m_blockPriorPtr->applyGraphMove(move);
     m_edgeMatrixPriorPtr->applyGraphMove(move);
     RandomGraph::applyGraphMove(move);
-    computationFinished();
     #if DEBUG
     checkSelfConsistency();
     #endif
 };
 
-void StochasticBlockModelFamily::applyBlockMove (const BlockMove& move){
+void StochasticBlockModelFamily::_applyBlockMove (const BlockMove& move){
     m_blockPriorPtr->applyBlockMove(move);
     m_edgeMatrixPriorPtr->applyBlockMove(move);
-    computationFinished();
     #if DEBUG
     checkSelfConsistency();
     #endif
@@ -295,14 +293,14 @@ void StochasticBlockModelFamily::checkGraphConsistencyWithEdgeMatrix(
 
 };
 
-void StochasticBlockModelFamily::checkSelfConsistency() const{
+void StochasticBlockModelFamily::_checkSelfConsistency() const{
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeMatrixPriorPtr->checkSelfConsistency();
 
     checkGraphConsistencyWithEdgeMatrix(m_graph, getBlocks(), getEdgeMatrix());
 }
 
-void StochasticBlockModelFamily::checkSafety()const{
+void StochasticBlockModelFamily::_checkSafety()const{
     if (m_blockPriorPtr == nullptr)
         throw SafetyError("StochasticBlockModelFamily: unsafe family since `m_blockPriorPtr` is empty.");
     m_blockPriorPtr->checkSafety();

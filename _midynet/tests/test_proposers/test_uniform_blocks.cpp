@@ -30,6 +30,10 @@ class TestBlockUniformProposer: public::testing::Test {
             blockCountPrior.setState(BLOCK_COUNT);
             blockPrior.setState(BLOCK_SEQUENCE);
             blockProposer.setUp(randomGraph);
+            randomGraph.checkSelfConsistency();
+        }
+        void TearDown(){
+            blockProposer.checkSelfConsistency();
         }
 };
 

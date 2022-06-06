@@ -59,9 +59,9 @@ public:
     }
     const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { if (move.addedBlocks == 0) return 0; else return -INFINITY; }
 
-    void checkSelfConsistency() const override { };
+    void _checkSelfConsistency() const override { };
 
-    void checkSafety() const override {
+    void _checkSafety() const override {
         if (m_blockCount == 0)
             throw SafetyError("BlockCountDeltaPrior: unsafe prior since `m_blockCount` is zero.");
     }
@@ -91,7 +91,7 @@ class BlockCountPoissonPrior: public BlockCountPrior{
         void sampleState() override;
         const double getLogLikelihoodFromState(const size_t& state) const override;
 
-        void checkSelfConsistency() const override;
+        void _checkSelfConsistency() const override;
 };
 
 class BlockCountUniformPrior: public BlockCountPrior{
@@ -134,7 +134,7 @@ class BlockCountUniformPrior: public BlockCountPrior{
 
         void checkMin() const;
         void checkMax() const;
-        void checkSelfConsistency() const override;
+        void _checkSelfConsistency() const override;
 };
 
 }

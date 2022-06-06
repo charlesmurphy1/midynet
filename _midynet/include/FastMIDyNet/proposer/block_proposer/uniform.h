@@ -33,7 +33,7 @@ class BlockUniformProposer: public BlockProposer {
         }
         void setUp(const RandomGraph& randomGraph) override;
         const double getLogProposalProbRatio(const BlockMove&) const override;
-        void checkSafety() const override{
+        void _checkSafety() const override{
             if (m_blocksPtr == nullptr)
                 throw SafetyError("BlockUniformProposer: unsafe proposer since `m_blocksPtr` is NULL.");
             if (m_vertexCountsPtr == nullptr)

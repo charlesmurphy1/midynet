@@ -4,13 +4,14 @@
 
 #include <functional>
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/rv.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"
 
 
 namespace FastMIDyNet{
 
 template <typename StateType>
-class Prior{
+class Prior: public NestedRandomVariable{
     public:
         Prior<StateType>(){}
         Prior<StateType>(const Prior<StateType>& other):
@@ -24,9 +25,6 @@ class Prior{
         const StateType& getState() const { return m_state; }
         StateType& getStateRef() const { return m_state; }
         virtual void setState(const StateType& state) { m_state = state; }
-        const bool isRoot() const { return m_isRoot; }
-        virtual void isRoot(bool condition) { m_isRoot = condition; }
-
 
         virtual void sampleState() = 0;
         virtual void samplePriors() = 0;
@@ -47,51 +45,51 @@ class Prior{
             return logJoint;
         }
 
-        virtual void checkSelfConsistency() const = 0;
-        virtual void checkSafety() const = 0;
-        virtual void computationFinished() const { m_isProcessed = false; }
+        // virtual void checkSelfConsistency() const = 0;
+        // virtual void checkSafety() const = 0;
+        // virtual void computationFinished() const { m_isProcessed = false; }
 
 
-        template<typename RETURN_TYPE>
-        RETURN_TYPE processRecursiveConstFunction(const std::function<RETURN_TYPE()>& func, RETURN_TYPE init) const {
-            RETURN_TYPE ret = init;
-            if (!m_isProcessed)
-                ret = func();
-
-            if ( m_isRoot ) computationFinished();
-            else m_isProcessed=true;
-            return ret;
-        }
-        void processRecursiveConstFunction(const std::function<void()>& func) const {
-            if (!m_isProcessed)
-                func();
-            m_isProcessed=true;
-            if ( m_isRoot ) computationFinished();
-            else m_isProcessed=true;
-        }
-
-        template<typename RETURN_TYPE>
-        RETURN_TYPE processRecursiveFunction(const std::function<RETURN_TYPE()>& func, RETURN_TYPE init) const {
-            RETURN_TYPE ret = init;
-            if (!m_isProcessed)
-                ret = func();
-
-            if ( m_isRoot ) computationFinished();
-            else m_isProcessed=true;
-            return ret;
-        }
-        void processRecursiveFunction(const std::function<void()>& func) {
-            if (!m_isProcessed)
-                func();
-            m_isProcessed=true;
-            if ( m_isRoot ) computationFinished();
-            else m_isProcessed=true;
-        }
+        // template<typename RETURN_TYPE>
+        // RETURN_TYPE processRecursiveConstFunction(const std::function<RETURN_TYPE()>& func, RETURN_TYPE init) const {
+        //     RETURN_TYPE ret = init;
+        //     if (!m_isProcessed)
+        //         ret = func();
+        //
+        //     if ( m_isRoot ) computationFinished();
+        //     else m_isProcessed=true;
+        //     return ret;
+        // }
+        // void processRecursiveConstFunction(const std::function<void()>& func) const {
+        //     if (!m_isProcessed)
+        //         func();
+        //     m_isProcessed=true;
+        //     if ( m_isRoot ) computationFinished();
+        //     else m_isProcessed=true;
+        // }
+        //
+        // template<typename RETURN_TYPE>
+        // RETURN_TYPE processRecursiveFunction(const std::function<RETURN_TYPE()>& func, RETURN_TYPE init) const {
+        //     RETURN_TYPE ret = init;
+        //     if (!m_isProcessed)
+        //         ret = func();
+        //
+        //     if ( m_isRoot ) computationFinished();
+        //     else m_isProcessed=true;
+        //     return ret;
+        // }
+        // void processRecursiveFunction(const std::function<void()>& func) {
+        //     if (!m_isProcessed)
+        //         func();
+        //     m_isProcessed=true;
+        //     if ( m_isRoot ) computationFinished();
+        //     else m_isProcessed=true;
+        // }
 
     protected:
         StateType m_state;
-        mutable bool m_isRoot = true;
-        mutable bool m_isProcessed = false;
+        // mutable bool m_isRoot = true;
+        // mutable bool m_isProcessed = false;
 };
 
 }

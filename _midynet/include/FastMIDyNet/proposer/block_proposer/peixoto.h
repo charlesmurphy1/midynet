@@ -45,7 +45,7 @@ class BlockPeixotoProposer: public BlockProposer {
         const double getLogProposalProbRatio(const BlockMove& move) const override{
             return getReverseLogProposalProb(move) - getLogProposalProb(move);
         };
-        void checkSafety() const override {
+        void _checkSafety() const override {
             if (m_blocksPtr == nullptr)
                 throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_blocksPtr` is NULL.");
             if (m_vertexCountsPtr == nullptr)
