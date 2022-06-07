@@ -19,6 +19,10 @@ public:
     void SetUp(){
         randomGraph.sample();
         proposer.setUp(randomGraph);
+        proposer.checkSafety();
+    }
+    void TearDown() {
+        proposer.checkConsistency();
     }
 };
 

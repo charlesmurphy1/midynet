@@ -36,7 +36,7 @@ class TestBlockPeixotoProposer: public::testing::Test {
         EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
         StochasticBlockModelFamily randomGraph = {GRAPH_SIZE, blockPrior, edgeMatrixPrior};
 
-        DummyBlockPeixotoProposer blockProposer = FastMIDyNet::DummyBlockPeixotoProposer(NEW_BLOCK_PROBABILITY, SHIFT);
+        DummyBlockPeixotoProposer proposer = FastMIDyNet::DummyBlockPeixotoProposer(NEW_BLOCK_PROBABILITY, SHIFT);
         size_t numSamples = 1000;
 
         void SetUp() {
@@ -44,7 +44,11 @@ class TestBlockPeixotoProposer: public::testing::Test {
             randomGraph.sample();
             while (randomGraph.getBlockCount() != BLOCK_COUNT) randomGraph.sample();
 
-            blockProposer.setUp(randomGraph);
+            proposer.setUp(randomGraph);
+            proposer.checkSafety();
+        }
+        void TearDown() {
+            proposer.checkConsistency();
         }
 
         FastMIDyNet::BlockIndex findBlockMove(BaseGraph::VertexIndex idx){
@@ -56,7 +60,7 @@ class TestBlockPeixotoProposer: public::testing::Test {
 
 // TEST_F(TestBlockPeixotoProposer, proposeMove_ForVertexIndex0_returnBlockMove) {
 //     for (size_t i = 0; i < numSamples; i++) {
-//         FastMIDyNet::BlockMove move = blockProposer.proposeMove(0);
+//         FastMIDyNet::BlockMove move = proposer.proposeMove(0);
 //         EXPECT_EQ(move.vertexIdx, 0);
 //         EXPECT_EQ(move.prevBlockIdx, randomGraph.getBlockOfIdx(0));
 //     }
@@ -67,7 +71,7 @@ class TestBlockPeixotoProposer: public::testing::Test {
 //     for (size_t s=0 ; s <= randomGraph.getBlockCount() ; ++s){
 //         FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), s};
 //         if (s == randomGraph.getBlockCount()) ++move.addedBlocks;
-//         double logProposal = blockProposer.getLogProposalProb(move);
+//         double logProposal = proposer.getLogProposalProb(move);
 //         std::cout << exp(logProposal) << ", " << std::endl;
 //         sum += exp(logProposal);
 //     }
@@ -78,7 +82,7 @@ class TestBlockPeixotoProposer: public::testing::Test {
 TEST_F(TestBlockPeixotoProposer, getEdgeMatrixDiff_returnCorrectDiff){
     for (size_t nextBlockIdx = 0; nextBlockIdx < randomGraph.getBlockCount(); ++nextBlockIdx){
         FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), nextBlockIdx, 0};
-        auto edgeMatrixDiff = blockProposer.__getEdgeMatrixDiff(move);
+        auto edgeMatrixDiff = proposer.__getEdgeMatrixDiff(move);
         auto actualEdgeMatrix = randomGraph.getEdgeMatrix();
         for (auto diff : edgeMatrixDiff)
             actualEdgeMatrix[diff.first.first][diff.first.second] += diff.second;
@@ -97,10 +101,10 @@ TEST_F(TestBlockPeixotoProposer, getReverseLogProposalProb_AllBlockMove_returnCo
         FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), nextBlockIdx, 0};
         FastMIDyNet::BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx, 0};
         // move.display();
-        double actual = blockProposer.getReverseLogProposalProb(move);
+        double actual = proposer.getReverseLogProposalProb(move);
         randomGraph.applyBlockMove(move);
         // displayMatrix(randomGraph.getEdgeMatrix(), "E_after");
-        double expected = blockProposer.getLogProposalProb(reverseMove);
+        double expected = proposer.getLogProposalProb(reverseMove);
         randomGraph.applyBlockMove(reverseMove);
         // std::cout << "For move " << nextBlockIdx << " -> " << actual << " =? " << expected << std::endl << std::endl;
         EXPECT_FLOAT_EQ(actual, expected);
@@ -115,9 +119,9 @@ TEST_F(TestBlockPeixotoProposer, getReverseLogProposalProbRatio_fromSomeBlockMov
         // move.display();
         // for (auto ns : randomGraph.getGraph().getNeighboursOfIdx(0))
         //         std::cout << "(" <<ns.vertexIndex << "[" << randomGraph.getBlockOfIdx(ns.vertexIndex) << "], " << ns.label << ") ";
-        double actual = blockProposer.getReverseLogProposalProb(move);
+        double actual = proposer.getReverseLogProposalProb(move);
         randomGraph.applyBlockMove(move);
-        double expected = blockProposer.getLogProposalProb(reverseMove);
+        double expected = proposer.getLogProposalProb(reverseMove);
         // std::cout << std::endl << actual << " =?" << expected << std::endl;
         EXPECT_FLOAT_EQ(actual, expected);
         if (abs(actual - expected) > 1e-3)

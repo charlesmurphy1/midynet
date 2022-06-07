@@ -40,10 +40,10 @@ void HingeFlipProposer::setUpFromGraph(const MultiGraph& graph){
     m_vertexSamplerPtr->clear();
 
     m_graphPtr = &graph;
-    for (auto vertex : graph)
+    for (auto vertex : *m_graphPtr)
         m_vertexSamplerPtr->onVertexInsertion(vertex);
-    for (auto vertex : graph){
-        for (auto neighbor : graph.getNeighboursOfIdx(vertex)){
+    for (auto vertex : *m_graphPtr){
+        for (auto neighbor : m_graphPtr->getNeighboursOfIdx(vertex)){
             if (vertex <= neighbor.vertexIndex){
                 m_vertexSamplerPtr->onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
                 m_edgeSampler.onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);

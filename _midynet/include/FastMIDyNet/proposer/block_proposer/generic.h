@@ -20,7 +20,7 @@ class BlockGenericProposer: public BlockProposer {
         }
         void setUp(const RandomGraph& randomGraph) override { m_blocksPtr = &randomGraph.getBlocks(); }
         const double getLogProposalProbRatio(const BlockMove&) const override { return 0;};
-        void checkSafety() const override { }
+        void checkSelfSafety() const override { }
 };
 
 } // namespace FastMIDyNet

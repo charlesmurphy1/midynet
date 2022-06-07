@@ -26,6 +26,10 @@ class TestSingleEdgeUniformProposer: public::testing::Test {
             graph.setEdgeMultiplicityIdx(doubleEdge, 2);
             randomGraph.setGraph(graph);
             proposer.setUp(randomGraph);
+            proposer.checkSafety();
+        }
+        void TearDown() {
+            proposer.checkConsistency();
         }
 };
 
@@ -69,6 +73,10 @@ class TestSingleEdgeDegreeProposer: public::testing::Test {
             graph.setEdgeMultiplicityIdx(doubleEdge, 2);
             randomGraph.setGraph(graph);
             proposer.setUp(randomGraph);
+            proposer.checkSafety();
+        }
+        void TearDown() {
+            proposer.checkConsistency();
         }
 };
 

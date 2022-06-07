@@ -23,6 +23,7 @@ class TestHingeFlipUniformProposer: public::testing::Test {
         ErdosRenyiFamily randomGraph = ErdosRenyiFamily(3, edgeCountPrior);
         DummyEdgeProposer proposer;
         MultiGraph graph;
+        MultiGraph toyGraph = getToyMultiGraph();
         // BaseGraph::Edge existingEdge = {0, 2};
         void SetUp() {
             randomGraph.sample();
@@ -34,6 +35,10 @@ class TestHingeFlipUniformProposer: public::testing::Test {
             //     graph.setEdgeMultiplicityIdx(existingEdge, 1);
             randomGraph.setGraph(graph);
             proposer.setUp(randomGraph);
+            proposer.checkSafety();
+        }
+        void TearDown() {
+            proposer.checkConsistency();
         }
 
         const MultiGraph getToyMultiGraph() {
@@ -109,7 +114,6 @@ TEST_F(TestHingeFlipUniformProposer, applyGraphMove_removeEdge_edgeWeightDecreas
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forNormalMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
 
     GraphMove normalMove1 = {{{0, 1}}, {{0, 3}}};
@@ -123,7 +127,6 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forNormalMove_retur
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopyMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
 
     GraphMove loopyMove1 = {{{1, 1}}, {{1, 3}}};
@@ -134,7 +137,6 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopyMove_return
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forSelfieMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
 
     GraphMove selfieMove1 = {{{0, 1}}, {{0, 0}}};
@@ -151,7 +153,6 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forSelfieMove_retur
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopySelfieMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
 
     GraphMove selfieMove1 = {{{1, 1}}, {{1, 1}}};
