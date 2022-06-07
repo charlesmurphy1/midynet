@@ -19,6 +19,35 @@ protected:
     size_t m_size;
     BlockCountPrior* m_blockCountPriorPtr = nullptr;
     std::vector<size_t> m_vertexCountsInBlocks;
+
+    void _applyGraphMove(const GraphMove&) override { };
+    void _applyBlockMove(const BlockMove& move) override {
+        m_blockCountPriorPtr->applyBlockMove(move);
+        applyBlockMoveToVertexCounts(move);
+        applyBlockMoveToState(move);
+    }
+
+    const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; };
+    const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override {
+        return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
+    };
+
+    void _createBlock() {
+        m_vertexCountsInBlocks.push_back(0);
+        m_blockCountPriorPtr->createBlock();
+    }
+    void _destroyBlock(const BlockIndex& id) {
+        // m_vertexCountsInBlocks.erase(m_vertexCountsInBlocks.begin() + id);
+        m_blockCountPriorPtr->destroyBlock(id);
+    }
+    void remapBlockIndex(const std::map<size_t, size_t> indexMap){
+        auto newBlocks = m_state;
+        for (size_t v=0; v<m_size; ++v){
+            newBlocks[v] = indexMap.at(m_state[v]);
+        }
+        setState(newBlocks);
+    }
+
 public:
     /* Constructors */
 
@@ -59,9 +88,18 @@ public:
     const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
     const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
     static std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&);
+    void applyBlockMoveToState(const BlockMove& move) { m_state[move.vertexIdx] = move.nextBlockIdx; };
+    void applyBlockMoveToVertexCounts(const BlockMove& move) {
+        if (move.addedBlocks == 1) m_vertexCountsInBlocks.push_back(0);
+        else if (move.addedBlocks == -1) m_vertexCountsInBlocks.erase(m_vertexCountsInBlocks.begin() + move.prevBlockIdx);
+
+        --m_vertexCountsInBlocks[move.prevBlockIdx];
+        ++m_vertexCountsInBlocks[move.nextBlockIdx];
+    };
+
+
 
     /* sampling methods */
-    // void sampleState() override ;
     void samplePriors() override { m_blockCountPriorPtr->sample(); }
 
     /* MCMC methods */
@@ -71,29 +109,6 @@ public:
     const double getLogPriorRatioFromBlockMove(const BlockMove& move) const {
         return m_blockCountPriorPtr->getLogJointRatioFromBlockMove(move);
     }
-
-
-
-
-    const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; };
-    const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override {
-        return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
-    };
-
-    void _applyGraphMove(const GraphMove&) override { };
-    void _applyBlockMove(const BlockMove& move) override {
-        m_blockCountPriorPtr->applyBlockMove(move);
-        applyBlockMoveToVertexCounts(move);
-        applyBlockMoveToState(move);
-    }
-    void applyBlockMoveToState(const BlockMove& move) { m_state[move.vertexIdx] = move.nextBlockIdx; };
-    void applyBlockMoveToVertexCounts(const BlockMove& move) {
-        if (move.addedBlocks == 1) m_vertexCountsInBlocks.push_back(0);
-        else if (move.addedBlocks == -1) m_vertexCountsInBlocks.erase(m_vertexCountsInBlocks.begin() + move.prevBlockIdx);
-
-        --m_vertexCountsInBlocks[move.prevBlockIdx];
-        ++m_vertexCountsInBlocks[move.nextBlockIdx];
-    };
 
     /* Consistency methods */
     static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;

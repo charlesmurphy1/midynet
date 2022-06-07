@@ -20,7 +20,7 @@ void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
 
     m_state = Matrix<size_t>(blockCount, std::vector<size_t>(blockCount, 0));
     m_edgeCountsInBlocks = std::vector<size_t>(blockCount, 0);
-
+    size_t edgeCount = 0;
     for (auto vertex: graph) {
         const BlockIndex& r(blockSeq[vertex]);
         for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {
@@ -32,8 +32,10 @@ void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
             m_edgeCountsInBlocks[s]+=neighbor.label;
             m_state[r][s]+=neighbor.label;
             m_state[s][r]+=neighbor.label;
+            edgeCount += neighbor.label;
         }
     }
+    m_edgeCountPriorPtr->setState(edgeCount);
 }
 
 void EdgeMatrixPrior::setState(const Matrix<size_t>& edgeMatrix) {
@@ -51,7 +53,7 @@ void EdgeMatrixPrior::setState(const Matrix<size_t>& edgeMatrix) {
     m_edgeCountPriorPtr->setState(edgeCount);
 }
 
-void EdgeMatrixPrior::createBlock() {
+void EdgeMatrixPrior::_createBlock() {
     const auto& currentBlockCount = m_state.size();
     m_state.push_back(std::vector<size_t>(currentBlockCount, 0));
     m_edgeCountsInBlocks.push_back(0);
@@ -59,12 +61,12 @@ void EdgeMatrixPrior::createBlock() {
         row.push_back(0);
 }
 
-void EdgeMatrixPrior::destroyBlock(const BlockIndex& block) {
-    m_state.erase(m_state.begin()+block);
-    m_edgeCountsInBlocks.erase(m_edgeCountsInBlocks.begin()+block);
-
-    for (auto& row: m_state)
-        row.erase(row.begin()+block);
+void EdgeMatrixPrior::_destroyBlock(const BlockIndex& block) {
+    // m_state.erase(m_state.begin()+block);
+    // m_edgeCountsInBlocks.erase(m_edgeCountsInBlocks.begin()+block);
+    //
+    // for (auto& row: m_state)
+    //     row.erase(row.begin()+block);
 }
 
 void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {

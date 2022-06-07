@@ -38,10 +38,6 @@ class DummyDegreePrior: public DegreePrior {
         const double getLogLikelihood() const { return 0; }
         const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const { return 0; }
         const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const { return 0; }
-
-        void _createBlock(){ createBlock(); }
-        void _destroyBlock(const BlockIndex& idx){ destroyBlock(idx); }
-
 };
 
 class TestDegreePrior: public ::testing::Test {
@@ -52,9 +48,15 @@ class TestDegreePrior: public ::testing::Test {
         FastMIDyNet::EdgeCountPoissonPrior edgeCountPrior = FastMIDyNet::EdgeCountPoissonPrior(POISSON_MEAN);
         FastMIDyNet::EdgeMatrixUniformPrior edgeMatrixPrior = FastMIDyNet::EdgeMatrixUniformPrior(edgeCountPrior, blockPrior);
         DummyDegreePrior prior = DummyDegreePrior(blockPrior, edgeMatrixPrior);
+
+        bool expectConsistencyError = false;
         void SetUp() {
             prior.sample();
-            prior.computationFinished();
+            prior.checkSafety();
+        }
+        void TearDown(){
+            if (not expectConsistencyError)
+                prior.checkConsistency();
         }
 };
 
@@ -94,6 +96,8 @@ TEST_F(TestDegreePrior, applyGraphMoveToState_ForAddedEdge_returnCorrectDegreeSe
     auto k1After = prior.getState()[1];
     EXPECT_EQ(k0After, k0Before + 1);
     EXPECT_EQ(k1After, k1Before + 1);
+
+    expectConsistencyError = true;
 }
 
 TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdge_returnCorrectDegreeSeq){
@@ -105,6 +109,8 @@ TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdge_returnCorrectDegree
     auto k6After = prior.getState()[6];
     EXPECT_EQ(k0After, k0Before - 1);
     EXPECT_EQ(k6After, k6Before - 1);
+    expectConsistencyError = true;
+
 }
 
 TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCorrectDegreeSeq){
@@ -119,6 +125,8 @@ TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCor
     EXPECT_EQ(k0After, k0Before);
     EXPECT_EQ(k1After, k1Before + 1);
     EXPECT_EQ(k6After, k6Before - 1);
+    expectConsistencyError = true;
+
 }
 
 TEST_F(TestDegreePrior, applyBlockMoveToState_forNonEmptyBlockMove_doNothing){
@@ -131,6 +139,8 @@ TEST_F(TestDegreePrior, applyBlockMoveToState_forNonEmptyBlockMove_doNothing){
     for(size_t i=0; i<degreeSeqBefore.size(); ++i){
         EXPECT_EQ(degreeSeqBefore[i], degreeSeqAfter[i]);
     }
+    expectConsistencyError = true;
+
 }
 
 TEST_F(TestDegreePrior, applyBlockMoveToState_forBlockMoveAddingBlock_doNothing){
@@ -143,6 +153,8 @@ TEST_F(TestDegreePrior, applyBlockMoveToState_forBlockMoveAddingBlock_doNothing)
     for(size_t i=0; i<degreeSeqBefore.size(); ++i){
         EXPECT_EQ(degreeSeqBefore[i], degreeSeqAfter[i]);
     }
+    expectConsistencyError = true;
+
 }
 
 TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
@@ -158,6 +170,8 @@ TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectD
     for (size_t r = 0; r < blockPrior.getBlockCount(); ++r){
         EXPECT_TRUE(expected[r] == actual[r]);
     }
+    expectConsistencyError = true;
+
 }
 
 TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrectDegreeCounts){
@@ -176,6 +190,7 @@ TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrec
 
     EXPECT_EQ(expected[s].get(kj) - 1, actual[s].get(kj));
     EXPECT_EQ(expected[s].get(kj - 1) + 1, actual[s].get(kj - 1));
+    expectConsistencyError = true;
 }
 
 TEST_F(TestDegreePrior, applyBlockMoveToDegreeCounts_forNonEmptyBlockMove_returnCorrectDegreeCounts){
@@ -187,6 +202,7 @@ TEST_F(TestDegreePrior, applyBlockMoveToDegreeCounts_forNonEmptyBlockMove_return
     auto actual = prior.getDegreeCountsInBlocks();
     EXPECT_EQ(expected[0].get(k) - 1, actual[0].get(k));
     EXPECT_EQ(expected[1].get(k) + 1, actual[1].get(k));
+    expectConsistencyError = true;
 }
 
 TEST_F(TestDegreePrior, applyBlockMoveToDegreeCounts_forAddedBlockMove_returnCorrectDegreeCounts){
@@ -194,10 +210,12 @@ TEST_F(TestDegreePrior, applyBlockMoveToDegreeCounts_forAddedBlockMove_returnCor
     FastMIDyNet::BlockMove move = {0, 0, 2, 1};
     size_t k = prior.getState()[0], r = 0, s = 2;
     auto expected = prior.getDegreeCountsInBlocks();
+    prior.createBlock();
     prior.applyBlockMoveToDegreeCounts(move);
     auto actual = prior.getDegreeCountsInBlocks();
     EXPECT_EQ(expected[0].get(k) - 1, actual[0].get(k));
     EXPECT_EQ(1, actual[2].get(k));
+    expectConsistencyError = true;
 }
 
 
@@ -211,7 +229,10 @@ class TestDegreeUniformPrior: public ::testing::Test {
         FastMIDyNet::DegreeUniformPrior prior = FastMIDyNet::DegreeUniformPrior(blockPrior, edgeMatrixPrior);
         void SetUp() {
             prior.sample();
-            prior.computationFinished();
+            prior.checkSafety();
+        }
+        void TearDown(){
+            prior.checkConsistency();
         }
 };
 
@@ -237,9 +258,14 @@ TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_r
 
 TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
+    while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
     auto g = FastMIDyNet::generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState(), prior.getState());
     prior.setGraph(g);
-    FastMIDyNet::BlockMove move = {idx, prior.getBlockPrior().getState()[idx], prior.getBlockPrior().getState()[idx] + 1, 0};
+    BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
+    BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
+    if (nextBlockIdx == prior.getBlockPrior().getBlockCount())
+        nextBlockIdx -= 2;
+    FastMIDyNet::BlockMove move = {idx, prevBlockIdx, nextBlockIdx, 0};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
     prior.applyBlockMove(move);
@@ -259,7 +285,10 @@ class TestDegreeUniformHyperPrior: public ::testing::Test {
         FastMIDyNet::DegreeUniformHyperPrior prior = FastMIDyNet::DegreeUniformHyperPrior(blockPrior, edgeMatrixPrior);
         void SetUp() {
             prior.sample();
-            prior.computationFinished();
+            prior.checkSafety();
+        }
+        void TearDown(){
+            prior.checkConsistency();
         }
 };
 
@@ -278,15 +307,21 @@ TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromGraphMove_forAddedE
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
     prior.applyGraphMove(move);
+
     double logLikelihoodAfter = prior.getLogLikelihood();
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
 }
 
 TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
+    while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
     auto g = FastMIDyNet::generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState(), prior.getState());
     prior.setGraph(g);
-    FastMIDyNet::BlockMove move = {idx, prior.getBlockPrior().getState()[idx], prior.getBlockPrior().getState()[idx] + 1, 0};
+    BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
+    BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
+    if (nextBlockIdx == prior.getBlockPrior().getBlockCount())
+        nextBlockIdx -= 2;
+    BlockMove move = {idx, prevBlockIdx, nextBlockIdx, 0};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
     prior.applyBlockMove(move);

@@ -51,12 +51,15 @@ class Prior: public NestedRandomVariable{
             return processRecursiveConstFunction<double>([&](){ return _getLogJointRatioFromBlockMove(move);}, 0);
         }
 
+        void createBlock() {
+            processRecursiveFunction([&](){_createBlock();});
+        }
+        void destroyBlock(const BlockIndex& id) {
+            processRecursiveFunction([&](){_destroyBlock(id);});
+        }
 
 
-        virtual void _applyGraphMove(const GraphMove&) = 0;
-        virtual void _applyBlockMove(const BlockMove&) = 0;
-        virtual const double _getLogJointRatioFromGraphMove(const GraphMove&) const = 0;
-        virtual const double _getLogJointRatioFromBlockMove(const BlockMove&) const = 0;
+
 
         const double getLogJoint() const {
             auto _func = [&]() { return getLogPrior() + getLogLikelihood(); };
@@ -64,6 +67,13 @@ class Prior: public NestedRandomVariable{
             return logJoint;
         }
     protected:
+
+        virtual void _createBlock() = 0;
+        virtual void _destroyBlock(const BlockIndex&) = 0;
+        virtual void _applyGraphMove(const GraphMove&) = 0;
+        virtual void _applyBlockMove(const BlockMove&) = 0;
+        virtual const double _getLogJointRatioFromGraphMove(const GraphMove&) const = 0;
+        virtual const double _getLogJointRatioFromBlockMove(const BlockMove&) const = 0;
         StateType m_state;
 };
 

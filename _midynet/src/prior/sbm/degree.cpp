@@ -63,23 +63,6 @@ void DegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& move){
         diffDegreeMap.increment(edge.first);
         diffDegreeMap.increment(edge.second);
     }
-        // if (neighbor.vertexIndex == move.vertexIdx) {
-        //     m_state[move.prevBlockIdx][move.prevBlockIdx] -= 2*neighbor.label;
-        //     m_edgeCountsInBlocks[move.prevBlockIdx] -= 2*neighbor.label;
-        //
-        //     m_state[move.nextBlockIdx][move.nextBlockIdx] += 2*neighbor.label;
-        //     m_edgeCountsInBlocks[move.nextBlockIdx] += 2*neighbor.label;
-        // }
-        // else {
-        //     const BlockIndex& neighborBlock = blockSeq[neighbor.vertexIndex];
-        //     m_state[move.prevBlockIdx][neighborBlock] -= neighbor.label;
-        //     m_state[neighborBlock][move.prevBlockIdx] -= neighbor.label;
-        //     m_edgeCountsInBlocks[move.prevBlockIdx] -= neighbor.label;
-        //
-        //     m_state[move.nextBlockIdx][neighborBlock] += neighbor.label;
-        //     m_state[neighborBlock][move.nextBlockIdx] += neighbor.label;
-        //     m_edgeCountsInBlocks[move.nextBlockIdx] += neighbor.label;
-        // }
     for (auto edge : move.removedEdges){
         diffDegreeMap.decrement(edge.first);
         diffDegreeMap.decrement(edge.second);
@@ -93,8 +76,6 @@ void DegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& move){
 
 void DegreePrior::applyBlockMoveToDegreeCounts(const BlockMove& move){
     const DegreeSequence& degreeSeq = getState();
-    if (move.addedBlocks == 1) createBlock();
-    else if (move.addedBlocks == -1) destroyBlock(move.prevBlockIdx);
     m_degreeCountsInBlocks[move.prevBlockIdx].decrement(degreeSeq[move.vertexIdx]);
     m_degreeCountsInBlocks[move.nextBlockIdx].increment(degreeSeq[move.vertexIdx]);
 }
@@ -106,12 +87,12 @@ void DegreePrior::_applyGraphMove(const GraphMove& move){
     applyGraphMoveToState(move);
 }
 void DegreePrior::_applyBlockMove(const BlockMove& move) {
-    if (move.addedBlocks == 1) createBlock();
+    if (move.addedBlocks == 1) _createBlock();
     m_blockPriorPtr->applyBlockMove(move);
     m_edgeMatrixPriorPtr->applyBlockMove(move);
     applyBlockMoveToDegreeCounts(move);
     applyBlockMoveToState(move);
-    if (move.addedBlocks == -1) destroyBlock(move.prevBlockIdx);
+    if (move.addedBlocks == -1) _destroyBlock(move.prevBlockIdx);
 }
 
 void DegreePrior::checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence& degreeSeq, size_t expectedEdgeCount){
@@ -155,12 +136,12 @@ void DegreePrior::checkSelfConsistency() const{
     checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(getState(), m_blockPriorPtr->getState(), getDegreeCountsInBlocks());
 };
 
-void DegreePrior::createBlock(){
-    m_degreeCountsInBlocks.push_back(0);
+void DegreePrior::_createBlock(){
+    m_degreeCountsInBlocks.push_back(CounterMap<size_t>());
 }
 
-void DegreePrior::destroyBlock(const BlockIndex& blockIdx){
-    m_degreeCountsInBlocks.erase(m_degreeCountsInBlocks.begin() + blockIdx);
+void DegreePrior::_destroyBlock(const BlockIndex& id){
+    // m_degreeCountsInBlocks.erase(m_degreeCountsInBlocks.begin() + id);
 }
 
 const double DegreeDeltaPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {

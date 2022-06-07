@@ -19,8 +19,8 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         std::vector<size_t> m_edgeCountsInBlocks;
         const MultiGraph* m_graphPtr;
 
-        void createBlock();
-        void destroyBlock(const BlockIndex&);
+        void _createBlock();
+        void _destroyBlock(const BlockIndex&);
         void moveEdgeCountsInBlocks(const BlockMove& move);
     public:
         EdgeMatrixPrior() {}

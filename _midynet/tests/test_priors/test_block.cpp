@@ -52,16 +52,15 @@ class TestBlockPrior: public ::testing::Test {
         DummyBlockPrior prior = DummyBlockPrior(GRAPH_SIZE, BLOCK_COUNT);
         void SetUp() {
             BlockSequence blockSeq;
-            std::cout << "HERE" << std::endl;
             for (size_t idx = 0; idx < GRAPH_SIZE; idx++) {
                 blockSeq.push_back(0);
             }
             blockSeq[0] = BLOCK_COUNT - 1;
             prior.setState(blockSeq);
+            prior.checkSafety();
         }
-
         void TearDown(){
-            prior.computationFinished();
+            prior.checkConsistency();
         }
 };
 
@@ -124,7 +123,12 @@ TEST_F(TestBlockPrior, applyMove_forSomeBlockMove_changeBlockOfNode0From0To1){
 class TestBlockDeltaPrior: public::testing::Test{
     public:
         BlockDeltaPrior prior = BlockDeltaPrior(BLOCK_SEQ);
-        void SetUp() { }
+        void SetUp() {
+        prior.checkSafety();
+    }
+    void TearDown(){
+        prior.checkConsistency();
+    }
 
         bool isCorrectBlockSequence(const BlockSequence& blockSeq){
             if (blockSeq.size() != BLOCK_SEQ.size()) return false;
@@ -184,9 +188,10 @@ class TestBlockUniformPrior: public::testing::Test{
             }
             blockSeq[0] = BLOCK_COUNT - 1;
             prior.setState(blockSeq);
+            prior.checkSafety();
         }
         void TearDown(){
-            prior.computationFinished();
+            prior.checkConsistency();
         }
 };
 
@@ -227,11 +232,6 @@ TEST_F(TestBlockUniformPrior, checkSelfConsistency_noError_noThrow){
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
-// TEST_F(TestBlockUniformPrior, checkSelfConsistency_inconsistenBlockSeqWithBlockCOunt_ThrowConsistencyError){
-//     blockCountPrior.setState(20); // expected to be 5 in prior.
-//     EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
-// }
-
 
 class TestBlockUniformHyperPrior: public::testing::Test{
     public:
@@ -239,10 +239,10 @@ class TestBlockUniformHyperPrior: public::testing::Test{
         BlockUniformHyperPrior prior = BlockUniformHyperPrior(GRAPH_SIZE, blockCountPrior);
         void SetUp() {
             prior.sample();
-            prior.computationFinished();
+            prior.checkSafety();
         }
         void TearDown(){
-            prior.computationFinished();
+            prior.checkConsistency();
         }
         BlockIndex findBlockMove(BaseGraph::VertexIndex idx){
             BlockIndex blockIdx = prior.getBlockOfIdx(idx);

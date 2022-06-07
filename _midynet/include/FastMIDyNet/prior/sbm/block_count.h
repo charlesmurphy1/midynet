@@ -10,25 +10,25 @@
 namespace FastMIDyNet{
 
 class BlockCountPrior: public Prior<size_t> {
-    public:
-        using Prior<size_t>::Prior;
-        void samplePriors() override { }
-        virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
-        const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
-        const double getLogPrior() const override { return 0; }
-        const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
-        const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
-            return getLogLikelihoodFromState(getStateAfterBlockMove(move)) - getLogLikelihood();
-        }
-        const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; }
-        const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override {
-            return getLogLikelihoodRatioFromBlockMove(move);
-        }
-        void _applyGraphMove(const GraphMove& move) override { }
-        void _applyBlockMove(const BlockMove& move) override { setState(getStateAfterBlockMove(move)); }
-        size_t getStateAfterBlockMove(const BlockMove&) const;
-        void setStateFromPartition(const BlockSequence& blocks) { setState(*max_element(blocks.begin(), blocks.end()) + 1);}
-
+public:
+    using Prior<size_t>::Prior;
+    void samplePriors() override { }
+    virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
+    const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
+    const double getLogPrior() const override { return 0; }
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+        return getLogLikelihoodFromState(getStateAfterBlockMove(move)) - getLogLikelihood();
+    }
+    size_t getStateAfterBlockMove(const BlockMove&) const;
+    void setStateFromPartition(const BlockSequence& blocks) { setState(*max_element(blocks.begin(), blocks.end()) + 1);}
+protected:
+    void _applyGraphMove(const GraphMove& move) override { }
+    void _applyBlockMove(const BlockMove& move) override { setState(getStateAfterBlockMove(move)); }
+    const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; }
+    const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override { return getLogLikelihoodRatioFromBlockMove(move); }
+    void _createBlock() { ++m_state; }
+    void _destroyBlock(const BlockIndex&) { --m_state; }
 };
 
 class BlockCountDeltaPrior: public BlockCountPrior{

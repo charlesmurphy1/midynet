@@ -10,32 +10,37 @@
 namespace FastMIDyNet{
 
 class EdgeCountPrior: public Prior<size_t> {
-    public:
-        using Prior::Prior;
-        void samplePriors() override {}
-        virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
-        virtual const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
-        const double getLogPrior() const override { return 0; }
-        const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
-             return getLogLikelihoodFromState(getStateAfterGraphMove(move)) - getLogLikelihood();
-        }
-        const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0; }
+protected:
+    void _applyGraphMove(const GraphMove& move) override {
+        setState(getStateAfterGraphMove(move));
+    }
+    void _applyBlockMove(const BlockMove& move) override { }
+
+    const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override {
+        return getLogLikelihoodRatioFromGraphMove(move);
+    }
+    const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override { return 0; }
+
+    void _createBlock() override {}
+    void _destroyBlock(const BlockIndex&) override {}
+public:
+    using Prior::Prior;
+    void samplePriors() override {}
+    virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
+    virtual const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
+    const double getLogPrior() const override { return 0; }
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+         return getLogLikelihoodFromState(getStateAfterGraphMove(move)) - getLogLikelihood();
+    }
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
 
-        const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
-        const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return 0; }
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
+    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
-        const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override {
-            return getLogLikelihoodRatioFromGraphMove(move);
-        }
-        const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override { return 0; }
 
-        void _applyGraphMove(const GraphMove& move) override {
-            setState(getStateAfterGraphMove(move));
-        }
-        void _applyBlockMove(const BlockMove& move) override { }
-        size_t getStateAfterGraphMove(const GraphMove& move) const;
-        void checkSelfSafety()const override {}
+    size_t getStateAfterGraphMove(const GraphMove& move) const;
+    void checkSelfSafety()const override {}
 };
 
 class EdgeCountDeltaPrior: public EdgeCountPrior{

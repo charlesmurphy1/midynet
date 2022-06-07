@@ -19,8 +19,18 @@ protected:
     DegreeCountsMap m_degreeCountsInBlocks;
     const MultiGraph* m_graph;
 
-    void createBlock();
-    void destroyBlock(const BlockIndex&);
+    void _applyGraphMove(const GraphMove& move) override;
+    void _applyBlockMove(const BlockMove& move) override;
+
+    const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override{
+        return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
+    }
+    const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override {
+        return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
+    }
+
+    void _createBlock() override;
+    void _destroyBlock(const BlockIndex&) override;
 public:
     using Prior<DegreeSequence>::Prior;
     /* Constructors */
@@ -69,20 +79,11 @@ public:
     virtual const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move); }
 
 
-    virtual const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override{
-        return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
-    }
-
-    virtual const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override {
-        return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
-    }
 
     void applyGraphMoveToState(const GraphMove&);
     void applyBlockMoveToState(const BlockMove&){};
     void applyGraphMoveToDegreeCounts(const GraphMove&);
     void applyBlockMoveToDegreeCounts(const BlockMove&);
-    void _applyGraphMove(const GraphMove& move) override;
-    void _applyBlockMove(const BlockMove& move) override;
 
     virtual void computationFinished() const override {
         m_isProcessed = false;
@@ -147,6 +148,7 @@ public:
     }
 
     void computationFinished() const override { m_isProcessed = false; }
+
 };
 
 class DegreeUniformPrior: public DegreePrior{
