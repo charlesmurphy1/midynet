@@ -29,8 +29,11 @@ protected:
         return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
     }
 
-    void _createBlock() override;
-    void _destroyBlock(const BlockIndex&) override;
+    void onBlockCreation(const BlockMove&) override;
+
+    void applyGraphMoveToState(const GraphMove&);
+    void applyGraphMoveToDegreeCounts(const GraphMove&);
+    void applyBlockMoveToDegreeCounts(const BlockMove&);
 public:
     using Prior<DegreeSequence>::Prior;
     /* Constructors */
@@ -78,13 +81,6 @@ public:
     virtual const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_blockPriorPtr->getLogJointRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move); }
     virtual const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move); }
 
-
-
-    void applyGraphMoveToState(const GraphMove&);
-    void applyBlockMoveToState(const BlockMove&){};
-    void applyGraphMoveToDegreeCounts(const GraphMove&);
-    void applyBlockMoveToDegreeCounts(const BlockMove&);
-
     virtual void computationFinished() const override {
         m_isProcessed = false;
         m_blockPriorPtr->computationFinished();
@@ -99,6 +95,8 @@ public:
 
         if (m_edgeMatrixPriorPtr == nullptr)
             throw SafetyError("DegreePrior: unsafe prior since `m_edgeMatrixPriorPtr` is empty.");
+        m_blockPriorPtr->checkSafety();
+        m_edgeMatrixPriorPtr->checkSafety();
     }
 
 

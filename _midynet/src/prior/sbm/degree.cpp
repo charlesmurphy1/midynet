@@ -76,6 +76,7 @@ void DegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& move){
 
 void DegreePrior::applyBlockMoveToDegreeCounts(const BlockMove& move){
     const DegreeSequence& degreeSeq = getState();
+    if (move.nextBlockIdx == m_degreeCountsInBlocks.size()) onBlockCreation(move);
     m_degreeCountsInBlocks[move.prevBlockIdx].decrement(degreeSeq[move.vertexIdx]);
     m_degreeCountsInBlocks[move.nextBlockIdx].increment(degreeSeq[move.vertexIdx]);
 }
@@ -87,12 +88,9 @@ void DegreePrior::_applyGraphMove(const GraphMove& move){
     applyGraphMoveToState(move);
 }
 void DegreePrior::_applyBlockMove(const BlockMove& move) {
-    if (move.addedBlocks == 1) _createBlock();
     m_blockPriorPtr->applyBlockMove(move);
     m_edgeMatrixPriorPtr->applyBlockMove(move);
     applyBlockMoveToDegreeCounts(move);
-    applyBlockMoveToState(move);
-    if (move.addedBlocks == -1) _destroyBlock(move.prevBlockIdx);
 }
 
 void DegreePrior::checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence& degreeSeq, size_t expectedEdgeCount){
@@ -132,16 +130,14 @@ void DegreePrior::checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(
 }
 
 void DegreePrior::checkSelfConsistency() const{
+    m_blockPriorPtr->checkConsistency();
+    m_edgeMatrixPriorPtr->checkConsistency();
     checkDegreeSequenceConsistencyWithEdgeCount(getState(), m_edgeMatrixPriorPtr->getEdgeCount());
     checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(getState(), m_blockPriorPtr->getState(), getDegreeCountsInBlocks());
 };
 
-void DegreePrior::_createBlock(){
+void DegreePrior::onBlockCreation(const BlockMove& move){
     m_degreeCountsInBlocks.push_back(CounterMap<size_t>());
-}
-
-void DegreePrior::_destroyBlock(const BlockIndex& id){
-    // m_degreeCountsInBlocks.erase(m_degreeCountsInBlocks.begin() + id);
 }
 
 const double DegreeDeltaPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
@@ -265,6 +261,8 @@ const double DegreeUniformHyperPrior::getLogLikelihood() const {
     for (size_t r = 0; r < m_blockPriorPtr->getBlockCount(); ++r){
         auto nr = m_blockPriorPtr->getVertexCountsInBlocks()[r];
         auto er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[r];
+        if (nr == 0)
+            continue;
         for (auto k : m_degreeCountsInBlocks[r].keys())
             logP += logFactorial(m_degreeCountsInBlocks[r].get(k));
         logP -= logFactorial(nr);
@@ -320,14 +318,14 @@ const double DegreeUniformHyperPrior::getLogLikelihoodRatioFromGraphMove(const G
 
 const double DegreeUniformHyperPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
     BlockIndex r = move.prevBlockIdx, s = move.nextBlockIdx;
+    bool createEmptyBlock = move.nextBlockIdx == m_blockPriorPtr->getVertexCountsInBlocks().size();
     size_t k = m_state[move.vertexIdx];
     size_t nr = m_blockPriorPtr->getVertexCountsInBlocks()[r] ;
     size_t er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[r] ;
     size_t eta_r = m_degreeCountsInBlocks[r].get(k);
-    size_t ns = (move.addedBlocks > 0) ? 0 : m_blockPriorPtr->getVertexCountsInBlocks()[s] ;
-    size_t es = (move.addedBlocks > 0) ? 0 :  m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[s] ;
-    size_t eta_s =  (move.addedBlocks > 0) ? 0 : m_degreeCountsInBlocks[s].get(k);
-
+    size_t ns = (createEmptyBlock) ? 0 : m_blockPriorPtr->getVertexCountsInBlocks()[s] ;
+    size_t es = (createEmptyBlock) ? 0 :  m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[s] ;
+    size_t eta_s =  (createEmptyBlock) ? 0 : m_degreeCountsInBlocks[s].get(k);
     double logLikelihoodRatio = 0;
     logLikelihoodRatio += log(eta_s + 1) - log(eta_r);
     logLikelihoodRatio -= log(ns + 1) - log(nr);

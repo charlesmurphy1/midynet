@@ -53,7 +53,7 @@ void EdgeMatrixPrior::setState(const Matrix<size_t>& edgeMatrix) {
     m_edgeCountPriorPtr->setState(edgeCount);
 }
 
-void EdgeMatrixPrior::_createBlock() {
+void EdgeMatrixPrior::onBlockCreation(const BlockMove& move) {
     const auto& currentBlockCount = m_state.size();
     m_state.push_back(std::vector<size_t>(currentBlockCount, 0));
     m_edgeCountsInBlocks.push_back(0);
@@ -61,15 +61,7 @@ void EdgeMatrixPrior::_createBlock() {
         row.push_back(0);
 }
 
-void EdgeMatrixPrior::_destroyBlock(const BlockIndex& block) {
-    // m_state.erase(m_state.begin()+block);
-    // m_edgeCountsInBlocks.erase(m_edgeCountsInBlocks.begin()+block);
-    //
-    // for (auto& row: m_state)
-    //     row.erase(row.begin()+block);
-}
-
-void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {
+void EdgeMatrixPrior::applyBlockMoveToState(const BlockMove& move) {
     if (move.prevBlockIdx == move.nextBlockIdx)
         return;
 
@@ -112,34 +104,21 @@ void EdgeMatrixPrior::applyGraphMoveToState(const GraphMove& move){
     }
 }
 
-
-
-void EdgeMatrixPrior::applyBlockMoveToState(const BlockMove& move) {
-    /* Must be computed before calling createBlock and destroyBlock because these methods
-     * change m_edgeCountsInBlocks size*/
-
-    if (move.addedBlocks == 1)
-        createBlock();
-
-    moveEdgeCountsInBlocks(move);
-
-    if (move.addedBlocks == -1)
-        destroyBlock(move.prevBlockIdx);
-}
-
 void EdgeMatrixPrior::checkSelfConsistency() const {
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeCountPriorPtr->checkSelfConsistency();
 
     const size_t& blockCount = m_blockPriorPtr->getBlockCount();
-    verifyVectorHasSize(m_edgeCountsInBlocks, blockCount, "m_edgeCountInBlocks", "blocks");
-    verifyVectorHasSize(m_state, blockCount, "Edge matrix", "blocks");
+    verifyVectorHasAtLeastSize(m_edgeCountsInBlocks, blockCount, "EdgeMatrixPrior", "m_edgeCountInBlocks", "blockCount");
+    verifyVectorHasAtLeastSize(m_state, blockCount, "EdgeMatrixPrior", "m_state", "blockCount");
+    verifyVectorHasSize(m_state, m_edgeCountsInBlocks.size(), "EdgeMatrixPrior", "m_state", "m_edgeCountInBlocks");
 
     std::vector<size_t> actualEdgeCountsInBlocks(blockCount, 0);
     size_t sumEdges = 0;
     for (BlockIndex i=0; i<blockCount; i++) {
         size_t actualEdgeCountsInBlocks = 0;
-        verifyVectorHasSize(m_state[i], blockCount, "Edge matrix's row", "blocks");
+        verifyVectorHasAtLeastSize(m_state[i], blockCount, "EdgeMatrixPrior", "m_state's row", "blocks");
+        verifyVectorHasSize(m_state[i], m_edgeCountsInBlocks.size(), "EdgeMatrixPrior", "m_state's row", "m_edgeCountInBlocks");
         for (BlockIndex j=0; j<blockCount; j++) {
             if (m_state[i][j] != m_state[j][i])
                 throw ConsistencyError("EdgeMatrixPrior: Edge matrix is not symmetric.");

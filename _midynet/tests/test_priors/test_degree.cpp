@@ -38,6 +38,11 @@ class DummyDegreePrior: public DegreePrior {
         const double getLogLikelihood() const { return 0; }
         const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const { return 0; }
         const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const { return 0; }
+        void applyGraphMoveToState(const GraphMove& move) { DegreePrior::applyGraphMoveToState(move); }
+        void applyGraphMoveToDegreeCounts(const GraphMove& move) { DegreePrior::applyGraphMoveToDegreeCounts(move); }
+        void applyBlockMoveToDegreeCounts(const BlockMove& move) { DegreePrior::applyBlockMoveToDegreeCounts(move); }
+
+
 };
 
 class TestDegreePrior: public ::testing::Test {
@@ -129,34 +134,6 @@ TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCor
 
 }
 
-TEST_F(TestDegreePrior, applyBlockMoveToState_forNonEmptyBlockMove_doNothing){
-    FastMIDyNet::BlockMove move = {0, prior.getBlockPrior().getState()[0], 0, 0};
-    FastMIDyNet::DegreeSequence degreeSeqBefore = prior.getState();
-    prior.applyBlockMoveToState(move);
-    FastMIDyNet::DegreeSequence degreeSeqAfter = prior.getState();
-
-    EXPECT_EQ(degreeSeqBefore.size(), degreeSeqAfter.size());
-    for(size_t i=0; i<degreeSeqBefore.size(); ++i){
-        EXPECT_EQ(degreeSeqBefore[i], degreeSeqAfter[i]);
-    }
-    expectConsistencyError = true;
-
-}
-
-TEST_F(TestDegreePrior, applyBlockMoveToState_forBlockMoveAddingBlock_doNothing){
-    FastMIDyNet::BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockCount(), 1};
-    FastMIDyNet::DegreeSequence degreeSeqBefore = prior.getState();
-    prior.applyBlockMoveToState(move);
-    FastMIDyNet::DegreeSequence degreeSeqAfter = prior.getState();
-
-    EXPECT_EQ(degreeSeqBefore.size(), degreeSeqAfter.size());
-    for(size_t i=0; i<degreeSeqBefore.size(); ++i){
-        EXPECT_EQ(degreeSeqBefore[i], degreeSeqAfter[i]);
-    }
-    expectConsistencyError = true;
-
-}
-
 TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
     blockPrior.setState(BLOCK_SEQ);
     FastMIDyNet::GraphMove move = {{}, {{0,1}}};
@@ -210,7 +187,6 @@ TEST_F(TestDegreePrior, applyBlockMoveToDegreeCounts_forAddedBlockMove_returnCor
     FastMIDyNet::BlockMove move = {0, 0, 2, 1};
     size_t k = prior.getState()[0], r = 0, s = 2;
     auto expected = prior.getDegreeCountsInBlocks();
-    prior.createBlock();
     prior.applyBlockMoveToDegreeCounts(move);
     auto actual = prior.getDegreeCountsInBlocks();
     EXPECT_EQ(expected[0].get(k) - 1, actual[0].get(k));
@@ -334,11 +310,20 @@ TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromBlockMove_forBlockM
     BaseGraph::VertexIndex idx = 0;
     auto g = FastMIDyNet::generateDCSBM(blockPrior.getState(), prior.getEdgeMatrixPrior().getState(), prior.getState());
     prior.setGraph(g);
-    FastMIDyNet::BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getBlockCount(), 1};
+    FastMIDyNet::BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getVertexCountsInBlocks().size(), 1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
+
+    move.display();
+    displayVector(prior.getBlockPrior().getVertexCountsInBlocks(), "nr_before");
+    displayVector(prior.getEdgeMatrixPrior().getEdgeCountsInBlocks(), "er_before");
     double logLikelihoodBefore = prior.getLogLikelihood();
     prior.applyBlockMove(move);
     double logLikelihoodAfter = prior.getLogLikelihood();
+    displayVector(prior.getBlockPrior().getVertexCountsInBlocks(), "nr_after");
+    displayVector(prior.getEdgeMatrixPrior().getEdgeCountsInBlocks(), "er_after");
+
+    std::cout << "Before: " << logLikelihoodBefore << std::endl;
+    std::cout << "After: " << logLikelihoodAfter << std::endl;
 
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
 }

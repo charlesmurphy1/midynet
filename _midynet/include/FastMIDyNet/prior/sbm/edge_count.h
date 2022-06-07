@@ -21,8 +21,6 @@ protected:
     }
     const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override { return 0; }
 
-    void _createBlock() override {}
-    void _destroyBlock(const BlockIndex&) override {}
 public:
     using Prior::Prior;
     void samplePriors() override {}

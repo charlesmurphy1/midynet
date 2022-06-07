@@ -23,7 +23,8 @@ class DummyEdgeMatrixPrior: public EdgeMatrixPrior {
         void applyGraphMove(const GraphMove&) { };
         void applyBlockMove(const BlockMove&) { };
 
-        void _moveEdgeCountsInBlocks(const BlockMove& move) { moveEdgeCountsInBlocks(move); }
+        void applyBlockMoveToState(const BlockMove& move) { EdgeMatrixPrior::applyBlockMoveToState(move); }
+        void onBlockCreation(const BlockMove& move){ EdgeMatrixPrior::onBlockCreation(move); }
 };
 
 class TestEdgeMatrixPrior: public ::testing::Test {
@@ -63,7 +64,7 @@ TEST_F(TestEdgeMatrixPrior, samplePriors_anyGraph_returnSumOfPriors) {
 }
 
 TEST_F(TestEdgeMatrixPrior, createBlock_anySetup_addRowAndColumnToEdgeMatrix) {
-    prior.createBlock();
+    prior.onBlockCreation({0, 0, 2, 1});
     EXPECT_EQ(prior.getState(),
             Matrix<size_t>( {{8, 6, 0}, {6, 2, 0}, {0, 0, 0}} ));
     expectConsistencyError = true;
@@ -71,41 +72,20 @@ TEST_F(TestEdgeMatrixPrior, createBlock_anySetup_addRowAndColumnToEdgeMatrix) {
 }
 
 TEST_F(TestEdgeMatrixPrior, createBlock_anySetup_addElementToEdgeCountOfBlocks) {
-    prior.createBlock();
+    prior.onBlockCreation({0, 0, 2, 1});
     EXPECT_EQ(prior.getEdgeCountsInBlocks(), std::vector<size_t>({14, 8, 0}));
     expectConsistencyError = true;
 }
 
-// TEST_F(TestEdgeMatrixPrior, destroyBlock_anyBlock_removeFirstRowAndColumn) {
-//     size_t removedBlock = 0;
-//
-//     for (const BlockSequence& blockSequence:
-//             std::list<BlockSequence>{{1, 1, 1, 1, 1, 2, 1}, {0, 0, 0, 0, 0, 2, 0}}) {
-//
-//         blockPrior.setState(blockSequence);
-//         // blockCountPrior.setState(3); // blockPrior setState changes blockCountPrior state
-//         prior.setGraph(graph);
-//
-//         std::cout << "Before destroying block: #blocks = " << blockPrior.getBlockCount() << std::endl;
-//         prior.destroyBlock(removedBlock);
-//         std::cout << "After destroying block: #blocks = " << blockPrior.getBlockCount() << std::endl;
-//         EXPECT_EQ(prior.getState(),
-//                 Matrix<size_t>( {{18, 1}, {1, 2}} ));
-//         EXPECT_EQ(prior.getEdgeCountsInBlocks(), std::vector<size_t>({19, 3}));
-//
-//         removedBlock++;
-//     }
-// }
-
-TEST_F(TestEdgeMatrixPrior, moveEdgesInBlocks_vertexChangingBlock_neighborsOfVertexChangedOfBlocks) {
-    prior._moveEdgeCountsInBlocks({0, 0, 1});
+TEST_F(TestEdgeMatrixPrior, applyBlockMoveToState_vertexChangingBlock_neighborsOfVertexChangedOfBlocks) {
+    prior.applyBlockMoveToState({0, 0, 1});
     EXPECT_EQ(prior.getState(),
             Matrix<size_t>({{6, 4}, {4, 8}})
         );
 }
 
-TEST_F(TestEdgeMatrixPrior, moveEdgesInBlocks_vertexChangingBlockWithSelfloop_neighborsOfVertexChangedOfBlocks) {
-    prior._moveEdgeCountsInBlocks({5, 1, 0});
+TEST_F(TestEdgeMatrixPrior, applyBlockMoveToState_vertexChangingBlockWithSelfloop_neighborsOfVertexChangedOfBlocks) {
+    prior.applyBlockMoveToState({5, 1, 0});
     EXPECT_EQ(prior.getState(),
             Matrix<size_t>({{12, 5}, {5, 0}})
         );

@@ -19,9 +19,31 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         std::vector<size_t> m_edgeCountsInBlocks;
         const MultiGraph* m_graphPtr;
 
-        void _createBlock();
-        void _destroyBlock(const BlockIndex&);
-        void moveEdgeCountsInBlocks(const BlockMove& move);
+        void _applyGraphMove(const GraphMove& move) override {
+            m_edgeCountPriorPtr->applyGraphMove(move);
+            m_blockPriorPtr->applyGraphMove(move);
+            applyGraphMoveToState(move);
+        }
+        void _applyBlockMove(const BlockMove& move) override {
+            if (move.nextBlockIdx == m_state.size())
+                onBlockCreation(move);
+            m_edgeCountPriorPtr->applyBlockMove(move);
+            m_blockPriorPtr->applyBlockMove(move);
+            applyBlockMoveToState(move);
+        }
+
+        const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override {
+            return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
+        }
+
+        const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override{
+            return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
+        }
+
+        void onBlockCreation(const BlockMove&) override;
+
+        void applyGraphMoveToState(const GraphMove&);
+        void applyBlockMoveToState(const BlockMove&);
     public:
         EdgeMatrixPrior() {}
         EdgeMatrixPrior(EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior){
@@ -63,26 +85,9 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         virtual const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move); }
         virtual const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromBlockMove(move) + m_blockPriorPtr->getLogJointRatioFromBlockMove(move); }
 
-        const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override {
-            return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
-        }
 
-        const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override{
-            return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
-        }
 
-        void applyGraphMoveToState(const GraphMove&);
-        void applyBlockMoveToState(const BlockMove&);
-        void _applyGraphMove(const GraphMove& move) override {
-            m_edgeCountPriorPtr->applyGraphMove(move);
-            m_blockPriorPtr->applyGraphMove(move);
-            applyGraphMoveToState(move);
-        }
-        void _applyBlockMove(const BlockMove& move) override {
-            m_edgeCountPriorPtr->applyBlockMove(move);
-            m_blockPriorPtr->applyBlockMove(move);
-            applyBlockMoveToState(move);
-        }
+
 
         void computationFinished() const override {
             m_isProcessed = false;
@@ -97,6 +102,8 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
                 throw SafetyError("EdgeMatrixPrior: unsafe prior since `m_blockPriorPtr` is empty.");
             if (m_edgeCountPriorPtr == nullptr)
                 throw SafetyError("EdgeMatrixPrior: unsafe prior since `m_edgeCountPriorPtr` is empty.");
+            m_blockPriorPtr->checkSafety();
+            m_edgeCountPriorPtr->checkSafety();
         }
 };
 

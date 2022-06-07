@@ -32,13 +32,8 @@ protected:
         return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
     };
 
-    void _createBlock() {
+    void onBlockCreation(const BlockMove& move) {
         m_vertexCountsInBlocks.push_back(0);
-        m_blockCountPriorPtr->createBlock();
-    }
-    void _destroyBlock(const BlockIndex& id) {
-        // m_vertexCountsInBlocks.erase(m_vertexCountsInBlocks.begin() + id);
-        m_blockCountPriorPtr->destroyBlock(id);
     }
     void remapBlockIndex(const std::map<size_t, size_t> indexMap){
         auto newBlocks = m_state;
@@ -90,9 +85,7 @@ public:
     static std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&);
     void applyBlockMoveToState(const BlockMove& move) { m_state[move.vertexIdx] = move.nextBlockIdx; };
     void applyBlockMoveToVertexCounts(const BlockMove& move) {
-        if (move.addedBlocks == 1) m_vertexCountsInBlocks.push_back(0);
-        else if (move.addedBlocks == -1) m_vertexCountsInBlocks.erase(m_vertexCountsInBlocks.begin() + move.prevBlockIdx);
-
+        if (move.addedBlocks == 1) onBlockCreation(move);
         --m_vertexCountsInBlocks[move.prevBlockIdx];
         ++m_vertexCountsInBlocks[move.nextBlockIdx];
     };
@@ -121,15 +114,22 @@ public:
     }
 
     void checkSelfConsistency() const override {
+        m_blockCountPriorPtr->checkConsistency();
         checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
+        if (m_vertexCountsInBlocks.size() < getBlockCount()){
+            throw ConsistencyError("BlockPrior: vertex counts (size "
+            + std::to_string(m_vertexCountsInBlocks.size()) +
+            ") are inconsistent with block count (" + std::to_string(getBlockCount()) +  ").");
+        }
     }
 
     void checkSelfSafety() const override {
         if (m_size < 0)
             throw SafetyError("BlockPrior: unsafe prior since `size` < 0: " + std::to_string(m_size) + ".");
         if (m_blockCountPriorPtr == nullptr)
-            throw SafetyError("BlockUniformPrior: unsafe prior since `m_blockCountPriorPtr` is empty.");
+            throw SafetyError("BlockPrior: unsafe prior since `m_blockCountPriorPtr` is empty.");
+        m_blockCountPriorPtr->checkSafety();
 
     }
 

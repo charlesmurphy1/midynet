@@ -27,19 +27,17 @@ protected:
     void _applyBlockMove(const BlockMove& move) override { setState(getStateAfterBlockMove(move)); }
     const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; }
     const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override { return getLogLikelihoodRatioFromBlockMove(move); }
-    void _createBlock() { ++m_state; }
-    void _destroyBlock(const BlockIndex&) { --m_state; }
+    void onBlockCreation(const BlockMove&) { ++m_state; }
+    void onBlockDeletion(const BlockMove&) { --m_state; }
 };
 
 class BlockCountDeltaPrior: public BlockCountPrior{
-    size_t m_blockCount;
 public:
     BlockCountDeltaPrior() {}
-    BlockCountDeltaPrior(size_t blockCount): m_blockCount(blockCount){ setState(m_blockCount); }
-    BlockCountDeltaPrior(const BlockCountDeltaPrior& other):m_blockCount(other.m_blockCount){ setState(m_blockCount); }
+    BlockCountDeltaPrior(size_t blockCount) { setState(blockCount); }
+    BlockCountDeltaPrior(const BlockCountDeltaPrior& other) { setState(other.getState()); }
     virtual ~BlockCountDeltaPrior() {};
     const BlockCountDeltaPrior& operator=(const BlockCountDeltaPrior&other){
-        m_blockCount = other.m_blockCount;
         setState(other.m_state);
         return *this;
     }
@@ -47,15 +45,14 @@ public:
     void sampleState() override { }
 
     const double getLogLikelihoodFromState(const size_t& blockCount) const override{
-        if (blockCount != m_state) return -INFINITY;
-        else return 0;
+        return (blockCount != m_state) ? -INFINITY : 0;
     }
     const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { if (move.addedBlocks == 0) return 0; else return -INFINITY; }
 
     void checkSelfConsistency() const override { };
 
     void checkSelfSafety() const override {
-        if (m_blockCount == 0)
+        if (m_state == 0)
             throw SafetyError("BlockCountDeltaPrior: unsafe prior since `m_blockCount` is zero.");
     }
 

@@ -89,6 +89,8 @@ double get_v(double u, double epsilon=1e-8)
 
 double log_q_approx(size_t n, size_t k)
 {
+    if (n==0)
+        return 0;
     if (k < pow(n, 1/4.))
         return log_q_approx_small(n, k);
     double u = k / sqrt(n);
