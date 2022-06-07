@@ -25,18 +25,17 @@ class EdgeCountPrior: public Prior<size_t> {
         const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
         const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
-        const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
-            double ratio = processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move); }, 0);
-            return ratio;
+        const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override {
+            return getLogLikelihoodRatioFromGraphMove(move);
         }
-        const double getLogJointRatioFromBlockMove(const BlockMove& move) const { return 0; }
+        const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override { return 0; }
 
-        void applyGraphMove(const GraphMove& move) {
-            processRecursiveFunction( [&](){ setState(getStateAfterGraphMove(move)); } );
+        void _applyGraphMove(const GraphMove& move) override {
+            setState(getStateAfterGraphMove(move));
         }
-        void applyBlockMove(const BlockMove& move) { }
+        void _applyBlockMove(const BlockMove& move) override { }
         size_t getStateAfterGraphMove(const GraphMove& move) const;
-        void checkSafety()const override {}
+        void checkSelfSafety()const override {}
 };
 
 class EdgeCountDeltaPrior: public EdgeCountPrior{

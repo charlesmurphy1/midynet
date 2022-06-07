@@ -29,9 +29,9 @@ vector<size_t> BlockPrior::computeVertexCountsInBlocks(const BlockSequence& stat
 }
 
 void BlockPrior::checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) {
-    size_t actualBlockCount = BlockPrior::computeBlockCount(blockSeq);
-    if (actualBlockCount != expectedBlockCount)
-        throw ConsistencyError("BlockPrior: blockSeq is inconsistent with expected block count.");
+    // size_t actualBlockCount = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
+    // if (actualBlockCount < expectedBlockCount)
+    //     throw ConsistencyError("BlockPrior: blockSeq is inconsistent with expected block count.");
 
 }
 
@@ -75,28 +75,33 @@ const double BlockUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMo
     return logLikelihoodRatio;
 }
 
+void BlockUniformHyperPrior::sampleState() {
 
-void BlockHyperPrior::sampleState(){
-    auto nr = getVertexCountsInBlocks();
-    auto b = sampleRandomPermutation( nr );
-    setState( b );
-};
-
-const double BlockHyperPrior::getLogLikelihood() const {
-    return -logMultinomialCoefficient(getVertexCountsInBlocks());
-};
-
-const double BlockHyperPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const{
-    const auto& nr = getVertexCountsInBlocks();
-
-    double logLikelihoodRatio = 0;
-    logLikelihoodRatio -= log(nr[move.prevBlockIdx]);
-    if (move.addedBlocks == 0){
-        logLikelihoodRatio += log(nr[move.nextBlockIdx] + 1);
+    list<size_t> vertexCountList = sampleRandomComposition(getSize(), getBlockCount());
+    vector<size_t> vertexCounts;
+    for (auto nr : vertexCountList){
+        vertexCounts.push_back(nr);
     }
 
-    return logLikelihoodRatio;
-};
+    BlockSequence blockSeq = sampleRandomPermutation( vertexCounts );
+    setState(blockSeq);
+}
 
+
+const double BlockUniformHyperPrior::getLogLikelihood() const {
+    return -logMultinomialCoefficient(getVertexCountsInBlocks()) - logBinomialCoefficient(getSize() - 1, getBlockCount() - 1);
+
+}
+
+const double BlockUniformHyperPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
+    const auto& nr = getVertexCountsInBlocks();
+    double logLikelihoodRatio = 0;
+    logLikelihoodRatio -= log(nr[move.prevBlockIdx]);
+    if (move.addedBlocks == 0)
+        logLikelihoodRatio += log(nr[move.nextBlockIdx] + 1);
+    logLikelihoodRatio -= logBinomialCoefficient(getSize() - 1, getBlockCount() - 1 + move.addedBlocks);
+    logLikelihoodRatio += logBinomialCoefficient(getSize() - 1, getBlockCount() - 1);
+    return logLikelihoodRatio;
+}
 
 }

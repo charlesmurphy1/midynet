@@ -40,10 +40,15 @@ void EdgeMatrixPrior::setState(const Matrix<size_t>& edgeMatrix) {
     m_state = edgeMatrix;
 
     const auto& blockCount = m_blockPriorPtr->getBlockCount();
+    size_t edgeCount = 0;
     m_edgeCountsInBlocks = std::vector<size_t>(blockCount, 0);
-    for (size_t i=0; i<blockCount; i++)
-        for (size_t j=0; j<blockCount; j++)
+    for (size_t i=0; i<blockCount; i++){
+        for (size_t j=0; j<blockCount; j++){
             m_edgeCountsInBlocks[i] += edgeMatrix[i][j];
+            edgeCount += edgeMatrix[i][j];
+        }
+    }
+    m_edgeCountPriorPtr->setState(edgeCount);
 }
 
 void EdgeMatrixPrior::createBlock() {
@@ -69,8 +74,6 @@ void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {
     const auto& blockSeq = m_blockPriorPtr->getState();
     const auto& degree = m_graphPtr->getDegreeOfIdx(move.vertexIdx);
 
-    // move.display();
-    // std::cout <<  "actual block of vertex: "<< m_blockPriorPtr->getState()[move.vertexIdx] << std::endl;
     m_edgeCountsInBlocks[move.prevBlockIdx] -= degree;
     m_edgeCountsInBlocks[move.nextBlockIdx] += degree;
     for (auto neighbor: m_graphPtr->getNeighboursOfIdx(move.vertexIdx)) {
@@ -85,23 +88,6 @@ void EdgeMatrixPrior::moveEdgeCountsInBlocks(const BlockMove& move) {
             neighborBlock = move.nextBlockIdx;
         m_state[move.nextBlockIdx][neighborBlock] += neighbor.label;
         m_state[neighborBlock][move.nextBlockIdx] += neighbor.label;
-        // if (neighbor.vertexIndex == move.vertexIdx) {
-        //     m_state[move.prevBlockIdx][move.prevBlockIdx] -= 2*neighbor.label;
-        //     m_edgeCountsInBlocks[move.prevBlockIdx] -= 2*neighbor.label;
-        //
-        //     m_state[move.nextBlockIdx][move.nextBlockIdx] += 2*neighbor.label;
-        //     m_edgeCountsInBlocks[move.nextBlockIdx] += 2*neighbor.label;
-        // }
-        // else {
-        //     const BlockIndex& neighborBlock = blockSeq[neighbor.vertexIndex];
-        //     m_state[move.prevBlockIdx][neighborBlock] -= neighbor.label;
-        //     m_state[neighborBlock][move.prevBlockIdx] -= neighbor.label;
-        //     m_edgeCountsInBlocks[move.prevBlockIdx] -= neighbor.label;
-        //
-        //     m_state[move.nextBlockIdx][neighborBlock] += neighbor.label;
-        //     m_state[neighborBlock][move.nextBlockIdx] += neighbor.label;
-        //     m_edgeCountsInBlocks[move.nextBlockIdx] += neighbor.label;
-        // }
     }
 }
 

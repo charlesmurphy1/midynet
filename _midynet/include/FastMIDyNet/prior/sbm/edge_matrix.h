@@ -63,27 +63,25 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         virtual const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move); }
         virtual const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromBlockMove(move) + m_blockPriorPtr->getLogJointRatioFromBlockMove(move); }
 
-        const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
-            return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move); }, 0);
+        const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override {
+            return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
         }
 
-        const double getLogJointRatioFromBlockMove(const BlockMove& move) const  {
-            return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
+        const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override{
+            return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
         }
 
         void applyGraphMoveToState(const GraphMove&);
         void applyBlockMoveToState(const BlockMove&);
-        void applyGraphMove(const GraphMove& move){
-            processRecursiveFunction( [&]() { m_edgeCountPriorPtr->applyGraphMove(move); m_blockPriorPtr->applyGraphMove(move); applyGraphMoveToState(move); } );
-            #if DEBUG
-            checkSelfConsistency();
-            #endif
+        void _applyGraphMove(const GraphMove& move) override {
+            m_edgeCountPriorPtr->applyGraphMove(move);
+            m_blockPriorPtr->applyGraphMove(move);
+            applyGraphMoveToState(move);
         }
-        void applyBlockMove(const BlockMove& move) {
-            processRecursiveFunction( [&]() { m_edgeCountPriorPtr->applyBlockMove(move); m_blockPriorPtr->applyBlockMove(move); applyBlockMoveToState(move); } );
-            #if DEBUG
-            checkSelfConsistency();
-            #endif
+        void _applyBlockMove(const BlockMove& move) override {
+            m_edgeCountPriorPtr->applyBlockMove(move);
+            m_blockPriorPtr->applyBlockMove(move);
+            applyBlockMoveToState(move);
         }
 
         void computationFinished() const override {
@@ -94,7 +92,7 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         void checkSelfConsistencywithGraph() const;
         void checkSelfConsistency() const override;
 
-        void checkSafety()const override{
+        void checkSelfSafety()const override{
             if (m_blockPriorPtr == nullptr)
                 throw SafetyError("EdgeMatrixPrior: unsafe prior since `m_blockPriorPtr` is empty.");
             if (m_edgeCountPriorPtr == nullptr)
@@ -105,10 +103,17 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
 class EdgeMatrixDeltaPrior: public EdgeMatrixPrior{
 public:
     Matrix<size_t> m_edgeMatrix;
+    EdgeCountDeltaPrior m_edgeCountDeltaPrior;
 
 public:
     EdgeMatrixDeltaPrior(){}
-    EdgeMatrixDeltaPrior(const Matrix<size_t>& edgeMatrix) { setState(edgeMatrix); }
+    EdgeMatrixDeltaPrior(const Matrix<size_t>& edgeMatrix) {
+        size_t ec = 0;
+        for (auto e : edgeMatrix) for (auto ee : e)
+            ec += ee;
+        setState(edgeMatrix);
+        m_edgeCountDeltaPrior.setState(ec / 2);
+    }
     EdgeMatrixDeltaPrior(const Matrix<size_t>& edgeMatrix, EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
         EdgeMatrixPrior(edgeCountPrior, blockPrior){ setState(edgeMatrix); }
 
@@ -138,7 +143,7 @@ public:
     const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override{ return 0.; }
 
     void checkSelfConsistency() const override { };
-    void checkSafety() const override {
+    void checkSelfSafety() const override {
         if (m_edgeMatrix.size() == 0)
             throw SafetyError("EdgeMatrixDeltaPrior: unsafe prior since `m_edgeMatrix` is empty.");
     }

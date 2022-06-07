@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "FastMIDyNet/prior/sbm/block_count.h"
-#include "FastMIDyNet/prior/sbm/vertex_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
@@ -19,9 +18,15 @@ const BlockSequence BLOCK_SEQ={0,0,0,0,0,1,1,1,1,1};
 
 
 class DummyBlockPrior: public BlockPrior {
+    private:
+        BlockCountDeltaPrior m_blockCountDeltaPrior = BlockCountDeltaPrior();
     public:
-        DummyBlockPrior(size_t graphSize):
-        BlockPrior(graphSize) {};
+        DummyBlockPrior(size_t size, size_t blockCount):
+            BlockPrior() {
+                setSize(size);
+                m_blockCountDeltaPrior.setState(blockCount);
+                setBlockCountPrior(m_blockCountDeltaPrior);
+            }
         void sampleState() {
             BlockSequence blockSeq = BlockSequence(GRAPH_SIZE, 0);
             blockSeq[BLOCK_COUNT - 1];
@@ -30,14 +35,12 @@ class DummyBlockPrior: public BlockPrior {
         void samplePriors() override {};
         const double getLogLikelihood() const override { return 0.5; }
         const double getLogPrior() const override { return 0.1; }
-        void applyBlockMove(const BlockMove& move) override {
-            processRecursiveFunction( [&](){ m_state[move.vertexIdx] = move.nextBlockIdx; } );
+        void _applyBlockMove(const BlockMove& move) override {
+            m_state[move.vertexIdx] = move.nextBlockIdx;
         }
 
         const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
         const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0; }
-
-        const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { return 0; }
 
         void checkSelfConsistency() const override { }
         bool getIsProcessed() { return m_isProcessed; }
@@ -46,15 +49,15 @@ class DummyBlockPrior: public BlockPrior {
 class TestBlockPrior: public ::testing::Test {
     public:
 
-        DummyBlockPrior prior = DummyBlockPrior(GRAPH_SIZE);
+        DummyBlockPrior prior = DummyBlockPrior(GRAPH_SIZE, BLOCK_COUNT);
         void SetUp() {
             BlockSequence blockSeq;
+            std::cout << "HERE" << std::endl;
             for (size_t idx = 0; idx < GRAPH_SIZE; idx++) {
                 blockSeq.push_back(0);
             }
             blockSeq[0] = BLOCK_COUNT - 1;
             prior.setState(blockSeq);
-            prior.computationFinished();
         }
 
         void TearDown(){
@@ -88,11 +91,6 @@ TEST_F(TestBlockPrior, getLogLikelihoodRatio_forSomeGraphMove_return0){
 TEST_F(TestBlockPrior, getLogLikelihoodRatio_forSomeBlockMove_return0){
     BlockMove move = {0, 0, 1};
     EXPECT_EQ(prior.getLogLikelihoodRatioFromBlockMove(move), 0.);
-}
-
-TEST_F(TestBlockPrior, getLogPrior_forSomeGraphMove_return0){
-    GraphMove move({{0,0}}, {});
-    EXPECT_EQ(prior.getLogPriorRatioFromGraphMove(move), 0);
 }
 
 TEST_F(TestBlockPrior, getLogPrior_forSomeBlockMove_return0){
@@ -229,58 +227,10 @@ TEST_F(TestBlockUniformPrior, checkSelfConsistency_noError_noThrow){
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
-TEST_F(TestBlockUniformPrior, checkSelfConsistency_inconsistenBlockSeqWithBlockCOunt_ThrowConsistencyError){
-    blockCountPrior.setState(20); // expected to be 5 in prior.
-    EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
-}
-
-class TestBlockHyperPrior: public::testing::Test{
-    public:
-        BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
-        VertexCountUniformPrior vertexCountPrior = VertexCountUniformPrior(GRAPH_SIZE, blockCountPrior);
-        BlockHyperPrior prior = BlockHyperPrior(vertexCountPrior);
-        void SetUp() {
-            prior.sample();
-            prior.computationFinished();
-        }
-        void TearDown(){
-            prior.computationFinished();
-        }
-        BlockIndex findBlockMove(BaseGraph::VertexIndex idx){
-            BlockIndex blockIdx = prior.getBlockOfIdx(idx);
-            if (blockIdx == prior.getBlockCount() - 1) return blockIdx - 1;
-            else return blockIdx + 1;
-        }
-};
-
-TEST_F(TestBlockHyperPrior, sampleState_generateConsistentState){
-    prior.sampleState();
-    EXPECT_NO_THROW(prior.checkSelfConsistency());
-}
-
-TEST_F(TestBlockHyperPrior, getLogLikelihood_returnCorrectLogLikehood){
-    std::list<size_t> nrList = vecToList( prior.getVertexCountsInBlocks() );
-    EXPECT_LE( prior.getLogLikelihood(), 0 );
-    EXPECT_FLOAT_EQ( prior.getLogLikelihood(), -logMultinomialCoefficient( nrList ) );
-}
-
-TEST_F(TestBlockHyperPrior, applyBlockMove_ForSomeBlockMove_getConsistentState){
-    BlockMove move = {0, prior.getBlockOfIdx(0), findBlockMove(0), 0};
-    prior.applyBlockMove(move);
-    EXPECT_NO_THROW(prior.checkSelfConsistency());
-}
-
-TEST_F(TestBlockHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_returnCorrectLogLikelihoodRatio){
-    BlockMove move = {0, prior.getBlockOfIdx(0), findBlockMove(0), 0};
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
-    double logLikelihoodBefore = prior.getLogLikelihood();
-
-    prior.applyBlockMove(move);
-
-    double logLikelihoodAfter = prior.getLogLikelihood();
-
-    EXPECT_FLOAT_EQ(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore);
-}
+// TEST_F(TestBlockUniformPrior, checkSelfConsistency_inconsistenBlockSeqWithBlockCOunt_ThrowConsistencyError){
+//     blockCountPrior.setState(20); // expected to be 5 in prior.
+//     EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
+// }
 
 
 class TestBlockUniformHyperPrior: public::testing::Test{
@@ -309,7 +259,7 @@ TEST_F(TestBlockUniformHyperPrior, sampleState_generateConsistentState){
 TEST_F(TestBlockUniformHyperPrior, getLogLikelihood_returnCorrectLogLikehood){
     std::list<size_t> nrList = vecToList( prior.getVertexCountsInBlocks() );
     EXPECT_LE( prior.getLogLikelihood(), 0 );
-    EXPECT_FLOAT_EQ( prior.getLogLikelihood(), -logMultinomialCoefficient( nrList ) );
+    EXPECT_FLOAT_EQ( prior.getLogLikelihood(), -logMultinomialCoefficient( nrList ) - logBinomialCoefficient(prior.getSize() - 1, prior.getBlockCount() - 1) );
 }
 
 TEST_F(TestBlockUniformHyperPrior, applyBlockMove_ForSomeBlockMove_getConsistentState){

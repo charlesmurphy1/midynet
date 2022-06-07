@@ -183,13 +183,13 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioFro
 };
 
 const double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatioFromGraphMove(const GraphMove& move) const {
-    double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromGraphMove(move) + m_degreePriorPtr->getLogPriorRatioFromGraphMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move) + m_degreePriorPtr->getLogJointRatioFromGraphMove(move);
     computationFinished();
     return logPriorRatio;
 }
 
 const double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatioFromBlockMove(const BlockMove& move) const {
-    double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromBlockMove(move) + m_degreePriorPtr->getLogPriorRatioFromBlockMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move) + m_degreePriorPtr->getLogJointRatioFromBlockMove(move);
     computationFinished();
     return logPriorRatio;
 }

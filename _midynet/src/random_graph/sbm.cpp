@@ -219,13 +219,13 @@ const double StochasticBlockModelFamily::getLogLikelihoodRatioFromBlockMove(cons
 };
 
 const double StochasticBlockModelFamily::getLogPriorRatioFromGraphMove (const GraphMove& move) const {
-    double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromGraphMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move);
     computationFinished();
     return logPriorRatio;
 };
 
 const double StochasticBlockModelFamily::getLogPriorRatioFromBlockMove (const BlockMove& move) const {
-    double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromBlockMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move);
     computationFinished();
     return logPriorRatio;
 };

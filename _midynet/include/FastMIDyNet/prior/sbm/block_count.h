@@ -20,21 +20,14 @@ class BlockCountPrior: public Prior<size_t> {
         const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
             return getLogLikelihoodFromState(getStateAfterBlockMove(move)) - getLogLikelihood();
         }
-
-        const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
-        const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return 0; }
-
-        const double getLogJointRatioFromGraphMove(const GraphMove& move) const { return 0; }
-        const double getLogJointRatioFromBlockMove(const BlockMove& move) const {
-            auto ratio = processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move); }, 0);
-            return ratio;
+        const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; }
+        const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override {
+            return getLogLikelihoodRatioFromBlockMove(move);
         }
-        void applyGraphMove(const GraphMove& move) { }
-        void applyBlockMove(const BlockMove& move) {
-            processRecursiveFunction( [&](){ setState(getStateAfterBlockMove(move)); } );
-        }
+        void _applyGraphMove(const GraphMove& move) override { }
+        void _applyBlockMove(const BlockMove& move) override { setState(getStateAfterBlockMove(move)); }
         size_t getStateAfterBlockMove(const BlockMove&) const;
-        void checkSafety() const { }
+        void setStateFromPartition(const BlockSequence& blocks) { setState(*max_element(blocks.begin(), blocks.end()) + 1);}
 
 };
 
@@ -61,7 +54,7 @@ public:
 
     void checkSelfConsistency() const override { };
 
-    void checkSafety() const override {
+    void checkSelfSafety() const override {
         if (m_blockCount == 0)
             throw SafetyError("BlockCountDeltaPrior: unsafe prior since `m_blockCount` is zero.");
     }
