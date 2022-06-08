@@ -36,11 +36,14 @@ public:
 class TestMCMC: public::testing::Test{
 public:
     DummyMCMC mcmc = DummyMCMC();
+    bool expectConsistencyError = false;
     void SetUp(){
         mcmc.setUp();
         seed(time(NULL));
     }
     void TearDown(){
+        if (not expectConsistencyError)
+            mcmc.checkConsistency();
         mcmc.tearDown();
     }
 

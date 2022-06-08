@@ -28,14 +28,16 @@ public:
     RandomGraphMCMC graphmcmc = RandomGraphMCMC(randomGraph, edgeProposer, blockProposer);
     SISDynamics dynamics = SISDynamics(randomGraph, NUM_STEPS, 0.5);
     DynamicsMCMC mcmc = DynamicsMCMC(dynamics, graphmcmc, 1., 1., 0.);
+    bool expectConsistencyError = false;
     void SetUp(){
         seed(time(NULL));
         dynamics.sample();
         mcmc.setUp();
         mcmc.checkSafety();
-
     }
     void TearDown(){
+        if (not expectConsistencyError)
+            mcmc.checkConsistency();
         mcmc.tearDown();
     }
 };

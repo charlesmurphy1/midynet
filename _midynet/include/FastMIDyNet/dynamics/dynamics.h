@@ -134,7 +134,11 @@ public:
         m_randomGraphPtr->computationFinished();
     }
 
-    bool isSafe() const { return (m_randomGraphPtr != nullptr) and (m_randomGraphPtr->isSafe()); }
+    bool isSafe() const {
+        return (m_randomGraphPtr != nullptr) and (m_randomGraphPtr->isSafe())
+           and (m_state.size() != 0) and (m_pastStateSequence.size() != 0)
+           and (m_futureStateSequence.size() != 0) and (m_neighborsPastStateSequence.size() != 0);
+    }
 
 
 };

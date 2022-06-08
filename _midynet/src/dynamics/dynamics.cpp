@@ -303,11 +303,11 @@ void Dynamics::checkSelfSafety() const {
     if (m_state.size() == 0)
         throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
     if (m_pastStateSequence.size() == 0)
-        throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
+        throw SafetyError("Dynamics: unsafe graph family since `m_pastStateSequence` is empty.");
     if (m_futureStateSequence.size() == 0)
-        throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
+        throw SafetyError("Dynamics: unsafe graph family since `m_futureStateSequence` is empty.");
     if (m_neighborsPastStateSequence.size() == 0)
-        throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
+        throw SafetyError("Dynamics: unsafe graph family since `m_neighborsPastStateSequence` is empty.");
 }
 
 }
