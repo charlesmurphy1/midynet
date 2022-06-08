@@ -26,9 +26,7 @@ public:
         RandomGraphMCMC& randomGraphMCMC,
         double betaLikelihood=1,
         double betaPrior=1,
-        double sampleGraphPriorProb=0.5,
-        const CallBackList& callBacks={} ):
-    MCMC(callBacks),
+        double sampleGraphPriorProb=0.5):
     m_betaLikelihood(betaLikelihood),
     m_betaPrior(betaPrior),
     m_sampleGraphPriorProb(sampleGraphPriorProb),
@@ -39,9 +37,7 @@ public:
     DynamicsMCMC(
         double betaLikelihood=1,
         double betaPrior=1,
-        double sampleGraphPriorProb=0.5,
-        const CallBackList& callBacks={} ):
-    MCMC(callBacks),
+        double sampleGraphPriorProb=0.5):
     m_betaLikelihood(betaLikelihood),
     m_betaPrior(betaPrior),
     m_sampleGraphPriorProb(sampleGraphPriorProb),

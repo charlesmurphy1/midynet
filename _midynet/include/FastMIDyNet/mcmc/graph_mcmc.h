@@ -26,9 +26,7 @@ public:
         EdgeProposer& edgeProposer,
         BlockProposer& blockProposer,
         double betaLikelihood=1,
-        double betaPrior=1,
-        const CallBackList& callBacks={}):
-    MCMC(callBacks),
+        double betaPrior=1):
     m_betaLikelihood(betaLikelihood),
     m_betaPrior(betaPrior),
     m_uniform(0., 1.) {
@@ -39,9 +37,7 @@ public:
 
     RandomGraphMCMC(
         double betaLikelihood=1,
-        double betaPrior=1,
-        const CallBackList& callBacks={}):
-    MCMC(callBacks),
+        double betaPrior=1):
     m_uniform(0., 1.) {}
 
 
@@ -100,7 +96,7 @@ public:
     bool isSafe() const {
         return (m_randomGraphPtr != nullptr) and (m_randomGraphPtr->isSafe())
            and (m_edgeProposerPtr != nullptr)  // and (m_edgeProposerPtr != nullptr)
-           and (m_blockProposerPtr != nullptr);   // and (m_blockProposerPtr != nullptr) 
+           and (m_blockProposerPtr != nullptr);   // and (m_blockProposerPtr != nullptr)
     }
 
     void checkSelfSafety() const override {

@@ -12,20 +12,19 @@ namespace FastMIDyNet{
 
 class MCMC: public NestedRandomVariable{
 protected:
-    CallBackList m_callBacks;
+    CallBackMap m_callBacks;
     size_t m_numSteps;
     size_t m_numSweeps;
     double m_lastLogJointRatio;
     double m_lastLogAcceptance;
     bool m_isLastAccepted;
 public:
-    MCMC(std::vector<CallBack*> callbacks={}):
-        m_callBacks(callbacks),
+    MCMC():
         m_numSteps(0),
         m_numSweeps(0),
         m_lastLogJointRatio(0),
         m_isLastAccepted(false) {}
-    MCMC(const CallBackList& callbacks):
+    MCMC(const CallBackMap& callbacks):
         m_callBacks(callbacks),
         m_numSteps(0),
         m_numSweeps(0),
@@ -45,9 +44,11 @@ public:
     virtual const double getLogPrior() const = 0 ;
     virtual const double getLogJoint() const = 0 ;
 
-    void addCallBack(CallBack& callBack) { callBack.setUp(this); m_callBacks.pushBack(callBack); }
-    void removeCallBack(size_t& idx) { m_callBacks.remove(idx); }
-    void popCallBack() { m_callBacks.popBack(); }
+    void insertCallBack(std::pair<std::string, CallBack*> pair) {
+        pair.second->setUp(this); m_callBacks.insert(pair);
+    }
+    void insertCallBack(std::string key, CallBack& callback) { insertCallBack({key, &callback}); }
+    void removeCallBack(std::string key) { m_callBacks.remove(key); }
 
     virtual void setUp() { m_callBacks.setUp(this); m_numSteps = m_numSweeps = 0; }
     virtual void tearDown() { m_callBacks.tearDown(); m_numSteps = m_numSweeps = 0; }
