@@ -249,16 +249,8 @@ const double Dynamics::getLogLikelihoodRatioFromGraphMove(const GraphMove& move)
     return logLikelihoodRatio;
 }
 
-const double Dynamics::getLogPriorRatioFromGraphMove(const GraphMove& move) const{
-    return m_randomGraphPtr->getLogJointRatioFromGraphMove(move);
-}
 
-const double Dynamics::getLogJointRatioFromGraphMove(const GraphMove& move) const{
-    return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
-}
-
-
-void Dynamics::applyGraphMove(const GraphMove& move){
+void Dynamics::_applyGraphMove(const GraphMove& move) {
     set<VertexIndex> verticesAffected;
     map<VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
     VertexNeighborhoodStateSequence neighborsState(m_numSteps);
@@ -299,11 +291,11 @@ void Dynamics::checkConsistencyOfNeighborsPastState() const {
 
 }
 
-void Dynamics::checkConsistency() const {
+void Dynamics::checkSelfConsistency() const {
     checkConsistencyOfNeighborsPastState();
 }
 
-void Dynamics::checkSafety() const {
+void Dynamics::checkSelfSafety() const {
     if (m_randomGraphPtr == nullptr)
         throw SafetyError("Dynamics: unsafe graph family since `m_randomGraphPtr` is empty.");
     m_randomGraphPtr->checkSafety();
