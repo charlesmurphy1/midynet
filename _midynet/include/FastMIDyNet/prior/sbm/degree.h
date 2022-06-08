@@ -88,6 +88,11 @@ public:
     }
     static void checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence&, size_t);
     static void checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(const DegreeSequence&, const BlockSequence&, const std::vector<CounterMap<size_t>>&);
+
+    bool isSafe() const override {
+        return (m_blockPriorPtr != nullptr) and (m_blockPriorPtr->isSafe())
+           and (m_edgeMatrixPriorPtr != nullptr) and (m_edgeMatrixPriorPtr->isSafe()); 
+    }
     void checkSelfConsistency() const override;
     virtual void checkSelfSafety() const override{
         if (m_blockPriorPtr == nullptr)

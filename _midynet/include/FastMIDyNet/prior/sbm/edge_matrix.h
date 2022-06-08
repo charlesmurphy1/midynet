@@ -88,7 +88,10 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
 
 
 
-
+        bool isSafe() const override {
+            return (m_blockPriorPtr != nullptr) and (m_blockPriorPtr->isSafe())
+               and (m_edgeCountPriorPtr != nullptr) and (m_edgeCountPriorPtr->isSafe());
+        }
         void computationFinished() const override {
             m_isProcessed = false;
             m_blockPriorPtr->computationFinished();

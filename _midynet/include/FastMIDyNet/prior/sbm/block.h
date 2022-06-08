@@ -124,6 +124,9 @@ public:
         }
     }
 
+    bool isSafe() const override {
+        return (m_size >= 0) and (m_blockCountPriorPtr != nullptr) and (m_blockCountPriorPtr->isSafe());
+    }
     void checkSelfSafety() const override {
         if (m_size < 0)
             throw SafetyError("BlockPrior: unsafe prior since `size` < 0: " + std::to_string(m_size) + ".");

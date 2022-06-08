@@ -7,6 +7,7 @@
 #include "FastMIDyNet/proposer/proposer.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/random_graph/random_graph.h"
 
 
@@ -40,6 +41,13 @@ public:
     const bool& allowMultiEdges() const { return m_allowMultiEdges; }
 
     virtual void clear() override { m_graphPtr = nullptr; }
+    bool isSafe() const override {
+        return (m_graphPtr != nullptr);
+    }
+    void checkSelfSafety() const override {
+        if (m_graphPtr == nullptr)
+            throw SafetyError("EdgeProposer: unsafe usage since `m_graphPtr` is NULL");
+    }
 
 };
 

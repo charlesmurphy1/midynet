@@ -15,6 +15,7 @@ public:
     virtual void checkSelfConsistency() const {};
     virtual void checkSelfSafety() const {};
     virtual void computationFinished() const { m_isProcessed = false; }
+    virtual bool isSafe() const { return true; }
 
     void checkConsistency() const { processRecursiveConstFunction([&]() { checkSelfConsistency(); }); }
     void checkSafety() const { processRecursiveConstFunction([&]() { checkSelfSafety(); }); }

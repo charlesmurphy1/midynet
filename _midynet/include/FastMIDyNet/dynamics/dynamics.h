@@ -134,6 +134,8 @@ public:
         m_randomGraphPtr->computationFinished();
     }
 
+    bool isSafe() const { return (m_randomGraphPtr != nullptr) and (m_randomGraphPtr->isSafe()); }
+
 
 };
 

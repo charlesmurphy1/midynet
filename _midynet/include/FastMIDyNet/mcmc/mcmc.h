@@ -4,12 +4,13 @@
 #include <sstream>
 #include <tuple>
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/rv.hpp"
 #include "FastMIDyNet/mcmc/callbacks/callback.h"
 
 
 namespace FastMIDyNet{
 
-class MCMC{
+class MCMC: public NestedRandomVariable{
 protected:
     CallBackList m_callBacks;
     size_t m_numSteps;
@@ -52,9 +53,6 @@ public:
     virtual void tearDown() { m_callBacks.tearDown(); m_numSteps = m_numSweeps = 0; }
     virtual bool doMetropolisHastingsStep() = 0;
     std::tuple<size_t, size_t> doMHSweep(size_t burn=1);
-    virtual void checkSafety() const { };
-
-
 };
 
 }

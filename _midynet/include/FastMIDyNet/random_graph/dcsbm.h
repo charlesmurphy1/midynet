@@ -84,6 +84,10 @@ public:
     static DegreeSequence getDegreesFromGraph(const MultiGraph&) ;
     static void checkGraphConsistencyWithDegreeSequence(const MultiGraph&, const DegreeSequence&) ;
 
+    virtual bool isSafe() const override {
+        return m_blockPriorPtr != nullptr and m_edgeMatrixPriorPtr != nullptr and m_degreePriorPtr != nullptr;
+    }
+
 
     void checkSelfConsistency() const override;
     virtual void checkSelfSafety() const override;

@@ -91,7 +91,7 @@ public:
     virtual const double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
 
 
-
+    virtual bool isSafe() const override { return m_blockPriorPtr != nullptr and m_edgeMatrixPriorPtr != nullptr; }
 
     static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
     static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);

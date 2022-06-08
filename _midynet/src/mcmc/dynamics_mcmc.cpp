@@ -7,30 +7,30 @@ namespace FastMIDyNet{
 bool DynamicsMCMC::doMetropolisHastingsStep() {
     if (m_uniform(rng) < m_sampleGraphPriorProb){
         m_lastMoveWasGraphMove = false;
-        m_randomGraphMCMC.doMetropolisHastingsStep();
-        m_lastLogJointRatio = m_randomGraphMCMC.getLastLogJointRatio();
-        m_lastLogAcceptance = m_randomGraphMCMC.getLastLogAcceptance();
-        m_isLastAccepted = m_randomGraphMCMC.isLastAccepted();
+        m_randomGraphMCMCPtr->doMetropolisHastingsStep();
+        m_lastLogJointRatio = m_randomGraphMCMCPtr->getLastLogJointRatio();
+        m_lastLogAcceptance = m_randomGraphMCMCPtr->getLastLogAcceptance();
+        m_isLastAccepted = m_randomGraphMCMCPtr->isLastAccepted();
 
     }
     else {
         m_lastMoveWasGraphMove = true;
 
-        GraphMove move = m_randomGraphMCMC.proposeEdgeMove();
+        GraphMove move = m_randomGraphMCMCPtr->proposeEdgeMove();
 
-        double logLikelihoodRatio = m_dynamics.getLogLikelihoodRatioFromGraphMove(move);
+        double logLikelihoodRatio = m_dynamicsPtr->getLogLikelihoodRatioFromGraphMove(move);
         if (m_betaLikelihood == 0)
             logLikelihoodRatio = 0;
         else
             logLikelihoodRatio *= m_betaLikelihood;
 
-        double logPriorRatio = m_dynamics.getLogPriorRatioFromGraphMove(move);
+        double logPriorRatio = m_dynamicsPtr->getLogPriorRatioFromGraphMove(move);
         if (m_betaPrior == 0)
             logPriorRatio = 0;
         else
             logPriorRatio *= m_betaPrior;
 
-        double logProposalProbRatio = m_randomGraphMCMC.getLogProposalProbRatioFromGraphMove(move);
+        double logProposalProbRatio = m_randomGraphMCMCPtr->getLogProposalProbRatioFromGraphMove(move);
 
         m_lastLogJointRatio = logLikelihoodRatio + logPriorRatio;
 
@@ -57,8 +57,8 @@ bool DynamicsMCMC::doMetropolisHastingsStep() {
 
         if (r < p){
             m_isLastAccepted = true;
-            m_dynamics.applyGraphMove(move);
-            m_randomGraphMCMC.applyGraphMove(move);
+            m_dynamicsPtr->applyGraphMove(move);
+            m_randomGraphMCMCPtr->applyGraphMove(move);
         }
     }
 

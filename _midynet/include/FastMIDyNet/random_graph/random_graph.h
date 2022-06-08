@@ -93,6 +93,8 @@ public:
         checkConsistency();
         #endif
     }
+
+    virtual bool isSafe() const { return true; }
 };
 
 } // namespace FastMIDyNet

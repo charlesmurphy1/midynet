@@ -23,6 +23,7 @@ public:
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     virtual void applyGraphMove(const GraphMove& move) override { };
     void applyBlockMove(const BlockMove& move) override { };
+
     void checkSelfSafety() const override {
         if (m_graphPtr == nullptr)
             throw SafetyError("SingleEdgeProposer: unsafe proposer since `m_graphPtr` is NULL.");
