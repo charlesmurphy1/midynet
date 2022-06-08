@@ -59,7 +59,11 @@ private:
     std::vector<CounterMap<size_t>> m_degreeCounts = std::vector<CounterMap<size_t>>(1);
 
     EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
-
+protected:
+    void _applyGraphMove(const GraphMove& move) override {
+        m_edgeCountPriorPtr->applyGraphMove(move);
+        RandomGraph::_applyGraphMove(move);
+    }
 public:
     SimpleErdosRenyiFamily(size_t graphSize):
         RandomGraph(graphSize),
@@ -106,13 +110,6 @@ public:
         return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move);
     }
     const double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { return 0; }
-    void applyGraphMove(const GraphMove& move) override {
-        RandomGraph::applyGraphMove(move);
-        m_edgeCountPriorPtr->applyGraphMove(move);
-        #if DEBUG
-        checkSelfConsistency();
-        #endif
-    }
     void checkSelfConsistency() const override {
         m_edgeCountPriorPtr->checkSelfConsistency();
         if (m_graph.getTotalEdgeNumber() != getEdgeCount())
@@ -120,7 +117,7 @@ public:
             + std::to_string(getEdgeCount()) + ") state is not equal to the number of edges in the graph ("
             + std::to_string(m_graph.getTotalEdgeNumber()) +").");
     }
-    void checkSafety() const override {
+    void checkSelfSafety() const override {
         if (m_edgeCountPriorPtr == nullptr)
             throw SafetyError("SimpleErdosRenyiFamily: unsafe graph family since `m_edgeCountPriorPtr` is empty.");
         m_edgeCountPriorPtr->checkSafety();

@@ -26,6 +26,7 @@ class DummyRandomGraph: public RandomGraph{
     size_t m_edgeCount;
     std::vector<size_t> m_degrees;
     std::vector<CounterMap<size_t>> m_degreeCounts;
+
 public:
     using RandomGraph::RandomGraph;
     DummyRandomGraph(size_t size): RandomGraph(size), m_blocks(size, 0), m_vertexCounts(1, size){}

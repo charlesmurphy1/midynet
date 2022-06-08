@@ -40,9 +40,15 @@ class Prior: public NestedRandomVariable{
 
         void applyGraphMove(const GraphMove& move) {
             processRecursiveFunction([&](){_applyGraphMove(move);});
+            #if DEBUG
+            checkConsistency();
+            #endif
         }
         void applyBlockMove(const BlockMove& move) {
             processRecursiveFunction([&](){_applyBlockMove(move);});
+            #if DEBUG
+            checkConsistency();
+            #endif
         }
         const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
             return processRecursiveConstFunction<double>([&](){ return _getLogJointRatioFromGraphMove(move);}, 0);

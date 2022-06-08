@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/rv.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/utility/maps.hpp"
@@ -12,12 +13,14 @@
 
 namespace FastMIDyNet{
 
-class RandomGraph{
+class RandomGraph: public NestedRandomVariable{
 protected:
     size_t m_size;
     MultiGraph m_graph;
     virtual void samplePriors() = 0;
-    virtual void computationFinished() const { };
+
+    virtual void _applyGraphMove(const GraphMove&);
+    virtual void _applyBlockMove(const BlockMove&) { };
 public:
 
     RandomGraph(size_t size=0):
@@ -62,7 +65,7 @@ public:
         checkSelfConsistency();
         #endif
         return getGraph();
-    };
+    }
     virtual void sampleGraph() = 0;
     virtual const double getLogLikelihood() const = 0;
     virtual const double getLogPrior() const = 0;
@@ -73,18 +76,23 @@ public:
     virtual const double getLogPriorRatioFromGraphMove (const GraphMove& move) const = 0;
     virtual const double getLogPriorRatioFromBlockMove (const BlockMove& move) const = 0;
     const double getLogJointRatioFromGraphMove (const GraphMove& move) const{
-        return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
+        return processRecursiveFunction<double>([&](){ return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move); }, 0);
     }
     const double getLogJointRatioFromBlockMove (const BlockMove& move) const{
         return getLogPriorRatioFromBlockMove(move) + getLogLikelihoodRatioFromBlockMove(move);
     }
-    virtual void applyGraphMove(const GraphMove& move);
-    virtual void applyBlockMove(const BlockMove& move) { };
-
-    // void enumerateAllGraphs() const;
-    virtual void checkSelfConsistency() const { };
-    virtual void checkSafety() const { };
-
+    void applyGraphMove(const GraphMove& move){
+        processRecursiveFunction([&](){ _applyGraphMove(move); });
+        #if DEBUG
+        checkConsistency();
+        #endif
+    }
+    void applyBlockMove(const BlockMove& move) {
+        processRecursiveFunction([&](){ _applyBlockMove(move); });
+        #if DEBUG
+        checkConsistency();
+        #endif
+    }
 };
 
 } // namespace FastMIDyNet

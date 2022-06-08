@@ -313,17 +313,8 @@ TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromBlockMove_forBlockM
     FastMIDyNet::BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getVertexCountsInBlocks().size(), 1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
 
-    move.display();
-    displayVector(prior.getBlockPrior().getVertexCountsInBlocks(), "nr_before");
-    displayVector(prior.getEdgeMatrixPrior().getEdgeCountsInBlocks(), "er_before");
     double logLikelihoodBefore = prior.getLogLikelihood();
     prior.applyBlockMove(move);
     double logLikelihoodAfter = prior.getLogLikelihood();
-    displayVector(prior.getBlockPrior().getVertexCountsInBlocks(), "nr_after");
-    displayVector(prior.getEdgeMatrixPrior().getEdgeCountsInBlocks(), "er_after");
-
-    std::cout << "Before: " << logLikelihoodBefore << std::endl;
-    std::cout << "After: " << logLikelihoodAfter << std::endl;
-
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
 }

@@ -82,6 +82,9 @@ public:
     const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { return 0; }
     const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { return 0; }
 
+    // void _applyGraphMove(const GraphMove&) override {}
+    // void _applyBlockMove(const BlockMove&) override {}
+
 };
 
 

@@ -40,6 +40,8 @@ const double StochasticBlockModelFamily::getLogLikelihood() const{
 
     const size_t& numBlocks = edgeMat.size();
     for (size_t r = 0; r < numBlocks; r++) {
+        if (vertexCountsInBlocks[r] == 0)
+            continue;
         edgePart += logDoubleFactorial(edgeMat[r][r]);
         edgePart -= edgeCountsInBlocks[r] * log(vertexCountsInBlocks[r]);
         for (size_t s = r + 1; s < numBlocks; s++) {
@@ -220,33 +222,25 @@ const double StochasticBlockModelFamily::getLogLikelihoodRatioFromBlockMove(cons
 
 const double StochasticBlockModelFamily::getLogPriorRatioFromGraphMove (const GraphMove& move) const {
     double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move);
-    computationFinished();
+    // computationFinished();
     return logPriorRatio;
 };
 
 const double StochasticBlockModelFamily::getLogPriorRatioFromBlockMove (const BlockMove& move) const {
     double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move);
-    computationFinished();
+    // computationFinished();
     return logPriorRatio;
 };
 
-void StochasticBlockModelFamily::applyGraphMove (const GraphMove& move) {
+void StochasticBlockModelFamily::_applyGraphMove (const GraphMove& move) {
     m_blockPriorPtr->applyGraphMove(move);
     m_edgeMatrixPriorPtr->applyGraphMove(move);
-    RandomGraph::applyGraphMove(move);
-    computationFinished();
-    #if DEBUG
-    checkSelfConsistency();
-    #endif
+    RandomGraph::_applyGraphMove(move);
 };
 
-void StochasticBlockModelFamily::applyBlockMove (const BlockMove& move){
+void StochasticBlockModelFamily::_applyBlockMove (const BlockMove& move){
     m_blockPriorPtr->applyBlockMove(move);
     m_edgeMatrixPriorPtr->applyBlockMove(move);
-    computationFinished();
-    #if DEBUG
-    checkSelfConsistency();
-    #endif
 };
 
 EdgeMatrix StochasticBlockModelFamily::getEdgeMatrixFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq){
@@ -302,7 +296,7 @@ void StochasticBlockModelFamily::checkSelfConsistency() const{
     checkGraphConsistencyWithEdgeMatrix(m_graph, getBlocks(), getEdgeMatrix());
 }
 
-void StochasticBlockModelFamily::checkSafety()const{
+void StochasticBlockModelFamily::checkSelfSafety()const{
     if (m_blockPriorPtr == nullptr)
         throw SafetyError("StochasticBlockModelFamily: unsafe family since `m_blockPriorPtr` is empty.");
     m_blockPriorPtr->checkSafety();

@@ -20,11 +20,11 @@ const size_t GRAPH_SIZE = 100, EDGE_COUNT=100;
 class DummyBlockPeixotoProposer: public BlockPeixotoProposer{
 public:
     using BlockPeixotoProposer::BlockPeixotoProposer;
-    IntMap<std::pair<BlockIndex, BlockIndex>> __getEdgeMatrixDiff(const BlockMove& move) const {
-        return getEdgeMatrixDiff(move);
+    IntMap<std::pair<BlockIndex, BlockIndex>> getEdgeMatrixDiff(const BlockMove& move) const {
+        return BlockPeixotoProposer::getEdgeMatrixDiff(move);
     }
-    IntMap<BlockIndex> __getEdgeCountsDiff(const BlockMove& move) const {
-        return getEdgeCountsDiff(move);
+    IntMap<BlockIndex> getEdgeCountsDiff(const BlockMove& move) const {
+        return BlockPeixotoProposer::getEdgeCountsDiff(move);
     }
 };
 
@@ -37,7 +37,7 @@ class TestBlockPeixotoProposer: public::testing::Test {
         StochasticBlockModelFamily randomGraph = {GRAPH_SIZE, blockPrior, edgeMatrixPrior};
 
         DummyBlockPeixotoProposer proposer = FastMIDyNet::DummyBlockPeixotoProposer(NEW_BLOCK_PROBABILITY, SHIFT);
-        size_t numSamples = 1000;
+        size_t numSamples = 10;
 
         void SetUp() {
             seedWithTime();
@@ -82,11 +82,12 @@ class TestBlockPeixotoProposer: public::testing::Test {
 TEST_F(TestBlockPeixotoProposer, getEdgeMatrixDiff_returnCorrectDiff){
     for (size_t nextBlockIdx = 0; nextBlockIdx < randomGraph.getBlockCount(); ++nextBlockIdx){
         FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), nextBlockIdx, 0};
-        auto edgeMatrixDiff = proposer.__getEdgeMatrixDiff(move);
+        auto edgeMatrixDiff = proposer.getEdgeMatrixDiff(move);
         auto actualEdgeMatrix = randomGraph.getEdgeMatrix();
         for (auto diff : edgeMatrixDiff)
             actualEdgeMatrix[diff.first.first][diff.first.second] += diff.second;
         randomGraph.applyBlockMove(move);
+        proposer.applyBlockMove(move);
         auto expectedEdgeMatrix = randomGraph.getEdgeMatrix();
         EXPECT_EQ(actualEdgeMatrix, expectedEdgeMatrix);
     }
@@ -94,35 +95,25 @@ TEST_F(TestBlockPeixotoProposer, getEdgeMatrixDiff_returnCorrectDiff){
 
 TEST_F(TestBlockPeixotoProposer, getReverseLogProposalProb_AllBlockMove_returnCorrectProb) {
     for (size_t nextBlockIdx = 0; nextBlockIdx < randomGraph.getBlockCount(); ++nextBlockIdx){
-        // for (auto ns : randomGraph.getGraph().getNeighboursOfIdx(0))
-        //     std::cout << "(" <<ns.vertexIndex << "[" << randomGraph.getBlockOfIdx(ns.vertexIndex) << "], " << ns.label << ") ";
-        // std::cout << std::endl;
-        // displayMatrix(randomGraph.getEdgeMatrix(), "E_before");
         FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), nextBlockIdx, 0};
         FastMIDyNet::BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx, 0};
-        // move.display();
         double actual = proposer.getReverseLogProposalProb(move);
         randomGraph.applyBlockMove(move);
-        // displayMatrix(randomGraph.getEdgeMatrix(), "E_after");
+        proposer.applyBlockMove(move);
         double expected = proposer.getLogProposalProb(reverseMove);
         randomGraph.applyBlockMove(reverseMove);
-        // std::cout << "For move " << nextBlockIdx << " -> " << actual << " =? " << expected << std::endl << std::endl;
         EXPECT_FLOAT_EQ(actual, expected);
     }
 }
 
 TEST_F(TestBlockPeixotoProposer, getReverseLogProposalProbRatio_fromSomeBlockMoveCreatingNewBlock_returnCorrectRatio) {
     for (size_t i = 0; i < numSamples; i++) {
-
         FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), randomGraph.getBlockCount(), 1};
         FastMIDyNet::BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx, -1};
-        // move.display();
-        // for (auto ns : randomGraph.getGraph().getNeighboursOfIdx(0))
-        //         std::cout << "(" <<ns.vertexIndex << "[" << randomGraph.getBlockOfIdx(ns.vertexIndex) << "], " << ns.label << ") ";
         double actual = proposer.getReverseLogProposalProb(move);
         randomGraph.applyBlockMove(move);
+        proposer.applyBlockMove(move);
         double expected = proposer.getLogProposalProb(reverseMove);
-        // std::cout << std::endl << actual << " =?" << expected << std::endl;
         EXPECT_FLOAT_EQ(actual, expected);
         if (abs(actual - expected) > 1e-3)
             break;
