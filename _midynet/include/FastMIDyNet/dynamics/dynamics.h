@@ -29,7 +29,6 @@ protected:
     StateSequence m_futureStateSequence;
     RandomGraph* m_randomGraphPtr = nullptr;
     NeighborsStateSequence m_neighborsPastStateSequence;
-    // std::vector<VertexNeighborhoodStateSequence> m_vertexMapNeighborsPastStateSequence;
 
     void updateNeighborsStateInPlace(
         BaseGraph::VertexIndex vertexIdx,
@@ -43,6 +42,9 @@ protected:
         std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&,
         std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&
     ) const ;
+
+    void checkConsistencyOfNeighborsState() const ;
+    void checkConsistencyOfNeighborsPastStateSequence() const ;
 public:
     explicit Dynamics(size_t numStates, size_t numSteps, bool normalizeCoupling=true):
         m_numStates(numStates),
@@ -65,7 +67,7 @@ public:
         m_state = state;
         m_neighborsState = computeNeighborsState(m_state);
         #if DEBUG
-        checkSelfConsistency();
+        checkConsistency();
         #endif
     }
     const MultiGraph& getGraph() const { return m_randomGraphPtr->getGraph(); }
@@ -73,7 +75,10 @@ public:
 
     const RandomGraph& getRandomGraph() const { return *m_randomGraphPtr; }
     RandomGraph& getRandomGraphRef() const { return *m_randomGraphPtr; }
-    void setRandomGraph(RandomGraph& randomGraph) { m_randomGraphPtr = &randomGraph; m_randomGraphPtr->isRoot(false); }
+    void setRandomGraph(RandomGraph& randomGraph) {
+        m_randomGraphPtr = &randomGraph;
+        m_randomGraphPtr->isRoot(false);
+    }
 
     const int getSize() const { return m_randomGraphPtr->getSize(); }
     const int getNumStates() const { return m_numStates; }
@@ -110,21 +115,31 @@ public:
     ) const;
 
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const;
-    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const;
-    const double getLogJointRatioFromGraphMove(const GraphMove& move) const;
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const {
+        return m_randomGraphPtr->getLogJointRatioFromGraphMove(move);
+    }
+    const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
+        return processRecursiveConstFunction<double>([&](){
+            return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
+        }, 0);
+    }
     void _applyGraphMove(const GraphMove& move);
-    void applyGraphMove(const GraphMove& move){
-        processRecursiveFunction([&](){
-            _applyGraphMove(move);
-        });
-    };
+    void applyGraphMove(const GraphMove& move) {
+        processRecursiveFunction([&](){ _applyGraphMove(move); });
+    }
 
-    virtual void checkConsistencyOfNeighborsPastState() const ;
-    virtual void _checkSafety() const override  ;
-    virtual void _checkSelfConsistency() const override  ;
-    virtual void computationFinished() const {
+    void checkSelfSafety() const override;
+    void checkSelfConsistency() const override;
+
+    void computationFinished() const override {
         m_isProcessed = false;
         m_randomGraphPtr->computationFinished();
+    }
+
+    bool isSafe() const override {
+        return (m_randomGraphPtr != nullptr) and (m_randomGraphPtr->isSafe())
+           and (m_state.size() != 0) and (m_pastStateSequence.size() != 0)
+           and (m_futureStateSequence.size() != 0) and (m_neighborsPastStateSequence.size() != 0);
     }
 
 

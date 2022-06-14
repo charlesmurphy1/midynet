@@ -16,6 +16,9 @@ namespace FastMIDyNet{
 
 template<typename BaseClass = BlockProposer>
 class PyBlockProposer: public PyProposer<BlockMove, BaseClass>{
+protected:
+    bool creatingNewBlock(const BlockMove& move) const { PYBIND11_OVERRIDE_PURE(bool, BaseClass, creatingNewBlock, move); }
+    bool destroyingBlock(const BlockMove& move) const { PYBIND11_OVERRIDE_PURE(bool, BaseClass, destroyingBlock, move); }
 public:
     using PyProposer<BlockMove, BaseClass>::PyProposer;
 

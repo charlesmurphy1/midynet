@@ -6,10 +6,21 @@
 namespace FastMIDyNet{
 
 class NestedRandomVariable{
-protected:
-    mutable bool m_isRoot = true;
-    mutable bool m_isProcessed = false;
+public:
 
+    bool isRoot() const { return m_isRoot; }
+    virtual bool isRoot(bool condition) const { return m_isRoot = condition; }
+    bool isProcessed() const { return m_isProcessed; }
+    virtual bool isProcessed(bool condition) const { return m_isProcessed = condition; }
+    virtual void checkSelfConsistency() const {};
+    virtual void checkSelfSafety() const {};
+    virtual void computationFinished() const { m_isProcessed = false; }
+    virtual bool isSafe() const { return true; }
+
+    void checkConsistency() const { processRecursiveConstFunction([&]() { checkSelfConsistency(); }); }
+    void checkSafety() const { processRecursiveConstFunction([&]() { checkSelfSafety(); }); }
+
+protected:
     template<typename RETURN_TYPE>
     RETURN_TYPE processRecursiveConstFunction(const std::function<RETURN_TYPE()>& func, RETURN_TYPE init) const {
         RETURN_TYPE ret = init;
@@ -45,15 +56,9 @@ protected:
         if ( m_isRoot ) computationFinished();
         else m_isProcessed=true;
     }
-public:
-    const bool isRoot() const { return m_isRoot; }
-    virtual void isRoot(bool condition) const { m_isRoot = condition; }
-    void checkSelfConsistency() const { processRecursiveConstFunction([&](){ _checkSelfConsistency(); }); }
-    void checkSafety() const  { processRecursiveConstFunction([&](){ _checkSafety(); }); }
-    virtual void computationFinished() const { m_isProcessed = false; }
 
-    virtual void _checkSelfConsistency() const { }
-    virtual void _checkSafety() const  { }
+    mutable bool m_isRoot = true;
+    mutable bool m_isProcessed = false;
 };
 
 }

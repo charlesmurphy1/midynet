@@ -50,7 +50,7 @@ TEST_F(TestSISDynamics, getDeactivationProb_forEachStateTransition_returnCorrect
 
 TEST_F(TestSISDynamics, afterSample_getCorrectNeighborState){
     dynamics.sample();
-    dynamics.checkConsistencyOfNeighborsPastState();
+    dynamics.checkConsistency();
 }
 
 TEST_F(TestSISDynamics, getLogLikelihood_returnCorrectLogLikelikehood){

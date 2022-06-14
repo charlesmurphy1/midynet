@@ -37,7 +37,7 @@ TEST_F(TestDegreeDynamics, getDeactivationProb_forEachStateTransition_returnCorr
 
 TEST_F(TestDegreeDynamics, afterSample_getCorrectNeighborState){
     dynamics.sample();
-    dynamics.checkConsistencyOfNeighborsPastState();
+    dynamics.checkConsistency();
 }
 
 TEST_F(TestDegreeDynamics, getLogLikelihood_returnCorrectLogLikelikehood){

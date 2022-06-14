@@ -16,6 +16,10 @@ public:
 };
 
 class SafetyError: public std::logic_error {
+private:
+    // std::string m_className;
+    // std::string m_unsafeObject;
+    // std::string m_objectUnsafeValue;
 public:
     SafetyError(const std::string& message): std::logic_error(message) {}
 };

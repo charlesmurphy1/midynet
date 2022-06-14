@@ -25,7 +25,7 @@ const double BlockCountPoissonPrior::getLogLikelihoodFromState(const size_t& sta
     return logZeroTruncatedPoissonPMF(state, m_mean);
 };
 
-void BlockCountPoissonPrior::_checkSelfConsistency() const {
+void BlockCountPoissonPrior::checkSelfConsistency() const {
     if (m_mean < 0)
         throw ConsistencyError("BlockCountPoissonPrior: Negative mean `" + std::to_string(m_mean) + "`.");
 
@@ -54,7 +54,7 @@ void BlockCountUniformPrior::checkMax() const {
         throw ConsistencyError("BlockCountUniformPrior: `max` must be greater than or equal to `min` :"
             + std::to_string(m_min) + ">" + std::to_string(m_max) + ".");
 }
-void BlockCountUniformPrior::_checkSelfConsistency() const {
+void BlockCountUniformPrior::checkSelfConsistency() const {
     checkMin();
     checkMax();
     if (m_state < m_min || m_state > m_max)

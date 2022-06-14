@@ -8,21 +8,27 @@
 
 
 const double POISSON_MEAN=5;
-const std::vector<size_t> TESTED_INTEGERS;
+const std::vector<size_t> TESTED_INTEGERS={0,5,10};
 
 
 class DummyEdgeCountPrior: public FastMIDyNet::EdgeCountPrior {
     public:
         void sampleState() {}
-        const double getLogLikelihoodFromState(const size_t& state) const override { return state; }
-        const double getLogPrior() const override { return 0; }
-        void _checkSelfConsistency() const override { }
+        const double getLogLikelihoodFromState(const size_t& state) const { return state; }
+        const double getLogPrior() { return 0; }
+        void checkSelfConsistency() const { }
 };
 
 class TestEdgeCountPrior: public ::testing::Test {
     public:
         DummyEdgeCountPrior prior;
-        void SetUp() { prior.setState(0); prior.computationFinished(); }
+        void SetUp() {
+            prior.setState(0);
+            prior.checkSafety();
+        }
+        void TearDown(){
+            prior.checkConsistency();
+        }
 };
 
 TEST_F(TestEdgeCountPrior, getStateAfterGraphMove_addEdges_returnCorrectEdgeNumber) {
@@ -96,9 +102,15 @@ TEST_F(TestEdgeCountPrior, getLogPrior_return0) {
 }
 
 class TestEdgeCountDeltaPrior: public::testing::Test{
-    public:
-        size_t edgeCount = 5;
-        FastMIDyNet::EdgeCountDeltaPrior prior={edgeCount};
+public:
+    size_t edgeCount = 5;
+    FastMIDyNet::EdgeCountDeltaPrior prior={edgeCount};
+    void SetUp(){
+        prior.checkSafety();
+    }
+    void TearDown(){
+        prior.checkConsistency();
+    }
 };
 
 TEST_F(TestEdgeCountDeltaPrior, sampleState_doNothing){
@@ -127,14 +139,22 @@ TEST_F(TestEdgeCountDeltaPrior, getLogLikelihoodRatio_forSomeGraphMoveNotPreserv
 
 
 class TestEdgeCountPoissonPrior: public::testing::Test{
-    public:
-        FastMIDyNet::EdgeCountPoissonPrior prior={POISSON_MEAN};
+public:
+    FastMIDyNet::EdgeCountPoissonPrior prior={POISSON_MEAN};
+    bool expectConsistencyError = false;
+    void SetUp(){
+        prior.sample();
+        prior.checkSafety();
+    }
+    void TearDown(){
+        if (not expectConsistencyError)
+            prior.checkConsistency();
+    }
 };
 
 TEST_F(TestEdgeCountPoissonPrior, getLogLikelihoodFromState_differentIntegers_returnPoissonPMF) {
     for (auto x: TESTED_INTEGERS)
-        EXPECT_DOUBLE_EQ(prior.getLogLikelihoodFromState(x),
-                    FastMIDyNet::logPoissonPMF(x, POISSON_MEAN));
+        EXPECT_DOUBLE_EQ(prior.getLogLikelihoodFromState(x), FastMIDyNet::logPoissonPMF(x, POISSON_MEAN));
 }
 
 TEST_F(TestEdgeCountPoissonPrior, checkSelfConsistency_validMean_noThrow) {
@@ -144,6 +164,7 @@ TEST_F(TestEdgeCountPoissonPrior, checkSelfConsistency_validMean_noThrow) {
 TEST_F(TestEdgeCountPoissonPrior, checkSelfConsistency_nonPositiveMean_throwConsistencyError) {
     prior={-2};
     EXPECT_THROW(prior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    expectConsistencyError = true;
 }
 
 

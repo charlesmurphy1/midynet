@@ -23,6 +23,10 @@ protected:
     std::vector<CounterMap<size_t>> m_degreeCounts;
     void samplePriors () ;
 
+
+    virtual void _applyGraphMove (const GraphMove&) override;
+    virtual void _applyBlockMove (const BlockMove&) override;
+
 public:
     StochasticBlockModelFamily(size_t graphSize): RandomGraph(graphSize) { }
     StochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
@@ -33,10 +37,6 @@ public:
         }
 
     void sampleGraph () override;
-    void sampleBlocks() {
-        m_blockPriorPtr->sample();
-        setGraph(m_graph);
-    }
 
 
     void setGraph(const MultiGraph& graph) override{
@@ -44,15 +44,6 @@ public:
         m_edgeMatrixPriorPtr->setGraph(m_graph);
         m_degreeCounts = computeDegreeCountsInBlocks();
         m_degrees = m_graph.getDegrees();
-    }
-    void setBlocks(const BlockSequence& blocks){
-        m_blockPriorPtr->setState(blocks);
-        setGraph(m_graph);
-    }
-
-
-    void setPartition(const BlockSequence& blocks) override {
-
     }
 
 
@@ -99,20 +90,20 @@ public:
     virtual const double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
     virtual const double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
 
-    virtual void _applyGraphMove (const GraphMove&) override;
-    virtual void _applyBlockMove (const BlockMove&) override;
+
+    virtual bool isSafe() const override { return m_blockPriorPtr != nullptr and m_edgeMatrixPriorPtr != nullptr; }
 
     static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
     static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
-
-    virtual void _checkSelfConsistency() const ;
-    virtual void _checkSafety() const ;
+    virtual void checkSelfConsistency() const override;
+    virtual void checkSelfSafety() const override;
     virtual const bool isCompatible(const MultiGraph& graph) const override{
         if (not RandomGraph::isCompatible(graph)) return false;
         auto edgeMatrix = getEdgeMatrixFromGraph(graph, getBlocks());
         return edgeMatrix == getEdgeMatrix();
     };
     virtual void computationFinished() const override {
+        m_isProcessed = false;
         m_blockPriorPtr->computationFinished();
         m_edgeMatrixPriorPtr->computationFinished();
     }

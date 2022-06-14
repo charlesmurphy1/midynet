@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <map>
 
 namespace FastMIDyNet{
 
@@ -23,26 +24,29 @@ public:
 
 };
 
-class CallBackList{
+class CallBackMap{
 private:
-    std::vector<CallBack*> m_callbacksVec;
+    std::map<std::string, CallBack*> m_callbacksMap;
 public:
-    CallBackList(std::vector<CallBack*> callBacks={}):m_callbacksVec(callBacks) {}
-    CallBackList(const CallBackList& callBacks): m_callbacksVec(callBacks.m_callbacksVec) {}
+    CallBackMap() {}
+    CallBackMap(std::map<std::string, CallBack*> callBacks): m_callbacksMap(callBacks) {}
+    CallBackMap(const CallBackMap& callBacks): m_callbacksMap(callBacks.m_callbacksMap) {}
 
-    void setUp(MCMC* mcmcPtr) { for(auto c : m_callbacksVec) c->setUp(mcmcPtr); }
-    void tearDown() { for(auto c : m_callbacksVec) c->tearDown(); }
-    void onBegin() { for(auto c : m_callbacksVec) c->onBegin(); }
-    void onEnd() { for(auto c : m_callbacksVec) c->onEnd(); }
-    void onStepBegin() { for(auto c : m_callbacksVec) c->onStepBegin(); }
-    void onStepEnd() { for(auto c : m_callbacksVec) c->onStepEnd(); }
-    void onSweepBegin() { for(auto c : m_callbacksVec) c->onSweepBegin(); }
-    void onSweepEnd() { for(auto c : m_callbacksVec) c->onSweepEnd(); }
+    void setUp(MCMC* mcmcPtr) { for(auto c : m_callbacksMap) c.second->setUp(mcmcPtr); }
+    void tearDown() { for(auto c : m_callbacksMap) c.second->tearDown(); }
+    void onBegin() { for(auto c : m_callbacksMap) c.second->onBegin(); }
+    void onEnd() { for(auto c : m_callbacksMap) c.second->onEnd(); }
+    void onStepBegin() { for(auto c : m_callbacksMap) c.second->onStepBegin(); }
+    void onStepEnd() { for(auto c : m_callbacksMap) c.second->onStepEnd(); }
+    void onSweepBegin() { for(auto c : m_callbacksMap) c.second->onSweepBegin(); }
+    void onSweepEnd() { for(auto c : m_callbacksMap) c.second->onSweepEnd(); }
 
-    void pushBack(CallBack& callback) { m_callbacksVec.push_back(&callback); }
-    void remove(size_t idx) { m_callbacksVec.erase(m_callbacksVec.begin() + idx); }
-    void popBack() { m_callbacksVec.pop_back(); }
 
+    const CallBack& get(std::string key) const { return *m_callbacksMap.at(key); }
+    void insert(std::pair<std::string, CallBack*> pair) { m_callbacksMap.insert(pair); }
+    void insert(std::string key, CallBack& callback) { insert({key, &callback}); }
+    void remove(std::string key) { m_callbacksMap.erase(key); }
+    size_t size() const { return m_callbacksMap.size(); }
 };
 
 }

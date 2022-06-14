@@ -10,6 +10,9 @@
 namespace FastMIDyNet {
 
 class BlockProposer: public Proposer<BlockMove> {
+protected:
+    virtual bool creatingNewBlock(const BlockMove&) const = 0;
+    virtual bool destroyingBlock(const BlockMove&) const = 0;
 public:
     virtual void setUp(const RandomGraph& randomGraph) = 0;
     virtual const double getLogProposalProbRatio(const BlockMove& move) const = 0;

@@ -26,14 +26,12 @@ class Reconstructability(Expectation):
         dynamics = DynamicsFactory.build(self.config.dynamics)
         dynamics.set_random_graph(graph.get_wrap())
         random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
-        mcmc = DynamicsMCMC(
-            dynamics,
-            random_graph_mcmc.get_wrap(),
-            1,
-            1,
-            self.config.graph.sample_graph_prior_prob,
-        )
         dynamics.sample()
+        mcmc = DynamicsMCMC()
+        mcmc.set_dynamics(dynamics)
+        mcmc.set_random_graph_mcmc(random_graph_mcmc.get_wrap())
+        mcmc.set_sample_graph_prior_prob(self.config.graph.sample_graph_prior_prob)
+        mcmc.set_up()
         hg = -graph.get_log_likelihood()
         hgx = -get_log_posterior(mcmc, self.config.metrics.reconstructability)
 

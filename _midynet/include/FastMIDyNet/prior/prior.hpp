@@ -29,67 +29,51 @@ class Prior: public NestedRandomVariable{
         virtual void sampleState() = 0;
         virtual void samplePriors() = 0;
         const StateType& sample() {
-            auto _func = [&]() {
+            processRecursiveFunction([&]() {
                 samplePriors();
                 sampleState();
-            };
-            processRecursiveFunction(_func);
+            });
             return getState();
         }
         virtual const double getLogLikelihood() const = 0;
         virtual const double getLogPrior() const = 0;
+
+        void applyGraphMove(const GraphMove& move) {
+            processRecursiveFunction([&](){_applyGraphMove(move);});
+            #if DEBUG
+            checkConsistency();
+            #endif
+        }
+        void applyBlockMove(const BlockMove& move) {
+            processRecursiveFunction([&](){_applyBlockMove(move);});
+            #if DEBUG
+            checkConsistency();
+            #endif
+        }
+        const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
+            return processRecursiveConstFunction<double>([&](){ return _getLogJointRatioFromGraphMove(move);}, 0);
+        }
+        const double getLogJointRatioFromBlockMove(const BlockMove& move) const {
+            return processRecursiveConstFunction<double>([&](){ return _getLogJointRatioFromBlockMove(move);}, 0);
+        }
+
+
+
 
         const double getLogJoint() const {
             auto _func = [&]() { return getLogPrior() + getLogLikelihood(); };
             double logJoint = processRecursiveConstFunction<double>(_func , 0);
             return logJoint;
         }
-
-        // virtual void checkSelfConsistency() const = 0;
-        // virtual void checkSafety() const = 0;
-        // virtual void computationFinished() const { m_isProcessed = false; }
-
-
-        // template<typename RETURN_TYPE>
-        // RETURN_TYPE processRecursiveConstFunction(const std::function<RETURN_TYPE()>& func, RETURN_TYPE init) const {
-        //     RETURN_TYPE ret = init;
-        //     if (!m_isProcessed)
-        //         ret = func();
-        //
-        //     if ( m_isRoot ) computationFinished();
-        //     else m_isProcessed=true;
-        //     return ret;
-        // }
-        // void processRecursiveConstFunction(const std::function<void()>& func) const {
-        //     if (!m_isProcessed)
-        //         func();
-        //     m_isProcessed=true;
-        //     if ( m_isRoot ) computationFinished();
-        //     else m_isProcessed=true;
-        // }
-        //
-        // template<typename RETURN_TYPE>
-        // RETURN_TYPE processRecursiveFunction(const std::function<RETURN_TYPE()>& func, RETURN_TYPE init) const {
-        //     RETURN_TYPE ret = init;
-        //     if (!m_isProcessed)
-        //         ret = func();
-        //
-        //     if ( m_isRoot ) computationFinished();
-        //     else m_isProcessed=true;
-        //     return ret;
-        // }
-        // void processRecursiveFunction(const std::function<void()>& func) {
-        //     if (!m_isProcessed)
-        //         func();
-        //     m_isProcessed=true;
-        //     if ( m_isRoot ) computationFinished();
-        //     else m_isProcessed=true;
-        // }
-
     protected:
+
+        virtual void onBlockCreation(const BlockMove&) { };
+        virtual void onBlockDeletion(const BlockMove&) { };
+        virtual void _applyGraphMove(const GraphMove&) = 0;
+        virtual void _applyBlockMove(const BlockMove&) = 0;
+        virtual const double _getLogJointRatioFromGraphMove(const GraphMove&) const = 0;
+        virtual const double _getLogJointRatioFromBlockMove(const BlockMove&) const = 0;
         StateType m_state;
-        // mutable bool m_isRoot = true;
-        // mutable bool m_isProcessed = false;
 };
 
 }

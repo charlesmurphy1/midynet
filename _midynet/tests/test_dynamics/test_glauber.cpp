@@ -40,7 +40,7 @@ TEST_F(TestGlauberDynamics, getDeactivationProb_forEachStateTransition_returnCor
 
 TEST_F(TestGlauberDynamics, afterSample_getCorrectNeighborState){
     dynamics.sample();
-    dynamics.checkConsistencyOfNeighborsPastState();
+    dynamics.checkConsistency();
 }
 
 TEST_F(TestGlauberDynamics, getLogLikelihood_returnCorrectLogLikelikehood){

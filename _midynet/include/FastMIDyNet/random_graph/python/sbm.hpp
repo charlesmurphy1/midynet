@@ -15,6 +15,9 @@ namespace FastMIDyNet{
 //
 template<typename BaseClass = StochasticBlockModelFamily>
 class PyStochasticBlockModelFamily: public PyRandomGraph<BaseClass>{
+protected:
+    void _applyGraphMove (const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
+    void _applyBlockMove (const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
 public:
     using PyRandomGraph<StochasticBlockModelFamily>::PyRandomGraph;
 
@@ -37,11 +40,11 @@ public:
     const double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihoodRatioFromBlockMove, move); }
     const double getLogPriorRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromGraphMove, move); }
     const double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromBlockMove, move); }
-    void applyGraphMove (const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
-    void applyBlockMove (const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
     void computationFinished() const override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
-    void _checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, _checkSelfConsistency, ); }
+    void checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
+    void checkSelfSafety() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfSafety, ); }
     const bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
+    bool isSafe() const override { PYBIND11_OVERRIDE(bool, BaseClass, isSafe, ); }
 };
 
 template<typename BaseClass = DegreeCorrectedStochasticBlockModelFamily>
@@ -56,6 +59,7 @@ public:
     void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setEdgeMatrixPrior, edgeMatrixPrior); }
     void setDegreePrior(DegreePrior& DegreePrior) override { PYBIND11_OVERRIDE(void, BaseClass, setDegreePrior, DegreePrior); }
     const bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
+    bool isSafe() const override { PYBIND11_OVERRIDE(bool, BaseClass, isSafe, ); }
 };
 
 }

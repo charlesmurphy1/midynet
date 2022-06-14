@@ -183,13 +183,13 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioFro
 };
 
 const double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatioFromGraphMove(const GraphMove& move) const {
-    double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromGraphMove(move) + m_degreePriorPtr->getLogPriorRatioFromGraphMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move) + m_degreePriorPtr->getLogJointRatioFromGraphMove(move);
     computationFinished();
     return logPriorRatio;
 }
 
 const double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatioFromBlockMove(const BlockMove& move) const {
-    double logPriorRatio = m_blockPriorPtr->getLogPriorRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogPriorRatioFromBlockMove(move) + m_degreePriorPtr->getLogPriorRatioFromBlockMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move) + m_degreePriorPtr->getLogJointRatioFromBlockMove(move);
     computationFinished();
     return logPriorRatio;
 }
@@ -198,18 +198,12 @@ void DegreeCorrectedStochasticBlockModelFamily::_applyGraphMove (const GraphMove
     m_blockPriorPtr->applyGraphMove(move);
     m_edgeMatrixPriorPtr->applyGraphMove(move);
     m_degreePriorPtr->applyGraphMove(move);
-    RandomGraph::applyGraphMove(move);
-    #if DEBUG
-    checkSelfConsistency();
-    #endif
+    RandomGraph::_applyGraphMove(move);
 };
 void DegreeCorrectedStochasticBlockModelFamily::_applyBlockMove (const BlockMove& move){
     m_blockPriorPtr->applyBlockMove(move);
     m_edgeMatrixPriorPtr->applyBlockMove(move);
     m_degreePriorPtr->applyBlockMove(move);
-    #if DEBUG
-    checkSelfConsistency();
-    #endif
 };
 
 DegreeSequence DegreeCorrectedStochasticBlockModelFamily::getDegreesFromGraph(const MultiGraph& graph){
@@ -235,7 +229,7 @@ void DegreeCorrectedStochasticBlockModelFamily::checkGraphConsistencyWithDegreeS
     }
 }
 
-void DegreeCorrectedStochasticBlockModelFamily::_checkSelfConsistency() const{
+void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency() const{
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeMatrixPriorPtr->checkSelfConsistency();
     m_degreePriorPtr->checkSelfConsistency();
@@ -244,7 +238,7 @@ void DegreeCorrectedStochasticBlockModelFamily::_checkSelfConsistency() const{
     checkGraphConsistencyWithDegreeSequence(m_graph, getDegrees());
 }
 
-void DegreeCorrectedStochasticBlockModelFamily::_checkSafety()const{
+void DegreeCorrectedStochasticBlockModelFamily::checkSelfSafety()const{
     StochasticBlockModelFamily::checkSafety();
     if (m_degreePriorPtr == nullptr)
         throw SafetyError("StochasticBlockModelFamily: unsafe family since `m_degreePriorPtr` is empty.");

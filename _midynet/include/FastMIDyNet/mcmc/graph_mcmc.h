@@ -26,34 +26,18 @@ public:
         EdgeProposer& edgeProposer,
         BlockProposer& blockProposer,
         double betaLikelihood=1,
-        double betaPrior=1,
-        const CallBackList& callBacks={}):
-    MCMC(callBacks),
+        double betaPrior=1):
     m_betaLikelihood(betaLikelihood),
     m_betaPrior(betaPrior),
     m_uniform(0., 1.) {
-        setEdgeProposer(edgeProposer);
-        setBlockProposer(blockProposer);
         setRandomGraph(randomGraph);
-    }
-
-    RandomGraphMCMC(
-        EdgeProposer& edgeProposer,
-        BlockProposer& blockProposer,
-        double betaLikelihood=1,
-        double betaPrior=1,
-        const CallBackList& callBacks={}):
-    MCMC(callBacks),
-    m_uniform(0., 1.) {
         setEdgeProposer(edgeProposer);
         setBlockProposer(blockProposer);
     }
 
     RandomGraphMCMC(
         double betaLikelihood=1,
-        double betaPrior=1,
-        const CallBackList& callBacks={}):
-    MCMC(callBacks),
+        double betaPrior=1):
     m_uniform(0., 1.) {}
 
 
@@ -67,6 +51,7 @@ public:
     void setBetaLikelihood(double betaLikelihood) { m_betaLikelihood = betaLikelihood; }
 
     const RandomGraph& getRandomGraph() const { return *m_randomGraphPtr; }
+    RandomGraph& getRandomGraphRef() const { return *m_randomGraphPtr; }
     void setRandomGraph(RandomGraph& randomGraph) { m_randomGraphPtr = &randomGraph; m_randomGraphPtr->isRoot(false);}
 
     const double getLogLikelihood() const override { return m_randomGraphPtr->getLogLikelihood(); }
@@ -80,48 +65,66 @@ public:
     }
 
     const EdgeProposer& getEdgeProposer() const { return *m_edgeProposerPtr; }
+    EdgeProposer& getEdgeProposerRef() const { return *m_edgeProposerPtr; }
     void setEdgeProposer(EdgeProposer& proposer) { m_edgeProposerPtr = &proposer; m_edgeProposerPtr->isRoot(false); }
     GraphMove proposeEdgeMove() const { return m_edgeProposerPtr->proposeMove(); }
 
     const BlockProposer& getBlockProposer() const { return *m_blockProposerPtr; }
-    void setBlockProposer(BlockProposer& proposer) { m_blockProposerPtr = &proposer; m_edgeProposerPtr->isRoot(false); }
+    BlockProposer& getBlockProposerRef() const { return *m_blockProposerPtr; }
+    void setBlockProposer(BlockProposer& proposer) { m_blockProposerPtr = &proposer; m_blockProposerPtr->isRoot(false); }
 
 
     double getLogProposalProbRatioFromGraphMove(const GraphMove& move) const { return m_edgeProposerPtr->getLogProposalProbRatio(move); }
     double getLogProposalProbRatioFromBlockMove(const BlockMove& move) const { return m_blockProposerPtr->getLogProposalProbRatio(move); }
+    double _getLogAcceptanceProb(const BlockMove& move) const;
+    double getLogAcceptanceProb(const BlockMove& move) const {
+        return processRecursiveConstFunction<double>([&](){ return _getLogAcceptanceProb(move); }, 0) ;
+    }
+
     void applyGraphMove(const GraphMove& move) {
-        processRecursiveFunction([&] () {
+        processRecursiveFunction([&](){
             m_blockProposerPtr->applyGraphMove(move);
             m_edgeProposerPtr->applyGraphMove(move);
             m_randomGraphPtr->applyGraphMove(move);
         });
     }
     void applyBlockMove(const BlockMove& move) {
-        processRecursiveFunction([&] () {
+        processRecursiveFunction([&](){
             m_blockProposerPtr->applyBlockMove(move);
             m_edgeProposerPtr->applyBlockMove(move);
             m_randomGraphPtr->applyBlockMove(move);
         });
     }
 
-    bool doMetropolisHastingsStep() override ;
+    bool _doMetropolisHastingsStep() override ;
 
-    void _checkSafety() const override {
-        if (m_edgeProposerPtr == nullptr)
-            throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_edgeProposerPtr` is NULL.");
-        if (m_blockProposerPtr == nullptr)
-            throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_blockProposerPtr` is NULL.");
+    bool isSafe() const override {
+        return (m_randomGraphPtr != nullptr) and (m_randomGraphPtr->isSafe())
+           and (m_edgeProposerPtr != nullptr)  and (m_edgeProposerPtr->isSafe())
+           and (m_blockProposerPtr != nullptr) and (m_blockProposerPtr->isSafe());
+    }
+
+    void checkSelfSafety() const override {
         if (m_randomGraphPtr == nullptr)
             throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_randomGraphPtr` is NULL.");
-        m_edgeProposerPtr->checkSafety();
-        m_blockProposerPtr->checkSafety();
         m_randomGraphPtr->checkSafety();
+
+        if (m_edgeProposerPtr == nullptr)
+            throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_edgeProposerPtr` is NULL.");
+        m_edgeProposerPtr->checkSafety();
+
+        if (m_blockProposerPtr == nullptr)
+            throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_blockProposerPtr` is NULL.");
+        m_blockProposerPtr->checkSafety();
     };
-    void _checkSelfConsistency() const override {
-        m_edgeProposerPtr->checkSelfConsistency();
-        m_blockProposerPtr->checkSelfConsistency();
-        m_randomGraphPtr->checkSelfConsistency();
+
+    void checkSelfConsistency() const override {
+        if (m_edgeProposerPtr != nullptr)
+            m_edgeProposerPtr->checkConsistency();
+        if (m_blockProposerPtr != nullptr)
+            m_blockProposerPtr->checkConsistency();
     }
+
     void computationFinished() const override {
         m_isProcessed = false;
         m_blockProposerPtr->computationFinished();

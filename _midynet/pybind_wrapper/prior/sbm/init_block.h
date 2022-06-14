@@ -5,10 +5,8 @@
 #include <pybind11/stl.h>
 #include <vector>
 
-#include "declare.h"
 #include "FastMIDyNet/prior/python/prior.hpp"
 #include "FastMIDyNet/prior/sbm/block_count.h"
-#include "FastMIDyNet/prior/sbm/vertex_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/prior/sbm/python/block.hpp"
 
@@ -17,12 +15,15 @@ namespace py = pybind11;
 namespace FastMIDyNet{
 
 void initBlockPrior(py::module& m){
-    declareSBMPrior<BlockPrior, Prior<std::vector<size_t>>, PyBlockPrior<>>(m, "BlockPrior")
+    py::class_<BlockPrior, Prior<std::vector<size_t>>, PyBlockPrior<>>(m, "BlockPrior")
         .def(py::init<>())
-        .def(py::init<size_t>(), py::arg("size"))
+        .def(py::init<size_t, BlockCountPrior&>(), py::arg("size"), py::arg("block_count_prior"))
         .def("get_size", &BlockPrior::getSize)
         .def("set_size", &BlockPrior::setSize)
         .def("get_block_count", &BlockPrior::getBlockCount)
+        .def("get_block_count_prior", &BlockPrior::getBlockCountPrior)
+        .def("get_block_count_prior_ref", &BlockPrior::getBlockCountPriorRef)
+        .def("set_block_count_prior", &BlockPrior::setBlockCountPrior)
         .def("get_vertex_count", &BlockPrior::getVertexCountsInBlocks)
         .def("get_block_of_idx", &BlockPrior::getBlockOfIdx)
         ;
@@ -32,24 +33,13 @@ void initBlockPrior(py::module& m){
         .def(py::init<const std::vector<size_t>&>(), py::arg("blocks"));
 
     py::class_<BlockUniformPrior, BlockPrior>(m, "BlockUniformPrior")
-        .def(py::init<size_t, BlockCountPrior&>(), py::arg("size"), py::arg("block_count_prior"))
-            .def(py::init<>())
-        .def("get_block_count_prior", &BlockUniformPrior::getBlockCountPrior)
-        .def("set_block_count_prior", &BlockUniformPrior::setBlockCountPrior)
-        ;
-
-    py::class_<BlockHyperPrior, BlockPrior, PyBlockPrior<BlockHyperPrior>>(m, "BlockHyperPrior")
-        .def(py::init<>())
-        .def(py::init<VertexCountPrior&>(), py::arg("vertex_count_prior"))
-        .def("get_vertex_count_prior", &BlockHyperPrior::getVertexCountPrior)
-        .def("set_vertex_count_prior", &BlockHyperPrior::setVertexCountPrior)
-        ;
-
-    py::class_<BlockUniformHyperPrior, BlockHyperPrior>(m, "BlockUniformHyperPrior")
         .def(py::init<>())
         .def(py::init<size_t, BlockCountPrior&>(), py::arg("size"), py::arg("block_count_prior"))
-        .def("get_block_count_prior", &BlockUniformHyperPrior::getBlockCountPrior)
-        .def("set_block_count_prior", &BlockUniformHyperPrior::setBlockCountPrior)
+        ;
+
+    py::class_<BlockUniformHyperPrior, BlockPrior>(m, "BlockUniformHyperPrior")
+        .def(py::init<>())
+        .def(py::init<size_t, BlockCountPrior&>(), py::arg("size"), py::arg("block_count_prior"))
         ;
 
 }

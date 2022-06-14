@@ -19,9 +19,31 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         std::vector<size_t> m_edgeCountsInBlocks;
         const MultiGraph* m_graphPtr;
 
-        void createBlock();
-        void destroyBlock(const BlockIndex&);
-        void moveEdgeCountsInBlocks(const BlockMove& move);
+        void _applyGraphMove(const GraphMove& move) override {
+            m_edgeCountPriorPtr->applyGraphMove(move);
+            m_blockPriorPtr->applyGraphMove(move);
+            applyGraphMoveToState(move);
+        }
+        void _applyBlockMove(const BlockMove& move) override {
+            if (move.nextBlockIdx == m_state.size())
+                onBlockCreation(move);
+            m_edgeCountPriorPtr->applyBlockMove(move);
+            m_blockPriorPtr->applyBlockMove(move);
+            applyBlockMoveToState(move);
+        }
+
+        const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override {
+            return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
+        }
+
+        const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override{
+            return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
+        }
+
+        void onBlockCreation(const BlockMove&) override;
+
+        void applyGraphMoveToState(const GraphMove&);
+        void applyBlockMoveToState(const BlockMove&);
     public:
         EdgeMatrixPrior() {}
         EdgeMatrixPrior(EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior){
@@ -45,12 +67,7 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         BlockPrior& getBlockPriorRef() const{ return *m_blockPriorPtr; }
         void setBlockPrior(BlockPrior& blockPrior) { m_blockPriorPtr = &blockPrior;  m_blockPriorPtr->isRoot(false);}
 
-        void _setGraph(const MultiGraph&);
-        void _setPartition(const BlockSequence&);
-        void setGraph(const MultiGraph& graph){ processRecursiveFunction([&](){ _setGraph(graph); }); }
-        void setPartition(const BlockSequence& blockSeq){ processRecursiveFunction([&](){ _setPartition(blockSeq); }); }
-        void recomputeState();
-
+        void setGraph(const MultiGraph& graph);
         const MultiGraph& getGraph() { return *m_graphPtr; }
         void setState(const EdgeMatrix&) override;
 
@@ -68,52 +85,45 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         virtual const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move); }
         virtual const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromBlockMove(move) + m_blockPriorPtr->getLogJointRatioFromBlockMove(move); }
 
-        const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
-            return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move); }, 0);
-        }
 
-        const double getLogJointRatioFromBlockMove(const BlockMove& move) const  {
-            return processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move); }, 0);
-        }
 
-        void applyGraphMoveToState(const GraphMove&);
-        void applyBlockMoveToState(const BlockMove&);
-        void applyGraphMove(const GraphMove& move){
-            processRecursiveFunction( [&]() { m_edgeCountPriorPtr->applyGraphMove(move); m_blockPriorPtr->applyGraphMove(move); applyGraphMoveToState(move); } );
-            #if DEBUG
-            checkSelfConsistency();
-            #endif
-        }
-        void applyBlockMove(const BlockMove& move) {
-            processRecursiveFunction( [&]() { m_edgeCountPriorPtr->applyBlockMove(move); m_blockPriorPtr->applyBlockMove(move); applyBlockMoveToState(move); } );
-            #if DEBUG
-            checkSelfConsistency();
-            #endif
-        }
 
+        bool isSafe() const override {
+            return (m_blockPriorPtr != nullptr) and (m_blockPriorPtr->isSafe())
+               and (m_edgeCountPriorPtr != nullptr) and (m_edgeCountPriorPtr->isSafe());
+        }
         void computationFinished() const override {
             m_isProcessed = false;
             m_blockPriorPtr->computationFinished();
             m_edgeCountPriorPtr->computationFinished();
         }
-        void _checkSelfConsistencywithGraph() const;
-        void _checkSelfConsistency() const override;
+        void checkSelfConsistencywithGraph() const;
+        void checkSelfConsistency() const override;
 
-        void _checkSafety()const override{
+        void checkSelfSafety()const override{
             if (m_blockPriorPtr == nullptr)
                 throw SafetyError("EdgeMatrixPrior: unsafe prior since `m_blockPriorPtr` is empty.");
             if (m_edgeCountPriorPtr == nullptr)
                 throw SafetyError("EdgeMatrixPrior: unsafe prior since `m_edgeCountPriorPtr` is empty.");
+            m_blockPriorPtr->checkSafety();
+            m_edgeCountPriorPtr->checkSafety();
         }
 };
 
 class EdgeMatrixDeltaPrior: public EdgeMatrixPrior{
 public:
     Matrix<size_t> m_edgeMatrix;
+    EdgeCountDeltaPrior m_edgeCountDeltaPrior;
 
 public:
     EdgeMatrixDeltaPrior(){}
-    EdgeMatrixDeltaPrior(const Matrix<size_t>& edgeMatrix) { setState(edgeMatrix); }
+    EdgeMatrixDeltaPrior(const Matrix<size_t>& edgeMatrix) {
+        size_t ec = 0;
+        for (auto e : edgeMatrix) for (auto ee : e)
+            ec += ee;
+        setState(edgeMatrix);
+        m_edgeCountDeltaPrior.setState(ec / 2);
+    }
     EdgeMatrixDeltaPrior(const Matrix<size_t>& edgeMatrix, EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
         EdgeMatrixPrior(edgeCountPrior, blockPrior){ setState(edgeMatrix); }
 
@@ -142,11 +152,13 @@ public:
     const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0.; };
     const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override{ return 0.; }
 
-    void _checkSelfConsistency() const override { };
-    void _checkSafety() const override {
+    void checkSelfConsistency() const override { };
+    void checkSelfSafety() const override {
         if (m_edgeMatrix.size() == 0)
             throw SafetyError("EdgeMatrixDeltaPrior: unsafe prior since `m_edgeMatrix` is empty.");
     }
+
+    virtual void computationFinished() const override { m_isProcessed = false; }
 };
 
 class EdgeMatrixUniformPrior: public EdgeMatrixPrior {

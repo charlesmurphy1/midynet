@@ -12,7 +12,7 @@ LabelPair LabelPairSampler::sample() const {
         rs = getLabelOfIdx({m_vertexSampler.sample(), m_vertexSampler.sample()});
     else
         rs = getLabelOfIdx(m_edgeSampler.sample());
-    return rs;
+    return getOrderedEdge(rs);
 
 }
 

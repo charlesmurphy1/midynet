@@ -15,14 +15,15 @@ public:
 class TestDoubleEdgeSwapProposer: public::testing::Test {
 public:
     MultiGraph graph = getUndirectedHouseMultiGraph();
+    MultiGraph toyGraph = getToyMultiGraph();
     DummyDoubleEdgeSwapProposer proposer;
     void SetUp() {
         proposer.setUpFromGraph(graph);
+        proposer.checkSafety();
     }
-    void TearDown(){
-
+    void TearDown() {
+        proposer.checkConsistency();
     }
-
     const MultiGraph getToyMultiGraph() {
         /*
         0 === 1<>
@@ -103,7 +104,6 @@ TEST_F(TestDoubleEdgeSwapProposer, applyGraphMove_removeAllEdges_edgeRemovedFrom
 }
 
 TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forNormalGraphMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
     GraphMove move;
 
@@ -118,7 +118,6 @@ TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forNormalGraphMove_re
 }
 
 TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forDoubleLoopyGraphMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
     GraphMove move;
 
@@ -131,7 +130,6 @@ TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forDoubleLoopyGraphMo
 }
 
 TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forSingleLoopyGraphMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
     GraphMove move;
 
@@ -142,7 +140,6 @@ TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forSingleLoopyGraphMo
 }
 
 TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forDoubleEdgeGraphMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
     GraphMove move;
 
@@ -156,7 +153,6 @@ TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forDoubleEdgeGraphMov
 }
 
 TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forHingeGraphMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
     GraphMove move;
 

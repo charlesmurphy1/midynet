@@ -23,21 +23,20 @@ void initCallBacks(py::module& m){
         .def("on_sweep_begin", &CallBack::onSweepBegin)
         .def("on_sweep_end", &CallBack::onSweepEnd) ;
 
-    py::class_<CallBackList>(m, "CallBackList")
+    py::class_<CallBackMap>(m, "CallBackDict")
         .def(py::init<>())
-        .def(py::init<std::vector<CallBack*>>(), py::arg("callbacks"))
-        .def(py::init<const CallBackList&>(), py::arg("callbackList"))
-        .def("set_up", &CallBackList::setUp, py::arg("mcmc"))
-        .def("tear_down", &CallBackList::tearDown)
-        .def("on_begin", &CallBackList::onBegin)
-        .def("on_end", &CallBackList::onEnd)
-        .def("on_step_begin", &CallBackList::onStepBegin)
-        .def("on_step_end", &CallBackList::onStepEnd)
-        .def("on_sweep_begin", &CallBackList::onSweepBegin)
-        .def("on_sweep_end", &CallBackList::onSweepEnd)
-        .def("push_back", &CallBackList::pushBack)
-        .def("pop_back", &CallBackList::popBack)
-        .def("remove", &CallBackList::remove) ;
+        .def("set_up", [&](CallBackMap& self, MCMC& mcmc){ self.setUp(&mcmc); })
+        .def("tear_down", &CallBackMap::tearDown)
+        .def("on_begin", &CallBackMap::onBegin)
+        .def("on_end", &CallBackMap::onEnd)
+        .def("on_step_begin", &CallBackMap::onStepBegin)
+        .def("on_step_end", &CallBackMap::onStepEnd)
+        .def("on_sweep_begin", &CallBackMap::onSweepBegin)
+        .def("on_sweep_end", &CallBackMap::onSweepEnd)
+        .def("insert", [&](CallBackMap& self, std::string key, CallBack& value) {
+            self.insert(key, value); }, py::arg("key"), py::arg("callback"))
+        .def("remove", &CallBackMap::remove, py::arg("key"))
+        .def("size", &CallBackMap::size) ;
     initVerbose(m);
     initCollectors(m);
 }

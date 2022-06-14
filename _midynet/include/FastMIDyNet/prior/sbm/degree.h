@@ -17,9 +17,23 @@ protected:
     BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
     DegreeCountsMap m_degreeCountsInBlocks;
+    const MultiGraph* m_graph;
 
-    void createBlock();
-    void destroyBlock(const BlockIndex&);
+    void _applyGraphMove(const GraphMove& move) override;
+    void _applyBlockMove(const BlockMove& move) override;
+
+    const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override{
+        return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
+    }
+    const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override {
+        return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
+    }
+
+    void onBlockCreation(const BlockMove&) override;
+
+    void applyGraphMoveToState(const GraphMove&);
+    void applyGraphMoveToDegreeCounts(const GraphMove&);
+    void applyBlockMoveToDegreeCounts(const BlockMove&);
 public:
     using Prior<DegreeSequence>::Prior;
     /* Constructors */
@@ -39,12 +53,8 @@ public:
         return *this;
     }
 
-    void _setGraph(const MultiGraph&);
-    void _setPartition(const BlockSequence&);
-    void setGraph(const MultiGraph& graph){ processRecursiveFunction([&](){ _setGraph(graph); }); }
-    void setPartition(const BlockSequence&blockSeq){ processRecursiveFunction([&](){ _setPartition(blockSeq); }); }
-    void recomputeState() ;
-    const MultiGraph& getGraph() const { return m_edgeMatrixPriorPtr->getGraph(); }
+    void setGraph(const MultiGraph&);
+    const MultiGraph& getGraph() const { return *m_graph; }
     virtual void setState(const DegreeSequence&) override;
 
     const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }
@@ -71,26 +81,6 @@ public:
     virtual const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_blockPriorPtr->getLogJointRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move); }
     virtual const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move); }
 
-
-    virtual const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
-        return processRecursiveFunction<double>( [&]() {
-            return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
-        }, 0);
-    }
-
-    virtual const double getLogJointRatioFromBlockMove(const BlockMove& move) const {
-        return processRecursiveFunction<double>( [&]() {
-            return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
-        }, 0);
-    }
-
-    void applyGraphMoveToState(const GraphMove&);
-    void applyBlockMoveToState(const BlockMove&){};
-    void applyGraphMoveToDegreeCounts(const GraphMove&);
-    void applyBlockMoveToDegreeCounts(const BlockMove&);
-    void applyGraphMove(const GraphMove& move);
-    void applyBlockMove(const BlockMove& move);
-
     virtual void computationFinished() const override {
         m_isProcessed = false;
         m_blockPriorPtr->computationFinished();
@@ -98,16 +88,20 @@ public:
     }
     static void checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence&, size_t);
     static void checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(const DegreeSequence&, const BlockSequence&, const std::vector<CounterMap<size_t>>&);
-    virtual void _checkSelfConsistency() const override{
-        checkDegreeSequenceConsistencyWithEdgeCount(getState(), m_edgeMatrixPriorPtr->getEdgeCount());
-        checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(getState(), m_blockPriorPtr->getState(), getDegreeCountsInBlocks());
+
+    bool isSafe() const override {
+        return (m_blockPriorPtr != nullptr) and (m_blockPriorPtr->isSafe())
+           and (m_edgeMatrixPriorPtr != nullptr) and (m_edgeMatrixPriorPtr->isSafe()); 
     }
-    virtual void _checkSafety() const override{
+    void checkSelfConsistency() const override;
+    virtual void checkSelfSafety() const override{
         if (m_blockPriorPtr == nullptr)
             throw SafetyError("DegreePrior: unsafe prior since `m_blockPriorPtr` is empty.");
 
         if (m_edgeMatrixPriorPtr == nullptr)
             throw SafetyError("DegreePrior: unsafe prior since `m_edgeMatrixPriorPtr` is empty.");
+        m_blockPriorPtr->checkSafety();
+        m_edgeMatrixPriorPtr->checkSafety();
     }
 
 
@@ -144,15 +138,20 @@ public:
     const double getLogPrior() const override { return 0.; };
 
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override;
-    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override{ return 0.; }
-    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0.; };
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override{
+        return (move.prevBlockIdx != move.nextBlockIdx) ? -INFINITY : 0.;
+    }
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0.; }
     const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override{ return 0.; }
 
-    void _checkSelfConsistency() const override { };
-    void _checkSafety() const override {
+    void checkSelfConsistency() const override { };
+    void checkSelfSafety() const override {
         if (m_degreeSeq.size() == 0)
             throw SafetyError("DegreeDeltaPrior: unsafe prior since `m_degreeSeq` is empty.");
     }
+
+    void computationFinished() const override { m_isProcessed = false; }
+
 };
 
 class DegreeUniformPrior: public DegreePrior{

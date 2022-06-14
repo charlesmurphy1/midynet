@@ -26,6 +26,7 @@ public:
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
     BlockUniformProposer blockProposer = BlockUniformProposer();
     RandomGraphMCMC mcmc = RandomGraphMCMC(randomGraph, edgeProposer, blockProposer);
+    bool expectConsistencyError = false;
     void SetUp(){
         randomGraph.sample();
         mcmc.setUp();
@@ -33,6 +34,8 @@ public:
 
     }
     void TearDown(){
+        if (not expectConsistencyError)
+            mcmc.checkConsistency();
         mcmc.tearDown();
     }
 };

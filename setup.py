@@ -15,12 +15,11 @@ from setuptools.config import read_configuration
 #         ParallelCompile,
 #         naive_recompile,
 #         Pybind11Extension,
-#         build_ext
+#         build_ext,
 #     )
+#
 #     Extension = Pybind11Extension
-#     ParallelCompile(
-#         "NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile
-#     ).install()
+#     ParallelCompile("NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile).install()
 
 
 class get_pybind_include(object):
@@ -99,7 +98,6 @@ ext_modules = [
             "_midynet/src/utility/integer_partition.cpp",
             "_midynet/src/utility/polylog2_integral.cpp",
             "_midynet/src/prior/sbm/block_count.cpp",
-            "_midynet/src/prior/sbm/vertex_count.cpp",
             "_midynet/src/prior/sbm/block.cpp",
             "_midynet/src/prior/sbm/edge_count.cpp",
             "_midynet/src/prior/sbm/edge_matrix.cpp",
@@ -116,6 +114,7 @@ ext_modules = [
             "_midynet/src/proposer/sampler/vertex_sampler.cpp",
             "_midynet/src/proposer/sampler/edge_sampler.cpp",
             "_midynet/src/proposer/sampler/label_sampler.cpp",
+            "_midynet/src/proposer/edge_proposer/util.cpp",
             "_midynet/src/proposer/edge_proposer/edge_proposer.cpp",
             "_midynet/src/proposer/edge_proposer/double_edge_swap.cpp",
             "_midynet/src/proposer/edge_proposer/hinge_flip.cpp",

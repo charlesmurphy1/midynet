@@ -19,6 +19,10 @@ public:
     void SetUp(){
         randomGraph.sample();
         proposer.setUp(randomGraph);
+        proposer.checkSafety();
+    }
+    void TearDown() {
+        proposer.checkConsistency();
     }
 };
 
@@ -78,15 +82,7 @@ TEST_F(TestLabeledDoubleEdgeSwapProposer, applyBlockMove_forSomeBlockMove){
         BlockIndex nextBlockIdx = (prevBlockIdx == randomGraph.getBlockCount()-1) ? prevBlockIdx - 1 : prevBlockIdx + 1;
         BlockMove move = {vertex, prevBlockIdx, nextBlockIdx};
         proposer.applyBlockMove(move);
-        //
-        // double expectedWeightDiff = 0;
-        // for (auto neighbor : randomGraph.getGraph().getNeighboursOfIdx(vertex)){
-        //     auto s = proposer.getLabelSampler().getLabelOfIdx(neighbor.vertexIndex);
-        //     auto edge = getOrderedEdge({vertex, neighbor.vertexIndex});
-        //     auto prevLabelPair = getOrderedPair<BlockIndex>({prevBlockIdx, s});
-        //     auto nextLabelPair = getOrderedPair<BlockIndex>({nextBlockIdx, s});
-        // }
-        // randomGraph.applyBlockMove(move);
+        randomGraph.applyBlockMove(move);
     }
 }
 

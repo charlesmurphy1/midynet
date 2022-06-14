@@ -59,7 +59,11 @@ private:
     std::vector<CounterMap<size_t>> m_degreeCounts = std::vector<CounterMap<size_t>>(1);
 
     EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
-
+protected:
+    void _applyGraphMove(const GraphMove& move) override {
+        m_edgeCountPriorPtr->applyGraphMove(move);
+        RandomGraph::_applyGraphMove(move);
+    }
 public:
     SimpleErdosRenyiFamily(size_t graphSize):
         RandomGraph(graphSize),
@@ -106,21 +110,14 @@ public:
         return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move);
     }
     const double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { return 0; }
-    void _applyGraphMove(const GraphMove& move) override {
-        RandomGraph::_applyGraphMove(move);
-        m_edgeCountPriorPtr->applyGraphMove(move);
-        #if DEBUG
-        checkSelfConsistency();
-        #endif
-    }
-    void _checkSelfConsistency() const override {
+    void checkSelfConsistency() const override {
         m_edgeCountPriorPtr->checkSelfConsistency();
         if (m_graph.getTotalEdgeNumber() != getEdgeCount())
             throw ConsistencyError("SimpleErdosRenyiFamily: edge count ("
             + std::to_string(getEdgeCount()) + ") state is not equal to the number of edges in the graph ("
             + std::to_string(m_graph.getTotalEdgeNumber()) +").");
     }
-    void _checkSafety() const override {
+    void checkSelfSafety() const override {
         if (m_edgeCountPriorPtr == nullptr)
             throw SafetyError("SimpleErdosRenyiFamily: unsafe graph family since `m_edgeCountPriorPtr` is empty.");
         m_edgeCountPriorPtr->checkSafety();
@@ -134,6 +131,11 @@ public:
     const EdgeCountPrior& getEdgeCountPrior(){ return *m_edgeCountPriorPtr; }
     EdgeCountPrior& getEdgeCountPriorRef(){ return *m_edgeCountPriorPtr; }
     void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){ m_edgeCountPriorPtr = &edgeCountPrior; }
+
+    void computationFinished() const override {
+        m_isProcessed = false;
+        m_edgeCountPriorPtr->computationFinished();
+    }
 
 };
 

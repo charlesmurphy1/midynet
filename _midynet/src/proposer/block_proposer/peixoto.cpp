@@ -8,17 +8,19 @@
 namespace FastMIDyNet {
 
 BlockMove BlockPeixotoProposer::proposeMove(BaseGraph::VertexIndex movedVertex) const {
+
     BlockIndex prevBlockIdx = (*m_blocksPtr)[movedVertex];
+    size_t B = m_vertexCountsPtr->size();
     if (m_createNewBlockDistribution(rng) == 1)
-        return {movedVertex, prevBlockIdx, *m_blockCountPtr, 1};
+        return {movedVertex, prevBlockIdx, B, 1};
     if ( m_graphPtr->getDegreeOfIdx(movedVertex) == 0 ){
-        std::uniform_int_distribution<size_t> dist(0, *m_blockCountPtr-1);
+        std::uniform_int_distribution<size_t> dist(0, B-1);
         BlockIndex nextBlockIdx = dist(rng);
-        int addedBlocks = 0;
-        if ( destroyingBlock(prevBlockIdx, nextBlockIdx) ){
-            --addedBlocks;
+        BlockMove move = {movedVertex, prevBlockIdx, nextBlockIdx, 0};
+        if ( destroyingBlock(move) ){
+            --move.addedBlocks;
         }
-        return {movedVertex, prevBlockIdx, nextBlockIdx, addedBlocks};
+        return move;
 
     }
 
@@ -27,26 +29,25 @@ BlockMove BlockPeixotoProposer::proposeMove(BaseGraph::VertexIndex movedVertex) 
     while(randomNeighbor == movedVertex)
         randomNeighbor = sampleUniformlyFrom(neighbors.begin(), neighbors.end())->vertexIndex;
     BlockIndex t = (*m_blocksPtr)[randomNeighbor];
-    double probUniformSampling = m_shift * (*m_blockCountPtr) / ((*m_edgeCountsPtr)[t] + m_shift * (*m_blockCountPtr));
+    double probUniformSampling = m_shift * (B) / ((*m_edgeCountsPtr)[t] + m_shift * B);
 
     BlockIndex nextBlockIdx;
-    int addedBlocks = 0;
     if ( m_uniform01(rng) < probUniformSampling){
-        std::uniform_int_distribution<size_t> dist(0, *m_blockCountPtr-1);
+        std::uniform_int_distribution<size_t> dist(0, B-1);
         nextBlockIdx = dist(rng);
     } else {
         nextBlockIdx = generateCategorical<size_t, size_t>( (*m_edgeMatrixPtr)[t] );
     }
 
-    if ( destroyingBlock(prevBlockIdx, nextBlockIdx) ){
-        --addedBlocks;
+    BlockMove move = {movedVertex, prevBlockIdx, nextBlockIdx, 0};
+    if ( destroyingBlock(move) ){
+        --move.addedBlocks;
     }
 
-    return {movedVertex, prevBlockIdx, nextBlockIdx, addedBlocks};
+    return move;
 }
 
 void BlockPeixotoProposer::setUp(const RandomGraph& randomGraph) {
-    m_blockCountPtr = &randomGraph.getBlockCount();
     m_blocksPtr = &randomGraph.getBlocks();
     m_vertexCountsPtr = &randomGraph.getVertexCountsInBlocks();
     m_edgeMatrixPtr = &randomGraph.getEdgeMatrix();
@@ -56,7 +57,7 @@ void BlockPeixotoProposer::setUp(const RandomGraph& randomGraph) {
 }
 
 const double BlockPeixotoProposer::getLogProposalProb(const BlockMove& move) const {
-    size_t B = *m_blockCountPtr;
+    size_t B = m_vertexCountsPtr->size();
     if ( move.addedBlocks == 1)
          return log(m_blockCreationProbability);
     double weight = 0, degree = 0;
@@ -67,6 +68,7 @@ const double BlockPeixotoProposer::getLogProposalProb(const BlockMove& move) con
         auto t = (*m_blocksPtr) [ neighbor.vertexIndex ];
         size_t Est = (*m_edgeMatrixPtr)[t][move.nextBlockIdx];
         size_t Et = (*m_edgeCountsPtr)[t];
+
         degree += neighbor.label;
         weight += neighbor.label * ( Est + m_shift ) / (Et + m_shift * B) ;
     }
@@ -104,7 +106,7 @@ IntMap<BlockIndex> BlockPeixotoProposer::getEdgeCountsDiff(const BlockMove& move
 }
 
 const double BlockPeixotoProposer::getReverseLogProposalProb(const BlockMove& move) const {
-    size_t B = *m_blockCountPtr + move.addedBlocks;
+    size_t B = m_vertexCountsPtr->size() + move.addedBlocks;
     if ( move.addedBlocks == -1)
          return log(m_blockCreationProbability);
 

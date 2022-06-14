@@ -8,23 +8,30 @@
 
 
 const double POISSON_MEAN=5;
-const std::vector<size_t> TESTED_INTEGERS;
+const std::vector<size_t> TESTED_INTEGERS={0, 5, 10};
 
 
 class DummyBlockCountPrior: public FastMIDyNet::BlockCountPrior {
-    public:
-        void sampleState() {}
-        const double getLogLikelihoodFromState(const size_t& state) const { return state; }
-        const double getLogPrior() { return 0; }
+public:
+    void sampleState() {}
+    const double getLogLikelihoodFromState(const size_t& state) const { return state; }
+    const double getLogPrior() { return 0; }
 
-        void _checkSelfConsistency() const override {}
-        bool getIsProcessed() { return m_isProcessed; }
+    void checkSelfConsistency() const {}
 };
 
 class TestBlockCountPrior: public ::testing::Test {
-    public:
-        DummyBlockCountPrior prior;
-        void SetUp() { prior.setState(0); prior.computationFinished(); }
+public:
+    DummyBlockCountPrior prior;
+    bool expectConsistencyError = false;
+    void SetUp() {
+        prior.setState(0);
+        prior.checkSafety();
+    }
+    void TearDown(){
+        if (not expectConsistencyError)
+            prior.checkConsistency();
+    }
 };
 
 
@@ -73,9 +80,17 @@ TEST_F(TestBlockCountPrior, applyMove_newblockMove_blockNumberIncrementsIsProces
 
 /* BLOCK COUNT DELTA PRIOR TEST: BEGIN */
 class TestBlockCountDeltaPrior: public::testing::Test{
-    public:
-        size_t blockCount = 5;
-        FastMIDyNet::BlockCountDeltaPrior prior={blockCount};
+public:
+    size_t blockCount = 5;
+    FastMIDyNet::BlockCountDeltaPrior prior={blockCount};
+    bool expectConsistencyError = false;
+    void SetUp(){
+        prior.checkSafety();
+    }
+    void TearDown(){
+        if (not expectConsistencyError)
+            prior.checkConsistency();
+    }
 };
 
 TEST_F(TestBlockCountDeltaPrior, sampleState_doNothing){
@@ -105,14 +120,24 @@ TEST_F(TestBlockCountDeltaPrior, getLogLikelihoodRatio_forSomeGraphMoveNotPreser
 
 /* BLOCK COUNT POISSON PRIOR TEST */
 class TestBlockCountPoissonPrior: public::testing::Test{
-    public:
-        FastMIDyNet::BlockCountPoissonPrior prior={POISSON_MEAN};
+
+public:
+    FastMIDyNet::BlockCountPoissonPrior prior={POISSON_MEAN};
+    bool expectConsistencyError = false;
+    void SetUp(){
+        prior.sample();
+        prior.checkSafety();
+    }
+    void TearDown(){
+        if (not expectConsistencyError)
+            prior.checkConsistency();
+    }
+
 };
 
 TEST_F(TestBlockCountPoissonPrior, getLogLikelihood_differentIntegers_returnPoissonPMF) {
     for (auto x: TESTED_INTEGERS)
-        EXPECT_DOUBLE_EQ(prior.getLogLikelihoodFromState(x),
-                    FastMIDyNet::logPoissonPMF(x, POISSON_MEAN));
+        EXPECT_DOUBLE_EQ(prior.getLogLikelihoodFromState(x), FastMIDyNet::logZeroTruncatedPoissonPMF(x, POISSON_MEAN));
 }
 
 TEST_F(TestBlockCountPoissonPrior, getLogPrior_returns0) {
@@ -133,4 +158,5 @@ TEST_F(TestBlockCountPoissonPrior, checkSelfConsistency_negativeMean_throwConsis
     prior={1};
     prior.setState(0);
     EXPECT_THROW(prior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    expectConsistencyError = true;
 }

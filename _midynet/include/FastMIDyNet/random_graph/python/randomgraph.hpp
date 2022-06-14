@@ -6,6 +6,7 @@
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/python/rv.hpp"
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 
@@ -13,18 +14,21 @@
 namespace FastMIDyNet{
 
 template<typename BaseClass = RandomGraph>
-class PyRandomGraph: public BaseClass{
+class PyRandomGraph: public PyNestedRandomVariable<BaseClass>{
 protected:
     void samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePriors, ); }
+    void _applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
+    void _applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
 public:
-    using BaseClass::BaseClass;
+    using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
+    
     /* Pure abstract methods */
     void sampleGraph() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleGraph, ); }
     const double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, ); }
     const double getLogPrior() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPrior, ); }
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromGraphMove, move); }
-    const double getLogPriorRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPriorRatioFromGraphMove, move); }
     const double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromBlockMove, move); }
+    const double getLogPriorRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPriorRatioFromGraphMove, move); }
     const double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPriorRatioFromBlockMove, move); }
 
     const std::vector<BlockIndex>& getBlocks() const override  {
@@ -54,11 +58,8 @@ public:
 
     /* Abstract methods */
     void setGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setGraph, graph); }
-    void _applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, _applyGraphMove, move); }
-    void _applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, _applyBlockMove, move); }
     const bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
-    void _checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, _checkSelfConsistency, ); }
-    void computationFinished() const override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
+    bool isSafe() const override { PYBIND11_OVERRIDE(bool, BaseClass, isSafe, ); }
 };
 
 }

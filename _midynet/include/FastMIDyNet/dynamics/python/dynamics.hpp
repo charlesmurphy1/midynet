@@ -4,6 +4,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "FastMIDyNet/python/rv.hpp"
 // #include "FastMIDyNet/types.h"
 // #include "FastMIDyNet/random_graph/random_graph.h"
 // #include "FastMIDyNet/proposer/movetypes.h"
@@ -12,9 +13,9 @@
 namespace FastMIDyNet{
 
 template<typename BaseClass = Dynamics>
-class PyDynamics: public BaseClass{
+class PyDynamics: public PyNestedRandomVariable<BaseClass>{
 public:
-    using BaseClass::BaseClass;
+    using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
     /* Pure abstract methods */
     const double getTransitionProb(
         VertexState prevVertexState,
@@ -26,9 +27,6 @@ public:
 
     /* Abstract methods */
     const State getRandomState() const override{ PYBIND11_OVERRIDE(const State, BaseClass, getRandomState, ); }
-
-    void checkSafety() const override{ PYBIND11_OVERRIDE(void, BaseClass, checkSafety, ); }
-
 
 };
 
@@ -44,13 +42,6 @@ public:
         PYBIND11_OVERRIDE_PURE(const double, BaseClass, getDeactivationProb, neighborState);
     }
     /* Abstract methods */
-    // const double getTransitionProb(
-    //     VertexState prevVertexState,
-    //     VertexState nextVertexState,
-    //     VertexNeighborhoodState neighborhoodState
-    // ) const override {
-    //     PYBIND11_OVERRIDE(const double, BaseClass, getTransitionProb, prevVertexState, nextVertexState, neighborhoodState);
-    // }
 };
 
 }

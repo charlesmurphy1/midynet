@@ -10,36 +10,39 @@
 namespace FastMIDyNet{
 
 class EdgeCountPrior: public Prior<size_t> {
-    public:
-        using Prior::Prior;
-        void samplePriors() override {}
-        virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
-        virtual const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
-        const double getLogPrior() const override { return 0; }
-        const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
-             return getLogLikelihoodFromState(getStateAfterGraphMove(move)) - getLogLikelihood();
-        }
-        const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0; }
+protected:
+    void _applyGraphMove(const GraphMove& move) override {
+        setState(getStateAfterGraphMove(move));
+    }
+    void _applyBlockMove(const BlockMove& move) override { }
+
+    const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override {
+        return getLogLikelihoodRatioFromGraphMove(move);
+    }
+    const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override { return 0; }
+
+public:
+    using Prior::Prior;
+    void samplePriors() override {}
+    virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
+    const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
+    const double getLogPrior() const override { return 0; }
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+         return getLogLikelihoodFromState(getStateAfterGraphMove(move)) - getLogLikelihood();
+    }
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
 
-        const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
-        const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return 0; }
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
+    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
-        const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
-            double ratio = processRecursiveConstFunction<double>( [&]() { return getLogLikelihoodRatioFromGraphMove(move); }, 0);
-            return ratio;
-        }
-        const double getLogJointRatioFromBlockMove(const BlockMove& move) const { return 0; }
 
-        void applyGraphMove(const GraphMove& move) {
-            processRecursiveFunction( [&](){ setState(getStateAfterGraphMove(move)); } );
-        }
-        void applyBlockMove(const BlockMove& move) { }
-        size_t getStateAfterGraphMove(const GraphMove& move) const;
-        void _checkSafety()const override {}
+    size_t getStateAfterGraphMove(const GraphMove& move) const;
+    void checkSelfSafety()const override {}
 };
 
 class EdgeCountDeltaPrior: public EdgeCountPrior{
+private:
     size_t m_edgeCount;
 public:
     EdgeCountDeltaPrior(){}
@@ -55,33 +58,34 @@ public:
     void sampleState() override { };
     const double getLogLikelihoodFromState(const size_t& state) const override { if (state == m_state) return 0.; else return -INFINITY; };
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { if (move.addedEdges.size() == move.removedEdges.size()) return 0; else return -INFINITY;}
-    void _checkSelfConsistency() const override { };
+    void checkSelfConsistency() const override { };
 
 };
 
 class EdgeCountPoissonPrior: public EdgeCountPrior{
+private:
     double m_mean;
     std::poisson_distribution<size_t> m_poissonDistribution;
 
-    public:
-        EdgeCountPoissonPrior() {}
-        EdgeCountPoissonPrior(double mean) { setMean(mean); }
-        EdgeCountPoissonPrior(const EdgeCountPoissonPrior& other) { setMean(other.m_mean); setState(other.m_state); }
-        virtual ~EdgeCountPoissonPrior() {};
-        const EdgeCountPoissonPrior& operator=(const EdgeCountPoissonPrior& other) {
-            setMean(other.m_mean);
-            setState(other.m_state);
-            return *this;
-        }
+public:
+    EdgeCountPoissonPrior() {}
+    EdgeCountPoissonPrior(double mean) { setMean(mean); }
+    EdgeCountPoissonPrior(const EdgeCountPoissonPrior& other) { setMean(other.m_mean); setState(other.m_state); }
+    virtual ~EdgeCountPoissonPrior() {};
+    const EdgeCountPoissonPrior& operator=(const EdgeCountPoissonPrior& other) {
+        setMean(other.m_mean);
+        setState(other.m_state);
+        return *this;
+    }
 
-        double getMean() const { return m_mean; }
-        void setMean(double mean){
-            m_mean = mean;
-            m_poissonDistribution = std::poisson_distribution<size_t>(mean);
-        }
-        void sampleState() override;
-        const double getLogLikelihoodFromState(const size_t& state) const override;
-        void _checkSelfConsistency() const;
+    double getMean() const { return m_mean; }
+    void setMean(double mean){
+        m_mean = mean;
+        m_poissonDistribution = std::poisson_distribution<size_t>(mean);
+    }
+    void sampleState() override;
+    const double getLogLikelihoodFromState(const size_t& state) const override;
+    void checkSelfConsistency() const;
 
 
 };
@@ -107,7 +111,7 @@ class EdgeCountPoissonPrior: public EdgeCountPrior{
 //     virtual double getWeight(size_t E) const {
 //         return logMultisetCoefficient(m_maxEdgeCount, E);
 //     }
-//     void _checkSelfConsistency() const {};
+//     void checkSelfConsistency() const {};
 // };
 //
 // class EdgeCountBinomialPrior: public EdgeCountMultisetPrior{

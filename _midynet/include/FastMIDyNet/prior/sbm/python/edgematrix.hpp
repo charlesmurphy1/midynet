@@ -15,15 +15,17 @@
 
 namespace FastMIDyNet{
 
-template <typename EdgeMatrixPriorBaseClass = EdgeMatrixPrior>
-class PyEdgeMatrixPrior: public PyPrior<std::vector<std::vector<size_t>>, EdgeMatrixPriorBaseClass> {
+template <typename BaseClass = EdgeMatrixPrior>
+class PyEdgeMatrixPrior: public PyPrior<std::vector<std::vector<size_t>>, BaseClass> {
 public:
-    using PyPrior<std::vector<std::vector<size_t>>, EdgeMatrixPriorBaseClass>::PyPrior;
+    using PyPrior<std::vector<std::vector<size_t>>, BaseClass>::PyPrior;
     /* Pure abstract methods */
-    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, EdgeMatrixPriorBaseClass, getLogLikelihoodRatioFromGraphMove, move); }
-    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, EdgeMatrixPriorBaseClass, getLogLikelihoodRatioFromBlockMove, move); }
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromGraphMove, move); }
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromBlockMove, move); }
 
     /* Overloaded abstract methods */
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromGraphMove, move); }
+    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromBlockMove, move); }
 };
 
 }

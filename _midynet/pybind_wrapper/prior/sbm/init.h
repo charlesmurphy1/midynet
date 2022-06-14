@@ -5,7 +5,6 @@
 #include <pybind11/stl.h>
 
 #include "init_blockcount.h"
-#include "init_vertexcount.h"
 #include "init_block.h"
 #include "init_edgecount.h"
 #include "init_edgematrix.h"
@@ -17,7 +16,6 @@ namespace FastMIDyNet{
 
 void initSBMPriors(py::module& m){
     initBlockCountPrior(m);
-    initVertexCountPrior(m);
     initBlockPrior(m);
     initEdgeCountPrior(m);
     initEdgeMatrixPrior(m);

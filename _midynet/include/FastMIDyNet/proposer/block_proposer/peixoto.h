@@ -16,7 +16,6 @@ namespace FastMIDyNet {
 class BlockPeixotoProposer: public BlockProposer {
     const BlockSequence* m_blocksPtr = NULL;
     const std::vector<size_t>* m_vertexCountsPtr = NULL;
-    const size_t* m_blockCountPtr = NULL;
     const EdgeMatrix* m_edgeMatrixPtr = NULL;
     const std::vector<size_t>* m_edgeCountsPtr = NULL;
     const MultiGraph* m_graphPtr = NULL;
@@ -45,13 +44,11 @@ class BlockPeixotoProposer: public BlockProposer {
         const double getLogProposalProbRatio(const BlockMove& move) const override{
             return getReverseLogProposalProb(move) - getLogProposalProb(move);
         };
-        void _checkSafety() const override {
+        void checkSelfSafety() const override {
             if (m_blocksPtr == nullptr)
                 throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_blocksPtr` is NULL.");
             if (m_vertexCountsPtr == nullptr)
                 throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_vertexCountsPtr` is NULL.");
-            if (m_blockCountPtr == nullptr)
-                throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_blockCountPtr` is NULL.");
             if (m_edgeMatrixPtr == nullptr)
                 throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_edgeMatrixPtr` is NULL.");
             if (m_edgeCountsPtr == nullptr)
@@ -62,9 +59,11 @@ class BlockPeixotoProposer: public BlockProposer {
     protected:
         IntMap<std::pair<BlockIndex, BlockIndex>> getEdgeMatrixDiff(const BlockMove& move) const ;
         IntMap<BlockIndex> getEdgeCountsDiff(const BlockMove& move) const ;
-        bool creatingNewBlock(const BlockIndex& newBlock) const { return newBlock == *m_blockCountPtr; }
-        bool destroyingBlock(const BlockIndex& currentBlock, const BlockIndex& newBlock) const {
-            return currentBlock != newBlock && (*m_vertexCountsPtr)[currentBlock]<=1;
+        bool creatingNewBlock(const BlockMove& move) const override {
+            return move.nextBlockIdx == m_vertexCountsPtr->size() or (*m_vertexCountsPtr)[move.nextBlockIdx] == 0;
+        }
+        bool destroyingBlock(const BlockMove& move) const override {
+            return move.prevBlockIdx != move.nextBlockIdx and (*m_vertexCountsPtr)[move.prevBlockIdx]<=1;
         }
 };
 

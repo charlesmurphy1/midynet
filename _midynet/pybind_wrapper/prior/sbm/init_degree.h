@@ -5,7 +5,6 @@
 #include <pybind11/stl.h>
 #include <vector>
 
-#include "declare.h"
 #include "FastMIDyNet/prior/python/prior.hpp"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
@@ -17,7 +16,7 @@ namespace py = pybind11;
 namespace FastMIDyNet{
 
 void initDegreePrior(py::module& m){
-    declareSBMPrior<DegreePrior, Prior<std::vector<size_t>>, PyDegreePrior<>>(m, "DegreePrior")
+    py::class_<DegreePrior, Prior<std::vector<size_t>>, PyDegreePrior<>>(m, "DegreePrior")
         .def(py::init<BlockPrior&, EdgeMatrixPrior&>(), py::arg("block_prior"), py::arg("edge_matrix"))
         .def("get_degree_of_idx", &DegreePrior::getDegreeOfIdx)
         .def("get_degree_count_in_blocks", &DegreePrior::getDegreeCountsInBlocks)

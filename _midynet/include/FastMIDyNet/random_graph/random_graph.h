@@ -18,6 +18,9 @@ protected:
     size_t m_size;
     MultiGraph m_graph;
     virtual void samplePriors() = 0;
+
+    virtual void _applyGraphMove(const GraphMove&);
+    virtual void _applyBlockMove(const BlockMove&) { };
 public:
 
     RandomGraph(size_t size=0):
@@ -29,8 +32,6 @@ public:
     virtual void setGraph(const MultiGraph& state) {
         m_graph = state;
     }
-
-    virtual void setPartition(const BlockSequence& blocks) { }
 
     const int getSize() const { return m_size; }
     const double getAverageDegree() const {
@@ -64,7 +65,7 @@ public:
         checkSelfConsistency();
         #endif
         return getGraph();
-    };
+    }
     virtual void sampleGraph() = 0;
     virtual const double getLogLikelihood() const = 0;
     virtual const double getLogPrior() const = 0;
@@ -75,30 +76,25 @@ public:
     virtual const double getLogPriorRatioFromGraphMove (const GraphMove& move) const = 0;
     virtual const double getLogPriorRatioFromBlockMove (const BlockMove& move) const = 0;
     const double getLogJointRatioFromGraphMove (const GraphMove& move) const{
-        return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
+        return processRecursiveFunction<double>([&](){ return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move); }, 0);
     }
     const double getLogJointRatioFromBlockMove (const BlockMove& move) const{
         return getLogPriorRatioFromBlockMove(move) + getLogLikelihoodRatioFromBlockMove(move);
     }
-    virtual void _applyGraphMove(const GraphMove& move);
-    virtual void _applyBlockMove(const BlockMove& move) { };
+    void applyGraphMove(const GraphMove& move){
+        processRecursiveFunction([&](){ _applyGraphMove(move); });
+        #if DEBUG
+        checkConsistency();
+        #endif
+    }
+    void applyBlockMove(const BlockMove& move) {
+        processRecursiveFunction([&](){ _applyBlockMove(move); });
+        #if DEBUG
+        checkConsistency();
+        #endif
+    }
 
-    void applyGraphMove (const GraphMove& move) {
-        processRecursiveFunction([&](){
-            _applyGraphMove(move);
-        });
-    };
-    void applyBlockMove (const BlockMove& move) {
-        processRecursiveFunction([&](){
-            _applyBlockMove(move);
-        });
-    };
-
-    // void enumerateAllGraphs() const;
-    // virtual void checkSelfConsistency() const override { };
-    // virtual void checkSafety() const override { };
-    // virtual void computationFinished() const override { };
-
+    virtual bool isSafe() const { return true; }
 };
 
 } // namespace FastMIDyNet

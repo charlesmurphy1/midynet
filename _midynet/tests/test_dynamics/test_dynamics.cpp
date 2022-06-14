@@ -30,12 +30,15 @@ class TestDynamicsBaseClass: public::testing::Test{
         DummyDynamics dynamics = DummyDynamics(randomGraph, NUM_STATES, NUM_STEPS);
         MultiGraph graph = GRAPH;
         State state = STATE;
+        bool expectConsistencyError = true;
         void SetUp() {
             dynamics.setGraph(graph);
             dynamics.setState(state);
+            // dynamics.checkSafety();
         }
-        void TearDown(){
-            dynamics.checkSelfConsistency();
+        void TearDown() {
+            if (not expectConsistencyError)
+                dynamics.checkConsistency();
         }
 };
 

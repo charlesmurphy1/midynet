@@ -20,9 +20,6 @@ public:
     const double getLogLikelihoodFromState(const size_t& state) const override { PYBIND11_OVERRIDE_PURE(const double, EdgeCountPriorBaseClass, getLogLikelihoodFromState, state); }
 
     /* Overloaded abstract methods */
-    void samplePriors() override { PYBIND11_OVERRIDE(void, EdgeCountPriorBaseClass, samplePriors, ); }
-    const double getLogLikelihood() const override { PYBIND11_OVERRIDE(const double, EdgeCountPriorBaseClass, getLogLikelihood, ); }
-    const double getLogPrior() const override { PYBIND11_OVERRIDE(const double, EdgeCountPriorBaseClass, getLogPrior, ); }
 };
 
 }

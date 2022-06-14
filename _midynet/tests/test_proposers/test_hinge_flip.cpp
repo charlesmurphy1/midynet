@@ -23,20 +23,16 @@ class TestHingeFlipUniformProposer: public::testing::Test {
         ErdosRenyiFamily randomGraph = ErdosRenyiFamily(3, edgeCountPrior);
         DummyEdgeProposer proposer;
         MultiGraph graph;
-        // BaseGraph::Edge existingEdge = {0, 2};
+        MultiGraph toyGraph = getToyMultiGraph();
         void SetUp() {
             randomGraph.sample();
             graph = randomGraph.getGraph();
-
-            // if (graph.getEdgeMultiplicityIdx(existingEdge)==0)
-            //     graph.addEdgeIdx(existingEdge);
-            // else
-            //     graph.setEdgeMultiplicityIdx(existingEdge, 1);
             randomGraph.setGraph(graph);
             proposer.setUp(randomGraph);
+            proposer.checkSafety();
         }
-        void TearDown(){
-            randomGraph.checkSelfConsistency();
+        void TearDown() {
+            proposer.checkConsistency();
         }
 
         const MultiGraph getToyMultiGraph() {
@@ -112,7 +108,6 @@ TEST_F(TestHingeFlipUniformProposer, applyGraphMove_removeEdge_edgeWeightDecreas
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forNormalMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
 
     GraphMove normalMove1 = {{{0, 1}}, {{0, 3}}};
@@ -126,7 +121,6 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forNormalMove_retur
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopyMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
 
     GraphMove loopyMove1 = {{{1, 1}}, {{1, 3}}};
@@ -137,7 +131,6 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopyMove_return
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forSelfieMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
 
     GraphMove selfieMove1 = {{{0, 1}}, {{0, 0}}};
@@ -154,7 +147,6 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forSelfieMove_retur
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopySelfieMove_returnCorrectValue) {
-    auto toyGraph = getToyMultiGraph();
     proposer.setUpFromGraph(toyGraph);
 
     GraphMove selfieMove1 = {{{1, 1}}, {{1, 1}}};

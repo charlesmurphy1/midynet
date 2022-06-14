@@ -123,6 +123,7 @@ def args(request):
         c.metrics.get_value(request.param).set_value("K", 2)
         c.metrics.get_value(request.param).set_value("num_sweeps", 10)
         c.metrics.get_value(request.param).set_value("burn_per_vertex", 1)
+        c.metrics.get_value(request.param).set_value("start_from_original", True)
     return c, metrics_dict[request.param]
 
 

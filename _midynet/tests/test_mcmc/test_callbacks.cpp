@@ -19,12 +19,12 @@ namespace FastMIDyNet{
         TESTED_CALL_CLASS callback = TESTED_CALL_CLASS();\
         void SetUp(){\
             seedWithTime();\
-            mcmc.addCallBack(callback);\
+            mcmc.insertCallBack("generic", callback);\
             mcmc.setUp();\
         }\
         void TearDown(){\
             mcmc.tearDown();\
-            mcmc.popCallBack();\
+            mcmc.removeCallBack("generic");\
         }\
     };\
     TEST_F(TEST_CALL_BACK, tearDown_raiseNoExceptionOrSegFault){\

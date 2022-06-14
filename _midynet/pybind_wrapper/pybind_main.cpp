@@ -1,6 +1,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "FastMIDyNet/rv.hpp"
+#include "FastMIDyNet/python/rv.hpp"
+
 #include "utility/init_utility.h"
 #include "init_exceptions.h"
 #include "init_generator.h"
@@ -10,9 +13,6 @@
 #include "dynamics/init.h"
 #include "proposer/init.h"
 #include "mcmc/init.h"
-
-#include "FastMIDyNet/rv.hpp"
-#include "FastMIDyNet/python/rv.hpp"
 
 namespace py = pybind11;
 namespace FastMIDyNet{
@@ -25,6 +25,15 @@ PYBIND11_MODULE(_midynet, m) {
     initGenerators( utility );
     initRNG( utility );
     initExceptions( utility );
+
+    py::class_<NestedRandomVariable, PyNestedRandomVariable<>>(m, "NestedRandomVariable")
+        .def(py::init<>())
+        .def("is_root", [&](const NestedRandomVariable &self){ return self.isRoot(); })
+        .def("is_processed", [&](const NestedRandomVariable &self){ return self.isProcessed(); })
+        .def("check_consistency", &NestedRandomVariable::checkConsistency)
+        .def("check_safety", &NestedRandomVariable::checkSafety)
+        .def("is_safe", &NestedRandomVariable::isSafe)
+        ;
 
     py::module prior = m.def_submodule("prior");
     initPrior( prior );
@@ -40,16 +49,6 @@ PYBIND11_MODULE(_midynet, m) {
 
     py::module mcmc = m.def_submodule("mcmc");
     initMCMC( mcmc );
-
-    // m.
-
-    py::class_<NestedRandomVariable, PyNestedRandomVariable<>>(m, "NestedRandomVariable")
-        .def(py::init<>())
-        .def("is_root", py::overload_cast<>(&NestedRandomVariable::isRoot, py::const_))
-        .def("is_root", py::overload_cast<bool>(&NestedRandomVariable::isRoot), py::arg("condition"))
-        .def("check_self_consistency", &NestedRandomVariable::checkSelfConsistency)
-        .def("check_safety", &NestedRandomVariable::checkSafety)
-        .def("computation_finished", &NestedRandomVariable::computationFinished);
 }
 
 }
