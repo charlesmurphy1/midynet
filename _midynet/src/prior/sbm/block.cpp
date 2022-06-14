@@ -17,12 +17,12 @@ using namespace std;
 
 namespace FastMIDyNet{
 
-vector<size_t> BlockPrior::computeVertexCountsInBlocks(const BlockSequence& state) {
+CounterMap<size_t> BlockPrior::computeVertexCountsInBlocks(const BlockSequence& state) {
     size_t blockCount = *max_element(state.begin(), state.end()) + 1;
 
-    vector<size_t> vertexCount(blockCount, 0);
+    CounterMap<size_t> vertexCount;
     for (auto blockIdx: state) {
-        ++vertexCount[blockIdx];
+        vertexCount.increment(blockIdx);
     }
 
     return vertexCount;
@@ -35,8 +35,8 @@ void BlockPrior::checkBlockSequenceConsistencyWithBlockCount(const BlockSequence
 
 }
 
-void BlockPrior::checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, std::vector<size_t> expectedVertexCountsInBlocks) {
-    vector<size_t> actualVertexCountsInBlocks = computeVertexCountsInBlocks(blockSeq);
+void BlockPrior::checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCountsInBlocks) {
+    CounterMap<size_t> actualVertexCountsInBlocks = computeVertexCountsInBlocks(blockSeq);
     if (actualVertexCountsInBlocks.size() != expectedVertexCountsInBlocks.size())
         throw ConsistencyError("BlockPrior: size of vertex count in blockSeq is inconsistent with expected block count.");
 
@@ -89,7 +89,7 @@ void BlockUniformHyperPrior::sampleState() {
 
 
 const double BlockUniformHyperPrior::getLogLikelihood() const {
-    return -logMultinomialCoefficient(getVertexCountsInBlocks()) - logBinomialCoefficient(getSize() - 1, getBlockCount() - 1);
+    return -logMultinomialCoefficient(getVertexCountsInBlocks().values()) - logBinomialCoefficient(getSize() - 1, getBlockCount() - 1);
 
 }
 

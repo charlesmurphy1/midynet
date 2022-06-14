@@ -105,14 +105,21 @@ public:
 
     void decrement(KeyType key, int dec=1){ increment(key, -dec); }
 
+    size_t sum() const {
+        size_t s = 0;
+        for(auto v : this->values())
+            s+=v;
+        return s;
+    }
+
 };
 
-template < typename T1, typename T2 >
-class OrderedPair: public std::pair<T1, T2>{
+template < typename T>
+class OrderedPair: public std::pair<T, T>{
 public:
-    OrderedPair(T1 first, T2 second):std::pair<T1, T2>(first, second){
+    OrderedPair(T first, T second):std::pair<T, T>(first, second){
         if (first > second){
-            auto temp = this->first ;
+            T temp = this->first ;
             this->first = this->second ;
             this->second = temp;
         }
