@@ -13,17 +13,25 @@ namespace FastMIDyNet {
 
 /* DEFINITION OF EDGE MATRIX PRIOR BASE CLASS */
 
-void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
+void EdgeMatrixPrior::_setGraph(const MultiGraph& graph) {
     m_graphPtr = &graph;
+    recomputeState();
+}
+
+void EdgeMatrixPrior::_setPartition(const BlockSequence& blockSeq){
+    m_blockPriorPtr->setState(blockSeq);
+    recomputeState();
+}
+
+void EdgeMatrixPrior::recomputeState(){
     const auto& blockSeq = m_blockPriorPtr->getState();
     const auto& blockCount = m_blockPriorPtr->getBlockCount();
-
     m_state = Matrix<size_t>(blockCount, std::vector<size_t>(blockCount, 0));
     m_edgeCountsInBlocks = std::vector<size_t>(blockCount, 0);
     size_t edgeCount = 0;
     for (auto vertex: graph) {
         const BlockIndex& r(blockSeq[vertex]);
-        for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {
+        for (auto neighbor: m_graphPtr->getNeighboursOfIdx(vertex)) {
             if (vertex > neighbor.vertexIndex)
                 continue;
 
@@ -104,7 +112,26 @@ void EdgeMatrixPrior::applyGraphMoveToState(const GraphMove& move){
     }
 }
 
+<<<<<<< HEAD
 void EdgeMatrixPrior::checkSelfConsistency() const {
+=======
+
+
+void EdgeMatrixPrior::applyBlockMoveToState(const BlockMove& move) {
+    /* Must be computed before calling createBlock and destroyBlock because these methods
+     * change m_edgeCountsInBlocks size*/
+
+    if (move.addedBlocks == 1)
+        createBlock();
+
+    moveEdgeCountsInBlocks(move);
+
+    if (move.addedBlocks == -1)
+        destroyBlock(move.prevBlockIdx);
+}
+
+void EdgeMatrixPrior::_checkSelfConsistency() const {
+>>>>>>> cf1928c9cd384b087c9ac59c1e8a84bd7890b33b
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeCountPriorPtr->checkSelfConsistency();
 

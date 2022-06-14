@@ -40,6 +40,9 @@ class TestDynamicsBaseClass: public::testing::Test{
             if (not expectConsistencyError)
                 dynamics.checkConsistency();
         }
+        void TearDown(){
+            dynamics.checkSelfConsistency();
+        }
 };
 
 TEST_F(TestDynamicsBaseClass, getCurrentState_returnCurrentState){

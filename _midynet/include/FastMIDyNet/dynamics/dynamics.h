@@ -67,7 +67,7 @@ public:
         m_state = state;
         m_neighborsState = computeNeighborsState(m_state);
         #if DEBUG
-        checkConsistency();
+        checkSelfConsistency();
         #endif
     }
     const MultiGraph& getGraph() const { return m_randomGraphPtr->getGraph(); }

@@ -14,9 +14,9 @@ const std::vector<size_t> TESTED_INTEGERS={0,5,10};
 class DummyEdgeCountPrior: public FastMIDyNet::EdgeCountPrior {
     public:
         void sampleState() {}
-        const double getLogLikelihoodFromState(const size_t& state) const { return state; }
-        const double getLogPrior() { return 0; }
-        void checkSelfConsistency() const { }
+        const double getLogLikelihoodFromState(const size_t& state) const override { return state; }
+        const double getLogPrior() const override { return 0; }
+        void _checkSelfConsistency() const override { }
 };
 
 class TestEdgeCountPrior: public ::testing::Test {

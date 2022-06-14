@@ -79,7 +79,7 @@ class BlockCountPoissonPrior: public BlockCountPrior{
         void sampleState() override;
         const double getLogLikelihoodFromState(const size_t& state) const override;
 
-        void checkSelfConsistency() const override;
+        void _checkSelfConsistency() const override;
 };
 
 class BlockCountUniformPrior: public BlockCountPrior{
@@ -122,7 +122,7 @@ class BlockCountUniformPrior: public BlockCountPrior{
 
         void checkMin() const;
         void checkMax() const;
-        void checkSelfConsistency() const override;
+        void _checkSelfConsistency() const override;
 };
 
 }

@@ -18,6 +18,8 @@ void initStochasticBlockModelFamily(py::module& m){
     py::class_<StochasticBlockModelFamily, RandomGraph, PyStochasticBlockModelFamily<>>(m, "StochasticBlockModelFamily")
         .def(py::init<size_t>(), py::arg("size"))
         .def(py::init<size_t, BlockPrior&, EdgeMatrixPrior&>(), py::arg("size"), py::arg("blocks"), py::arg("edge_matrix"))
+        .def("sample_blocks", &StochasticBlockModelFamily::sampleBlocks)
+        .def("set_blocks", &StochasticBlockModelFamily::setBlocks, py::arg("blocks"))
         .def("get_block_of_idx", &StochasticBlockModelFamily::getBlockOfIdx,
             py::arg("idx"))
         .def("get_block_prior", &StochasticBlockModelFamily::getBlockPrior)

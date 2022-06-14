@@ -56,9 +56,7 @@ def get_config(
 
 
 def main():
-    for graph, dynamics in itertools.product(
-        ["er", "uniform_cm", "hyperuniform_cm"], ["ising"]
-    ):
+    for graph, dynamics in itertools.product(["hyperuniform_cm"], ["ising"]):
         config = get_config(graph, dynamics, num_procs=1, time="16:00:00", mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],

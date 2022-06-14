@@ -50,7 +50,7 @@ void Dynamics::sampleState(const State& x0, bool async){
     }
 
     #if DEBUG
-    checkConsistency();
+    checkSelfConsistency();
     #endif
 
 }
@@ -63,7 +63,7 @@ void Dynamics::setGraph(const MultiGraph& graph) {
     m_neighborsPastStateSequence = computeNeighborsStateSequence(m_pastStateSequence);
 
     #if DEBUG
-    checkConsistency();
+    checkSelfConsistency();
     #endif
 }
 

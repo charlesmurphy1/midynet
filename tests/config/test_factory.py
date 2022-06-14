@@ -64,13 +64,13 @@ block_setup = [
         id="block.delta",
     ),
     pytest.param(
-        BlockPriorConfig.uniform(),
+        BlockPriorConfig.uniform(10, 1, 10),
         BlockPriorFactory,
         lambda obj: obj.sample(),
         id="block.uniform",
     ),
     pytest.param(
-        BlockPriorConfig.hyperuniform(),
+        BlockPriorConfig.hyperuniform(10, 1, 10),
         BlockPriorFactory,
         lambda obj: obj.sample(),
         id="block.uniform",
@@ -79,9 +79,9 @@ block_setup = [
 
 
 def sample_edge_matrix(obj):
-    c = BlockPriorConfig.uniform()
+    c = BlockPriorConfig.uniform(10, 1, 10)
     c.block_count.max = 10
-    b = BlockPriorFactory.build(BlockPriorConfig.uniform())
+    b = BlockPriorFactory.build(BlockPriorConfig.uniform(10, 1, 10))
     obj.set_block_prior(b.get_wrap())
     obj.sample()
 
@@ -97,7 +97,7 @@ edge_matrix_setup = [
 
 
 def sample_degrees(obj):
-    b = BlockPriorFactory.build(BlockPriorConfig.uniform())
+    b = BlockPriorFactory.build(BlockPriorConfig.uniform(10, 1, 10))
     b.set_size(100)
 
     e = EdgeMatrixPriorFactory.build(EdgeMatrixPriorConfig.uniform(250))
@@ -269,9 +269,7 @@ random_graph_mcmc_setup = [
 
 metrics_setup = [
     pytest.param(
-        ExperimentConfig.default(
-            "test", "glauber", "er", metrics=["dynamics_entropy"]
-        ),
+        ExperimentConfig.default("test", "glauber", "er", metrics=["dynamics_entropy"]),
         MetricsFactory,
         lambda obj: None,
         id="metrics",

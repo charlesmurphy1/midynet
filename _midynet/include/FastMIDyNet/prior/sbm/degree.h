@@ -17,7 +17,6 @@ protected:
     BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
     DegreeCountsMap m_degreeCountsInBlocks;
-    const MultiGraph* m_graph;
 
     void _applyGraphMove(const GraphMove& move) override;
     void _applyBlockMove(const BlockMove& move) override;
@@ -53,8 +52,12 @@ public:
         return *this;
     }
 
-    void setGraph(const MultiGraph&);
-    const MultiGraph& getGraph() const { return *m_graph; }
+    void _setGraph(const MultiGraph&);
+    void _setPartition(const BlockSequence&);
+    void setGraph(const MultiGraph& graph){ processRecursiveFunction([&](){ _setGraph(graph); }); }
+    void setPartition(const BlockSequence&blockSeq){ processRecursiveFunction([&](){ _setPartition(blockSeq); }); }
+    void recomputeState() ;
+    const MultiGraph& getGraph() const { return m_edgeMatrixPriorPtr->getGraph(); }
     virtual void setState(const DegreeSequence&) override;
 
     const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }
@@ -91,7 +94,7 @@ public:
 
     bool isSafe() const override {
         return (m_blockPriorPtr != nullptr) and (m_blockPriorPtr->isSafe())
-           and (m_edgeMatrixPriorPtr != nullptr) and (m_edgeMatrixPriorPtr->isSafe()); 
+           and (m_edgeMatrixPriorPtr != nullptr) and (m_edgeMatrixPriorPtr->isSafe());
     }
     void checkSelfConsistency() const override;
     virtual void checkSelfSafety() const override{

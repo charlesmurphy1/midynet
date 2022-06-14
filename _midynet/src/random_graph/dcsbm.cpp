@@ -229,7 +229,7 @@ void DegreeCorrectedStochasticBlockModelFamily::checkGraphConsistencyWithDegreeS
     }
 }
 
-void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency() const{
+void DegreeCorrectedStochasticBlockModelFamily::_checkSelfConsistency() const{
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeMatrixPriorPtr->checkSelfConsistency();
     m_degreePriorPtr->checkSelfConsistency();
