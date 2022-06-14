@@ -21,7 +21,7 @@ protected:
     void _applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
 public:
     using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
-
+    
     /* Pure abstract methods */
     void sampleGraph() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleGraph, ); }
     const double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, ); }

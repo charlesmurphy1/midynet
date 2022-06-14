@@ -33,8 +33,6 @@ public:
         m_graph = state;
     }
 
-    virtual void setPartition(const BlockSequence& blocks) { }
-
     const int getSize() const { return m_size; }
     const double getAverageDegree() const {
         double avgDegree = 2 * (double) getEdgeCount();

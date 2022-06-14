@@ -67,12 +67,7 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         BlockPrior& getBlockPriorRef() const{ return *m_blockPriorPtr; }
         void setBlockPrior(BlockPrior& blockPrior) { m_blockPriorPtr = &blockPrior;  m_blockPriorPtr->isRoot(false);}
 
-        void _setGraph(const MultiGraph&);
-        void _setPartition(const BlockSequence&);
-        void setGraph(const MultiGraph& graph){ processRecursiveFunction([&](){ _setGraph(graph); }); }
-        void setPartition(const BlockSequence& blockSeq){ processRecursiveFunction([&](){ _setPartition(blockSeq); }); }
-        void recomputeState();
-
+        void setGraph(const MultiGraph& graph);
         const MultiGraph& getGraph() { return *m_graphPtr; }
         void setState(const EdgeMatrix&) override;
 
@@ -102,8 +97,8 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
             m_blockPriorPtr->computationFinished();
             m_edgeCountPriorPtr->computationFinished();
         }
-        void _checkSelfConsistencywithGraph() const;
-        void _checkSelfConsistency() const override;
+        void checkSelfConsistencywithGraph() const;
+        void checkSelfConsistency() const override;
 
         void checkSelfSafety()const override{
             if (m_blockPriorPtr == nullptr)
@@ -162,6 +157,8 @@ public:
         if (m_edgeMatrix.size() == 0)
             throw SafetyError("EdgeMatrixDeltaPrior: unsafe prior since `m_edgeMatrix` is empty.");
     }
+
+    virtual void computationFinished() const override { m_isProcessed = false; }
 };
 
 class EdgeMatrixUniformPrior: public EdgeMatrixPrior {

@@ -289,7 +289,7 @@ void StochasticBlockModelFamily::checkGraphConsistencyWithEdgeMatrix(
 
 };
 
-void StochasticBlockModelFamily::_checkSelfConsistency() const{
+void StochasticBlockModelFamily::checkSelfConsistency() const{
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeMatrixPriorPtr->checkSelfConsistency();
 

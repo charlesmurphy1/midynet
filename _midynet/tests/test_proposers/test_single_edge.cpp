@@ -11,7 +11,7 @@ namespace FastMIDyNet{
 
 class TestSingleEdgeUniformProposer: public::testing::Test {
     public:
-        EdgeCountPoissonPrior edgeCountPrior = {10};
+        EdgeCountDeltaPrior edgeCountPrior = {10};
         ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
         SingleEdgeUniformProposer proposer;
         MultiGraph graph;
@@ -30,10 +30,6 @@ class TestSingleEdgeUniformProposer: public::testing::Test {
         }
         void TearDown() {
             proposer.checkConsistency();
-        }
-        void TearDown(){
-            randomGraph.checkSelfConsistency();
-            proposer.checkSelfConsistency();
         }
 };
 
@@ -61,7 +57,7 @@ TEST_F(TestSingleEdgeUniformProposer, getLogProposalProbRatio_removeEdgeWithMult
 
 class TestSingleEdgeDegreeProposer: public::testing::Test {
     public:
-        EdgeCountPoissonPrior edgeCountPrior = {10};
+        EdgeCountDeltaPrior edgeCountPrior = {10};
         ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
         SingleEdgeDegreeProposer proposer;
         MultiGraph graph;
@@ -82,9 +78,6 @@ class TestSingleEdgeDegreeProposer: public::testing::Test {
         void TearDown() {
             proposer.checkConsistency();
         }
-        void TearDown(){
-            proposer.checkSelfConsistency();
-        }
 };
 
 TEST_F(TestSingleEdgeDegreeProposer, getLogProposalProbRatio_addEdge_return0) {
@@ -94,12 +87,12 @@ TEST_F(TestSingleEdgeDegreeProposer, getLogProposalProbRatio_addEdge_return0) {
 
 TEST_F(TestSingleEdgeDegreeProposer, getLogProposalProbRatio_removeEdgeWithMultiplicity2_return0) {
     FastMIDyNet::GraphMove move = {{doubleEdge}, {}};
-    proposer.applyGraphMove(move);
+    // proposer.applyGraphMove(move);
 }
 
 TEST_F(TestSingleEdgeDegreeProposer, getLogProposalProbRatio_removeEdgeWithMultiplicity1_returnCorrectRatio) {
     FastMIDyNet::GraphMove move = {{singleEdge}, {}};
-    proposer.applyGraphMove(move);
+    // proposer.applyGraphMove(move);
 }
 
 }

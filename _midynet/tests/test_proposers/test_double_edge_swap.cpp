@@ -24,10 +24,6 @@ public:
     void TearDown() {
         proposer.checkConsistency();
     }
-    void TearDown(){
-
-    }
-
     const MultiGraph getToyMultiGraph() {
         /*
         0 === 1<>

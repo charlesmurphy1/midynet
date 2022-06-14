@@ -50,9 +50,6 @@ class TestBlockPeixotoProposer: public::testing::Test {
         void TearDown() {
             proposer.checkConsistency();
         }
-        void TearDown(){
-            randomGraph.checkSelfConsistency();
-        }
 
         FastMIDyNet::BlockIndex findBlockMove(BaseGraph::VertexIndex idx){
             FastMIDyNet::BlockIndex blockIdx = randomGraph.getBlockOfIdx(idx);

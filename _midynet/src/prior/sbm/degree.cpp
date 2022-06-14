@@ -13,35 +13,24 @@
 using namespace std;
 
 namespace FastMIDyNet{
-void DegreePrior::_setGraph(const MultiGraph& graph) {
+void DegreePrior::setGraph(const MultiGraph& graph) {
+    m_graph = &graph;
     m_edgeMatrixPriorPtr->setGraph(graph);
     const auto& blockSeq = m_blockPriorPtr->getState();
     const auto& blockCount = m_blockPriorPtr->getBlockCount();
 
     m_state = graph.getDegrees();
     m_degreeCountsInBlocks = vector<CounterMap<BlockIndex>>(blockCount, 0);
+
     for (auto vertex: graph){
         m_degreeCountsInBlocks[blockSeq[vertex]].increment(m_state[vertex]);
     }
 }
 
-void DegreePrior::_setPartition(const BlockSequence& blockSeq){
-    m_blockPriorPtr->setState(blockSeq);
-    m_edgeMatrixPriorPtr->setPartition(blockSeq);
-    recomputeState();
-}
 
 void DegreePrior::setState(const DegreeSequence& degreeSeq) {
+    m_degreeCountsInBlocks = computeDegreeCountsInBlocks(degreeSeq, m_blockPriorPtr->getState());
     m_state = degreeSeq;
-    recomputeState();
-}
-void DegreePrior::recomputeState(){
-    const auto& b = m_blockPriorPtr->getState();
-    const auto& B = m_blockPriorPtr->getBlockCount();
-    m_degreeCountsInBlocks = vector<CounterMap<BlockIndex>>(B, 0);
-    for (size_t vertex=0; vertex<m_state.size(); ++vertex){
-        m_degreeCountsInBlocks[b[vertex]].increment(m_state[vertex]);
-    }
 }
 
 vector<CounterMap<size_t>> DegreePrior::computeDegreeCountsInBlocks(const DegreeSequence& degreeSeq, const BlockSequence& blockSeq){

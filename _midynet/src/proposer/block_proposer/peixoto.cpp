@@ -68,6 +68,7 @@ const double BlockPeixotoProposer::getLogProposalProb(const BlockMove& move) con
         auto t = (*m_blocksPtr) [ neighbor.vertexIndex ];
         size_t Est = (*m_edgeMatrixPtr)[t][move.nextBlockIdx];
         size_t Et = (*m_edgeCountsPtr)[t];
+
         degree += neighbor.label;
         weight += neighbor.label * ( Est + m_shift ) / (Et + m_shift * B) ;
     }

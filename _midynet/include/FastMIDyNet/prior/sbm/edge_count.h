@@ -58,7 +58,7 @@ public:
     void sampleState() override { };
     const double getLogLikelihoodFromState(const size_t& state) const override { if (state == m_state) return 0.; else return -INFINITY; };
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { if (move.addedEdges.size() == move.removedEdges.size()) return 0; else return -INFINITY;}
-    void _checkSelfConsistency() const override { };
+    void checkSelfConsistency() const override { };
 
 };
 
@@ -111,7 +111,7 @@ public:
 //     virtual double getWeight(size_t E) const {
 //         return logMultisetCoefficient(m_maxEdgeCount, E);
 //     }
-//     void _checkSelfConsistency() const {};
+//     void checkSelfConsistency() const {};
 // };
 //
 // class EdgeCountBinomialPrior: public EdgeCountMultisetPrior{

@@ -96,11 +96,6 @@ public:
         auto degrees = getDegreesFromGraph(graph);
         return degrees == getDegrees();
     }
-    void computationFinished() const override{
-        m_blockPriorPtr->computationFinished();
-        m_edgeMatrixPriorPtr->computationFinished();
-        m_degreePriorPtr->computationFinished();
-    }
 
 };
 
