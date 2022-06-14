@@ -207,12 +207,9 @@ void Dynamics::updateNeighborsStateFromEdgeMove(
     for (size_t t = 0; t < m_numSteps; t++) {
         uState = m_pastStateSequence[u][t];
         vState = m_pastStateSequence[v][t];
-        if (u == v)
-            nextNeighborMap[u][t][uState] += counter;
-        else{
-            nextNeighborMap[u][t][vState] += counter;
+        nextNeighborMap[u][t][vState] += counter;
+        if (u != v)
             nextNeighborMap[v][t][uState] += counter;
-        }
     }
 };
 
@@ -263,7 +260,8 @@ void Dynamics::_applyGraphMove(const GraphMove& move) {
         verticesAffected.insert(u);
         updateNeighborsStateFromEdgeMove(edge, 1, prevNeighborMap, nextNeighborMap);
         m_neighborsState[u][m_state[v]] += 1;
-        m_neighborsState[v][m_state[u]] += 1;
+        if (u != v)
+            m_neighborsState[v][m_state[u]] += 1;
     }
     for (const auto& edge : move.removedEdges){
         v = edge.first;
@@ -272,7 +270,8 @@ void Dynamics::_applyGraphMove(const GraphMove& move) {
         verticesAffected.insert(u);
         updateNeighborsStateFromEdgeMove(edge, -1, prevNeighborMap, nextNeighborMap);
         m_neighborsState[u][m_state[v]] -= 1;
-        m_neighborsState[v][m_state[u]] -= 1;
+        if (u != v)
+            m_neighborsState[v][m_state[u]] -= 1;
     }
 
     for (const auto& idx: verticesAffected){
@@ -283,16 +282,63 @@ void Dynamics::_applyGraphMove(const GraphMove& move) {
     m_randomGraphPtr->applyGraphMove(move);
 }
 
-void Dynamics::checkConsistencyOfNeighborsPastState() const {
-    if (m_neighborsPastStateSequence != computeNeighborsStateSequence(m_pastStateSequence))
-        throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsistent with past states.");
-    if (m_neighborsState != computeNeighborsState(m_state))
-        throw ConsistencyError("Dynamics: `m_neighborsState` is inconsistent with `m_state`.");
+void Dynamics::checkConsistencyOfNeighborsPastStateSequence() const {
+    if (m_neighborsPastStateSequence.size() == 0)
+        return;
+    else if (m_neighborsPastStateSequence.size() != getSize())
+            throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsistent with past states with size "
+                + std::to_string(m_neighborsPastStateSequence.size())
+                + ", expected size " + std::to_string(getSize()) + ".");
+    const auto& actual = m_neighborsPastStateSequence;
+    const auto expected = computeNeighborsStateSequence(m_pastStateSequence);
+    for (size_t v=0; v<getSize(); ++v){
+        if (actual[v].size() != getNumSteps())
+            throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsistent with past states at (v="
+                + std::to_string(v) + ") with size " + std::to_string(m_neighborsPastStateSequence[v].size())
+                + ", expected size " + std::to_string(getNumSteps()) + ".");
+        for (size_t t=0; t<getSize(); ++t){
+            if (actual[v][t].size() != getNumStates())
+                throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsistent with past states at (v="
+                    + std::to_string(v) + ", t=" + std::to_string(t) + ") with size " + std::to_string(m_neighborsPastStateSequence[t][v].size())
+                    + ", expected size " + std::to_string(getNumStates()) + ".");
+            for (size_t s=0; s<m_numStates; ++s){
+                if (actual[v][t][s] != expected[v][t][s])
+                    throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsistent with past states at (v="
+                        + std::to_string(v) + ", t=" + std::to_string(t) + ", s=" + std::to_string(s)
+                        + ") with value " + std::to_string(actual[v][t][s])
+                        + ", expected value" + std::to_string(expected[v][t][s]) + ".");
+            }
+        }
+    }
+}
+
+void Dynamics::checkConsistencyOfNeighborsState() const {
+    if (m_neighborsState.size() == 0)
+        return;
+    else if (m_neighborsState.size() != getSize())
+        throw ConsistencyError("Dynamics: `m_neighborsState` is inconsistent with `m_states` with size "
+            + std::to_string(m_neighborsState.size()) + ", expected size " + std::to_string(getSize()) + ".");
+    const auto& actual = m_neighborsState;
+    const auto expected = computeNeighborsState(m_state);
+    for (size_t v=0; v<getSize(); ++v){
+        if (actual[v].size() != getNumStates())
+            throw ConsistencyError("Dynamics: `m_neighborsState` is inconsistent with `m_states` at (v="
+                + std::to_string(v) + "_ with size " + std::to_string(m_neighborsState[v].size())
+                + ", expected size " + std::to_string(getNumStates()) + ".");
+        for (size_t s=0; s<m_numStates; ++s){
+            if (actual[v][s] != expected[v][s])
+                throw ConsistencyError("Dynamics: `m_neighborsState` is inconsistent with `m_states` at (v="
+                    + std::to_string(v) + ", s=" + std::to_string(s) +
+                    + ") with value " + std::to_string(actual[v][s])
+                    + ", expected value" + std::to_string(expected[v][s]) + ".");
+        }
+    }
 
 }
 
 void Dynamics::checkSelfConsistency() const {
-    checkConsistencyOfNeighborsPastState();
+    checkConsistencyOfNeighborsPastStateSequence();
+    checkConsistencyOfNeighborsState();
 }
 
 void Dynamics::checkSelfSafety() const {

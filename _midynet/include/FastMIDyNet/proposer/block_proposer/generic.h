@@ -13,14 +13,17 @@ namespace FastMIDyNet {
 
 class BlockGenericProposer: public BlockProposer {
     const std::vector<BlockIndex>* m_blocksPtr;
-    public:
-        BlockGenericProposer(){}
-        BlockMove proposeMove() const override{
-            return {0, (*m_blocksPtr)[0], (*m_blocksPtr)[0], 0};
-        }
-        void setUp(const RandomGraph& randomGraph) override { m_blocksPtr = &randomGraph.getBlocks(); }
-        const double getLogProposalProbRatio(const BlockMove&) const override { return 0;};
-        void checkSelfSafety() const override { }
+protected:
+    bool creatingNewBlock(const BlockMove&) const { return false; }
+    bool destroyingBlock(const BlockMove&) const { return false; }
+public:
+    BlockGenericProposer(){}
+    BlockMove proposeMove() const override{
+        return {0, (*m_blocksPtr)[0], (*m_blocksPtr)[0], 0};
+    }
+    void setUp(const RandomGraph& randomGraph) override { m_blocksPtr = &randomGraph.getBlocks(); }
+    const double getLogProposalProbRatio(const BlockMove&) const override { return 0;};
+    void checkSelfSafety() const override { }
 };
 
 } // namespace FastMIDyNet

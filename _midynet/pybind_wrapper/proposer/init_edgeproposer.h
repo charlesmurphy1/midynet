@@ -64,8 +64,8 @@ void initEdgeProposer(py::module& m){
     py::class_<LabeledEdgeProposer, EdgeProposer, PyLabeledEdgeProposer<>>(m, "LabeledEdgeProposer")
         .def(py::init<bool, bool, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,
              py::arg("label_pair_shift")=1)
-        .def("on_label_creation", &LabeledEdgeProposer::onLabelCreation)
-        .def("on_label_deletion", &LabeledEdgeProposer::onLabelDeletion);
+        .def("on_label_creation", &LabeledEdgeProposer::onLabelCreation, py::arg("move"))
+        .def("on_label_deletion", &LabeledEdgeProposer::onLabelDeletion, py::arg("move"));
 
     py::class_<LabeledDoubleEdgeSwapProposer, LabeledEdgeProposer>(m, "LabeledDoubleEdgeSwapProposer")
         .def(py::init<bool, bool, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,

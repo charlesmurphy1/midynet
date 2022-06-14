@@ -21,7 +21,9 @@ class RandomGraphMCMCFactory(Factory):
             if "block_proposer" in config
             else BlockGenericProposer()
         )
-        mcmc_model = mcmc.RandomGraphMCMC(edge_proposer, block_proposer)
+        mcmc_model = mcmc.RandomGraphMCMC()
+        mcmc_model.set_edge_proposer(edge_proposer)
+        mcmc_model.set_block_proposer(block_proposer)
         return Wrapper(
             mcmc_model,
             edge_proposer=edge_proposer,
@@ -33,9 +35,7 @@ class MCMCVerboseFactory(Factory):
     @classmethod
     def build(cls, name: str, **kwargs: Any) -> Any:
         options = {
-            k[6:]: getattr(cls, k)
-            for k in cls.__dict__.keys()
-            if k[:6] == "build_"
+            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
         }
         if name in options:
             return options[name](**kwargs)
@@ -45,9 +45,7 @@ class MCMCVerboseFactory(Factory):
     @classmethod
     def build_console(cls, types=None):
         callbacks = cls.collect_types(types)
-        return Wrapper(
-            mcmc.callbacks.VerboseToConsole(callbacks), callbacks=callbacks
-        )
+        return Wrapper(mcmc.callbacks.VerboseToConsole(callbacks), callbacks=callbacks)
 
     @classmethod
     def build_file(cls, types=None, filename="./verbose.vb"):
@@ -64,9 +62,7 @@ class MCMCVerboseFactory(Factory):
             verbose = [
                 getattr(cls, k)()
                 for k in cls.__dict__.keys()
-                if k[:6] == "build_"
-                and k != "build_file"
-                and k != "build_console"
+                if k[:6] == "build_" and k != "build_file" and k != "build_console"
             ]
         else:
             verbose = [

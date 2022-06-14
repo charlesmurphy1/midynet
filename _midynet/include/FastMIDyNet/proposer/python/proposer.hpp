@@ -3,23 +3,23 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-
 #include "FastMIDyNet/proposer/proposer.hpp"
+#include "FastMIDyNet/python/rv.hpp"
 
 namespace py = pybind11;
 namespace FastMIDyNet{
 
 template<typename MoveType,typename BaseClass = Proposer<MoveType>>
-class PyProposer: public BaseClass{
+class PyProposer: public PyNestedRandomVariable<BaseClass>{
 public:
-    using BaseClass::BaseClass;
+    using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
 
     /* Pure abstract methods */
     MoveType proposeMove() const override { PYBIND11_OVERRIDE_PURE(MoveType, BaseClass, proposeMove, ); }
 
     /* Abstract & overloaded methods */
-    void checkConsistency() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkConsistency, ); }
-    void checkSafety() const override { PYBIND11_OVERRIDE_PURE(void, BaseClass, checkSafety, ); }
+    ~PyProposer() override = default;
+    void clear() override { PYBIND11_OVERRIDE(void, BaseClass, clear, ); }
 
 };
 

@@ -47,8 +47,6 @@ public:
     const double getLogLikelihoodFromState(const size_t& blockCount) const override{
         return (blockCount != m_state) ? -INFINITY : 0;
     }
-    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const { if (move.addedBlocks == 0) return 0; else return -INFINITY; }
-
     void checkSelfConsistency() const override { };
 
     void checkSelfSafety() const override {

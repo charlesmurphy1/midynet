@@ -31,7 +31,9 @@ GraphMove HingeFlipProposer::proposeRawMove() const {
         throw std::logic_error("HingeFlipProposer: Edge ("
                                 + std::to_string(edge.first) + ", "
                                 + std::to_string(edge.second)
-                                + ") exists in sampler with multiplicity 0 in graph.");
+                                + ") exists in sampler with weight "
+                                + std::to_string(m_edgeSampler.getEdgeWeight(edge)) +
+                                ", but with multiplicity 0 in graph.");
     return {{edge}, {newEdge}};
 };
 

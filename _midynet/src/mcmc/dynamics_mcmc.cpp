@@ -4,63 +4,36 @@
 
 namespace FastMIDyNet{
 
-bool DynamicsMCMC::doMetropolisHastingsStep() {
+double DynamicsMCMC::_getLogAcceptanceProb(const GraphMove& move) const {
+    double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_dynamicsPtr->getLogLikelihoodRatioFromGraphMove(move);
+    double logPriorRatio = (m_betaPrior == 0) ? 0 : m_betaPrior * m_dynamicsPtr->getLogPriorRatioFromGraphMove(move);
+    if (logLikelihoodRatio == -INFINITY or logPriorRatio == -INFINITY){
+        m_lastLogJointRatio = -INFINITY;
+        return -INFINITY;
+    }
+    m_lastLogJointRatio = logLikelihoodRatio + logPriorRatio;
+    return m_randomGraphMCMCPtr->getLogProposalProbRatioFromGraphMove(move); + m_lastLogJointRatio;
+}
+
+bool DynamicsMCMC::_doMetropolisHastingsStep() {
     if (m_uniform(rng) < m_sampleGraphPriorProb){
         m_lastMoveWasGraphMove = false;
         m_randomGraphMCMCPtr->doMetropolisHastingsStep();
         m_lastLogJointRatio = m_randomGraphMCMCPtr->getLastLogJointRatio();
         m_lastLogAcceptance = m_randomGraphMCMCPtr->getLastLogAcceptance();
         m_isLastAccepted = m_randomGraphMCMCPtr->isLastAccepted();
-
     }
     else {
         m_lastMoveWasGraphMove = true;
-
         GraphMove move = m_randomGraphMCMCPtr->proposeEdgeMove();
-
-        double logLikelihoodRatio = m_dynamicsPtr->getLogLikelihoodRatioFromGraphMove(move);
-        if (m_betaLikelihood == 0)
-            logLikelihoodRatio = 0;
-        else
-            logLikelihoodRatio *= m_betaLikelihood;
-
-        double logPriorRatio = m_dynamicsPtr->getLogPriorRatioFromGraphMove(move);
-        if (m_betaPrior == 0)
-            logPriorRatio = 0;
-        else
-            logPriorRatio *= m_betaPrior;
-
-        double logProposalProbRatio = m_randomGraphMCMCPtr->getLogProposalProbRatioFromGraphMove(move);
-
-        m_lastLogJointRatio = logLikelihoodRatio + logPriorRatio;
-
-        if (logLikelihoodRatio == -INFINITY or logPriorRatio == -INFINITY)
-            m_lastLogAcceptance = -INFINITY;
-        else
-            m_lastLogAcceptance = logProposalProbRatio + m_lastLogJointRatio;
+        m_lastLogAcceptance = getLogAcceptanceProb(move);
         m_isLastAccepted = false;
-
-        double r = m_uniform(rng), p = exp(m_lastLogAcceptance);
-        for(auto e : move.removedEdges){
-            e = getOrderedEdge(e);
-            if (m_removedEdgeCounter.count(e) == 0)
-                m_removedEdgeCounter.insert({e, 0});
-            ++m_removedEdgeCounter[e];
-        }
-
-        for(auto e : move.addedEdges){
-            e = getOrderedEdge(e);
-            if (m_addedEdgeCounter.count(e) == 0)
-                m_addedEdgeCounter.insert({e, 0});
-            ++m_addedEdgeCounter[e];
-        }
-
-        if (r < p){
+        if (m_uniform(rng) < exp(m_lastLogAcceptance)){
             m_isLastAccepted = true;
-            m_dynamicsPtr->applyGraphMove(move);
-            m_randomGraphMCMCPtr->applyGraphMove(move);
+            applyGraphMove(move);
         }
     }
+
 
     return m_isLastAccepted;
 

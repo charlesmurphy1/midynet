@@ -1,5 +1,8 @@
-// #include <pybind11/pybind11.h>
-// #include <pybind11/stl.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include "FastMIDyNet/rv.hpp"
+#include "FastMIDyNet/python/rv.hpp"
 
 #include "utility/init_utility.h"
 #include "init_exceptions.h"
@@ -22,6 +25,15 @@ PYBIND11_MODULE(_midynet, m) {
     initGenerators( utility );
     initRNG( utility );
     initExceptions( utility );
+
+    py::class_<NestedRandomVariable, PyNestedRandomVariable<>>(m, "NestedRandomVariable")
+        .def(py::init<>())
+        .def("is_root", [&](const NestedRandomVariable &self){ return self.isRoot(); })
+        .def("is_processed", [&](const NestedRandomVariable &self){ return self.isProcessed(); })
+        .def("check_consistency", &NestedRandomVariable::checkConsistency)
+        .def("check_safety", &NestedRandomVariable::checkSafety)
+        .def("is_safe", &NestedRandomVariable::isSafe)
+        ;
 
     py::module prior = m.def_submodule("prior");
     initPrior( prior );

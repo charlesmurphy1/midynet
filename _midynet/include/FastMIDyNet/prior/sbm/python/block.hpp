@@ -9,25 +9,20 @@
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/prior/python/prior.hpp"
 #include "FastMIDyNet/prior/sbm/block_count.h"
-#include "FastMIDyNet/prior/sbm/vertex_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 
 
 namespace FastMIDyNet{
 
-template <typename BlockPriorBaseClass = BlockPrior>
-class PyBlockPrior: public PyPrior<std::vector<size_t>, BlockPriorBaseClass> {
+template <typename BaseClass = BlockPrior>
+class PyBlockPrior: public PyPrior<std::vector<size_t>, BaseClass> {
 public:
-    using PyPrior<std::vector<size_t>, BlockPriorBaseClass>::PyPrior;
+    using PyPrior<std::vector<size_t>, BaseClass>::PyPrior;
     /* Pure abstract methods */
-    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BlockPriorBaseClass, getLogLikelihoodRatioFromBlockMove, move); }
-    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BlockPriorBaseClass, getLogPriorRatioFromBlockMove, move); }
-    void applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE_PURE(void, BlockPriorBaseClass, applyBlockMove, move); }
+    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromBlockMove, move); }
 
     /* Overloaded abstract methods */
-    ~PyBlockPrior() override = default;
-    const size_t& getBlockCount() const override { PYBIND11_OVERRIDE(const size_t&, BlockPriorBaseClass, getBlockCount, ); }
-    const std::vector<size_t>& getVertexCountsInBlocks() const override { PYBIND11_OVERRIDE(const std::vector<size_t>&, BlockPriorBaseClass, getVertexCountsInBlocks, ); }
+    void setState(const BlockSequence& blocks) override { PYBIND11_OVERRIDE(void, BaseClass, setState, blocks); }
 };
 
 }

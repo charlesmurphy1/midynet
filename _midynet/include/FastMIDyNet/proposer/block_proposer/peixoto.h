@@ -59,12 +59,12 @@ class BlockPeixotoProposer: public BlockProposer {
     protected:
         IntMap<std::pair<BlockIndex, BlockIndex>> getEdgeMatrixDiff(const BlockMove& move) const ;
         IntMap<BlockIndex> getEdgeCountsDiff(const BlockMove& move) const ;
-            bool creatingNewBlock(const BlockMove& move) const override {
-                return move.nextBlockIdx == m_vertexCountsPtr->size() or (*m_vertexCountsPtr)[move.nextBlockIdx] == 0;
-            }
-            bool destroyingBlock(const BlockMove& move) const override {
-                return move.prevBlockIdx != move.nextBlockIdx and (*m_vertexCountsPtr)[move.prevBlockIdx]<=1;
-            }
+        bool creatingNewBlock(const BlockMove& move) const override {
+            return move.nextBlockIdx == m_vertexCountsPtr->size() or (*m_vertexCountsPtr)[move.nextBlockIdx] == 0;
+        }
+        bool destroyingBlock(const BlockMove& move) const override {
+            return move.prevBlockIdx != move.nextBlockIdx and (*m_vertexCountsPtr)[move.prevBlockIdx]<=1;
+        }
 };
 
 } // namespace FastMIDyNet

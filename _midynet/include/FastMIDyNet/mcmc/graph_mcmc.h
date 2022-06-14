@@ -76,6 +76,11 @@ public:
 
     double getLogProposalProbRatioFromGraphMove(const GraphMove& move) const { return m_edgeProposerPtr->getLogProposalProbRatio(move); }
     double getLogProposalProbRatioFromBlockMove(const BlockMove& move) const { return m_blockProposerPtr->getLogProposalProbRatio(move); }
+    double _getLogAcceptanceProb(const BlockMove& move) const;
+    double getLogAcceptanceProb(const BlockMove& move) const {
+        return processRecursiveConstFunction<double>([&](){ return _getLogAcceptanceProb(move); }, 0) ;
+    }
+
     void applyGraphMove(const GraphMove& move) {
         processRecursiveFunction([&](){
             m_blockProposerPtr->applyGraphMove(move);
@@ -91,12 +96,12 @@ public:
         });
     }
 
-    bool doMetropolisHastingsStep() override ;
+    bool _doMetropolisHastingsStep() override ;
 
-    bool isSafe() const {
+    bool isSafe() const override {
         return (m_randomGraphPtr != nullptr) and (m_randomGraphPtr->isSafe())
-           and (m_edgeProposerPtr != nullptr)  // and (m_edgeProposerPtr != nullptr)
-           and (m_blockProposerPtr != nullptr);   // and (m_blockProposerPtr != nullptr)
+           and (m_edgeProposerPtr != nullptr)  and (m_edgeProposerPtr->isSafe())
+           and (m_blockProposerPtr != nullptr) and (m_blockProposerPtr->isSafe());
     }
 
     void checkSelfSafety() const override {
@@ -112,6 +117,13 @@ public:
             throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_blockProposerPtr` is NULL.");
         m_blockProposerPtr->checkSafety();
     };
+
+    void checkSelfConsistency() const override {
+        if (m_edgeProposerPtr != nullptr)
+            m_edgeProposerPtr->checkConsistency();
+        if (m_blockProposerPtr != nullptr)
+            m_blockProposerPtr->checkConsistency();
+    }
 
     void computationFinished() const override {
         m_isProcessed = false;

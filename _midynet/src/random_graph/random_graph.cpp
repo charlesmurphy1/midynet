@@ -26,6 +26,7 @@ void RandomGraph::_applyGraphMove(const GraphMove& move){
         else
             throw std::logic_error("Cannot remove non-existing edge (" + to_string(u) + ", " + to_string(v) + ").");
     }
+
 }
 
 const size_t RandomGraph::computeBlockCount() const {

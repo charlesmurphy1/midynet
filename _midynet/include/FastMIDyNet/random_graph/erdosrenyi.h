@@ -132,6 +132,11 @@ public:
     EdgeCountPrior& getEdgeCountPriorRef(){ return *m_edgeCountPriorPtr; }
     void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){ m_edgeCountPriorPtr = &edgeCountPrior; }
 
+    void computationFinished() const override {
+        m_isProcessed = false;
+        m_edgeCountPriorPtr->computationFinished();
+    }
+
 };
 
 }// end FastMIDyNet

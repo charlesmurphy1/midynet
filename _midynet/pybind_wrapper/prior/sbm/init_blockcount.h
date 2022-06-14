@@ -4,7 +4,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "declare.h"
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/prior/sbm/python/blockcount.hpp"
@@ -14,7 +13,7 @@ namespace FastMIDyNet{
 
 
 void initBlockCountPrior(py::module& m){
-    declareSBMPrior<BlockCountPrior, Prior<size_t>, PyBlockCountPrior<>>(m, "BlockCountPrior");
+    py::class_<BlockCountPrior, Prior<size_t>, PyBlockCountPrior<>>(m, "BlockCountPrior");
 
     py::class_<BlockCountDeltaPrior, BlockCountPrior>(m, "BlockCountDeltaPrior")
         .def(py::init<>())

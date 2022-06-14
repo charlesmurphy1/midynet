@@ -5,14 +5,15 @@
 #include <pybind11/stl.h>
 
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/python/rv.hpp"
 #include "FastMIDyNet/mcmc/mcmc.h"
 
 namespace FastMIDyNet{
 
 template<typename BaseClass = MCMC>
-class PyMCMC: public BaseClass{
+class PyMCMC: public PyNestedRandomVariable<BaseClass>{
 public:
-    using BaseClass::BaseClass;
+    using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
     /* Pure abstract methods */
     const MultiGraph& getGraph() const override {
         PYBIND11_OVERRIDE_PURE(const MultiGraph&, BaseClass, getGraph, );
@@ -29,14 +30,13 @@ public:
     const double getLogJoint() const override {
         PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogJoint, );
     }
-    bool doMetropolisHastingsStep() override {
-        PYBIND11_OVERRIDE_PURE(bool, BaseClass, doMetropolisHastingsStep, );
+    bool _doMetropolisHastingsStep() override {
+        PYBIND11_OVERRIDE_PURE(bool, BaseClass, _doMetropolisHastingsStep, );
     }
 
     /* Abstract methods */
     void setUp() override { PYBIND11_OVERRIDE(void, BaseClass, setUp, ); }
     void tearDown() override { PYBIND11_OVERRIDE(void, BaseClass, tearDown, ); }
-    void checkSafety() const { PYBIND11_OVERRIDE(void, BaseClass, checkSafety, ); }
 
 };
 

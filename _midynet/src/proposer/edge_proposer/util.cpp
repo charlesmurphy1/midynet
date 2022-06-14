@@ -44,4 +44,29 @@ std::map<std::pair<BlockIndex,BlockIndex>, MultiGraph> getSubGraphOfLabelPair(co
     return subGraphs;
 }
 
+void checkEdgeSamplerConsistencyWithGraph(const std::string className, const MultiGraph& graph, const EdgeSampler& edgeSampler){
+    for( auto u: graph){
+        for( auto neighbor: graph.getNeighboursOfIdx(u)){
+            size_t v = neighbor.vertexIndex;
+            if (u > v)
+                continue;
+            if (not  edgeSampler.contains({u, v}))
+                throw ConsistencyError(
+                    className + ": edgeSampler is inconsistent with graph, edge ("
+                    + std::to_string(u) + ", " + std::to_string(v) + ") is not in sampler."
+                );
+        }
+    }
+}
+
+void checkVertexSamplerConsistencyWithGraph(const std::string className, const MultiGraph& graph, const VertexSampler&vertexSampler){
+    for( auto u: graph){
+        if (not vertexSampler.contains(u))
+            throw ConsistencyError(
+                className + ": vertexSampler is inconsistent with graph, vertex "
+                + std::to_string(u) + " is not in sampler."
+            );
+    }
+}
+
 }

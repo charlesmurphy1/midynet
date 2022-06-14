@@ -38,22 +38,25 @@ template<typename BaseClass = HingeFlipProposer>
 class PyHingeFlipProposer: public PyEdgeProposer<BaseClass>{
 public:
     using PyEdgeProposer<BaseClass>::PyEdgeProposer;
+    ~PyHingeFlipProposer() override = default;
+
     /* Pure abstract methods */
-    const double getLogVertexWeightRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getVertexWeightRatio, move); }
+    const double getLogVertexWeightRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogVertexWeightRatio, move); }
 
     /* Abstract & overloaded methods */
-    ~PyHingeFlipProposer() override = default;
 };
 
 template<typename BaseClass = SingleEdgeProposer>
 class PySingleEdgeProposer: public PyEdgeProposer<BaseClass>{
 public:
     using PyEdgeProposer<BaseClass>::PyEdgeProposer;
+    ~PySingleEdgeProposer() override = default;
+
     /* Pure abstract methods */
-    const double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
 
     /* Abstract & overloaded methods */
-    ~PySingleEdgeProposer() override = default;
+    void applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
+
 };
 
 
@@ -61,6 +64,8 @@ template<typename BaseClass = LabeledEdgeProposer>
 class PyLabeledEdgeProposer: public PyEdgeProposer<BaseClass>{
 public:
     using PyEdgeProposer<BaseClass>::PyEdgeProposer;
+    ~PyLabeledEdgeProposer() override = default;
+
     /* Pure abstract methods */
 
     /* Abstract & overloaded methods */
@@ -68,6 +73,7 @@ public:
     void setUpFromGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setUpFromGraph, graph); }
     void onLabelCreation(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, onLabelCreation, move); }
     void onLabelDeletion(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, onLabelDeletion, move); }
+    void clear() override { PYBIND11_OVERRIDE(void, BaseClass, clear, ); }
 };
 
 
@@ -76,8 +82,9 @@ template<typename BaseClass = LabeledHingeFlipProposer>
 class PyLabeledHingeFlipProposer: public PyEdgeProposer<BaseClass>{
 public:
     using PyEdgeProposer<BaseClass>::PyEdgeProposer;
+    ~PyLabeledHingeFlipProposer() override = default;
+
     /* Pure abstract methods */
-    const double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
     VertexSampler* constructVertexSampler() const override { PYBIND11_OVERRIDE_PURE(VertexSampler*, BaseClass, constructVertexSampler, ); }
 
     /* Abstract & overloaded methods */

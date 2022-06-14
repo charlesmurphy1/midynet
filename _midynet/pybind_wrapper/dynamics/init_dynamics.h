@@ -4,6 +4,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "FastMIDyNet/python/rv.hpp"
 #include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/dynamics/binary_dynamics.h"
 #include "FastMIDyNet/dynamics/python/dynamics.hpp"
@@ -12,7 +13,7 @@ namespace py = pybind11;
 namespace FastMIDyNet{
 
 void initDynamicsBaseClass(py::module& m){
-    py::class_<Dynamics, PyDynamics<>>(m, "Dynamics")
+    py::class_<Dynamics, NestedRandomVariable, PyDynamics<>>(m, "Dynamics")
         .def(py::init<RandomGraph&, size_t, size_t, bool>(),
             py::arg("random_graph"), py::arg("num_states"),
             py::arg("num_steps"), py::arg("normalize")=true)
@@ -60,7 +61,6 @@ void initDynamicsBaseClass(py::module& m){
             py::arg("move"))
         .def("apply_graph_move", &Dynamics::applyGraphMove,
             py::arg("move"))
-        .def("check_safety", &Dynamics::checkSafety)
         ;
 }
 

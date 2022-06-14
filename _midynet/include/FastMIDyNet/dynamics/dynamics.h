@@ -42,6 +42,9 @@ protected:
         std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&,
         std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>&
     ) const ;
+
+    void checkConsistencyOfNeighborsState() const ;
+    void checkConsistencyOfNeighborsPastStateSequence() const ;
 public:
     explicit Dynamics(size_t numStates, size_t numSteps, bool normalizeCoupling=true):
         m_numStates(numStates),
@@ -125,7 +128,6 @@ public:
         processRecursiveFunction([&](){ _applyGraphMove(move); });
     }
 
-    virtual void checkConsistencyOfNeighborsPastState() const ;
     void checkSelfSafety() const override;
     void checkSelfConsistency() const override;
 
@@ -134,7 +136,7 @@ public:
         m_randomGraphPtr->computationFinished();
     }
 
-    bool isSafe() const {
+    bool isSafe() const override {
         return (m_randomGraphPtr != nullptr) and (m_randomGraphPtr->isSafe())
            and (m_state.size() != 0) and (m_pastStateSequence.size() != 0)
            and (m_futureStateSequence.size() != 0) and (m_neighborsPastStateSequence.size() != 0);

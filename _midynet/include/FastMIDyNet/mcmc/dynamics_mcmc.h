@@ -13,8 +13,8 @@ namespace FastMIDyNet{
 
 class DynamicsMCMC: public MCMC{
 private:
-    Dynamics* m_dynamicsPtr;
-    RandomGraphMCMC* m_randomGraphMCMCPtr;
+    Dynamics* m_dynamicsPtr = nullptr;
+    RandomGraphMCMC* m_randomGraphMCMCPtr = nullptr;
     double m_betaLikelihood, m_betaPrior, m_sampleGraphPriorProb;
     std::uniform_real_distribution<double> m_uniform;
     bool m_lastMoveWasGraphMove;
@@ -43,6 +43,7 @@ public:
     m_sampleGraphPriorProb(sampleGraphPriorProb),
     m_uniform(0., 1.) { }
     void setUp() override {
+        m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
         m_randomGraphMCMCPtr->setUp();
         MCMC::setUp();
     };
@@ -66,8 +67,8 @@ public:
     void setRandomGraphMCMC(RandomGraphMCMC& mcmc) {
         m_randomGraphMCMCPtr = &mcmc;
         m_randomGraphMCMCPtr->isRoot(false);
-        if (m_dynamicsPtr != nullptr)
-            m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
+        // if (m_dynamicsPtr != nullptr and m_dynamicsPtr->isSafe())
+        //     m_randomGraphMCMCPtr->setRandomGraph(m_dynamicsPtr->getRandomGraphRef());
     }
 
     const Dynamics& getDynamics() const { return *m_dynamicsPtr; }
@@ -75,8 +76,8 @@ public:
     void setDynamics(Dynamics& dynamics) {
         m_dynamicsPtr = &dynamics;
         m_dynamicsPtr->isRoot(false);
-        if (m_randomGraphMCMCPtr != nullptr and m_randomGraphMCMCPtr->isSafe())
-            m_dynamicsPtr->setRandomGraph(m_randomGraphMCMCPtr->getRandomGraphRef());
+        // if (m_randomGraphMCMCPtr != nullptr and m_randomGraphMCMCPtr->isSafe())
+        //     m_dynamicsPtr->setRandomGraph(m_randomGraphMCMCPtr->getRandomGraphRef());
     }
 
     const double getLogLikelihood() const override { return m_dynamicsPtr->getLogLikelihood(); }
@@ -84,9 +85,20 @@ public:
     const double getLogJoint() const override { return m_dynamicsPtr->getLogJoint(); }
     const std::map<BaseGraph::Edge, size_t>& getAddedEdgeCounter() const { return m_addedEdgeCounter; }
     const std::map<BaseGraph::Edge, size_t>& getRemovedEdgeCounter() const { return m_removedEdgeCounter; }
-    bool doMetropolisHastingsStep() override ;
+    double _getLogAcceptanceProb(const GraphMove& move) const;
+    double getLogAcceptanceProb(const GraphMove& move) const{
+        return processRecursiveConstFunction<double>([&](){ return _getLogAcceptanceProb(move); }, 0);
+    }
+    bool _doMetropolisHastingsStep() override ;
 
-    bool isSafe() const {
+    void applyGraphMove(const GraphMove& move){
+        processRecursiveFunction([&](){
+            m_dynamicsPtr->applyGraphMove(move);
+            m_randomGraphMCMCPtr->applyGraphMove(move);
+        });
+    }
+
+    bool isSafe() const override {
         return (m_dynamicsPtr != nullptr) and (m_dynamicsPtr->isSafe())
            and (m_randomGraphMCMCPtr != nullptr) and (m_randomGraphMCMCPtr->isSafe());
     }
@@ -95,9 +107,15 @@ public:
         if (m_dynamicsPtr == nullptr)
             throw SafetyError("DynamicsMCMC: it is unsafe to set up, since `m_dynamicsPtr` is NULL.");
         m_dynamicsPtr->checkSafety();
-        if (m_dynamicsPtr == nullptr)
+        if (m_randomGraphMCMCPtr == nullptr)
             throw SafetyError("DynamicsMCMC: it is unsafe to set up, since `m_randomGraphMCMCPtr` is NULL.");
         m_randomGraphMCMCPtr->checkSafety();
+    }
+    void checkSelfConsistency() const override {
+        if (m_dynamicsPtr != nullptr)
+            m_dynamicsPtr->checkConsistency();
+        if (m_randomGraphMCMCPtr != nullptr)
+            m_randomGraphMCMCPtr->checkConsistency();
     }
     void computationFinished() const override {
         m_isProcessed = false;

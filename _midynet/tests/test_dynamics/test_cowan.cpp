@@ -33,7 +33,7 @@ TEST_F(TestWilsonCowan, getDeactivationProb_forEachStateTransition_returnCorrect
 
 TEST_F(TestWilsonCowan, afterSample_getCorrectNeighborState){
     dynamics.sample();
-    dynamics.checkConsistencyOfNeighborsPastState();
+    dynamics.checkConsistency();
 }
 
 TEST_F(TestWilsonCowan, getLogLikelihood_returnCorrectLogLikelikehood){

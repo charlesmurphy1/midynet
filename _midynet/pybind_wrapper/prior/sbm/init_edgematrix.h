@@ -5,7 +5,6 @@
 #include <pybind11/stl.h>
 #include <vector>
 
-#include "declare.h"
 #include "FastMIDyNet/prior/python/prior.hpp"
 #include "FastMIDyNet/prior/sbm/edge_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
@@ -17,7 +16,7 @@ namespace py = pybind11;
 namespace FastMIDyNet{
 
 void initEdgeMatrixPrior(py::module& m){
-    declareSBMPrior<EdgeMatrixPrior, Prior<std::vector<std::vector<size_t>>>, PyEdgeMatrixPrior<>>(m, "EdgeMatrixPrior")
+    py::class_<EdgeMatrixPrior, Prior<std::vector<std::vector<size_t>>>, PyEdgeMatrixPrior<>>(m, "EdgeMatrixPrior")
         .def(py::init<EdgeCountPrior&, BlockPrior&>(), py::arg("edge_count_prior"), py::arg("block_prior"))
         .def("get_edge_count", &EdgeMatrixPrior::getEdgeCount)
         .def("get_edge_counts_in_blocks", &EdgeMatrixPrior::getEdgeCountsInBlocks)

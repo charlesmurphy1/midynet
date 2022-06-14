@@ -22,7 +22,7 @@ public:
     BaseGraph::Edge sample() const {
         return m_edgeSampler.sample_ext_RNG(rng).first;
     }
-    virtual bool contains(const BaseGraph::Edge&edge) const {
+    bool contains(const BaseGraph::Edge&edge) const {
         return m_edgeSampler.count(edge) > 0;
     };
 
@@ -45,13 +45,11 @@ public:
         return edges;
     }
 
-    // void applyGraphMove(const GraphMove&) ;
-    // void applyBlockMove(const BlockMove&) ;
     const double getTotalWeight() const {return m_edgeSampler.total_weight(); }
     const double getSize() const {return m_edgeSampler.size(); }
 
     void clear() { m_edgeSampler.clear(); }
-    virtual void checkSafety() const { }
+    void checkSafety() const { }
 };
 
 }

@@ -16,7 +16,7 @@ private:
     BlockSequence blocks = BlockSequence();
     std::uniform_real_distribution<double> m_uniform = std::uniform_real_distribution<double>(0, 1);
 public:
-    bool doMetropolisHastingsStep(){
+    bool _doMetropolisHastingsStep() override {
         m_lastLogJointRatio = 0;
         m_lastLogAcceptance = -log(2);
         if (m_uniform(rng) < exp(m_lastLogAcceptance))

@@ -3,6 +3,7 @@
 
 
 #include "FastMIDyNet/exceptions.h"
+#include "util.h"
 #include "edge_proposer.h"
 #include "FastMIDyNet/proposer/sampler/vertex_sampler.h"
 #include "FastMIDyNet/proposer/sampler/edge_sampler.h"
@@ -41,10 +42,18 @@ public:
         return m_vertexProposalCounter;
     }
     void checkSelfSafety() const override {
+        EdgeProposer::checkSelfSafety();
         if (m_vertexSamplerPtr == nullptr)
             throw SafetyError("HingeFlipProposer: unsafe proposer since `m_vertexSamplerPtr` is NULL.");
         m_vertexSamplerPtr->checkSafety();
+        m_edgeSampler.checkSafety();
     }
+
+    void checkSelfConsistency() const override {
+        checkVertexSamplerConsistencyWithGraph("HingeFlipProposer", *m_graphPtr, *m_vertexSamplerPtr);
+        checkEdgeSamplerConsistencyWithGraph("HingeFlipProposer", *m_graphPtr, m_edgeSampler);
+    }
+
     void clear() override {
         m_edgeSampler.clear();
         m_vertexSamplerPtr->clear();
@@ -61,15 +70,6 @@ public:
         HingeFlipProposer(allowSelfLoops, allowMultiEdges){ m_vertexSamplerPtr = &m_vertexUniformSampler; }
     virtual ~HingeFlipUniformProposer(){}
     const double getLogVertexWeightRatio(const GraphMove& move) const override { return 0; }
-
-    void checkSelfConsistency() const override {
-        for (auto vertex : *m_graphPtr)
-            if (not m_vertexUniformSampler.contains(vertex))
-                throw ConsistencyError(
-                    "HingeFlipUniformProposer: vertexSampler is inconsistent with graph, "
-                    + std::to_string(vertex) + " is not in sampler."
-                );
-    }
 
 };
 
@@ -91,8 +91,6 @@ public:
         else
             return log(wk + 1) - log(wk);
     }
-
-    void checkSelfConsistency() const override { }
 };
 
 

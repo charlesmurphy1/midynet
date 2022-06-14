@@ -32,7 +32,7 @@ protected:
         return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
     };
 
-    void onBlockCreation(const BlockMove& move) {
+    void onBlockCreation(const BlockMove& move) override {
         m_vertexCountsInBlocks.push_back(0);
     }
     void remapBlockIndex(const std::map<size_t, size_t> indexMap){

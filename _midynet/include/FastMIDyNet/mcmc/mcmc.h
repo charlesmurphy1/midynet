@@ -15,9 +15,9 @@ protected:
     CallBackMap m_callBacks;
     size_t m_numSteps;
     size_t m_numSweeps;
-    double m_lastLogJointRatio;
-    double m_lastLogAcceptance;
-    bool m_isLastAccepted;
+    mutable double m_lastLogJointRatio;
+    mutable double m_lastLogAcceptance;
+    mutable bool m_isLastAccepted;
 public:
     MCMC():
         m_numSteps(0),
@@ -52,7 +52,11 @@ public:
 
     virtual void setUp() { m_callBacks.setUp(this); m_numSteps = m_numSweeps = 0; }
     virtual void tearDown() { m_callBacks.tearDown(); m_numSteps = m_numSweeps = 0; }
-    virtual bool doMetropolisHastingsStep() = 0;
+    virtual bool _doMetropolisHastingsStep() = 0;
+    bool doMetropolisHastingsStep() {
+        return processRecursiveFunction<bool>([&](){ return _doMetropolisHastingsStep(); }, false);
+    };
+
     std::tuple<size_t, size_t> doMHSweep(size_t burn=1);
 };
 

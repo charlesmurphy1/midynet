@@ -4,6 +4,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "FastMIDyNet/python/rv.hpp"
 #include "FastMIDyNet/random_graph/random_graph.h"
 #include "FastMIDyNet/random_graph/python/randomgraph.hpp"
 
@@ -11,7 +12,7 @@ namespace py = pybind11;
 namespace FastMIDyNet{
 
 void initRandomGraphBaseClass(py::module& m){
-    py::class_<RandomGraph, PyRandomGraph<>>(m, "RandomGraph")
+    py::class_<RandomGraph, NestedRandomVariable, PyRandomGraph<>>(m, "RandomGraph")
         .def(py::init<size_t>(), py::arg("size")=0)
         .def("get_graph", &RandomGraph::getGraph)
         .def("set_graph", &RandomGraph::setGraph, py::arg("graph"))
@@ -45,8 +46,6 @@ void initRandomGraphBaseClass(py::module& m){
         .def("get_log_joint_ratio", &RandomGraph::getLogJointRatioFromBlockMove, py::arg("move"))
         .def("apply_graph_move", &RandomGraph::applyGraphMove, py::arg("move"))
         .def("apply_block_move", &RandomGraph::applyBlockMove, py::arg("move"))
-        .def("check_self_consistency", &RandomGraph::checkSelfConsistency)
-        .def("check_safety", &RandomGraph::checkSafety)
         .def("is_compatible", &RandomGraph::isCompatible)
         ;
 }

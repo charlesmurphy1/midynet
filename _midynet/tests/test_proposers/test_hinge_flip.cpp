@@ -24,15 +24,9 @@ class TestHingeFlipUniformProposer: public::testing::Test {
         DummyEdgeProposer proposer;
         MultiGraph graph;
         MultiGraph toyGraph = getToyMultiGraph();
-        // BaseGraph::Edge existingEdge = {0, 2};
         void SetUp() {
             randomGraph.sample();
             graph = randomGraph.getGraph();
-
-            // if (graph.getEdgeMultiplicityIdx(existingEdge)==0)
-            //     graph.addEdgeIdx(existingEdge);
-            // else
-            //     graph.setEdgeMultiplicityIdx(existingEdge, 1);
             randomGraph.setGraph(graph);
             proposer.setUp(randomGraph);
             proposer.checkSafety();

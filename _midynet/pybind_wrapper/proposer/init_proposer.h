@@ -14,12 +14,11 @@ namespace FastMIDyNet{
 
 
 template<typename MoveType>
-py::class_<Proposer<MoveType>, PyProposer<MoveType>> declareProposerBaseClass(py::module& m, std::string pyName){
-    return py::class_<Proposer<MoveType>, PyProposer<MoveType>>(m, pyName.c_str())
+py::class_<Proposer<MoveType>, NestedRandomVariable, PyProposer<MoveType>> declareProposerBaseClass(py::module& m, std::string pyName){
+    return py::class_<Proposer<MoveType>, NestedRandomVariable, PyProposer<MoveType>>(m, pyName.c_str())
         .def(py::init<>())
         .def("propose_move", &Proposer<MoveType>::proposeMove)
-        .def("check_consistency", &Proposer<MoveType>::checkConsistency)
-        .def("check_safety", &Proposer<MoveType>::checkSafety);
+        .def("clear", &Proposer<MoveType>::clear);
 }
 
 void initProposerBaseClass(py::module& m){
