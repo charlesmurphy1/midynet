@@ -49,14 +49,15 @@ TEST_F(TestBlockUniformProposer, getLogProposalProbRatio_moveBetweenExistingAndN
 
 TEST_F(TestBlockUniformProposer, getLogProposalProbRatio_createNewBlock_returnCorrectRatio) {
     FastMIDyNet::BlockMove move = {0, 0, 2};
+    size_t blockCount = randomGraph.getVertexCountsInBlocks().size();
     EXPECT_EQ(proposer.getLogProposalProbRatio(move),
-            -log(NEW_BLOCK_PROBABILITY)+log(1-NEW_BLOCK_PROBABILITY)-log(BLOCK_COUNT));
+            -log(NEW_BLOCK_PROBABILITY)+log(1-NEW_BLOCK_PROBABILITY)-log(blockCount));
 }
 
 TEST_F(TestBlockUniformProposer, getLogProposalProbRatio_destroyBlock_returnCorrectRatio) {
     FastMIDyNet::BlockMove move = {2, 1, 0};
-    EXPECT_EQ(proposer.getLogProposalProbRatio(move),
-            log(BLOCK_COUNT-1)-log(1-NEW_BLOCK_PROBABILITY)+log(NEW_BLOCK_PROBABILITY));
+    size_t blockCount = randomGraph.getVertexCountsInBlocks().size();
+    EXPECT_EQ(proposer.getLogProposalProbRatio(move), 0);
 }
 
 }

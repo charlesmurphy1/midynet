@@ -15,20 +15,15 @@ namespace FastMIDyNet {
 class BlockUniformProposer: public BlockProposer {
     const BlockSequence* m_blocksPtr = nullptr;
     const std::vector<size_t>* m_vertexCountsPtr = nullptr;
+    const std::vector<size_t>* m_edgeCountsPtr = nullptr;
     const double m_blockCreationProbability;
     mutable std::bernoulli_distribution m_createNewBlockDistribution;
-    mutable std::uniform_int_distribution<BaseGraph::VertexIndex> m_vertexDistribution;
 
 public:
     BlockUniformProposer(double createNewBlockProbability=.1):
         m_createNewBlockDistribution(createNewBlockProbability),
         m_blockCreationProbability(createNewBlockProbability) {
         assertValidProbability(createNewBlockProbability);
-    }
-    BlockMove proposeMove(BaseGraph::VertexIndex) const;
-    BlockMove proposeMove() const override{
-        auto vertexIdx = m_vertexDistribution(rng);
-        return proposeMove(vertexIdx);
     }
     void setUp(const RandomGraph& randomGraph) override;
     const double getLogProposalProbRatio(const BlockMove&) const override;
@@ -40,7 +35,9 @@ public:
     }
 
 protected:
+    const BlockMove proposeMove(BaseGraph::VertexIndex) const override ;
     bool creatingNewBlock(const BlockMove& move) const override {
+        std::cout << "move.nextBlockIdx: " << move.nextBlockIdx << std::endl;
         return move.nextBlockIdx == m_vertexCountsPtr->size() or (*m_vertexCountsPtr)[move.nextBlockIdx] == 0;
     }
     bool destroyingBlock(const BlockMove& move) const override {

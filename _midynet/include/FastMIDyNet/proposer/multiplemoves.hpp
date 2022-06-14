@@ -18,7 +18,7 @@ class MultipleMovesProposer: public Proposer<MoveType> {
 
     public:
         MultipleMovesProposer(std::vector<Proposer<MoveType>*>& proposers, std::vector<double> moveWeights);
-        MoveType proposeMove() const;
+        const MoveType proposeMove() const override;
         double getLogProposalProbRatio(const MoveType&) const;
         void updateProbabilities(const MoveType&);
 };
@@ -38,7 +38,7 @@ MultipleMovesProposer<MoveType>::MultipleMovesProposer(std::vector<Proposer<Move
 }
 
 template<typename MoveType>
-MoveType MultipleMovesProposer<MoveType>::proposeMove() const {
+const MoveType MultipleMovesProposer<MoveType>::proposeMove() const {
     m_proposedMoveType = m_moveTypeDistribution(rng);
     return m_proposers[m_proposedMoveType]->proposeMove();
 }

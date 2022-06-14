@@ -110,9 +110,9 @@ const double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const Gr
         }
     }
 
-    for (auto diff : diffEdgeCountsInBlocksMap){
-            logLikelihoodRatioTerm -= diff.second *  log( vertexCountsInBlocks[diff.first] ) ;
-    }
+    for (auto diff : diffEdgeCountsInBlocksMap)
+        logLikelihoodRatioTerm -= diff.second *  log( vertexCountsInBlocks[diff.first] ) ;
+
     return logLikelihoodRatioTerm;
 };
 
@@ -175,11 +175,14 @@ const double StochasticBlockModelFamily::getLogLikelihoodRatioFromBlockMove(cons
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
     const vector<size_t>& verticesInBlock = getVertexCountsInBlocks();
     double logLikelihoodRatio = 0;
+    std::set<BlockIndex> affectedBlocks;
 
     IntMap<pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
     IntMap<BlockIndex> diffEdgeCountsInBlocksMap;
     IntMap<BaseGraph::VertexIndex> diffVertexCountsInBlocksMap;
 
+    affectedBlocks.insert(move.prevBlockIdx);
+    affectedBlocks.insert(move.nextBlockIdx);
     diffVertexCountsInBlocksMap.decrement(move.prevBlockIdx);
     diffVertexCountsInBlocksMap.increment(move.nextBlockIdx);
 
@@ -188,6 +191,8 @@ const double StochasticBlockModelFamily::getLogLikelihoodRatioFromBlockMove(cons
 
     for (auto diff : diffEdgeMatMap){
         auto bu = diff.first.first, bv = diff.first.second;
+        affectedBlocks.insert(bu);
+        affectedBlocks.insert(bv);
         diffEdgeCountsInBlocksMap.increment(bu, diff.second);
         diffEdgeCountsInBlocksMap.increment(bv, diff.second);
         size_t ers;
@@ -201,20 +206,14 @@ const double StochasticBlockModelFamily::getLogLikelihoodRatioFromBlockMove(cons
 
         }
     }
-
-    for (size_t r = 0; r <= getBlockCount(); ++r){
+    for (BlockIndex r : affectedBlocks){
         int dEr = diffEdgeCountsInBlocksMap[r];
         int dNr = diffVertexCountsInBlocksMap[r];
-        if (r < getBlockCount()) {
-            auto er = edgeCountsInBlocks[r];
-            auto nr = verticesInBlock[r];
-            if (er + dEr == 0 && nr + dNr == 0)
-                logLikelihoodRatio -= -er * log(nr);
-            else
-                logLikelihoodRatio -= (er + dEr) * log(nr + dNr) - er * log(nr);
-        } else if (r == getBlockCount() && dEr != 0){
-            logLikelihoodRatio -= (dEr) * log(dNr);
-        }
+        auto er = (r < edgeCountsInBlocks.size()) ? edgeCountsInBlocks[r] : 0;
+        auto nr = (r < verticesInBlock.size()) ? verticesInBlock[r] : 0;
+        double term1 = (er + dEr == 0 && nr + dNr == 0) ? 0. : (er + dEr) * log(nr + dNr);
+        double term2 = (er == 0 && nr == 0) ? 0. : (er) * log(nr);
+        logLikelihoodRatio -= term1 - term2;
     }
 
     return logLikelihoodRatio;

@@ -35,7 +35,7 @@ void initMCMCBaseClass(py::module& m){
         .def("set_up", &MCMC::setUp)
         .def("tear_down", &MCMC::tearDown)
         .def("do_metropolis_hastings_step", &MCMC::doMetropolisHastingsStep)
-        .def("do_MH_sweep", &MCMC::doMHSweep, py::arg("burn")=1)
+        .def("do_MH_sweep", &MCMC::doMHSweep, py::arg("burn")=1, py::arg("ckeck_consistency")=false, py::arg("check_safety")=false)
         ;
 
     py::class_<RandomGraphMCMC, MCMC>(m, "RandomGraphMCMC")
@@ -62,6 +62,7 @@ void initMCMCBaseClass(py::module& m){
         .def("propose_edge_move", &RandomGraphMCMC::proposeEdgeMove )
         .def("get_log_proposal_prob_ratio_from_graph_move", &RandomGraphMCMC::getLogProposalProbRatioFromGraphMove, py::arg("move") )
         .def("get_log_proposal_prob_ratio_from_block_move", &RandomGraphMCMC::getLogProposalProbRatioFromBlockMove, py::arg("move") )
+        .def("get_log_acceptance_prob", &RandomGraphMCMC::getLogAcceptanceProb, py::arg("move") )
         .def("apply_graph_move", &RandomGraphMCMC::applyGraphMove, py::arg("move") )
         .def("apply_block_move", &RandomGraphMCMC::applyBlockMove, py::arg("move") )
         ;
@@ -86,10 +87,12 @@ void initMCMCBaseClass(py::module& m){
         .def("get_random_graph_mcmc", &DynamicsMCMC::getRandomGraphMCMC )
         .def("get_random_graph_mcmc_ref", &DynamicsMCMC::getRandomGraphMCMCRef )
         .def("set_random_graph_mcmc", &DynamicsMCMC::setRandomGraphMCMC, py::arg("mcmc") )
+        .def("get_log_acceptance_prob", &DynamicsMCMC::getLogAcceptanceProb, py::arg("move") )
         .def("get_graph", &DynamicsMCMC::getGraph )
         .def("set_graph", &DynamicsMCMC::setGraph )
         .def("get_added_edge_counter", &DynamicsMCMC::getAddedEdgeCounter )
         .def("get_removed_edge_counter", &DynamicsMCMC::getRemovedEdgeCounter )
+        .def("apply_graph_move", &DynamicsMCMC::applyGraphMove, py::arg("move") )
         ;
 }
 

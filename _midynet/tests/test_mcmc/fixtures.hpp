@@ -4,6 +4,7 @@
 #include <time.h>
 
 #include "FastMIDyNet/proposer/block_proposer/uniform.h"
+#include "FastMIDyNet/proposer/block_proposer/peixoto.h"
 #include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"

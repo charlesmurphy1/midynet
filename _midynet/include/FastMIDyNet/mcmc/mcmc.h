@@ -57,7 +57,7 @@ public:
         return processRecursiveFunction<bool>([&](){ return _doMetropolisHastingsStep(); }, false);
     };
 
-    std::tuple<size_t, size_t> doMHSweep(size_t burn=1);
+    std::pair<size_t, size_t> doMHSweep(size_t burn=1, bool checkingConsistency=false, bool checkingSafety=false);
 };
 
 }

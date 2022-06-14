@@ -27,7 +27,7 @@ protected:
     mutable std::map<BaseGraph::VertexIndex, size_t> m_vertexProposalCounter;
 public:
     using EdgeProposer::EdgeProposer;
-    GraphMove proposeRawMove() const override;
+    const GraphMove proposeRawMove() const override;
     void setUpFromGraph(const MultiGraph&) override;
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     void applyGraphMove(const GraphMove& move) override;

@@ -3,7 +3,7 @@
 
 namespace FastMIDyNet{
 
-GraphMove LabeledHingeFlipProposer::proposeRawMove() const {
+const GraphMove LabeledHingeFlipProposer::proposeRawMove() const {
     auto labelPair = m_labelSampler.sample();
     auto edge = m_labeledEdgeSampler.at(labelPair)->sample();
     BlockIndex r;

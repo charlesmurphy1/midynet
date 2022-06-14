@@ -38,6 +38,8 @@ public:
     RandomGraphMCMC(
         double betaLikelihood=1,
         double betaPrior=1):
+    m_betaLikelihood(betaLikelihood),
+    m_betaPrior(betaPrior),
     m_uniform(0., 1.) {}
 
 
@@ -107,6 +109,8 @@ public:
     void checkSelfSafety() const override {
         if (m_randomGraphPtr == nullptr)
             throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_randomGraphPtr` is NULL.");
+        m_edgeProposerPtr->checkSafety();
+        m_blockProposerPtr->checkSafety();
         m_randomGraphPtr->checkSafety();
 
         if (m_edgeProposerPtr == nullptr)
@@ -117,7 +121,6 @@ public:
             throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_blockProposerPtr` is NULL.");
         m_blockProposerPtr->checkSafety();
     };
-
     void checkSelfConsistency() const override {
         if (m_edgeProposerPtr != nullptr)
             m_edgeProposerPtr->checkConsistency();

@@ -16,13 +16,15 @@ class TestLabeledDoubleEdgeSwapProposer: public ::testing::Test{
 public:
     DummySBMGraph randomGraph = DummySBMGraph();
     DummyLabeledDoubleEdgeSwapProposer proposer = DummyLabeledDoubleEdgeSwapProposer();
+    bool expectConsistencyError = false;
     void SetUp(){
         randomGraph.sample();
         proposer.setUp(randomGraph);
         proposer.checkSafety();
     }
     void TearDown() {
-        proposer.checkConsistency();
+        if (not expectConsistencyError)
+            proposer.checkConsistency();
     }
 };
 
@@ -60,6 +62,7 @@ TEST_F(TestLabeledDoubleEdgeSwapProposer, applyGraphMove_forEdgeAdded){
     size_t totalEdgeCountBefore = proposer.getTotalEdgeCount();
     proposer.applyGraphMove({{}, {{0,1}}});
     EXPECT_EQ(totalEdgeCountBefore + 1, proposer.getTotalEdgeCount());
+    expectConsistencyError = true;
 
 }
 
@@ -67,6 +70,7 @@ TEST_F(TestLabeledDoubleEdgeSwapProposer, applyGraphMove_forSelfLoopAdded){
     size_t totalEdgeCountBefore = proposer.getTotalEdgeCount();
     proposer.applyGraphMove({{}, {{0,0}}});
     EXPECT_EQ(totalEdgeCountBefore + 1, proposer.getTotalEdgeCount());
+    expectConsistencyError = true;
 }
 
 TEST_F(TestLabeledDoubleEdgeSwapProposer, applyGraphMove_forSomeGraphMove){
@@ -74,6 +78,7 @@ TEST_F(TestLabeledDoubleEdgeSwapProposer, applyGraphMove_forSomeGraphMove){
     auto move = proposer.proposeMove();
     proposer.applyGraphMove(move);
     EXPECT_EQ(totalEdgeCountBefore, proposer.getTotalEdgeCount());
+    expectConsistencyError = true;
 }
 
 TEST_F(TestLabeledDoubleEdgeSwapProposer, applyBlockMove_forSomeBlockMove){
@@ -84,6 +89,7 @@ TEST_F(TestLabeledDoubleEdgeSwapProposer, applyBlockMove_forSomeBlockMove){
         proposer.applyBlockMove(move);
         randomGraph.applyBlockMove(move);
     }
+    expectConsistencyError = true;
 }
 
 

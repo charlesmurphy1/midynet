@@ -27,8 +27,8 @@ public:
     EdgeProposer(bool allowSelfLoops=true, bool allowMultiEdges=true):
         m_allowSelfLoops(allowSelfLoops), m_allowMultiEdges(allowMultiEdges) {}
     virtual ~EdgeProposer(){}
-    GraphMove proposeMove() const override ;
-    virtual GraphMove proposeRawMove() const = 0;
+    const GraphMove proposeMove() const override ;
+    virtual const GraphMove proposeRawMove() const = 0;
     virtual const double getLogProposalProbRatio(const GraphMove& move) const = 0;
     const GraphMove getReverseMove(const GraphMove& move) const {
         return {move.addedEdges, move.removedEdges};

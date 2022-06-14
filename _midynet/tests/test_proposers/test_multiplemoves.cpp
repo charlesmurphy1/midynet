@@ -8,7 +8,7 @@ class DummyProposer0: public FastMIDyNet::Proposer<DummyMove>{
     public:
         bool updated = false;
 
-        DummyMove proposeMove() const override { return false; }
+        const DummyMove proposeMove() const override { return false; }
         const double getLogProposalProbRatio(const DummyMove&) const { return 0.; }
         void updateProbabilities(const DummyMove&) { updated=true; }
 };
@@ -16,7 +16,7 @@ class DummyProposer1: public FastMIDyNet::Proposer<DummyMove>{
     public:
         bool updated = false;
 
-        DummyMove proposeMove() const override { return true; }
+        const DummyMove proposeMove() const override { return true; }
         const double getLogProposalProbRatio(const DummyMove&) const { return 1.; }
         void updateProbabilities(const DummyMove&) { updated=true; }
 };
