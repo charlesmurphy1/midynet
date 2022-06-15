@@ -67,7 +67,7 @@ public:
 
     const BlockSequence& getBlocks() const override { return m_blockPriorPtr->getState(); }
     const size_t& getBlockCount() const { return m_blockPriorPtr->getBlockCount(); }
-    const std::vector<size_t>& getVertexCountsInBlocks() const { return m_blockPriorPtr->getVertexCountsInBlocks(); }
+    const CounterMap<size_t>& getVertexCountsInBlocks() const { return m_blockPriorPtr->getVertexCountsInBlocks(); }
     const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPriorPtr->getState(); }
     const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPriorPtr->getEdgeCountsInBlocks(); }
     const size_t& getEdgeCount() const { return m_edgeMatrixPriorPtr->getEdgeCount(); }

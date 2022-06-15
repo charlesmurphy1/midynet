@@ -91,7 +91,7 @@ public:
 
     bool isSafe() const override {
         return (m_blockPriorPtr != nullptr) and (m_blockPriorPtr->isSafe())
-           and (m_edgeMatrixPriorPtr != nullptr) and (m_edgeMatrixPriorPtr->isSafe()); 
+           and (m_edgeMatrixPriorPtr != nullptr) and (m_edgeMatrixPriorPtr->isSafe());
     }
     void checkSelfConsistency() const override;
     virtual void checkSelfSafety() const override{

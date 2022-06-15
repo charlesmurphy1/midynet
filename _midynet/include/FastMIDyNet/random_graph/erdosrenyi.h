@@ -52,7 +52,7 @@ class SimpleErdosRenyiFamily: public RandomGraph{
 private:
     const std::vector<BlockIndex> m_blocks;
     const size_t m_blockCount = 1;
-    const std::vector<size_t> m_vertexCounts;
+    const CounterMap<size_t> m_vertexCounts;
     Matrix<size_t> m_edgeMatrix = Matrix<size_t>(1, {1, 0});
     std::vector<size_t> m_edgeCounts = {1, 0};
     std::vector<size_t> m_degrees;
@@ -68,17 +68,17 @@ public:
     SimpleErdosRenyiFamily(size_t graphSize):
         RandomGraph(graphSize),
         m_blocks(graphSize, 0),
-        m_vertexCounts(1, graphSize),
+        m_vertexCounts({0}, {graphSize}, 0),
         m_degrees(graphSize, 0){ }
     SimpleErdosRenyiFamily(size_t graphSize, EdgeCountPrior& edgeCountPrior):
         RandomGraph(graphSize),
         m_blocks(graphSize, 0),
-        m_vertexCounts(1, graphSize),
+        m_vertexCounts({0}, {graphSize}, 0),
         m_degrees(graphSize, 0)
         { setEdgeCountPrior(edgeCountPrior); }
     const std::vector<BlockIndex>& getBlocks() const override { return m_blocks; }
     const size_t& getBlockCount() const override { return m_blockCount; }
-    const std::vector<size_t>& getVertexCountsInBlocks() const override { return m_vertexCounts; }
+    const CounterMap<size_t>& getVertexCountsInBlocks() const override { return m_vertexCounts; }
     const Matrix<size_t>& getEdgeMatrix() const override { return m_edgeMatrix; }
     const std::vector<size_t>& getEdgeCountsInBlocks() const override { return m_edgeCounts; }
     const size_t& getEdgeCount() const override { return m_edgeCountPriorPtr->getState(); }

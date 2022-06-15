@@ -73,7 +73,7 @@ TEST_F(TestBlockPrior, computeVertexCountsInBlock_forSomeBlockSeq_returnCorrectV
     BlockSequence blockSeq = BlockSequence(GRAPH_SIZE, 0);
     blockSeq[0] = BLOCK_COUNT - 1;
 
-    std::vector<size_t> actualVertexCount = prior.computeVertexCountsInBlocks(blockSeq);
+    CounterMap<size_t> actualVertexCount = prior.computeVertexCountsInBlocks(blockSeq);
     EXPECT_EQ(actualVertexCount[0], GRAPH_SIZE - 1);
     EXPECT_EQ(actualVertexCount[BLOCK_COUNT - 1], 1);
 }
@@ -257,9 +257,9 @@ TEST_F(TestBlockUniformHyperPrior, sampleState_generateConsistentState){
 }
 
 TEST_F(TestBlockUniformHyperPrior, getLogLikelihood_returnCorrectLogLikehood){
-    std::list<size_t> nrList = vecToList( prior.getVertexCountsInBlocks() );
+    const auto& nr = prior.getVertexCountsInBlocks();
     EXPECT_LE( prior.getLogLikelihood(), 0 );
-    EXPECT_FLOAT_EQ( prior.getLogLikelihood(), -logMultinomialCoefficient( nrList ) - logBinomialCoefficient(prior.getSize() - 1, prior.getBlockCount() - 1) );
+    EXPECT_FLOAT_EQ( prior.getLogLikelihood(), -logMultinomialCoefficient( nr.getValues() ) - logBinomialCoefficient(prior.getSize() - 1, prior.getBlockCount() - 1) );
 }
 
 TEST_F(TestBlockUniformHyperPrior, applyBlockMove_ForSomeBlockMove_getConsistentState){

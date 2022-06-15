@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <list>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -16,18 +17,19 @@ public:
 
     Map(const std::vector<KeyType>& keys, const std::vector<ValueType>& values, ValueType defaultValue):
         m_map(), m_defaultValue(defaultValue){
+        if (keys.size() != values.size())
+            throw std::logic_error("`keys` and `values` must have the same size.");
         for (size_t k = 0; k < keys.size(); ++k){
             m_map.insert(std::pair<KeyType, ValueType>(keys[k], values[k]));
-            m_keys.insert(keys[k]);
         }
     }
     Map(const Map<KeyType, ValueType>& other):
-        m_map(other.m_map), m_keys(other.m_keys), m_defaultValue(other.m_defaultValue){}
+        m_map(other.m_map), m_defaultValue(other.m_defaultValue){}
     Map(ValueType defaultValue):
         m_map(), m_defaultValue(defaultValue) { }
     Map():
         m_map(), m_defaultValue() { }
-    size_t size(){
+    size_t size() const {
         return m_map.size();
     }
 
@@ -38,8 +40,17 @@ public:
         }
         return true;
     }
-    const std::set<KeyType>& keys() const{
-        return m_keys;
+    const std::set<KeyType> getKeys() const{
+        std::set<KeyType> keys;
+        for (auto k: m_map)
+            keys.insert(k.first);
+        return keys;
+    }
+    const std::list<KeyType> getValues() const{
+        std::list<KeyType> values;
+        for (auto k: m_map)
+            values.push_back(k.second);
+        return values;
     }
     const ValueType& get(const KeyType& key) const {
         if ( isEmpty(key) ) return m_defaultValue;
@@ -48,15 +59,14 @@ public:
 
     void set(const KeyType& key, const ValueType& value) {
         m_map[key] = value;
-        m_keys.insert(key);
     }
 
     bool isEmpty(KeyType key) const{
-        return m_keys.count(key) == 0;
+        return m_map.count(key) == 0;
     }
 
-    void erase(KeyType key){ if (not isEmpty(key)) { m_map.erase(key); m_keys.erase(key); }}
-    void clear(){ m_map.clear(); m_keys.clear(); }
+    void erase(KeyType key){ if (not isEmpty(key)) m_map.erase(key); }
+    void clear(){ m_map.clear(); }
     typename std::map<KeyType, ValueType>::iterator begin() { return m_map.begin(); }
     typename std::map<KeyType, ValueType>::iterator end() { return m_map.end(); }
 
@@ -71,7 +81,6 @@ public:
 protected:
     std::map<KeyType, ValueType> m_map;
     ValueType m_defaultValue;
-    std::set<KeyType> m_keys;
 };
 
 template < typename KeyType>
@@ -83,6 +92,13 @@ public:
         Map<KeyType, int>(keys, values, defaultValue){}
     void increment(KeyType key, int inc=1){ this->set(key, this->get(key) + inc); }
     void decrement(KeyType key, int dec=1){ increment(key, -dec); }
+
+    size_t getSum() const {
+        size_t sum = 0;
+        for (const auto& v: this->getValues())
+            sum += v;
+        return sum;
+    }
 };
 
 template < typename KeyType>
@@ -98,6 +114,12 @@ public:
     }
 
     void decrement(KeyType key, int dec=1){ increment(key, -dec); }
+    size_t getSum() const {
+        size_t sum = 0;
+        for (const auto& v: this->getValues())
+            sum += v;
+        return sum;
+    }
 
 };
 

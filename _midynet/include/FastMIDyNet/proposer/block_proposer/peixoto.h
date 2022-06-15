@@ -15,7 +15,7 @@ namespace FastMIDyNet {
 
 class BlockPeixotoProposer: public BlockProposer {
     const BlockSequence* m_blocksPtr = NULL;
-    const std::vector<size_t>* m_vertexCountsPtr = NULL;
+    const CounterMap<size_t>* m_vertexCountsPtr = NULL;
     const EdgeMatrix* m_edgeMatrixPtr = NULL;
     const std::vector<size_t>* m_edgeCountsPtr = NULL;
     const MultiGraph* m_graphPtr = NULL;

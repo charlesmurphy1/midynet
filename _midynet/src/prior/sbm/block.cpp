@@ -11,20 +11,13 @@
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/exceptions.h"
 
-
-using namespace std;
-
-
 namespace FastMIDyNet{
 
-vector<size_t> BlockPrior::computeVertexCountsInBlocks(const BlockSequence& state) {
-    size_t blockCount = *max_element(state.begin(), state.end()) + 1;
-
-    vector<size_t> vertexCount(blockCount, 0);
+CounterMap<size_t> BlockPrior::computeVertexCountsInBlocks(const BlockSequence& state) {
+    CounterMap<size_t> vertexCount;
     for (auto blockIdx: state) {
-        ++vertexCount[blockIdx];
+        vertexCount.increment(blockIdx);
     }
-
     return vertexCount;
 }
 
@@ -35,8 +28,10 @@ void BlockPrior::checkBlockSequenceConsistencyWithBlockCount(const BlockSequence
 
 }
 
-void BlockPrior::checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, std::vector<size_t> expectedVertexCountsInBlocks) {
-    vector<size_t> actualVertexCountsInBlocks = computeVertexCountsInBlocks(blockSeq);
+void BlockPrior::checkBlockSequenceConsistencyWithVertexCountsInBlocks(
+    const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCountsInBlocks
+) {
+    CounterMap<size_t> actualVertexCountsInBlocks = computeVertexCountsInBlocks(blockSeq);
     if (actualVertexCountsInBlocks.size() != expectedVertexCountsInBlocks.size())
         throw ConsistencyError("BlockPrior: size of vertex count in blockSeq is inconsistent with expected block count.");
 
@@ -45,8 +40,8 @@ void BlockPrior::checkBlockSequenceConsistencyWithVertexCountsInBlocks(const Blo
         auto y = expectedVertexCountsInBlocks[i];
         if (x != y){
             throw ConsistencyError("BlockPrior: actual vertex count at index "
-            + to_string(i) + " is inconsistent with expected vertex count: "
-            + to_string(x) + " != " + to_string(y) + ".");
+            + std::to_string(i) + " is inconsistent with expected vertex count: "
+            + std::to_string(x) + " != " + std::to_string(y) + ".");
         }
     }
 
@@ -54,7 +49,7 @@ void BlockPrior::checkBlockSequenceConsistencyWithVertexCountsInBlocks(const Blo
 
 void BlockUniformPrior::sampleState() {
     BlockSequence blockSeq(getSize());
-    uniform_int_distribution<size_t> dist(0, getBlockCount() - 1);
+    std::uniform_int_distribution<size_t> dist(0, getBlockCount() - 1);
     for (size_t vertexIdx = 0; vertexIdx < getSize(); vertexIdx++) {
         blockSeq[vertexIdx] = dist(rng);
     }
@@ -77,8 +72,8 @@ const double BlockUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMo
 
 void BlockUniformHyperPrior::sampleState() {
 
-    list<size_t> vertexCountList = sampleRandomComposition(getSize(), getBlockCount());
-    vector<size_t> vertexCounts;
+    std::list<size_t> vertexCountList = sampleRandomComposition(getSize(), getBlockCount());
+    std::vector<size_t> vertexCounts;
     for (auto nr : vertexCountList){
         vertexCounts.push_back(nr);
     }
@@ -89,18 +84,15 @@ void BlockUniformHyperPrior::sampleState() {
 
 
 const double BlockUniformHyperPrior::getLogLikelihood() const {
-    return -logMultinomialCoefficient(getVertexCountsInBlocks()) - logBinomialCoefficient(getSize() - 1, getBlockCount() - 1);
+    return -logMultinomialCoefficient(m_vertexCountsInBlocks.getValues()) - logBinomialCoefficient(getSize() - 1, getBlockCount() - 1);
 
 }
 
 const double BlockUniformHyperPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
-    const auto& nr = getVertexCountsInBlocks();
     double logLikelihoodRatio = 0;
-    logLikelihoodRatio -= log(nr[move.prevBlockIdx]);
-    if (move.addedBlocks == 0)
-        logLikelihoodRatio += log(nr[move.nextBlockIdx] + 1);
-    logLikelihoodRatio -= logBinomialCoefficient(getSize() - 1, getBlockCount() - 1 + move.addedBlocks);
-    logLikelihoodRatio += logBinomialCoefficient(getSize() - 1, getBlockCount() - 1);
+    logLikelihoodRatio += logFactorial(m_vertexCountsInBlocks[move.prevBlockIdx] - 1) - logFactorial(m_vertexCountsInBlocks[move.prevBlockIdx]);
+    logLikelihoodRatio += logFactorial(m_vertexCountsInBlocks[move.nextBlockIdx] + 1) - logFactorial(m_vertexCountsInBlocks[move.nextBlockIdx]);
+    logLikelihoodRatio -= logBinomialCoefficient(getSize() - 1, getBlockCount() - 1 + move.addedBlocks) - logBinomialCoefficient(getSize() - 1, getBlockCount() - 1);
     return logLikelihoodRatio;
 }
 

@@ -36,11 +36,11 @@ const double StochasticBlockModelFamily::getLogLikelihood() const{
 
     const EdgeMatrix& edgeMat = getEdgeMatrix() ;
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
-    const vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
+    const CounterMap<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
 
     const size_t& numBlocks = edgeMat.size();
     for (size_t r = 0; r < numBlocks; r++) {
-        if (vertexCountsInBlocks[r] == 0)
+        if (vertexCountsInBlocks.isEmpty(r))
             continue;
         edgePart += logDoubleFactorial(edgeMat[r][r]);
         edgePart -= edgeCountsInBlocks[r] * log(vertexCountsInBlocks[r]);
@@ -85,7 +85,7 @@ const double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const Gr
     const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
-    const vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
+    const CounterMap<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
     double logLikelihoodRatioTerm = 0;
 
     IntMap<pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
@@ -173,7 +173,7 @@ const double StochasticBlockModelFamily::getLogLikelihoodRatioFromBlockMove(cons
     const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
-    const vector<size_t>& verticesInBlock = getVertexCountsInBlocks();
+    const CounterMap<size_t>& verticesInBlock = getVertexCountsInBlocks();
     double logLikelihoodRatio = 0;
 
     IntMap<pair<BlockIndex, BlockIndex>> diffEdgeMatMap;

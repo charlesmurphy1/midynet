@@ -9,6 +9,8 @@
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/utility/maps.hpp"
+#include "FastMIDyNet/utility/functions.h"
 
 namespace FastMIDyNet{
 
@@ -18,7 +20,7 @@ private:
 protected:
     size_t m_size;
     BlockCountPrior* m_blockCountPriorPtr = nullptr;
-    std::vector<size_t> m_vertexCountsInBlocks;
+    CounterMap<size_t> m_vertexCountsInBlocks;
 
     void _applyGraphMove(const GraphMove&) override { };
     void _applyBlockMove(const BlockMove& move) override {
@@ -33,7 +35,7 @@ protected:
     };
 
     void onBlockCreation(const BlockMove& move) override {
-        m_vertexCountsInBlocks.push_back(0);
+        // m_vertexCountsInBlocks.push_back(0);
     }
     void remapBlockIndex(const std::map<size_t, size_t> indexMap){
         auto newBlocks = m_state;
@@ -80,14 +82,14 @@ public:
     }
 
     const size_t& getBlockCount() const { return m_blockCountPriorPtr->getState(); }
-    const std::vector<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
+    const CounterMap<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
     const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
-    static std::vector<size_t> computeVertexCountsInBlocks(const BlockSequence&);
+    static CounterMap<size_t> computeVertexCountsInBlocks(const BlockSequence&);
     void applyBlockMoveToState(const BlockMove& move) { m_state[move.vertexIdx] = move.nextBlockIdx; };
     void applyBlockMoveToVertexCounts(const BlockMove& move) {
         if (move.addedBlocks == 1) onBlockCreation(move);
-        --m_vertexCountsInBlocks[move.prevBlockIdx];
-        ++m_vertexCountsInBlocks[move.nextBlockIdx];
+        m_vertexCountsInBlocks.decrement(move.prevBlockIdx);
+        m_vertexCountsInBlocks.increment(move.nextBlockIdx);
     };
 
 
@@ -105,7 +107,7 @@ public:
 
     /* Consistency methods */
     static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;
-    static void checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, std::vector<size_t> expectedVertexCountsInBlocks) ;
+    static void checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCountsInBlocks) ;
 
 
     void computationFinished() const override {
@@ -117,7 +119,7 @@ public:
         m_blockCountPriorPtr->checkConsistency();
         checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
         checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
-        if (m_vertexCountsInBlocks.size() < getBlockCount()){
+        if (m_vertexCountsInBlocks.size() > getBlockCount()){
             throw ConsistencyError("BlockPrior: vertex counts (size "
             + std::to_string(m_vertexCountsInBlocks.size()) +
             ") are inconsistent with block count (" + std::to_string(getBlockCount()) +  ").");

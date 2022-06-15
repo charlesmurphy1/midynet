@@ -41,7 +41,7 @@ public:
     }
     virtual const std::vector<BlockIndex>& getBlocks() const = 0;
     virtual const size_t& getBlockCount() const = 0;
-    virtual const std::vector<size_t>& getVertexCountsInBlocks() const = 0;
+    virtual const CounterMap<size_t>& getVertexCountsInBlocks() const = 0;
     virtual const Matrix<size_t>& getEdgeMatrix() const = 0;
     virtual const std::vector<size_t>& getEdgeCountsInBlocks() const = 0;
     virtual const size_t& getEdgeCount() const = 0;
@@ -52,7 +52,7 @@ public:
     virtual const bool isCompatible(const MultiGraph& graph) const { return graph.getSize() == m_size; }
 
     const size_t computeBlockCount() const ;
-    const std::vector<size_t> computeVertexCountsInBlocks() const ;
+    const CounterMap<size_t> computeVertexCountsInBlocks() const ;
     const Matrix<size_t> computeEdgeMatrix() const ;
     const std::vector<size_t> computeEdgeCountsInBlocks() const ;
     const std::vector<CounterMap<size_t>> computeDegreeCountsInBlocks() const ;

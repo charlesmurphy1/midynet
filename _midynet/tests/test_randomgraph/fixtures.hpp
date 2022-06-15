@@ -45,7 +45,7 @@ static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
 class DummyRandomGraph: public RandomGraph{
     std::vector<size_t> m_blocks;
     size_t m_blockCount = 1;
-    std::vector<size_t> m_vertexCounts;
+    CounterMap<size_t> m_vertexCounts;
     Matrix<size_t> m_edgeMatrix;
     std::vector<size_t> m_edgeCounts;
     size_t m_edgeCount;
@@ -53,7 +53,7 @@ class DummyRandomGraph: public RandomGraph{
     std::vector<CounterMap<size_t>> m_degreeCounts;
 public:
     using RandomGraph::RandomGraph;
-    DummyRandomGraph(size_t size): RandomGraph(size), m_blocks(size, 0), m_vertexCounts(1, size){}
+    DummyRandomGraph(size_t size): RandomGraph(size), m_blocks(size, 0), m_vertexCounts({0}, {size}, 0){}
 
     void setGraph(const MultiGraph& graph) override{
         m_graph = graph;
@@ -66,7 +66,7 @@ public:
 
     const std::vector<BlockIndex>& getBlocks() const override { return m_blocks; }
     const size_t& getBlockCount() const override { return m_blockCount; }
-    const std::vector<size_t>& getVertexCountsInBlocks() const override { return m_vertexCounts; }
+    const CounterMap<size_t>& getVertexCountsInBlocks() const override { return m_vertexCounts; }
     const Matrix<size_t>& getEdgeMatrix() const override { return m_edgeMatrix; }
     const std::vector<size_t>& getEdgeCountsInBlocks() const override { return m_edgeCounts; }
     const size_t& getEdgeCount() const override { return m_edgeCount; }

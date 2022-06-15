@@ -18,7 +18,7 @@ protected:
     VertexUniformSampler m_vertexSampler;
     EdgeSampler m_edgeSampler;
     const std::vector<BlockIndex>* m_labelsPtr = nullptr;
-    const std::vector<size_t>* m_vertexCountsPtr = nullptr;
+    const CounterMap<size_t>* m_vertexCountsPtr = nullptr;
     const Matrix<size_t>* m_edgeMatrixPtr = nullptr;
     mutable std::bernoulli_distribution m_bernoulliDistribution = std::bernoulli_distribution(0.5);
 

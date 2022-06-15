@@ -34,11 +34,11 @@ const size_t RandomGraph::computeBlockCount() const {
     return *max_element(blocks.begin(), blocks.end()) + 1;
 }
 
-const std::vector<size_t> RandomGraph::computeVertexCountsInBlocks() const {
+const CounterMap<size_t> RandomGraph::computeVertexCountsInBlocks() const {
     auto blocks = getBlocks();
-    std::vector<size_t> vertexCounts(getBlockCount(), 0);
-    for (auto idx : m_graph){
-        ++vertexCounts[blocks[idx]];
+    CounterMap<size_t> vertexCounts;
+    for (auto idx : blocks){
+        vertexCounts.increment(idx);
     }
     return vertexCounts;
 }

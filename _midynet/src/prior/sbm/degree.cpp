@@ -164,7 +164,7 @@ void DegreeUniformPrior::sampleState(){
     vector<list<size_t>::iterator> ptr_degreeSeqInBlocks(m_blockPriorPtr->getBlockCount());
     const BlockSequence& blockSeq = m_blockPriorPtr->getState();
     const vector<size_t>& edgeCountsInBlocks = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks();
-    const vector<size_t>& vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
+    const CounterMap<size_t>& vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
     for (size_t r = 0; r < m_blockPriorPtr->getBlockCount(); r++) {
         degreeSeqInBlocks[r] = sampleRandomWeakComposition(edgeCountsInBlocks[r], vertexCountsInBlocks[r]);
         ptr_degreeSeqInBlocks[r] = degreeSeqInBlocks[r].begin();
@@ -184,7 +184,7 @@ void DegreeUniformPrior::sampleState(){
 const double DegreeUniformPrior::getLogLikelihood() const{
     double logLikelihood = 0;
     const vector<size_t>& edgeCountsInBlocks = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks();
-    const vector<size_t>& vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
+    const CounterMap<size_t>& vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
 
     for (size_t r = 0; r < m_blockPriorPtr->getBlockCount(); r++) {
         logLikelihood -= logMultisetCoefficient(edgeCountsInBlocks[r], vertexCountsInBlocks[r]);
@@ -263,7 +263,7 @@ const double DegreeUniformHyperPrior::getLogLikelihood() const {
         auto er = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks()[r];
         if (nr == 0)
             continue;
-        for (auto k : m_degreeCountsInBlocks[r].keys())
+        for (auto k : m_degreeCountsInBlocks[r].getKeys())
             logP += logFactorial(m_degreeCountsInBlocks[r].get(k));
         logP -= logFactorial(nr);
         logP -= log_q_approx(er, nr);

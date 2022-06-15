@@ -74,7 +74,7 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdg
     const BlockSequence& blockSeq = getBlocks();
     const EdgeMatrix& edgeMat = getEdgeMatrix();
     const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
-    const vector<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
+    const CounterMap<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
     double logLikelihoodRatioTerm = 0;
 
     IntMap<pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
