@@ -6,7 +6,7 @@
 namespace FastMIDyNet {
 
 
-GraphMove HingeFlipProposer::proposeRawMove() const {
+const GraphMove HingeFlipProposer::proposeRawMove() const {
     auto edge = m_edgeSampler.sample();
     if (m_edgeProposalCounter.count(edge) == 0)
         m_edgeProposalCounter.insert({edge, 0});

@@ -108,11 +108,18 @@ TEST_F(TestBlockPeixotoProposer, getReverseLogProposalProb_AllBlockMove_returnCo
 
 TEST_F(TestBlockPeixotoProposer, getReverseLogProposalProbRatio_fromSomeBlockMoveCreatingNewBlock_returnCorrectRatio) {
     for (size_t i = 0; i < numSamples; i++) {
-        FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), randomGraph.getBlockCount(), 1};
-        FastMIDyNet::BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx, -1};
+        FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), i};
+        FastMIDyNet::BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx};
         double actual = proposer.getReverseLogProposalProb(move);
+
+        move.display();
+        std::cout << "B_before=" << randomGraph.getBlockCount() << std::endl;
+        std::cout << "nr_before=" << randomGraph.getVertexCountsInBlocks().display() << std::endl;
+
         randomGraph.applyBlockMove(move);
         proposer.applyBlockMove(move);
+        std::cout << "B_after=" << randomGraph.getBlockCount() << std::endl;
+        std::cout << "nr_after=" << randomGraph.getVertexCountsInBlocks().display() << std::endl;
         double expected = proposer.getLogProposalProb(reverseMove);
         EXPECT_FLOAT_EQ(actual, expected);
         if (abs(actual - expected) > 1e-3)

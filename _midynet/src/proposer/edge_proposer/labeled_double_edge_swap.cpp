@@ -3,7 +3,7 @@
 
 namespace FastMIDyNet{
 
-GraphMove LabeledDoubleEdgeSwapProposer::proposeRawMove() const {
+const GraphMove LabeledDoubleEdgeSwapProposer::proposeRawMove() const {
     auto labePair = m_labelSampler.sample();
     auto oldEdge1 = m_labeledEdgeSampler.at(labePair)->sample();
     auto oldEdge2 = m_labeledEdgeSampler.at(labePair)->sample();

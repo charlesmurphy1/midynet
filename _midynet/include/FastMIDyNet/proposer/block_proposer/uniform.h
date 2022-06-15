@@ -13,8 +13,6 @@ namespace FastMIDyNet {
 
 
 class BlockUniformProposer: public BlockProposer {
-    const BlockSequence* m_blocksPtr = nullptr;
-    const CounterMap<size_t>* m_vertexCountsPtr = nullptr;
     const double m_blockCreationProbability;
     mutable std::bernoulli_distribution m_createNewBlockDistribution;
     mutable std::uniform_int_distribution<BaseGraph::VertexIndex> m_vertexDistribution;
@@ -25,10 +23,10 @@ public:
         m_blockCreationProbability(createNewBlockProbability) {
         assertValidProbability(createNewBlockProbability);
     }
-    BlockMove proposeMove(BaseGraph::VertexIndex) const;
-    BlockMove proposeMove() const override{
+    const BlockMove proposeRawMove(BaseGraph::VertexIndex) const;
+    const BlockMove proposeRawMove() const override{
         auto vertexIdx = m_vertexDistribution(rng);
-        return proposeMove(vertexIdx);
+        return proposeRawMove(vertexIdx);
     }
     void setUp(const RandomGraph& randomGraph) override;
     const double getLogProposalProbRatio(const BlockMove&) const override;
@@ -37,14 +35,6 @@ public:
             throw SafetyError("BlockUniformProposer: unsafe proposer since `m_blocksPtr` is NULL.");
         if (m_vertexCountsPtr == nullptr)
             throw SafetyError("BlockUniformProposer: unsafe proposer since `m_vertexCountsPtr` is NULL.");
-    }
-
-protected:
-    bool creatingNewBlock(const BlockMove& move) const override {
-        return move.nextBlockIdx == m_vertexCountsPtr->size() or (*m_vertexCountsPtr)[move.nextBlockIdx] == 0;
-    }
-    bool destroyingBlock(const BlockMove& move) const override {
-        return move.prevBlockIdx != move.nextBlockIdx and (*m_vertexCountsPtr)[move.prevBlockIdx]<=1;
     }
 };
 

@@ -22,7 +22,7 @@ protected:
     mutable EdgeSampler m_edgeSampler;
 public:
     using EdgeProposer::EdgeProposer;
-    GraphMove proposeRawMove() const override;
+    const GraphMove proposeRawMove() const override;
     void setUpFromGraph(const MultiGraph&) override;
     const double getLogProposalProbRatio(const GraphMove& move) const override ;
 

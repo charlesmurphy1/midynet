@@ -21,7 +21,7 @@ public:
     LabeledDoubleEdgeSwapProposer(bool allowSelfLoops=true, bool allowMultiEdges=true, double labelPairShift=1):
         LabeledEdgeProposer(allowSelfLoops, allowMultiEdges, labelPairShift) { }
     virtual ~LabeledDoubleEdgeSwapProposer(){ clear(); }
-    GraphMove proposeRawMove() const override ;
+    const GraphMove proposeRawMove() const override ;
     void setUpFromGraph(const MultiGraph& graph) override ;
     const double getLogProposalProbRatio(const GraphMove& move) const override { return 0; }
     void applyGraphMove(const GraphMove& move) override ;

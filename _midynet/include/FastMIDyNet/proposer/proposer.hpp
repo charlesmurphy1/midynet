@@ -11,7 +11,7 @@ template<typename MoveType>
 class Proposer: public NestedRandomVariable{
     public:
         virtual ~Proposer(){}
-        virtual MoveType proposeMove() const = 0;
+        virtual const MoveType proposeMove() const = 0;
         virtual void clear() {};
 };
 

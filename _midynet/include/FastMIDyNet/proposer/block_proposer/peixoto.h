@@ -14,8 +14,6 @@ namespace FastMIDyNet {
 
 
 class BlockPeixotoProposer: public BlockProposer {
-    const BlockSequence* m_blocksPtr = NULL;
-    const CounterMap<size_t>* m_vertexCountsPtr = NULL;
     const EdgeMatrix* m_edgeMatrixPtr = NULL;
     const std::vector<size_t>* m_edgeCountsPtr = NULL;
     const MultiGraph* m_graphPtr = NULL;
@@ -33,10 +31,10 @@ class BlockPeixotoProposer: public BlockProposer {
             m_shift(shift) {
             assertValidProbability(createNewBlockProbability);
         }
-        BlockMove proposeMove(BaseGraph::VertexIndex) const;
-        BlockMove proposeMove() const override{
+        const BlockMove proposeRawMove(BaseGraph::VertexIndex) const;
+        const BlockMove proposeRawMove() const override{
             auto vertexIdx = m_vertexDistribution(rng);
-            return proposeMove(vertexIdx);
+            return proposeRawMove(vertexIdx);
         }
         void setUp(const RandomGraph& randomGraph) override;
         const double getLogProposalProb(const BlockMove& move) const;
@@ -59,12 +57,6 @@ class BlockPeixotoProposer: public BlockProposer {
     protected:
         IntMap<std::pair<BlockIndex, BlockIndex>> getEdgeMatrixDiff(const BlockMove& move) const ;
         IntMap<BlockIndex> getEdgeCountsDiff(const BlockMove& move) const ;
-        bool creatingNewBlock(const BlockMove& move) const override {
-            return move.nextBlockIdx == m_vertexCountsPtr->size() or (*m_vertexCountsPtr)[move.nextBlockIdx] == 0;
-        }
-        bool destroyingBlock(const BlockMove& move) const override {
-            return move.prevBlockIdx != move.nextBlockIdx and (*m_vertexCountsPtr)[move.prevBlockIdx]<=1;
-        }
 };
 
 } // namespace FastMIDyNet

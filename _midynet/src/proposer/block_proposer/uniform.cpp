@@ -6,7 +6,7 @@
 
 namespace FastMIDyNet {
 
-BlockMove BlockUniformProposer::proposeMove(BaseGraph::VertexIndex movedVertex) const {
+const BlockMove BlockUniformProposer::proposeRawMove(BaseGraph::VertexIndex movedVertex) const {
     size_t B = m_vertexCountsPtr->size();
     if (B == 1 && m_blockCreationProbability == 0)
         return {movedVertex, (*m_blocksPtr)[movedVertex], (*m_blocksPtr)[movedVertex], 0};
@@ -30,8 +30,7 @@ BlockMove BlockUniformProposer::proposeMove(BaseGraph::VertexIndex movedVertex) 
 }
 
 void BlockUniformProposer::setUp(const RandomGraph& randomGraph) {
-    m_blocksPtr = &randomGraph.getBlocks();
-    m_vertexCountsPtr = &randomGraph.getVertexCountsInBlocks();
+    BlockProposer::setUp(randomGraph);
     m_vertexDistribution = std::uniform_int_distribution<BaseGraph::VertexIndex>(0, randomGraph.getSize() - 1);
 }
 
