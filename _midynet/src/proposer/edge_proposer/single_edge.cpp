@@ -6,7 +6,7 @@
 namespace FastMIDyNet {
 
 
-const GraphMove SingleEdgeProposer::proposeRawMove() const {
+GraphMove SingleEdgeProposer::proposeRawMove() const {
     auto vertex1 = m_vertexSamplerPtr->sample();
     auto vertex2 = m_vertexSamplerPtr->sample();
 

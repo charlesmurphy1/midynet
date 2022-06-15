@@ -18,7 +18,7 @@ protected:
     VertexSampler* m_vertexSamplerPtr = nullptr;
 public:
     using EdgeProposer::EdgeProposer;
-    const GraphMove proposeRawMove() const override;
+    GraphMove proposeRawMove() const override;
     void setUpFromGraph(const MultiGraph&) override;
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     virtual void applyGraphMove(const GraphMove& move) override { };

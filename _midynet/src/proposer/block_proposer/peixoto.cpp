@@ -7,7 +7,7 @@
 
 namespace FastMIDyNet {
 
-const BlockMove BlockPeixotoProposer::proposeMove(BaseGraph::VertexIndex movedVertex) const {
+BlockMove BlockPeixotoProposer::proposeMove(BaseGraph::VertexIndex movedVertex) const {
 
     BlockIndex prevBlockIdx = (*m_blocksPtr)[movedVertex];
     size_t B = m_vertexCountsPtr->size();
@@ -17,6 +17,9 @@ const BlockMove BlockPeixotoProposer::proposeMove(BaseGraph::VertexIndex movedVe
         std::uniform_int_distribution<size_t> dist(0, B-1);
         BlockIndex nextBlockIdx = dist(rng);
         BlockMove move = {movedVertex, prevBlockIdx, nextBlockIdx, 0};
+        if ( destroyingBlock(move) ){
+            --move.addedBlocks;
+        }
         return move;
 
     }
@@ -37,6 +40,9 @@ const BlockMove BlockPeixotoProposer::proposeMove(BaseGraph::VertexIndex movedVe
     }
 
     BlockMove move = {movedVertex, prevBlockIdx, nextBlockIdx, 0};
+    if ( destroyingBlock(move) ){
+        --move.addedBlocks;
+    }
 
     return move;
 }
@@ -52,7 +58,7 @@ void BlockPeixotoProposer::setUp(const RandomGraph& randomGraph) {
 
 const double BlockPeixotoProposer::getLogProposalProb(const BlockMove& move) const {
     size_t B = m_vertexCountsPtr->size();
-    if ( m_vertexCountsPtr->size() == move.nextBlockIdx)
+    if ( move.addedBlocks == 1)
          return log(m_blockCreationProbability);
     double weight = 0, degree = 0;
     auto r = move.prevBlockIdx, s = move.nextBlockIdx;
@@ -100,10 +106,8 @@ IntMap<BlockIndex> BlockPeixotoProposer::getEdgeCountsDiff(const BlockMove& move
 }
 
 const double BlockPeixotoProposer::getReverseLogProposalProb(const BlockMove& move) const {
-    size_t B = m_vertexCountsPtr->size();
-    // if (B == move.nextBlockIdx)
-    //     --B;
-    if ( move.prevBlockIdx != move.nextBlockIdx and (*m_vertexCountsPtr)[move.prevBlockIdx] == 1 )
+    size_t B = m_vertexCountsPtr->size() + move.addedBlocks;
+    if ( move.addedBlocks == -1)
          return log(m_blockCreationProbability);
 
     auto edgeMatDiff = getEdgeMatrixDiff(move);

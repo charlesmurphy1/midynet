@@ -68,29 +68,28 @@ T sumElementsOfMatrix(Matrix<T> mat, T init){
 }
 
 template<typename T>
-static void verifyHasSize(
-    const T& x,
+static void verifyVectorHasSize(
+    const std::vector<T>& vec,
     size_t size,
     const std::string& className,
     const std::string& vectorName,
     const std::string& sizeName) {
-    if (x.size() != size)
+    if (vec.size() != size)
         throw ConsistencyError(className + ": "+vectorName+" has size "+
-                std::to_string(x.size())+" while there are "+
+                std::to_string(vec.size())+" while there are "+
                 std::to_string(size)+" "+sizeName+".");
 }
 
-
 template<typename T>
-static void verifyHasAtLeastSize(
-    const T& x,
+static void verifyVectorHasAtLeastSize(
+    const std::vector<T>& vec,
     size_t size,
     const std::string& className,
     const std::string& vectorName,
     const std::string& sizeName) {
-    if (x.size() < size)
+    if (vec.size() < size)
         throw ConsistencyError(className + ": "+vectorName+" has size "+
-                std::to_string(x.size())+" while there are "+
+                std::to_string(vec.size())+" while there are "+
                 std::to_string(size)+" "+sizeName+".");
 }
 

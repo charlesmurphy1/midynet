@@ -13,36 +13,24 @@
 using namespace std;
 
 namespace FastMIDyNet{
-void DegreePrior::_setGraph(const MultiGraph& graph) {
+void DegreePrior::setGraph(const MultiGraph& graph) {
+    m_graph = &graph;
     m_edgeMatrixPriorPtr->setGraph(graph);
     const auto& blockSeq = m_blockPriorPtr->getState();
     const auto& blockCount = m_blockPriorPtr->getBlockCount();
 
     m_state = graph.getDegrees();
     m_degreeCountsInBlocks = vector<CounterMap<BlockIndex>>(blockCount, 0);
+
     for (auto vertex: graph){
         m_degreeCountsInBlocks[blockSeq[vertex]].increment(m_state[vertex]);
     }
 }
 
-// void DegreePrior::_setPartition(const BlockSequence& blockSeq){
-//     m_blockPriorPtr->setState(blockSeq);
-//     m_edgeMatrixPriorPtr->setPartition(blockSeq);
-//     recomputeState();
-// }
 
 void DegreePrior::setState(const DegreeSequence& degreeSeq) {
+    m_degreeCountsInBlocks = computeDegreeCountsInBlocks(degreeSeq, m_blockPriorPtr->getState());
     m_state = degreeSeq;
-    recomputeState();
-}
-
-void DegreePrior::recomputeState(){
-    const auto& b = m_blockPriorPtr->getState();
-    const auto& B = m_blockPriorPtr->getBlockCount();
-    m_degreeCountsInBlocks = vector<CounterMap<BlockIndex>>(B, 0);
-    for (size_t vertex=0; vertex<m_state.size(); ++vertex){
-        m_degreeCountsInBlocks[b[vertex]].increment(m_state[vertex]);
-    }
 }
 
 vector<CounterMap<size_t>> DegreePrior::computeDegreeCountsInBlocks(const DegreeSequence& degreeSeq, const BlockSequence& blockSeq){
@@ -176,7 +164,7 @@ void DegreeUniformPrior::sampleState(){
     vector<list<size_t>::iterator> ptr_degreeSeqInBlocks(m_blockPriorPtr->getBlockCount());
     const BlockSequence& blockSeq = m_blockPriorPtr->getState();
     const vector<size_t>& edgeCountsInBlocks = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks();
-    const CounterMap<size_t>& vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
+    const vector<size_t>& vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
     for (size_t r = 0; r < m_blockPriorPtr->getBlockCount(); r++) {
         degreeSeqInBlocks[r] = sampleRandomWeakComposition(edgeCountsInBlocks[r], vertexCountsInBlocks[r]);
         ptr_degreeSeqInBlocks[r] = degreeSeqInBlocks[r].begin();
@@ -196,7 +184,7 @@ void DegreeUniformPrior::sampleState(){
 const double DegreeUniformPrior::getLogLikelihood() const{
     double logLikelihood = 0;
     const vector<size_t>& edgeCountsInBlocks = m_edgeMatrixPriorPtr->getEdgeCountsInBlocks();
-    const CounterMap<size_t>& vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
+    const vector<size_t>& vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
 
     for (size_t r = 0; r < m_blockPriorPtr->getBlockCount(); r++) {
         logLikelihood -= logMultisetCoefficient(edgeCountsInBlocks[r], vertexCountsInBlocks[r]);
@@ -343,7 +331,7 @@ const double DegreeUniformHyperPrior::getLogLikelihoodRatioFromBlockMove(const B
     logLikelihoodRatio -= log(ns + 1) - log(nr);
     logLikelihoodRatio -= log_q_approx(er - k, nr - 1) - log_q_approx(er, nr);
     logLikelihoodRatio -= log_q_approx(es + k, ns + 1);
-    if (not createEmptyBlock)
+    if (move.addedBlocks <= 0)
         logLikelihoodRatio -= -log_q_approx(es, ns);
     return logLikelihoodRatio;
 }

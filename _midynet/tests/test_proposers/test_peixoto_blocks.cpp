@@ -108,7 +108,6 @@ TEST_F(TestBlockPeixotoProposer, getReverseLogProposalProb_AllBlockMove_returnCo
 
 TEST_F(TestBlockPeixotoProposer, getReverseLogProposalProbRatio_fromSomeBlockMoveCreatingNewBlock_returnCorrectRatio) {
     for (size_t i = 0; i < numSamples; i++) {
-        std::cout << i << std::endl;
         FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), randomGraph.getBlockCount(), 1};
         FastMIDyNet::BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx, -1};
         double actual = proposer.getReverseLogProposalProb(move);

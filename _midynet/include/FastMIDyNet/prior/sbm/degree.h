@@ -53,11 +53,7 @@ public:
         return *this;
     }
 
-    void setGraph(const MultiGraph& move){
-        processRecursiveFunction([&](){ _setGraph(move); });
-    };
-    void _setGraph(const MultiGraph& ) ;
-    void recomputeState() ;
+    void setGraph(const MultiGraph&);
     const MultiGraph& getGraph() const { return *m_graph; }
     virtual void setState(const DegreeSequence&) override;
 
@@ -95,7 +91,7 @@ public:
 
     bool isSafe() const override {
         return (m_blockPriorPtr != nullptr) and (m_blockPriorPtr->isSafe())
-           and (m_edgeMatrixPriorPtr != nullptr) and (m_edgeMatrixPriorPtr->isSafe());
+           and (m_edgeMatrixPriorPtr != nullptr) and (m_edgeMatrixPriorPtr->isSafe()); 
     }
     void checkSelfConsistency() const override;
     virtual void checkSelfSafety() const override{

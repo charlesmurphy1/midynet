@@ -4,7 +4,7 @@
 
 namespace FastMIDyNet{
 
-std::pair<size_t, size_t> MCMC::doMHSweep(size_t burn, bool checkingConsistency, bool checkingSafety){
+std::tuple<size_t, size_t> MCMC::doMHSweep(size_t burn){
     m_callBacks.onSweepBegin();
     size_t numSuccess = 0, numFailure = 0;
     for (size_t i = 0; i < burn; i++) {
@@ -15,10 +15,6 @@ std::pair<size_t, size_t> MCMC::doMHSweep(size_t burn, bool checkingConsistency,
         ++m_numSteps;
 
         m_callBacks.onStepEnd();
-        if (checkingConsistency)
-            checkConsistency();
-        if (checkingSafety)
-            checkSafety();
     }
     m_callBacks.onSweepEnd();
     ++m_numSweeps;

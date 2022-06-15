@@ -3,7 +3,7 @@
 
 namespace FastMIDyNet{
 
-const GraphMove EdgeProposer::proposeMove() const {
+GraphMove EdgeProposer::proposeMove() const {
     for (size_t i = 0; i < m_maxIteration; i++) {
         GraphMove move = proposeRawMove();
         for (auto e : move.addedEdges){

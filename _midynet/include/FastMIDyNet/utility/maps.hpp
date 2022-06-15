@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <map>
-#include <list>
+#include <set>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -18,15 +18,16 @@ public:
         m_map(), m_defaultValue(defaultValue){
         for (size_t k = 0; k < keys.size(); ++k){
             m_map.insert(std::pair<KeyType, ValueType>(keys[k], values[k]));
+            m_keys.insert(keys[k]);
         }
     }
     Map(const Map<KeyType, ValueType>& other):
-        m_map(other.m_map), m_defaultValue(other.m_defaultValue){}
+        m_map(other.m_map), m_keys(other.m_keys), m_defaultValue(other.m_defaultValue){}
     Map(ValueType defaultValue):
         m_map(), m_defaultValue(defaultValue) { }
     Map():
         m_map(), m_defaultValue() { }
-    size_t size() const {
+    size_t size(){
         return m_map.size();
     }
 
@@ -37,17 +38,8 @@ public:
         }
         return true;
     }
-    const std::list<KeyType>& keys() const{
-        std::list<KeyType> k;
-        for (auto x: m_map)
-            k.push_back(x.first);
-        return k;
-    }
-    const std::list<ValueType> values() const{
-        std::list<ValueType> v;
-        for (auto x: m_map)
-            v.push_back(x.second);
-        return v;
+    const std::set<KeyType>& keys() const{
+        return m_keys;
     }
     const ValueType& get(const KeyType& key) const {
         if ( isEmpty(key) ) return m_defaultValue;
@@ -56,14 +48,15 @@ public:
 
     void set(const KeyType& key, const ValueType& value) {
         m_map[key] = value;
+        m_keys.insert(key);
     }
 
     bool isEmpty(KeyType key) const{
-        return m_map.count(key) == 0;
+        return m_keys.count(key) == 0;
     }
 
-    void erase(KeyType key){ if (not isEmpty(key)) m_map.erase(key); }
-    void clear(){ m_map.clear(); }
+    void erase(KeyType key){ if (not isEmpty(key)) { m_map.erase(key); m_keys.erase(key); }}
+    void clear(){ m_map.clear(); m_keys.clear(); }
     typename std::map<KeyType, ValueType>::iterator begin() { return m_map.begin(); }
     typename std::map<KeyType, ValueType>::iterator end() { return m_map.end(); }
 
@@ -78,6 +71,7 @@ public:
 protected:
     std::map<KeyType, ValueType> m_map;
     ValueType m_defaultValue;
+    std::set<KeyType> m_keys;
 };
 
 template < typename KeyType>
@@ -105,21 +99,14 @@ public:
 
     void decrement(KeyType key, int dec=1){ increment(key, -dec); }
 
-    size_t sum() const {
-        size_t s = 0;
-        for(auto v : this->values())
-            s+=v;
-        return s;
-    }
-
 };
 
-template < typename T>
-class OrderedPair: public std::pair<T, T>{
+template < typename T1, typename T2 >
+class OrderedPair: public std::pair<T1, T2>{
 public:
-    OrderedPair(T first, T second):std::pair<T, T>(first, second){
+    OrderedPair(T1 first, T2 second):std::pair<T1, T2>(first, second){
         if (first > second){
-            T temp = this->first ;
+            auto temp = this->first ;
             this->first = this->second ;
             this->second = temp;
         }

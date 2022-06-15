@@ -33,6 +33,11 @@ class BlockPeixotoProposer: public BlockProposer {
             m_shift(shift) {
             assertValidProbability(createNewBlockProbability);
         }
+        BlockMove proposeMove(BaseGraph::VertexIndex) const;
+        BlockMove proposeMove() const override{
+            auto vertexIdx = m_vertexDistribution(rng);
+            return proposeMove(vertexIdx);
+        }
         void setUp(const RandomGraph& randomGraph) override;
         const double getLogProposalProb(const BlockMove& move) const;
         const double getReverseLogProposalProb(const BlockMove& move) const;
@@ -52,7 +57,6 @@ class BlockPeixotoProposer: public BlockProposer {
                 throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_graphPtr` is NULL.");
         }
     protected:
-        const BlockMove proposeMove(BaseGraph::VertexIndex) const override ;
         IntMap<std::pair<BlockIndex, BlockIndex>> getEdgeMatrixDiff(const BlockMove& move) const ;
         IntMap<BlockIndex> getEdgeCountsDiff(const BlockMove& move) const ;
         bool creatingNewBlock(const BlockMove& move) const override {

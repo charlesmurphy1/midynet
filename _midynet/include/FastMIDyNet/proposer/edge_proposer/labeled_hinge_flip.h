@@ -23,7 +23,7 @@ public:
     LabeledHingeFlipProposer(bool allowSelfLoops=true, bool allowMultiEdges=true, double labelPairShift=1):
         LabeledEdgeProposer(allowSelfLoops, allowMultiEdges, labelPairShift) { }
     virtual ~LabeledHingeFlipProposer(){ clear(); }
-    const GraphMove proposeRawMove() const override ;
+    GraphMove proposeRawMove() const override ;
     void setUpFromGraph(const MultiGraph& graph) override ;
     void applyGraphMove(const GraphMove& move) override ;
     void applyBlockMove(const BlockMove& move) override ;
