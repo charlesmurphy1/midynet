@@ -2,24 +2,25 @@ import os
 import sys
 import setuptools
 
-# import importlib
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 from setuptools.config import read_configuration
 
-# if importlib.util.find_spec("pybind11") is None:
-#     from setuptools.command.build_ext import build_ext
-#     from setuptools import Extension
-# else:
-#     from pybind11.setup_helpers import (
-#         ParallelCompile,
-#         naive_recompile,
-#         Pybind11Extension,
-#         build_ext,
-#     )
-#
-#     Extension = Pybind11Extension
-#     ParallelCompile("NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile).install()
+import importlib
+
+if importlib.util.find_spec("pybind11") is None:
+    from setuptools.command.build_ext import build_ext
+    from setuptools import Extension
+else:
+    from pybind11.setup_helpers import (
+        ParallelCompile,
+        naive_recompile,
+        Pybind11Extension,
+        build_ext,
+    )
+
+    Extension = Pybind11Extension
+    ParallelCompile("NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile).install()
 
 
 class get_pybind_include(object):
