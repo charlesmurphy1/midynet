@@ -27,8 +27,6 @@ protected:
     void _applyBlockMove(const BlockMove& move) override { setState(getStateAfterBlockMove(move)); }
     const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; }
     const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override { return getLogLikelihoodRatioFromBlockMove(move); }
-    void onBlockCreation(const BlockMove&) { ++m_state; }
-    void onBlockDeletion(const BlockMove&) { --m_state; }
 };
 
 class BlockCountDeltaPrior: public BlockCountPrior{

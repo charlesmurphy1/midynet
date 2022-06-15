@@ -33,17 +33,6 @@ void BlockCountPoissonPrior::checkSelfConsistency() const {
         throw ConsistencyError("BlockCountPoissonPrior: Non-positive state `" + std::to_string(m_state) + "`.");
 };
 
-// void BlockCountPoissonPrior::sampleState() {
-//     auto blockCount = 0;
-//     while (blockCount == 0) // zero-truncated Poisson sampling
-//         blockCount = m_poissonDistribution(rng);
-//     setState(blockCount);
-// };
-//
-// const double BlockCountPoissonPrior::getLogLikelihoodFromState(const size_t& state) const {
-//     return logZeroTruncatedPoissonPMF(state, m_mean);
-// };
-//
 void BlockCountUniformPrior::checkMin() const {
     if (m_min < 0)
         throw ConsistencyError("BlockCountPoissonPrior: Negative mean `" + std::to_string(m_min) + "`.");

@@ -21,7 +21,6 @@ class BlockPeixotoProposer: public BlockProposer {
     const double m_shift;
     mutable std::uniform_real_distribution<double> m_uniform01 = std::uniform_real_distribution<double>(0., 1.);
     mutable std::bernoulli_distribution m_createNewBlockDistribution;
-    mutable std::uniform_int_distribution<BaseGraph::VertexIndex> m_vertexDistribution;
 
 
     public:
@@ -31,11 +30,7 @@ class BlockPeixotoProposer: public BlockProposer {
             m_shift(shift) {
             assertValidProbability(createNewBlockProbability);
         }
-        const BlockMove proposeRawMove(BaseGraph::VertexIndex) const;
-        const BlockMove proposeRawMove() const override{
-            auto vertexIdx = m_vertexDistribution(rng);
-            return proposeRawMove(vertexIdx);
-        }
+        const BlockMove proposeMove(const BaseGraph::VertexIndex&) const;
         void setUp(const RandomGraph& randomGraph) override;
         const double getLogProposalProb(const BlockMove& move) const;
         const double getReverseLogProposalProb(const BlockMove& move) const;

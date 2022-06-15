@@ -15,7 +15,6 @@ namespace FastMIDyNet {
 class BlockUniformProposer: public BlockProposer {
     const double m_blockCreationProbability;
     mutable std::bernoulli_distribution m_createNewBlockDistribution;
-    mutable std::uniform_int_distribution<BaseGraph::VertexIndex> m_vertexDistribution;
 
 public:
     BlockUniformProposer(double createNewBlockProbability=.1):
@@ -23,12 +22,7 @@ public:
         m_blockCreationProbability(createNewBlockProbability) {
         assertValidProbability(createNewBlockProbability);
     }
-    const BlockMove proposeRawMove(BaseGraph::VertexIndex) const;
-    const BlockMove proposeRawMove() const override{
-        auto vertexIdx = m_vertexDistribution(rng);
-        return proposeRawMove(vertexIdx);
-    }
-    void setUp(const RandomGraph& randomGraph) override;
+    const BlockMove proposeMove(const BaseGraph::VertexIndex&) const;
     const double getLogProposalProbRatio(const BlockMove&) const override;
     void checkSelfSafety() const override{
         if (m_blocksPtr == nullptr)

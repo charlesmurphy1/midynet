@@ -17,8 +17,8 @@ protected:
     bool destroyingBlock(const BlockMove&) const { return false; }
 public:
     BlockGenericProposer(){}
-    const BlockMove proposeRawMove() const override{
-        return {0, (*m_blocksPtr)[0], (*m_blocksPtr)[0], 0};
+    const BlockMove proposeMove(const BaseGraph::VertexIndex& vertex) const override{
+        return {vertex, (*m_blocksPtr)[vertex], (*m_blocksPtr)[vertex], 0};
     }
     const double getLogProposalProbRatio(const BlockMove&) const override { return 0;};
     void checkSelfSafety() const override { }

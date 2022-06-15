@@ -24,9 +24,12 @@ protected:
 
     void _applyGraphMove(const GraphMove&) override { };
     void _applyBlockMove(const BlockMove& move) override {
-        m_blockCountPriorPtr->applyBlockMove(move);
-        applyBlockMoveToVertexCounts(move);
-        applyBlockMoveToState(move);
+        BlockMove moveCopy = move;
+        moveCopy.addedBlocks = getAddedBlocks(move);
+        m_blockCountPriorPtr->applyBlockMove(moveCopy);
+        m_vertexCountsInBlocks.decrement(move.prevBlockIdx);
+        m_vertexCountsInBlocks.increment(move.nextBlockIdx);
+        m_state[move.vertexIdx] = move.nextBlockIdx;
     }
 
     const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; };
@@ -34,8 +37,14 @@ protected:
         return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
     };
 
-    void onBlockCreation(const BlockMove& move) override {
-        // m_vertexCountsInBlocks.push_back(0);
+    bool creatingNewBlock(const BlockMove& move) const {
+        return m_vertexCountsInBlocks.get(move.nextBlockIdx) == 0;
+    };
+    bool destroyingBlock(const BlockMove& move) const {
+        return move.prevBlockIdx != move.nextBlockIdx and m_vertexCountsInBlocks.get(move.prevBlockIdx) == 1 ;
+    }
+    const int getAddedBlocks(const BlockMove& move) const {
+        return (int) creatingNewBlock(move) - (int) destroyingBlock(move);
     }
     void remapBlockIndex(const std::map<size_t, size_t> indexMap){
         auto newBlocks = m_state;
@@ -85,12 +94,6 @@ public:
     const CounterMap<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
     const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
     static CounterMap<size_t> computeVertexCountsInBlocks(const BlockSequence&);
-    void applyBlockMoveToState(const BlockMove& move) { m_state[move.vertexIdx] = move.nextBlockIdx; };
-    void applyBlockMoveToVertexCounts(const BlockMove& move) {
-        if (move.addedBlocks == 1) onBlockCreation(move);
-        m_vertexCountsInBlocks.decrement(move.prevBlockIdx);
-        m_vertexCountsInBlocks.increment(move.nextBlockIdx);
-    };
 
 
 
