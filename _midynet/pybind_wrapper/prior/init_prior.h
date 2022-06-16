@@ -37,7 +37,7 @@ py::class_<Prior<StateType>, NestedRandomVariable, PyPrior<StateType>> declarePr
 void initPrior(pybind11::module& m){
     declarePriorBaseClass<size_t>(m, "UnIntPrior");
     declarePriorBaseClass<std::vector<size_t>>(m, "UnIntVectorPrior");
-    declarePriorBaseClass<std::vector<std::vector<size_t>>>(m, "UnIntMatrixPrior");
+    declarePriorBaseClass<MultiGraph>(m, "MultigraphPrior");
     pybind11::module sbm = m.def_submodule("sbm");
     initSBMPriors(sbm);
 }

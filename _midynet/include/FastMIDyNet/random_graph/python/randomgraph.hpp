@@ -21,7 +21,7 @@ protected:
     void _applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
 public:
     using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
-    
+
     /* Pure abstract methods */
     void sampleGraph() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleGraph, ); }
     const double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, ); }
@@ -37,14 +37,14 @@ public:
     const size_t& getBlockCount() const override  {
         PYBIND11_OVERRIDE_PURE(const size_t&, BaseClass, getBlockCount, );
     }
-    const std::vector<size_t>& getVertexCountsInBlocks() const override  {
-        PYBIND11_OVERRIDE_PURE(const std::vector<size_t>&, BaseClass, getVertexCountsInBlocks, );
+    const CounterMap<size_t>& getVertexCountsInBlocks() const override  {
+        PYBIND11_OVERRIDE_PURE(const CounterMap<size_t>&, BaseClass, getVertexCountsInBlocks, );
     }
-    const Matrix<size_t>& getEdgeMatrix() const override  {
-        PYBIND11_OVERRIDE_PURE(const Matrix<size_t>&, BaseClass, getEdgeMatrix, );
+    const MultiGraph& getEdgeMatrix() const override  {
+        PYBIND11_OVERRIDE_PURE(const MultiGraph&, BaseClass, getEdgeMatrix, );
     }
-    const std::vector<size_t>& getEdgeCountsInBlocks() const override  {
-        PYBIND11_OVERRIDE_PURE(const std::vector<size_t>&, BaseClass, getEdgeCountsInBlocks, );
+    const CounterMap<size_t>& getEdgeCountsInBlocks() const override  {
+        PYBIND11_OVERRIDE_PURE(const CounterMap<size_t>&, BaseClass, getEdgeCountsInBlocks, );
     }
     const size_t& getEdgeCount() const override  {
         PYBIND11_OVERRIDE_PURE(const size_t&, BaseClass, getEdgeCount, );

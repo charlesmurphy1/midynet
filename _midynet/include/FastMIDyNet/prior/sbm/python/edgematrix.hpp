@@ -16,9 +16,9 @@
 namespace FastMIDyNet{
 
 template <typename BaseClass = EdgeMatrixPrior>
-class PyEdgeMatrixPrior: public PyPrior<std::vector<std::vector<size_t>>, BaseClass> {
+class PyEdgeMatrixPrior: public PyPrior<MultiGraph, BaseClass> {
 public:
-    using PyPrior<std::vector<std::vector<size_t>>, BaseClass>::PyPrior;
+    using PyPrior<MultiGraph, BaseClass>::PyPrior;
     /* Pure abstract methods */
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromGraphMove, move); }
     const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromBlockMove, move); }

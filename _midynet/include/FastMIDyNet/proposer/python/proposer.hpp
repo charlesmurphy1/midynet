@@ -15,7 +15,7 @@ public:
     using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
 
     /* Pure abstract methods */
-    MoveType proposeMove() const override { PYBIND11_OVERRIDE_PURE(MoveType, BaseClass, proposeMove, ); }
+    const MoveType proposeMove() const override { PYBIND11_OVERRIDE_PURE(const MoveType, BaseClass, proposeMove, ); }
 
     /* Abstract & overloaded methods */
     ~PyProposer() override = default;

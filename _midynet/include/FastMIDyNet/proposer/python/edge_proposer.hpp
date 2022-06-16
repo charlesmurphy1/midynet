@@ -23,7 +23,7 @@ public:
     ~PyEdgeProposer() override = default;
 
     /* Pure abstract methods */
-    GraphMove proposeRawMove() const override { PYBIND11_OVERRIDE_PURE(GraphMove, BaseClass, proposeRawMove, ); }
+    const GraphMove proposeRawMove() const override { PYBIND11_OVERRIDE_PURE(const GraphMove, BaseClass, proposeRawMove, ); }
     const double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
 
     /* Abstract & overloaded methods */
@@ -31,7 +31,7 @@ public:
     void setUpFromGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUpFromGraph, graph); }
     void applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
     void applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
-    GraphMove proposeMove() const override { PYBIND11_OVERRIDE(GraphMove, BaseClass, proposeMove, ); }
+    void clear() override { PYBIND11_OVERRIDE(void, BaseClass, clear, ); }
 };
 
 template<typename BaseClass = HingeFlipProposer>

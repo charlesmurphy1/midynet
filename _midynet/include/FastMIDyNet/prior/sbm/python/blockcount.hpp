@@ -19,11 +19,6 @@ public:
     using PyPrior<size_t, BaseClass>::PyPrior;
     /* Pure abstract methods */
     const double getLogLikelihoodFromState(const size_t& state) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodFromState, state); }
-
-    /* Overloaded abstract methods */
-    void samplePriors() override { PYBIND11_OVERRIDE(void, BaseClass, samplePriors, ); }
-    const double getLogLikelihood() const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihood, ); }
-    const double getLogPrior() const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPrior, ); }
 };
 
 }

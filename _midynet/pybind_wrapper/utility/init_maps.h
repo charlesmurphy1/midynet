@@ -25,6 +25,8 @@ py::class_< Map<KeyType, ValueType> > declareMap(py::module& m, std::string pyNa
         .def("erase", &Map<KeyType, ValueType>::erase, py::arg("key"))
         .def("clear", &Map<KeyType, ValueType>::clear)
         .def("display", &Map<KeyType, ValueType>::display)
+        .def("get_keys", &Map<KeyType, ValueType>::getKeys)
+        .def("get_values", &Map<KeyType, ValueType>::getValues)
         ;
 }
 
@@ -47,6 +49,7 @@ py::class_<CounterMap<KeyType>, Map<KeyType, size_t>> declareCounterMap(py::modu
         .def(py::init<size_t>(), py::arg("default")=0)
         .def("increment", &CounterMap<KeyType>::increment, py::arg("key"), py::arg("inc")=1)
         .def("decrement", &CounterMap<KeyType>::decrement, py::arg("key"), py::arg("dec")=1)
+        .def("get_sum", &CounterMap<KeyType>::getSum)
         ;
 }
 
