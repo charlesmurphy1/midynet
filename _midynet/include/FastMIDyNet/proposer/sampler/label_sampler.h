@@ -19,7 +19,7 @@ protected:
     EdgeSampler m_edgeSampler;
     const std::vector<BlockIndex>* m_labelsPtr = nullptr;
     const CounterMap<size_t>* m_vertexCountsPtr = nullptr;
-    const Matrix<size_t>* m_edgeMatrixPtr = nullptr;
+    const MultiGraph* m_edgeMatrixPtr = nullptr;
     mutable std::bernoulli_distribution m_bernoulliDistribution = std::bernoulli_distribution(0.5);
 
 
@@ -57,7 +57,8 @@ public:
     }
 
     const double getLabelPairWeight(const LabelPair& pair) const {
-        return m_shift * (*m_vertexCountsPtr)[pair.first] * (*m_vertexCountsPtr)[pair.second] + (*m_edgeMatrixPtr)[pair.first][pair.second];
+        double weight = m_shift * m_vertexCountsPtr->get(pair.first) * m_vertexCountsPtr->get(pair.second);
+        weight += ((pair.first == pair.second) ? 2 : 1) * m_edgeMatrixPtr->getEdgeMultiplicityIdx(pair.first, pair.second);
     }
     const double getVertexTotalWeight() const {
         return m_vertexSampler.getTotalWeight();

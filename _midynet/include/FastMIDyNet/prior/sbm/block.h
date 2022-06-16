@@ -37,15 +37,6 @@ protected:
         return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
     };
 
-    bool creatingNewBlock(const BlockMove& move) const {
-        return m_vertexCountsInBlocks.get(move.nextBlockIdx) == 0;
-    };
-    bool destroyingBlock(const BlockMove& move) const {
-        return move.prevBlockIdx != move.nextBlockIdx and m_vertexCountsInBlocks.get(move.prevBlockIdx) == 1 ;
-    }
-    const int getAddedBlocks(const BlockMove& move) const {
-        return (int) creatingNewBlock(move) - (int) destroyingBlock(move);
-    }
     void remapBlockIndex(const std::map<size_t, size_t> indexMap){
         auto newBlocks = m_state;
         for (size_t v=0; v<m_size; ++v){
@@ -107,11 +98,19 @@ public:
     const double getLogPriorRatioFromBlockMove(const BlockMove& move) const {
         return m_blockCountPriorPtr->getLogJointRatioFromBlockMove(move);
     }
+    bool creatingNewBlock(const BlockMove& move) const {
+        return m_vertexCountsInBlocks.get(move.nextBlockIdx) == 0;
+    };
+    bool destroyingBlock(const BlockMove& move) const {
+        return move.prevBlockIdx != move.nextBlockIdx and m_vertexCountsInBlocks.get(move.prevBlockIdx) == 1 ;
+    }
+    const int getAddedBlocks(const BlockMove& move) const {
+        return (int) creatingNewBlock(move) - (int) destroyingBlock(move);
+    }
 
     /* Consistency methods */
     static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;
     static void checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCountsInBlocks) ;
-
 
     void computationFinished() const override {
         m_isProcessed=false;

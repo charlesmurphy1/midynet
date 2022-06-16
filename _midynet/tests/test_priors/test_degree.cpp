@@ -235,7 +235,7 @@ TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_r
 TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
     while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
-    auto g = FastMIDyNet::generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState(), prior.getState());
+    auto g = FastMIDyNet::generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
     prior.setGraph(g);
     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
     BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
@@ -291,7 +291,7 @@ TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromGraphMove_forAddedE
 TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBlockMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
     while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
-    auto g = FastMIDyNet::generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState(), prior.getState());
+    auto g = FastMIDyNet::generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
     prior.setGraph(g);
     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
     BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
@@ -308,7 +308,7 @@ TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromBlockMove_forSomeBl
 
 TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromBlockMove_forBlockMoveAddingNewBlock_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
-    auto g = FastMIDyNet::generateDCSBM(blockPrior.getState(), prior.getEdgeMatrixPrior().getState(), prior.getState());
+    auto g = FastMIDyNet::generateDCSBM(blockPrior.getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
     prior.setGraph(g);
     FastMIDyNet::BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getVertexCountsInBlocks().size(), 1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);

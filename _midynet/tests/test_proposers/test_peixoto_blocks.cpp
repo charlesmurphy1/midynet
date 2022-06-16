@@ -14,7 +14,7 @@ namespace FastMIDyNet{
 
 const double NEW_BLOCK_PROBABILITY = .1;
 const double SHIFT = 1.;
-const size_t BLOCK_COUNT = 2;
+const size_t BLOCK_COUNT = 3;
 const size_t GRAPH_SIZE = 100, EDGE_COUNT=100;
 
 class DummyBlockPeixotoProposer: public BlockPeixotoProposer{
@@ -36,11 +36,11 @@ class TestBlockPeixotoProposer: public::testing::Test {
         EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
         StochasticBlockModelFamily randomGraph = {GRAPH_SIZE, blockPrior, edgeMatrixPrior};
 
-        DummyBlockPeixotoProposer proposer = FastMIDyNet::DummyBlockPeixotoProposer(NEW_BLOCK_PROBABILITY, SHIFT);
+        DummyBlockPeixotoProposer proposer = DummyBlockPeixotoProposer(NEW_BLOCK_PROBABILITY, SHIFT);
         size_t numSamples = 10;
 
         void SetUp() {
-            seedWithTime();
+            // seedWithTime();
             randomGraph.sample();
             while (randomGraph.getBlockCount() != BLOCK_COUNT) randomGraph.sample();
 
@@ -51,8 +51,8 @@ class TestBlockPeixotoProposer: public::testing::Test {
             proposer.checkConsistency();
         }
 
-        FastMIDyNet::BlockIndex findBlockMove(BaseGraph::VertexIndex idx){
-            FastMIDyNet::BlockIndex blockIdx = randomGraph.getBlockOfIdx(idx);
+        BlockIndex findBlockMove(BaseGraph::VertexIndex idx){
+            BlockIndex blockIdx = randomGraph.getBlockOfIdx(idx);
             if (blockIdx == randomGraph.getBlockCount() - 1) return blockIdx - 1;
             else return blockIdx + 1;
         }
@@ -60,7 +60,7 @@ class TestBlockPeixotoProposer: public::testing::Test {
 
 // TEST_F(TestBlockPeixotoProposer, proposeMove_ForVertexIndex0_returnBlockMove) {
 //     for (size_t i = 0; i < numSamples; i++) {
-//         FastMIDyNet::BlockMove move = proposer.proposeMove(0);
+//         BlockMove move = proposer.proposeMove(0);
 //         EXPECT_EQ(move.vertexIdx, 0);
 //         EXPECT_EQ(move.prevBlockIdx, randomGraph.getBlockOfIdx(0));
 //     }
@@ -69,7 +69,7 @@ class TestBlockPeixotoProposer: public::testing::Test {
 // TEST_F(TestBlockPeixotoProposer, getLogProposalProbRatio_forAllBlockMoveOfIdx0_ProposalsAreNormalized) {
 //     double sum = 0;
 //     for (size_t s=0 ; s <= randomGraph.getBlockCount() ; ++s){
-//         FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), s};
+//         BlockMove move = {0, randomGraph.getBlockOfIdx(0), s};
 //         if (s == randomGraph.getBlockCount()) ++move.addedBlocks;
 //         double logProposal = proposer.getLogProposalProb(move);
 //         std::cout << exp(logProposal) << ", " << std::endl;
@@ -81,40 +81,56 @@ class TestBlockPeixotoProposer: public::testing::Test {
 
 TEST_F(TestBlockPeixotoProposer, getEdgeMatrixDiff_returnCorrectDiff){
     for (size_t nextBlockIdx = 0; nextBlockIdx < randomGraph.getBlockCount(); ++nextBlockIdx){
-        FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), nextBlockIdx, 0};
+        BlockMove move = {0, randomGraph.getBlockOfIdx(0), nextBlockIdx, 0};
         auto edgeMatrixDiff = proposer.getEdgeMatrixDiff(move);
         auto actualEdgeMatrix = randomGraph.getEdgeMatrix();
         for (auto diff : edgeMatrixDiff)
-            actualEdgeMatrix[diff.first.first][diff.first.second] += diff.second;
+            actualEdgeMatrix.addMultiedgeIdx(diff.first.first, diff.first.second, diff.second);
         randomGraph.applyBlockMove(move);
         proposer.applyBlockMove(move);
         auto expectedEdgeMatrix = randomGraph.getEdgeMatrix();
-        EXPECT_EQ(actualEdgeMatrix, expectedEdgeMatrix);
+        EXPECT_EQ(actualEdgeMatrix.getAdjacencyMatrix(), expectedEdgeMatrix.getAdjacencyMatrix());
+    }
+}
+
+TEST_F(TestBlockPeixotoProposer, getLogProposalProbAndSampler_returnCorrectProb){
+    CounterMap<size_t> counter;
+    for (int i=0; i<10000; ++i)
+        counter.increment(proposer.proposeMove(0).nextBlockIdx);
+    for (auto k: counter){
+        BlockMove m = {0, randomGraph.getBlockOfIdx(0), k.first};
+        double prob = exp(proposer.getLogProposalProb(m));
+        EXPECT_NEAR((double) k.second / counter.getSum(), prob, 0.05);
     }
 }
 
 TEST_F(TestBlockPeixotoProposer, getReverseLogProposalProb_AllBlockMove_returnCorrectProb) {
     for (size_t nextBlockIdx = 0; nextBlockIdx < randomGraph.getBlockCount(); ++nextBlockIdx){
-        FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), nextBlockIdx, 0};
-        FastMIDyNet::BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx, 0};
+        BlockMove move = {0, randomGraph.getBlockOfIdx(0), nextBlockIdx, 0};
+        BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx, 0};
         double actual = proposer.getReverseLogProposalProb(move);
         randomGraph.applyBlockMove(move);
         proposer.applyBlockMove(move);
         double expected = proposer.getLogProposalProb(reverseMove);
         randomGraph.applyBlockMove(reverseMove);
+        proposer.applyBlockMove(reverseMove);
         EXPECT_FLOAT_EQ(actual, expected);
     }
 }
 
 TEST_F(TestBlockPeixotoProposer, getReverseLogProposalProbRatio_fromSomeBlockMoveCreatingNewBlock_returnCorrectRatio) {
     for (size_t i = 0; i < numSamples; i++) {
-        FastMIDyNet::BlockMove move = {0, randomGraph.getBlockOfIdx(0), i};
-        FastMIDyNet::BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx};
+        BlockMove move = {0, randomGraph.getBlockOfIdx(0), i};
+        BlockMove reverseMove = {0, move.nextBlockIdx, move.prevBlockIdx};
         double actual = proposer.getReverseLogProposalProb(move);
 
         randomGraph.applyBlockMove(move);
         proposer.applyBlockMove(move);
         double expected = proposer.getLogProposalProb(reverseMove);
+
+        randomGraph.applyBlockMove(reverseMove);
+        proposer.applyBlockMove(reverseMove);
+
         EXPECT_FLOAT_EQ(actual, expected);
         if (abs(actual - expected) > 1e-3)
             break;

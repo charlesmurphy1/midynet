@@ -68,29 +68,29 @@ T sumElementsOfMatrix(Matrix<T> mat, T init){
 }
 
 template<typename T>
-static void verifyVectorHasSize(
-    const std::vector<T>& vec,
-    size_t size,
+static void verifyHasSize(
+    const T& actual,
+    const T& expected,
     const std::string& className,
     const std::string& vectorName,
     const std::string& sizeName) {
-    if (vec.size() != size)
+    if (actual != expected)
         throw ConsistencyError(className + ": "+vectorName+" has size "+
-                std::to_string(vec.size())+" while there are "+
-                std::to_string(size)+" "+sizeName+".");
+                std::to_string(actual)+" while there are "+
+                std::to_string(expected)+" "+sizeName+".");
 }
 
 template<typename T>
-static void verifyVectorHasAtLeastSize(
-    const std::vector<T>& vec,
-    size_t size,
+static void verifyHasAtLeastSize(
+    const T& actual,
+    const T& expected,
     const std::string& className,
     const std::string& vectorName,
     const std::string& sizeName) {
-    if (vec.size() < size)
+    if (actual != expected)
         throw ConsistencyError(className + ": "+vectorName+" has size "+
-                std::to_string(vec.size())+" while there are "+
-                std::to_string(size)+" "+sizeName+".");
+                std::to_string(actual)+" while there are "+
+                std::to_string(expected)+" "+sizeName+".");
 }
 
 template<typename T>
@@ -113,6 +113,9 @@ void displayVector(const std::vector<T>& vec, std::string name="v"){
     }
     std::cout << "]" << std::endl;
 }
+
+void displayNeighborhood(const MultiGraph&, const BaseGraph::VertexIndex&);
+void displayGraph(const MultiGraph&graph, std::string name="g");
 
 
 

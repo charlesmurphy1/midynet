@@ -58,19 +58,6 @@ const Matrix<size_t> RandomGraph::computeEdgeMatrix() const {
     return edgeMatrix;
 }
 
-const std::vector<size_t> RandomGraph::computeEdgeCountsInBlocks() const {
-    auto blockCount = getBlockCount();
-    auto edgeMatrix = getEdgeMatrix();
-    std::vector<size_t> edgeCounts(blockCount, 0);
-
-    for (size_t blockIdx = 0; blockIdx < blockCount; ++blockIdx){
-        for (auto ers : edgeMatrix[blockIdx]){
-            edgeCounts[blockIdx] += ers;
-        }
-    }
-    return edgeCounts;
-}
-
 const std::vector<CounterMap<size_t>> RandomGraph::computeDegreeCountsInBlocks() const {
     auto blockCount = getBlockCount();
     auto blocks = getBlocks();

@@ -53,8 +53,8 @@ private:
     const std::vector<BlockIndex> m_blocks;
     const size_t m_blockCount = 1;
     const CounterMap<size_t> m_vertexCounts;
-    Matrix<size_t> m_edgeMatrix = Matrix<size_t>(1, {1, 0});
-    std::vector<size_t> m_edgeCounts = {1, 0};
+    MultiGraph m_edgeMatrix = MultiGraph(1);
+    CounterMap<size_t> m_edgeCounts;
     std::vector<size_t> m_degrees;
     std::vector<CounterMap<size_t>> m_degreeCounts = std::vector<CounterMap<size_t>>(1);
 
@@ -79,14 +79,19 @@ public:
     const std::vector<BlockIndex>& getBlocks() const override { return m_blocks; }
     const size_t& getBlockCount() const override { return m_blockCount; }
     const CounterMap<size_t>& getVertexCountsInBlocks() const override { return m_vertexCounts; }
-    const Matrix<size_t>& getEdgeMatrix() const override { return m_edgeMatrix; }
-    const std::vector<size_t>& getEdgeCountsInBlocks() const override { return m_edgeCounts; }
+    const MultiGraph& getEdgeMatrix() const override { return m_edgeMatrix; }
+    const CounterMap<size_t>& getEdgeCountsInBlocks() const override { return m_edgeCounts; }
     const size_t& getEdgeCount() const override { return m_edgeCountPriorPtr->getState(); }
     const std::vector<size_t>& getDegrees() const override { return m_degrees; }
     const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override {return m_degreeCounts; }
 
     void setGraph(const MultiGraph& graph) override{
         RandomGraph::setGraph(graph);
+
+        m_edgeCountPriorPtr->setState(graph.getTotalEdgeNumber());
+        m_edgeMatrix.setEdgeMultiplicityIdx(0, 0, getEdgeCount());
+        m_edgeCounts.set(0, 2 * getEdgeCount());
+
         m_degrees = graph.getDegrees();
         m_degreeCounts[0].clear();
         for (auto k : m_degrees)
@@ -97,7 +102,11 @@ public:
     }
 
     void sampleGraph() override { setGraph(generateSER(m_size, getEdgeCount())); }
-    void samplePriors() override { m_edgeCountPriorPtr->sample(); m_edgeMatrix[0][0] = getEdgeCount();}
+    void samplePriors() override {
+        m_edgeCountPriorPtr->sample();
+        m_edgeMatrix.setEdgeMultiplicityIdx(0, 0, getEdgeCount());
+        m_edgeCounts.set(0, 2 * getEdgeCount());
+    }
     const double getLogLikelihood() const override { return -logBinomialCoefficient( m_size * (m_size - 1) / 2, getEdgeCount()); }
     const double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint(); }
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override{

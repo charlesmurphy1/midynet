@@ -68,8 +68,8 @@ public:
     const BlockSequence& getBlocks() const override { return m_blockPriorPtr->getState(); }
     const size_t& getBlockCount() const { return m_blockPriorPtr->getBlockCount(); }
     const CounterMap<size_t>& getVertexCountsInBlocks() const { return m_blockPriorPtr->getVertexCountsInBlocks(); }
-    const EdgeMatrix& getEdgeMatrix() const { return m_edgeMatrixPriorPtr->getState(); }
-    const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPriorPtr->getEdgeCountsInBlocks(); }
+    const MultiGraph& getEdgeMatrix() const { return m_edgeMatrixPriorPtr->getState(); }
+    const CounterMap<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPriorPtr->getEdgeCountsInBlocks(); }
     const size_t& getEdgeCount() const { return m_edgeMatrixPriorPtr->getEdgeCount(); }
     virtual const std::vector<size_t>& getDegrees() const { return m_degrees; }
     virtual const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const { return m_degreeCounts; }
@@ -93,8 +93,8 @@ public:
 
     virtual bool isSafe() const override { return m_blockPriorPtr != nullptr and m_edgeMatrixPriorPtr != nullptr; }
 
-    static EdgeMatrix getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
-    static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const EdgeMatrix& expectedEdgeMat);
+    static MultiGraph getEdgeMatrixFromGraph(const MultiGraph&, const BlockSequence&) ;
+    static void checkGraphConsistencyWithEdgeMatrix(const MultiGraph& graph, const BlockSequence& blockSeq, const MultiGraph& expectedEdgeMat);
     virtual void checkSelfConsistency() const override;
     virtual void checkSelfSafety() const override;
     virtual const bool isCompatible(const MultiGraph& graph) const override{

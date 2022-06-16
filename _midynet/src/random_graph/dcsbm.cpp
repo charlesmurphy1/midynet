@@ -24,40 +24,31 @@ void DegreeCorrectedStochasticBlockModelFamily::samplePriors(){
 
 void DegreeCorrectedStochasticBlockModelFamily::sampleGraph(){
     const BlockSequence& blockSeq = getBlocks();
-    const EdgeMatrix& edgeMat = getEdgeMatrix();
+    const MultiGraph& edgeMat = getEdgeMatrix();
     const DegreeSequence& degreeSeq = getDegrees();
-    setGraph( generateDCSBM(blockSeq, edgeMat, degreeSeq) );
+    setGraph( generateDCSBM(blockSeq, edgeMat.getAdjacencyMatrix(), degreeSeq) );
 }
 
 const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{
     double logLikelihood = 0;
 
-    const EdgeMatrix& edgeMat = getEdgeMatrix() ;
-    const vector<size_t>& edgesInBlock = getEdgeCountsInBlocks();
-    auto numBlocks = getBlockCount();
-    for (size_t r = 0; r < numBlocks; r++) {
-        logLikelihood += logDoubleFactorial(edgeMat[r][r]);
+    const MultiGraph& edgeMat = getEdgeMatrix() ;
+    const CounterMap<size_t>& edgesInBlock = getEdgeCountsInBlocks();
+    for (auto r : edgeMat){
         logLikelihood -= logFactorial(edgesInBlock[r]);
-        for (size_t s = r + 1; s < numBlocks; s++) {
-            logLikelihood += logFactorial(edgeMat[r][s]);
+        for (auto s : edgeMat.getNeighboursOfIdx(r)){
+            if (r <= s.vertexIndex)
+                logLikelihood += (r == s.vertexIndex) ? logDoubleFactorial(2 * s.label) : logFactorial(s.label) ;
         }
     }
 
     const DegreeSequence& degreeSeq = getDegrees();
     const MultiGraph& graph = getGraph();
-    size_t neighborIdx, edgeMult;
-    for (auto idx : graph){
-        logLikelihood += logFactorial(degreeSeq[idx]);
-        for (auto neighbor : graph.getNeighboursOfIdx(idx)){
-            neighborIdx = neighbor.vertexIndex;
-            edgeMult = neighbor.label;
-            if (idx > neighborIdx){
-                continue;
-            }else if (idx == neighborIdx){
-                logLikelihood -= logDoubleFactorial(2 * edgeMult);
-            }else{
-                logLikelihood -= logFactorial(edgeMult);
-            }
+    for (auto v : graph){
+        logLikelihood += logFactorial(degreeSeq[v]);
+        for (auto n : graph.getNeighboursOfIdx(v)){
+            if (v <= n.vertexIndex)
+                logLikelihood -= (v == n.vertexIndex) ? logDoubleFactorial(2 * n.label) : logFactorial(n.label);
         }
     }
 
@@ -72,8 +63,8 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogPrior() const {
 
 const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const {
     const BlockSequence& blockSeq = getBlocks();
-    const EdgeMatrix& edgeMat = getEdgeMatrix();
-    const vector<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
+    const MultiGraph& edgeMat = getEdgeMatrix();
+    const CounterMap<size_t>& edgeCountsInBlocks = getEdgeCountsInBlocks();
     const CounterMap<size_t>& vertexCountsInBlocks = getVertexCountsInBlocks();
     double logLikelihoodRatioTerm = 0;
 
@@ -88,19 +79,17 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdg
     }
 
     for (auto diff : diffEdgeMatMap){
-        auto bu = diff.first.first, bv = diff.first.second;
-        diffEdgeCountsInBlocksMap.increment(bu, diff.second);
-        diffEdgeCountsInBlocksMap.increment(bv, diff.second);
-        if (bu == bv){
-            logLikelihoodRatioTerm += logDoubleFactorial(edgeMat[bu][bv] + 2 * diff.second) - logDoubleFactorial(edgeMat[bu][bv]);
-        }
-        else{
-            logLikelihoodRatioTerm += logFactorial(edgeMat[bu][bv] + diff.second) - logFactorial(edgeMat[bu][bv]);
-        }
+        auto r = diff.first.first, s = diff.first.second;
+        auto ers = edgeMat.getEdgeMultiplicityIdx(r, s);
+        diffEdgeCountsInBlocksMap.increment(r, diff.second);
+        diffEdgeCountsInBlocksMap.increment(s, diff.second);
+        logLikelihoodRatioTerm += (r == s)? logDoubleFactorial(2 * ers + 2 * diff.second) : logFactorial(ers + diff.second);
+        logLikelihoodRatioTerm -= (r == s)? logDoubleFactorial(2 * ers) : logFactorial(ers);
     }
 
     for (auto diff : diffEdgeCountsInBlocksMap){
-        logLikelihoodRatioTerm -= logFactorial(edgeCountsInBlocks[diff.first] + diff.second) - logFactorial(edgeCountsInBlocks[diff.first]) ;
+        logLikelihoodRatioTerm -= logFactorial(edgeCountsInBlocks[diff.first] + diff.second) ;
+        logLikelihoodRatioTerm -= -logFactorial(edgeCountsInBlocks[diff.first]);
     }
     return logLikelihoodRatioTerm;
 };
@@ -125,12 +114,8 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioAdj
     for (auto diff : diffAdjMatMap){
         auto u = diff.first.first, v = diff.first.second;
         auto edgeMult = m_graph.getEdgeMultiplicityIdx(u, v);
-        if (u == v){
-            logLikelihoodRatioTerm -= logDoubleFactorial(2 * (edgeMult + diff.second)) - logDoubleFactorial(2 * edgeMult);
-        }
-        else{
-            logLikelihoodRatioTerm -= logFactorial(edgeMult + diff.second) - logFactorial(edgeMult);
-        }
+        logLikelihoodRatioTerm -= (u == v) ? logDoubleFactorial(2 * (edgeMult + diff.second)) : logFactorial(edgeMult + diff.second);
+        logLikelihoodRatioTerm += (u == v) ? logDoubleFactorial(2 * edgeMult) : logFactorial(edgeMult);
     }
 
     const DegreeSequence& degreeSeq = getDegrees();
@@ -146,37 +131,35 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioFro
 }
 
 const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
-    BlockSequence blockSeq = getBlocks();
-    EdgeMatrix edgeMat = getEdgeMatrix();
-    vector<size_t> edgesInBlock = getEdgeCountsInBlocks();
+    const BlockSequence& blockSeq = getBlocks();
+    const MultiGraph& edgeMat = getEdgeMatrix();
+    const CounterMap<size_t>& edgesInBlock = getEdgeCountsInBlocks();
     double logLikelihoodRatio = 0;
+
+    if (move.prevBlockIdx == move.nextBlockIdx)
+        return 0;
 
     IntMap<pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
     IntMap<BlockIndex> diffEdgesInBlockMap;
     getDiffEdgeMatMapFromBlockMove(move, diffEdgeMatMap);
     for (auto diff : diffEdgeMatMap){
         size_t ers;
-        auto bu = diff.first.first, bv = diff.first.second;
+        auto r = diff.first.first, s = diff.first.second;
         auto dErs = diff.second;
-        diffEdgesInBlockMap.increment(bu, dErs);
-        diffEdgesInBlockMap.increment(bv, dErs);
+        diffEdgesInBlockMap.increment(r, dErs);
+        diffEdgesInBlockMap.increment(s, dErs);
 
-        if (bu == getBlockCount() or bv == getBlockCount()) ers = 0;
-        else ers = edgeMat[bu][bv];
-        if (bu == bv){
-            logLikelihoodRatio += logDoubleFactorial(ers + 2 * dErs) - logDoubleFactorial(ers);
-        }
-        else{
-            logLikelihoodRatio += logFactorial(ers + dErs) - logFactorial(ers);
-        }
+        ers = (r < edgeMat.getSize() and s < edgeMat.getSize()) ? edgeMat.getEdgeMultiplicityIdx(r, s) : 0;
+        logLikelihoodRatio += (r == s) ? logDoubleFactorial(2 * ers + 2 * dErs) : logFactorial(ers + dErs);
+        logLikelihoodRatio -= (r == s) ? logDoubleFactorial(2 * ers) : logFactorial(ers);
     }
 
     for (auto diff : diffEdgesInBlockMap){
             size_t er = 0;
-            auto bu = diff.first;
+            auto r = diff.first;
             auto dEr = diff.second;
-            if (bu == getBlockCount()) er = 0;
-            else er = edgesInBlock[bu];
+            if (r == getBlockCount()) er = 0;
+            else er = edgesInBlock[r];
             logLikelihoodRatio -= logFactorial(er + dEr) - logFactorial(er);
     }
     return logLikelihoodRatio;

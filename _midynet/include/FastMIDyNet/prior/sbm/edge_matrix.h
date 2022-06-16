@@ -8,15 +8,16 @@
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/utility/maps.hpp"
 
 
 namespace FastMIDyNet{
 
-class EdgeMatrixPrior: public Prior< EdgeMatrix >{
+class EdgeMatrixPrior: public Prior< MultiGraph >{
     protected:
         EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
         BlockPrior* m_blockPriorPtr = nullptr;
-        std::vector<size_t> m_edgeCountsInBlocks;
+        CounterMap<size_t> m_edgeCountsInBlocks;
         const MultiGraph* m_graphPtr;
 
         void _applyGraphMove(const GraphMove& move) override {
@@ -25,8 +26,6 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
             applyGraphMoveToState(move);
         }
         void _applyBlockMove(const BlockMove& move) override {
-            if (move.nextBlockIdx == m_state.size())
-                onBlockCreation(move);
             m_edgeCountPriorPtr->applyBlockMove(move);
             m_blockPriorPtr->applyBlockMove(move);
             applyBlockMoveToState(move);
@@ -39,8 +38,6 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override{
             return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
         }
-
-        void onBlockCreation(const BlockMove&) override;
 
         void applyGraphMoveToState(const GraphMove&);
         void applyBlockMoveToState(const BlockMove&);
@@ -65,14 +62,17 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
         void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior) { m_edgeCountPriorPtr = &edgeCountPrior; m_edgeCountPriorPtr->isRoot(false);}
         const BlockPrior& getBlockPrior() const{ return *m_blockPriorPtr; }
         BlockPrior& getBlockPriorRef() const{ return *m_blockPriorPtr; }
-        void setBlockPrior(BlockPrior& blockPrior) { m_blockPriorPtr = &blockPrior;  m_blockPriorPtr->isRoot(false);}
+        void setBlockPrior(BlockPrior& blockPrior) {
+            m_blockPriorPtr = &blockPrior;
+            m_blockPriorPtr->isRoot(false);
+        }
 
         void setGraph(const MultiGraph& graph);
         const MultiGraph& getGraph() { return *m_graphPtr; }
-        void setState(const EdgeMatrix&) override;
+        void setState(const MultiGraph&) override;
 
         const size_t& getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }
-        const std::vector<size_t>& getEdgeCountsInBlocks() const { return m_edgeCountsInBlocks; }
+        const CounterMap<size_t>& getEdgeCountsInBlocks() const { return m_edgeCountsInBlocks; }
 
 
         void samplePriors() override { m_edgeCountPriorPtr->sample(); m_blockPriorPtr->sample(); }
@@ -84,8 +84,6 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
 
         virtual const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move); }
         virtual const double getLogPriorRatioFromBlockMove(const BlockMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromBlockMove(move) + m_blockPriorPtr->getLogJointRatioFromBlockMove(move); }
-
-
 
 
         bool isSafe() const override {
@@ -112,19 +110,16 @@ class EdgeMatrixPrior: public Prior< EdgeMatrix >{
 
 class EdgeMatrixDeltaPrior: public EdgeMatrixPrior{
 public:
-    Matrix<size_t> m_edgeMatrix;
+    MultiGraph m_edgeMatrix;
     EdgeCountDeltaPrior m_edgeCountDeltaPrior;
 
 public:
     EdgeMatrixDeltaPrior(){}
-    EdgeMatrixDeltaPrior(const Matrix<size_t>& edgeMatrix) {
-        size_t ec = 0;
-        for (auto e : edgeMatrix) for (auto ee : e)
-            ec += ee;
+    EdgeMatrixDeltaPrior(const MultiGraph& edgeMatrix) {
         setState(edgeMatrix);
-        m_edgeCountDeltaPrior.setState(ec / 2);
+        m_edgeCountDeltaPrior.setState(edgeMatrix.getTotalEdgeNumber());
     }
-    EdgeMatrixDeltaPrior(const Matrix<size_t>& edgeMatrix, EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
+    EdgeMatrixDeltaPrior(const MultiGraph& edgeMatrix, EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
         EdgeMatrixPrior(edgeCountPrior, blockPrior){ setState(edgeMatrix); }
 
     EdgeMatrixDeltaPrior(const EdgeMatrixDeltaPrior& edgeMatrixDeltaPrior):
@@ -137,7 +132,7 @@ public:
         return *this;
     }
 
-    void setState(const Matrix<size_t>& edgeMatrix){
+    void setState(const MultiGraph& edgeMatrix) {
         m_edgeMatrix = edgeMatrix;
         m_state = edgeMatrix;
     }
@@ -154,7 +149,7 @@ public:
 
     void checkSelfConsistency() const override { };
     void checkSelfSafety() const override {
-        if (m_edgeMatrix.size() == 0)
+        if (m_edgeMatrix.getSize() == 0)
             throw SafetyError("EdgeMatrixDeltaPrior: unsafe prior since `m_edgeMatrix` is empty.");
     }
 

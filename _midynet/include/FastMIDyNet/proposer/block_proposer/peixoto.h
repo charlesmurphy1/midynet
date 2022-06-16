@@ -14,8 +14,9 @@ namespace FastMIDyNet {
 
 
 class BlockPeixotoProposer: public BlockProposer {
-    const EdgeMatrix* m_edgeMatrixPtr = NULL;
-    const std::vector<size_t>* m_edgeCountsPtr = NULL;
+    const MultiGraph* m_edgeMatrixPtr = NULL;
+    const CounterMap<size_t>* m_edgeCountsPtr = NULL;
+    const std::vector<size_t>* m_degreesPtr = NULL;
     const MultiGraph* m_graphPtr = NULL;
     const double m_blockCreationProbability;
     const double m_shift;
@@ -37,6 +38,12 @@ class BlockPeixotoProposer: public BlockProposer {
         const double getLogProposalProbRatio(const BlockMove& move) const override{
             return getReverseLogProposalProb(move) - getLogProposalProb(move);
         };
+        const double getNewBlockProb() const {
+            return m_blockCreationProbability;
+        }
+        const double getShift() const {
+            return m_shift;
+        }
         void checkSelfSafety() const override {
             if (m_blocksPtr == nullptr)
                 throw SafetyError("BlockPeixotoProposer: unsafe proposer since `m_blocksPtr` is NULL.");

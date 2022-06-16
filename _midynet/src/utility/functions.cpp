@@ -133,4 +133,18 @@ double clip(double x, double min, double max){
 
 double clipProb(double p, double epsilon){ return clip(p, epsilon, 1 - epsilon); }
 
+void displayNeighborhood(const MultiGraph&graph, const BaseGraph::VertexIndex& v){
+    std::cout << "vertex " << v << ": ";
+    for ( auto neighbor : graph.getNeighboursOfIdx(v))
+        std::cout << "(" << neighbor.vertexIndex << ", " << neighbor.label << ") ";
+    std::cout << std::endl;
+}
+void displayGraph(const MultiGraph&graph, std::string name){
+    std::cout << name << ":" << std::endl;
+    for ( auto v : graph){
+        std::cout << "\t";
+        displayNeighborhood(graph, v);
+    }
+}
+
 } // namespace FastMIDyNet

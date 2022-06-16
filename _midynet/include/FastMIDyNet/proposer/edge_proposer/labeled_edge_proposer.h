@@ -25,7 +25,7 @@ public:
             m_labelSampler(labelPairShift){ }
     virtual ~LabeledEdgeProposer(){ }
     virtual void setUp( const RandomGraph& randomGraph ) {
-        clear(); 
+        clear();
         m_labelSampler.setUp(randomGraph);
         setUpFromGraph(randomGraph.getGraph());
     }

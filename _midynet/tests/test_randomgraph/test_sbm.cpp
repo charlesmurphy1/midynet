@@ -224,6 +224,7 @@ TEST_F(TestStochasticBlockModelFamily, getLogLikelihoodRatio_forIdentityBlockMov
     FastMIDyNet::BlockIndex nextBlockIdx = prevBlockIdx;
 
     FastMIDyNet::BlockMove move = {vertexIdx, prevBlockIdx, nextBlockIdx, 0};
+
     EXPECT_NEAR(randomGraph.getLogLikelihoodRatioFromBlockMove(move), 0, 1E-6);
 }
 

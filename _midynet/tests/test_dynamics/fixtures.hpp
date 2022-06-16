@@ -19,8 +19,8 @@ class DummyRandomGraph: public RandomGraph{
     std::vector<size_t> m_blocks;
     size_t m_blockCount = 1;
     CounterMap<size_t> m_vertexCounts;
-    Matrix<size_t> m_edgeMatrix;
-    std::vector<size_t> m_edgeCounts;
+    MultiGraph m_edgeMatrix;
+    CounterMap<size_t> m_edgeCounts;
     size_t m_edgeCount;
     std::vector<size_t> m_degrees;
     std::vector<CounterMap<size_t>> m_degreeCounts;
@@ -31,8 +31,8 @@ public:
     void setGraph(const MultiGraph& graph) override{
         m_graph = graph;
         m_edgeCount = graph.getTotalEdgeNumber();
-        m_edgeMatrix = Matrix<size_t>(1, {1, 2 * m_edgeCount});
-        m_edgeCounts = std::vector<size_t>(1, 2 * m_edgeCount);
+        m_edgeMatrix = MultiGraph(1); m_edgeMatrix.setEdgeMultiplicityIdx(0, 0, m_edgeCount);
+        m_edgeCounts.set(0, 2 * m_edgeCount);
         m_degreeCounts = computeDegreeCountsInBlocks();
         m_degrees = graph.getDegrees();
     }
@@ -40,8 +40,8 @@ public:
     const std::vector<BlockIndex>& getBlocks() const override { return m_blocks; }
     const size_t& getBlockCount() const override { return m_blockCount; }
     const CounterMap<size_t>& getVertexCountsInBlocks() const override { return m_vertexCounts; }
-    const Matrix<size_t>& getEdgeMatrix() const override { return m_edgeMatrix; }
-    const std::vector<size_t>& getEdgeCountsInBlocks() const override { return m_edgeCounts; }
+    const MultiGraph& getEdgeMatrix() const override { return m_edgeMatrix; }
+    const CounterMap<size_t>& getEdgeCountsInBlocks() const override { return m_edgeCounts; }
     const size_t& getEdgeCount() const override { return m_edgeCount; }
     const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override { return m_degreeCounts; }
     const std::vector<size_t>& getDegrees() const override { return m_degrees; }
