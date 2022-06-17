@@ -26,9 +26,6 @@ public:
     /* Abstract methods */
     void setBlockPrior(BlockPrior& blockPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setBlockPrior, blockPrior); }
     void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setEdgeMatrixPrior, edgeMatrixPrior); }
-    const DegreeCountsMap& getDegreeCountsInBlocks() const {
-        PYBIND11_OVERRIDE(const DegreeCountsMap&, BaseClass, getDegreeCountsInBlocks, );
-    }
     const std::vector<size_t>& getDegrees() const {
         PYBIND11_OVERRIDE(const std::vector<size_t>&, BaseClass, getDegrees, );
     }

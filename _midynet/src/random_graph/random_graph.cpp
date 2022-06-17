@@ -58,17 +58,17 @@ void RandomGraph::_applyGraphMove(const GraphMove& move){
 //     return edgeMatrix;
 // }
 
-const DegreeCountsMap RandomGraph::computeDegreeCountsInBlocks() const {
-    auto blockCount = getBlockCount();
-    auto blocks = getBlocks();
-    auto edgeMatrix = getEdgeMatrix();
-    DegreeCountsMap degreeCounts;
-
-    for(size_t idx: m_graph)
-        degreeCounts.increment({blocks[idx], m_graph.getDegreeOfIdx(idx)});
-
-    return degreeCounts;
-
-}
+// const DegreeCountsMap RandomGraph::computeDegreeCountsInBlocks() const {
+//     auto blockCount = getBlockCount();
+//     auto blocks = getBlocks();
+//     auto edgeMatrix = getEdgeMatrix();
+//     DegreeCountsMap degreeCounts;
+//
+//     for(size_t idx: m_graph)
+//         degreeCounts.increment({blocks[idx], m_graph.getDegreeOfIdx(idx)});
+//
+//     return degreeCounts;
+//
+// }
 
 }

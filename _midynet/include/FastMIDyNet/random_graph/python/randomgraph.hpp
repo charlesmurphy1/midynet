@@ -52,9 +52,6 @@ public:
     const std::vector<size_t>& getDegrees() const override  {
         PYBIND11_OVERRIDE_PURE(const std::vector<size_t>&, BaseClass, getDegrees, );
     }
-    const DegreeCountsMap& getDegreeCountsInBlocks() const override  {
-        PYBIND11_OVERRIDE_PURE(const DegreeCountsMap&, BaseClass, getDegreeCountsInBlocks, );
-    }
 
     /* Abstract methods */
     void setGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setGraph, graph); }

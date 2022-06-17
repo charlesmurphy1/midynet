@@ -20,7 +20,6 @@ protected:
     BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
     std::vector<size_t> m_degrees;
-    DegreeCountsMap m_degreeCounts;
     void samplePriors () ;
 
 
@@ -42,7 +41,6 @@ public:
     void setGraph(const MultiGraph& graph) override{
         m_graph = graph;
         m_edgeMatrixPriorPtr->setGraph(m_graph);
-        m_degreeCounts = computeDegreeCountsInBlocks();
         m_degrees = m_graph.getDegrees();
     }
 
@@ -72,7 +70,6 @@ public:
     const CounterMap<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPriorPtr->getEdgeCountsInBlocks(); }
     const size_t& getEdgeCount() const { return m_edgeMatrixPriorPtr->getEdgeCount(); }
     virtual const std::vector<size_t>& getDegrees() const { return m_degrees; }
-    virtual const DegreeCountsMap& getDegreeCountsInBlocks() const { return m_degreeCounts; }
 
     void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BlockIndex, BlockIndex>>&) const;
     void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>>&) const;
