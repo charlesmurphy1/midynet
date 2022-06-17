@@ -51,12 +51,6 @@ public:
 
     virtual const bool isCompatible(const MultiGraph& graph) const { return graph.getSize() == m_size; }
 
-    // const size_t computeBlockCount() const ;
-    // const CounterMap<size_t> computeVertexCountsInBlocks() const ;
-    // const Matrix<size_t> computeEdgeMatrix() const ;
-    // const DegreeCountsMap computeDegreeCountsInBlocks() const ;
-
-
     const MultiGraph& sample() {
         samplePriors();
         sampleGraph();
