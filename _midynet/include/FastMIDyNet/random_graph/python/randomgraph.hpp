@@ -52,8 +52,8 @@ public:
     const std::vector<size_t>& getDegrees() const override  {
         PYBIND11_OVERRIDE_PURE(const std::vector<size_t>&, BaseClass, getDegrees, );
     }
-    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override  {
-        PYBIND11_OVERRIDE_PURE(const std::vector<CounterMap<size_t>>&, BaseClass, getDegreeCountsInBlocks, );
+    const DegreeCountsMap& getDegreeCountsInBlocks() const override  {
+        PYBIND11_OVERRIDE_PURE(const DegreeCountsMap&, BaseClass, getDegreeCountsInBlocks, );
     }
 
     /* Abstract methods */

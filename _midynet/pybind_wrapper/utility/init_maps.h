@@ -24,7 +24,7 @@ py::class_< Map<KeyType, ValueType> > declareMap(py::module& m, std::string pyNa
         .def("is_empty", &Map<KeyType, ValueType>::isEmpty, py::arg("key"))
         .def("erase", &Map<KeyType, ValueType>::erase, py::arg("key"))
         .def("clear", &Map<KeyType, ValueType>::clear)
-        .def("display", &Map<KeyType, ValueType>::display)
+        // .def("display", &Map<KeyType, ValueType>::display)
         .def("get_keys", &Map<KeyType, ValueType>::getKeys)
         .def("get_values", &Map<KeyType, ValueType>::getValues)
         ;
@@ -60,6 +60,9 @@ void initMaps(py::module& m){
 
     declareMap<size_t, size_t>(m, "UnIntKeyedUnIntValuedMap");
     declareCounterMap<size_t>(m, "UnIntKeyedCounterMap");
+
+    declareMap<std::pair<size_t, size_t>, size_t>(m, "UnIntPairKeyedUnIntValuedMap");
+    declareCounterMap<std::pair<size_t, size_t>>(m, "UnIntPairKeyedCounterMap");
 }
 
 }

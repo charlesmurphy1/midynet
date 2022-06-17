@@ -25,7 +25,7 @@ class DummyRandomGraph: public RandomGraph{
     CounterMap<size_t> m_edgeCounts;
     size_t m_edgeCount;
     std::vector<size_t> m_degrees;
-    std::vector<CounterMap<size_t>> m_degreeCounts;
+    DegreeCountsMap m_degreeCounts;
 
 public:
     using RandomGraph::RandomGraph;
@@ -46,7 +46,7 @@ public:
     const MultiGraph& getEdgeMatrix() const override { return m_edgeMatrix; }
     const CounterMap<size_t>& getEdgeCountsInBlocks() const override { return m_edgeCounts; }
     const size_t& getEdgeCount() const override { return m_edgeCount; }
-    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override { return m_degreeCounts; }
+    const DegreeCountsMap& getDegreeCountsInBlocks() const override { return m_degreeCounts; }
     const std::vector<size_t>& getDegrees() const override { return m_degrees; }
 
     void sampleGraph() override { };

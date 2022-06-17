@@ -2,6 +2,7 @@
 #define FAST_MIDYNET_DEGREE_H
 
 #include <map>
+#include "FastMIDyNet/types.h"
 #include "FastMIDyNet/prior/prior.hpp"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/proposer/movetypes.h"
@@ -9,8 +10,6 @@
 
 
 namespace FastMIDyNet{
-
-typedef std::vector<CounterMap<size_t>> DegreeCountsMap;
 
 class DegreePrior: public Prior< DegreeSequence >{
 protected:
@@ -29,7 +28,7 @@ protected:
         return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
     }
 
-    void onBlockCreation(const BlockMove&) override;
+    // void onBlockCreation(const BlockMove&) override;
 
     void applyGraphMoveToState(const GraphMove&);
     void applyGraphMoveToDegreeCounts(const GraphMove&);
@@ -87,7 +86,7 @@ public:
         m_edgeMatrixPriorPtr->computationFinished();
     }
     static void checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence&, size_t);
-    static void checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(const DegreeSequence&, const BlockSequence&, const std::vector<CounterMap<size_t>>&);
+    static void checkDegreeSequenceConsistencyWithDegreeCountsInBlocks(const DegreeSequence&, const BlockSequence&, const DegreeCountsMap&);
 
     bool isSafe() const override {
         return (m_blockPriorPtr != nullptr) and (m_blockPriorPtr->isSafe())

@@ -56,8 +56,7 @@ private:
     MultiGraph m_edgeMatrix = MultiGraph(1);
     CounterMap<size_t> m_edgeCounts;
     std::vector<size_t> m_degrees;
-    std::vector<CounterMap<size_t>> m_degreeCounts = std::vector<CounterMap<size_t>>(1);
-
+    DegreeCountsMap m_degreeCounts;
     EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
 protected:
     void _applyGraphMove(const GraphMove& move) override {
@@ -83,7 +82,7 @@ public:
     const CounterMap<size_t>& getEdgeCountsInBlocks() const override { return m_edgeCounts; }
     const size_t& getEdgeCount() const override { return m_edgeCountPriorPtr->getState(); }
     const std::vector<size_t>& getDegrees() const override { return m_degrees; }
-    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override {return m_degreeCounts; }
+    const DegreeCountsMap& getDegreeCountsInBlocks() const override {return m_degreeCounts; }
 
     void setGraph(const MultiGraph& graph) override{
         RandomGraph::setGraph(graph);
@@ -93,9 +92,9 @@ public:
         m_edgeCounts.set(0, 2 * getEdgeCount());
 
         m_degrees = graph.getDegrees();
-        m_degreeCounts[0].clear();
+        m_degreeCounts.clear();
         for (auto k : m_degrees)
-            m_degreeCounts[0].increment(k);
+            m_degreeCounts.increment({0, k});
         #if DEBUG
         checkSelfConsistency();
         #endif

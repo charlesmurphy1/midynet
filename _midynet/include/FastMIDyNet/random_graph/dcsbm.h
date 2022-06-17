@@ -59,7 +59,7 @@ public:
 
 
     const DegreeSequence& getDegrees() const override { return m_degreePriorPtr->getState(); }
-    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override { return m_degreePriorPtr->getDegreeCountsInBlocks(); }
+    const DegreeCountsMap& getDegreeCountsInBlocks() const override { return m_degreePriorPtr->getDegreeCountsInBlocks(); }
 
     const double getLogLikelihood() const override ;
     const double getLogPrior() const override ;

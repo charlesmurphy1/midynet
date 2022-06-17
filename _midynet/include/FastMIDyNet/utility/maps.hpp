@@ -35,20 +35,20 @@ public:
 
     const ValueType& operator[](const KeyType& key) const { return get(key); }
     bool operator==(const Map<KeyType, ValueType> rhs){
-        for( auto k : *this){
+        for( const auto& k : m_map){
             if (rhs.isEmpty(k.first) or rhs.get(k.first) != k.second) return false;
         }
         return true;
     }
     const std::set<KeyType> getKeys() const{
         std::set<KeyType> keys;
-        for (auto k: m_map)
+        for (const auto& k: m_map)
             keys.insert(k.first);
         return keys;
     }
-    const std::list<KeyType> getValues() const{
-        std::list<KeyType> values;
-        for (auto k: m_map)
+    const std::list<ValueType> getValues() const{
+        std::list<ValueType> values;
+        for (const auto& k: m_map)
             values.push_back(k.second);
         return values;
     }
@@ -68,15 +68,17 @@ public:
     void erase(KeyType key){ if (not isEmpty(key)) m_map.erase(key); }
     void clear(){ m_map.clear(); }
     typename std::map<KeyType, ValueType>::iterator begin() { return m_map.begin(); }
+    typename std::map<KeyType, ValueType>::const_iterator begin() const { return m_map.begin(); }
     typename std::map<KeyType, ValueType>::iterator end() { return m_map.end(); }
+    typename std::map<KeyType, ValueType>::const_iterator end() const { return m_map.end(); }
 
-    std::string display() const{
-        std::stringstream ss;
-        for (auto k : m_map){
-            ss << "(" << std::to_string(k.first) << " -> " << std::to_string(k.second) << ") ";
-        }
-        return ss.str();
-    }
+    // std::string display() const{
+    //     std::stringstream ss;
+    //     for (auto k : m_map){
+    //         ss << "(" << k.first << " -> " << k.second << ") ";
+    //     }
+    //     return ss.str();
+    // }
 
 protected:
     std::map<KeyType, ValueType> m_map;
@@ -123,10 +125,10 @@ public:
 
 };
 
-template < typename T1, typename T2 >
-class OrderedPair: public std::pair<T1, T2>{
+template < typename T >
+class OrderedPair: public std::pair<T, T>{
 public:
-    OrderedPair(T1 first, T2 second):std::pair<T1, T2>(first, second){
+    OrderedPair(T first, T second):std::pair<T, T>(first, second){
         if (first > second){
             auto temp = this->first ;
             this->first = this->second ;

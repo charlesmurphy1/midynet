@@ -70,7 +70,7 @@ public:
     void setA(double a) { m_a = a; }
     const double getNu() const {
         if (m_normalizeCoupling)
-            return m_nu / m_randomGraphPtr->getAverageDegree();
+            return m_nu / (2 * m_randomGraphPtr->getEdgeCount() / m_randomGraphPtr->getSize());
         else
             return m_nu;
 

@@ -58,17 +58,14 @@ void RandomGraph::_applyGraphMove(const GraphMove& move){
 //     return edgeMatrix;
 // }
 
-const std::vector<CounterMap<size_t>> RandomGraph::computeDegreeCountsInBlocks() const {
+const DegreeCountsMap RandomGraph::computeDegreeCountsInBlocks() const {
     auto blockCount = getBlockCount();
     auto blocks = getBlocks();
     auto edgeMatrix = getEdgeMatrix();
-    std::vector<CounterMap<size_t>> degreeCounts(blockCount);
+    DegreeCountsMap degreeCounts;
 
-    for(size_t idx: m_graph){
-        size_t degree = m_graph.getDegreeOfIdx(idx);
-        BlockIndex block = blocks[idx];
-        degreeCounts[block].increment(degree);
-    }
+    for(size_t idx: m_graph)
+        degreeCounts.increment({blocks[idx], m_graph.getDegreeOfIdx(idx)});
 
     return degreeCounts;
 

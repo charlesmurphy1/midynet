@@ -26,8 +26,8 @@ public:
     }
 
     /* Overloaded abstract methods */
-    const std::vector<CounterMap<size_t>>& getDegreeCountsInBlocks() const override {
-        PYBIND11_OVERRIDE(const std::vector<CounterMap<size_t>>&, DegreePriorBaseClass, getDegreeCountsInBlocks, );
+    const DegreeCountsMap& getDegreeCountsInBlocks() const override {
+        PYBIND11_OVERRIDE(const DegreeCountsMap&, DegreePriorBaseClass, getDegreeCountsInBlocks, );
     }
 };
 

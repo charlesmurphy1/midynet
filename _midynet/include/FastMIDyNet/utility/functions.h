@@ -117,7 +117,12 @@ void displayVector(const std::vector<T>& vec, std::string name="v"){
 void displayNeighborhood(const MultiGraph&, const BaseGraph::VertexIndex&);
 void displayGraph(const MultiGraph&graph, std::string name="g");
 
-
+template<typename T1, typename T2>
+std::string pairToString(const std::pair<T1, T2>& p){
+    std::stringstream ss;
+    ss << "<" << p.first << ", " << p.second << ">" << std::endl;
+    return ss.str();
+}
 
 
 } // namespace FastMIDyNet
