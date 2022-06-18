@@ -3,7 +3,7 @@
 
 
 #include <map>
-#include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/proposer/sampler/edge_sampler.h"
 #include "FastMIDyNet/proposer/sampler/vertex_sampler.h"
 

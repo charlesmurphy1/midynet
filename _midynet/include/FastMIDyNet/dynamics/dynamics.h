@@ -11,7 +11,7 @@
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/rv.hpp"
 #include "FastMIDyNet/exceptions.h"
-#include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/dynamics/types.h"
 #include "FastMIDyNet/utility/functions.h"
 

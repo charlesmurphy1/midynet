@@ -31,41 +31,37 @@ struct GraphMove{
     }
 };
 
-struct BlockMove{
-    BlockMove(BaseGraph::VertexIndex vertexIdx, BlockIndex prevBlockIdx, BlockIndex nextBlockIdx, int addedBlocks=0):
-        vertexIdx(vertexIdx), prevBlockIdx(prevBlockIdx), nextBlockIdx(nextBlockIdx), addedBlocks(addedBlocks){ }
-    BaseGraph::VertexIndex vertexIdx;
-    BlockIndex prevBlockIdx;
-    BlockIndex nextBlockIdx;
-    int addedBlocks;
+template <typename Label>
+struct LabelMove{
+    LabelMove(BaseGraph::VertexIndex vertexIndex, Label prevLabel, Label nextLabel):
+        vertexIndex(vertexIndex), prevLabel(prevLabel), nextLabel(nextLabel){ }
+    BaseGraph::VertexIndex vertexIndex;
+    Label prevLabel;
+    Label nextLabel;
 
     void display()const{
-        std::cout << "vertex " << vertexIdx << ": " << prevBlockIdx << " -> " << nextBlockIdx;
-        if (addedBlocks == 0)
-            std::cout << "(no block addded)";
-        else if (addedBlocks == 1)
-            std::cout << "(new block created)";
-        else if (addedBlocks == -1)
-            std::cout << "(block destroyed)";
+        std::cout << "vertex " << vertexIndex << ": " << prevLabel << " -> " << nextLabel;
         std::cout  << std::endl;
         }
 };
 
-struct NestedBlockMove{
-    NestedBlockMove(std::vector<BlockMove> blockMoves, int addedLayers=0):
-        blockMoves(blockMoves), addedLayers(addedLayers){ }
-    std::vector<BlockMove> blockMoves;
-    int addedLayers;
+using BlockMove = LabelMove<BlockIndex>;
 
-    std::vector<BlockMove>::iterator begin() { return blockMoves.begin(); }
-    std::vector<BlockMove>::iterator end() { return blockMoves.end(); }
-    const BlockMove& operator[](size_t layerIdx) const { return blockMoves[layerIdx]; }
-
-    size_t size() const { return blockMoves.size(); }
-    void display()const{
-        for(auto m : blockMoves) m.display();
-    }
-};
+// struct NestedBlockMove{
+//     NestedBlockMove(std::vector<BlockMove> blockMoves, int addedLayers=0):
+//         blockMoves(blockMoves), addedLayers(addedLayers){ }
+//     std::vector<BlockMove> blockMoves;
+//     int addedLayers;
+//
+//     std::vector<BlockMove>::iterator begin() { return blockMoves.begin(); }
+//     std::vector<BlockMove>::iterator end() { return blockMoves.end(); }
+//     const BlockMove& operator[](size_t layerIdx) const { return blockMoves[layerIdx]; }
+//
+//     size_t size() const { return blockMoves.size(); }
+//     void display()const{
+//         for(auto m : blockMoves) m.display();
+//     }
+// };
 
 }
 

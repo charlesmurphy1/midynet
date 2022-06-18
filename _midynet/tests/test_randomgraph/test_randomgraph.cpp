@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <iostream>
 
-#include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/types.h"
 #include "BaseGraph/types.h"
 #include "fixtures.hpp"

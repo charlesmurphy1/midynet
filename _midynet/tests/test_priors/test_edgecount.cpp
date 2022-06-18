@@ -78,10 +78,10 @@ TEST_F(TestEdgeCountPrior, getLogJointRatio_blockMove_return0) {
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
     FastMIDyNet::BlockMove move = {0, 0, 0};
 
-    EXPECT_EQ(prior.getLogJointRatioFromBlockMove(move), 0);
+    EXPECT_EQ(prior.getLogJointRatioFromLabelMove(move), 0);
 }
 
-TEST_F(TestEdgeCountPrior, applyMove_addEdges_edgeNumberIncrements) {
+TEST_F(TestEdgeCountPrior, applyGraphMove_addEdges_edgeNumberIncrements) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
 
@@ -89,7 +89,7 @@ TEST_F(TestEdgeCountPrior, applyMove_addEdges_edgeNumberIncrements) {
     EXPECT_EQ(prior.getState(), 7);
 }
 
-TEST_F(TestEdgeCountPrior, applyMove_removeEdges_edgeNumberDecrements) {
+TEST_F(TestEdgeCountPrior, applyGraphMove_removeEdges_edgeNumberDecrements) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
 

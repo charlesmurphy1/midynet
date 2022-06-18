@@ -7,7 +7,7 @@
 #include <string>
 
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 
 using namespace std;
 using namespace BaseGraph;

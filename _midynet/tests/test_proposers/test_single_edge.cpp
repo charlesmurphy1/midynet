@@ -25,7 +25,7 @@ class TestSingleEdgeUniformProposer: public::testing::Test {
             graph.setEdgeMultiplicityIdx(singleEdge, 1);
             graph.setEdgeMultiplicityIdx(doubleEdge, 2);
             randomGraph.setGraph(graph);
-            proposer.setUp(randomGraph);
+            proposer.setUp(graph);
             proposer.checkSafety();
         }
         void TearDown() {
@@ -72,7 +72,7 @@ class TestSingleEdgeDegreeProposer: public::testing::Test {
             graph.setEdgeMultiplicityIdx(singleEdge, 1);
             graph.setEdgeMultiplicityIdx(doubleEdge, 2);
             randomGraph.setGraph(graph);
-            proposer.setUp(randomGraph);
+            proposer.setUp(graph);
             proposer.checkSafety();
         }
         void TearDown() {

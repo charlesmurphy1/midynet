@@ -18,7 +18,6 @@ class PyRandomGraph: public PyNestedRandomVariable<BaseClass>{
 protected:
     void samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePriors, ); }
     void _applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
-    void _applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
 public:
     using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
 
@@ -27,36 +26,40 @@ public:
     const double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, ); }
     const double getLogPrior() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPrior, ); }
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromGraphMove, move); }
-    const double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromBlockMove, move); }
     const double getLogPriorRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPriorRatioFromGraphMove, move); }
-    const double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPriorRatioFromBlockMove, move); }
 
-    const std::vector<BlockIndex>& getBlocks() const override  {
-        PYBIND11_OVERRIDE_PURE(const std::vector<BlockIndex>&, BaseClass, getBlocks, );
-    }
-    const size_t& getBlockCount() const override  {
-        PYBIND11_OVERRIDE_PURE(const size_t&, BaseClass, getBlockCount, );
-    }
-    const CounterMap<size_t>& getVertexCountsInBlocks() const override  {
-        PYBIND11_OVERRIDE_PURE(const CounterMap<size_t>&, BaseClass, getVertexCountsInBlocks, );
-    }
-    const MultiGraph& getEdgeMatrix() const override  {
-        PYBIND11_OVERRIDE_PURE(const MultiGraph&, BaseClass, getEdgeMatrix, );
-    }
-    const CounterMap<size_t>& getEdgeCountsInBlocks() const override  {
-        PYBIND11_OVERRIDE_PURE(const CounterMap<size_t>&, BaseClass, getEdgeCountsInBlocks, );
-    }
     const size_t& getEdgeCount() const override  {
         PYBIND11_OVERRIDE_PURE(const size_t&, BaseClass, getEdgeCount, );
-    }
-    const std::vector<size_t>& getDegrees() const override  {
-        PYBIND11_OVERRIDE_PURE(const std::vector<size_t>&, BaseClass, getDegrees, );
     }
 
     /* Abstract methods */
     void setGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setGraph, graph); }
     const bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
     bool isSafe() const override { PYBIND11_OVERRIDE(bool, BaseClass, isSafe, ); }
+};
+
+template<typename Label, typename LabelMove, typename BaseClass = VertexLabeledRandomGraph<Label, LabelMove>>
+class PyVertexLabeledRandomGraph: public PyRandomGraph<BaseClass>{
+protected:
+    void _applyLabelMove(const LabelMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyLabelMove, move); }
+public:
+    using PyRandomGraph<BaseClass>::PyRandomGraph;
+
+    /* Pure abstract methods */
+    const double getLogLikelihoodRatioFromLabelMove (const LabelMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromLabelMove, move); }
+    const double getLogPriorRatioFromLabelMove (const LabelMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPriorRatioFromLabelMove, move); }
+
+    const std::vector<Label>& getVertexLabels() const override  {
+        PYBIND11_OVERRIDE_PURE(const std::vector<Label>&, BaseClass, getVertexLabels, );
+    }
+    const CounterMap<Label>& getLabelCounts() const override  {
+        PYBIND11_OVERRIDE_PURE(const CounterMap<Label>&, BaseClass, getLabelCounts, );
+    }
+    const CounterMap<Label>& getEdgeLabelCounts() const override  {
+        PYBIND11_OVERRIDE_PURE(const CounterMap<Label>&, BaseClass, getEdgeLabelCounts, );
+    }
+
+    /* Abstract methods */
 };
 
 }

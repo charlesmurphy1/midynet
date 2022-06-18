@@ -4,7 +4,7 @@
 #include "FastMIDyNet/prior/sbm/edge_count.h"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/random_graph/sbm.h"
-#include "FastMIDyNet/proposer/block_proposer/uniform.h"
+#include "FastMIDyNet/proposer/label_proposer/uniform.hpp"
 #include "FastMIDyNet/types.h"
 #include "fixtures.hpp"
 

@@ -12,7 +12,7 @@
 
 namespace FastMIDyNet{
 
-class Verbose: public CallBack{
+class Verbose: public CallBack<MCMC>{
 protected:
     std::string m_name;
 public:
@@ -177,7 +177,7 @@ public:
     }
 };
 
-class VerboseDisplay: public CallBack{
+class VerboseDisplay: public CallBack<MCMC>{
 protected:
     std::vector<Verbose*> m_verboseVec;
     size_t m_step;

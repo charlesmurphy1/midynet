@@ -12,7 +12,7 @@ namespace FastMIDyNet{
 
 class MCMC: public NestedRandomVariable{
 protected:
-    CallBackMap m_callBacks;
+    CallBackMap<MCMC> m_mcmcCallBacks;
     size_t m_numSteps;
     size_t m_numSweeps;
     mutable double m_lastLogJointRatio;
@@ -24,8 +24,8 @@ public:
         m_numSweeps(0),
         m_lastLogJointRatio(0),
         m_isLastAccepted(false) {}
-    MCMC(const CallBackMap& callbacks):
-        m_callBacks(callbacks),
+    MCMC(const CallBackMap<MCMC>& callbacks):
+        m_mcmcCallBacks(callbacks),
         m_numSteps(0),
         m_numSweeps(0),
         m_lastLogJointRatio(0),
@@ -37,24 +37,33 @@ public:
     const size_t getNumSteps() const { return m_numSteps; }
     const size_t getNumSweeps() const { return m_numSweeps; }
 
-    virtual const MultiGraph& getGraph() const = 0 ;
-    virtual const std::vector<BlockIndex>& getBlocks() const = 0 ;
-    size_t getSize() const { return getGraph().getSize(); }
     virtual const double getLogLikelihood() const = 0 ;
     virtual const double getLogPrior() const = 0 ;
     virtual const double getLogJoint() const = 0 ;
 
-    void insertCallBack(std::pair<std::string, CallBack*> pair) {
-        pair.second->setUp(this); m_callBacks.insert(pair);
+    void insertCallBack(std::pair<std::string, CallBack<MCMC>*> pair) {
+        pair.second->setUp(this); m_mcmcCallBacks.insert(pair);
     }
-    void insertCallBack(std::string key, CallBack& callback) { insertCallBack({key, &callback}); }
-    void removeCallBack(std::string key) { m_callBacks.remove(key); }
+    void insertCallBack(std::string key, CallBack<MCMC>& callback) { insertCallBack({key, &callback}); }
+    virtual void removeCallBack(std::string key, bool force=false) {
+        if ( m_mcmcCallBacks.contains(key) )
+            m_mcmcCallBacks.remove(key);
+        else if ( not force)
+            throw std::logic_error("MCMC: callback of key `" + key + "` cannot be removed.");
+    }
 
-    virtual void setUp() { m_callBacks.setUp(this); m_numSteps = m_numSweeps = 0; }
-    virtual void tearDown() { m_callBacks.tearDown(); m_numSteps = m_numSweeps = 0; }
+    virtual void setUp() { m_mcmcCallBacks.setUp(this); m_numSteps = m_numSweeps = 0; }
+    virtual void tearDown() { m_mcmcCallBacks.tearDown(); m_numSteps = m_numSweeps = 0; }
+    virtual void onSweepBegin() { m_mcmcCallBacks.onSweepBegin(); }
+    virtual void onSweepEnd() { m_mcmcCallBacks.onSweepEnd(); }
+    virtual void onStepBegin() { m_mcmcCallBacks.onStepBegin(); }
+    virtual void onStepEnd() { m_mcmcCallBacks.onStepEnd(); }
     virtual bool _doMetropolisHastingsStep() = 0;
     bool doMetropolisHastingsStep() {
-        return processRecursiveFunction<bool>([&](){ return _doMetropolisHastingsStep(); }, false);
+        onStepBegin();
+        bool isAccepted = processRecursiveFunction<bool>([&](){ return _doMetropolisHastingsStep(); }, false);
+        onStepEnd();
+        return isAccepted;
     };
 
     std::tuple<size_t, size_t> doMHSweep(size_t burn=1);

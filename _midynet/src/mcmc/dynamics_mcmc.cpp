@@ -21,20 +21,16 @@ bool DynamicsMCMC::_doMetropolisHastingsStep() {
         m_randomGraphMCMCPtr->doMetropolisHastingsStep();
         m_lastLogJointRatio = m_randomGraphMCMCPtr->getLastLogJointRatio();
         m_lastLogAcceptance = m_randomGraphMCMCPtr->getLastLogAcceptance();
-        m_isLastAccepted = m_randomGraphMCMCPtr->isLastAccepted();
+        return m_isLastAccepted = m_randomGraphMCMCPtr->isLastAccepted();
     }
-    else {
-        m_lastMoveWasGraphMove = true;
-        GraphMove move = m_randomGraphMCMCPtr->proposeEdgeMove();
-        m_lastLogAcceptance = getLogAcceptanceProb(move);
-        m_isLastAccepted = false;
-        if (m_uniform(rng) < exp(m_lastLogAcceptance)){
-            m_isLastAccepted = true;
-            applyGraphMove(move);
-        }
+    m_lastMoveWasGraphMove = true;
+    GraphMove move = m_randomGraphMCMCPtr->proposeEdgeMove();
+    m_lastLogAcceptance = getLogAcceptanceProb(move);
+    m_isLastAccepted = false;
+    if (m_uniform(rng) < exp(m_lastLogAcceptance)){
+        m_isLastAccepted = true;
+        applyGraphMove(move);
     }
-
-
     return m_isLastAccepted;
 
 }

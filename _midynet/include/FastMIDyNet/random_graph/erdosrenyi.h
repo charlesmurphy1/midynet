@@ -7,7 +7,7 @@
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/random_graph/sbm.h"
-#include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/generators.h"
 
 namespace FastMIDyNet{
@@ -50,12 +50,7 @@ public:
 
 class SimpleErdosRenyiFamily: public RandomGraph{
 private:
-    const std::vector<BlockIndex> m_blocks;
-    const size_t m_blockCount = 1;
-    const CounterMap<size_t> m_vertexCounts;
-    MultiGraph m_edgeMatrix = MultiGraph(1);
     CounterMap<size_t> m_edgeCounts;
-    std::vector<size_t> m_degrees;
     EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
 protected:
     void _applyGraphMove(const GraphMove& move) override {
@@ -64,31 +59,15 @@ protected:
     }
 public:
     SimpleErdosRenyiFamily(size_t graphSize):
-        RandomGraph(graphSize),
-        m_blocks(graphSize, 0),
-        m_vertexCounts({0}, {graphSize}, 0),
-        m_degrees(graphSize, 0){ }
+        RandomGraph(graphSize) { }
     SimpleErdosRenyiFamily(size_t graphSize, EdgeCountPrior& edgeCountPrior):
-        RandomGraph(graphSize),
-        m_blocks(graphSize, 0),
-        m_vertexCounts({0}, {graphSize}, 0),
-        m_degrees(graphSize, 0)
+        RandomGraph(graphSize)
         { setEdgeCountPrior(edgeCountPrior); }
-    const std::vector<BlockIndex>& getBlocks() const override { return m_blocks; }
-    const size_t& getBlockCount() const override { return m_blockCount; }
-    const CounterMap<size_t>& getVertexCountsInBlocks() const override { return m_vertexCounts; }
-    const MultiGraph& getEdgeMatrix() const override { return m_edgeMatrix; }
-    const CounterMap<size_t>& getEdgeCountsInBlocks() const override { return m_edgeCounts; }
     const size_t& getEdgeCount() const override { return m_edgeCountPriorPtr->getState(); }
-    const std::vector<size_t>& getDegrees() const override { return m_degrees; }
 
     void setGraph(const MultiGraph& graph) override{
         RandomGraph::setGraph(graph);
-
         m_edgeCountPriorPtr->setState(graph.getTotalEdgeNumber());
-        m_edgeMatrix.setEdgeMultiplicityIdx(0, 0, getEdgeCount());
-        m_edgeCounts.set(0, 2 * getEdgeCount());
-        m_degrees = graph.getDegrees();
         #if DEBUG
         checkSelfConsistency();
         #endif
@@ -97,8 +76,6 @@ public:
     void sampleGraph() override { setGraph(generateSER(m_size, getEdgeCount())); }
     void samplePriors() override {
         m_edgeCountPriorPtr->sample();
-        m_edgeMatrix.setEdgeMultiplicityIdx(0, 0, getEdgeCount());
-        m_edgeCounts.set(0, 2 * getEdgeCount());
     }
     const double getLogLikelihood() const override { return -logBinomialCoefficient( m_size * (m_size - 1) / 2, getEdgeCount()); }
     const double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint(); }
@@ -107,11 +84,9 @@ public:
         return -logBinomialCoefficient( m_size * (m_size - 1) / 2, getEdgeCount() + edgeCountDiff)
                +logBinomialCoefficient( m_size * (m_size - 1) / 2, getEdgeCount());
     };
-    const double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const override { return 0; }
     const double getLogPriorRatioFromGraphMove (const GraphMove& move) const override {
         return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move);
     }
-    const double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { return 0; }
     void checkSelfConsistency() const override {
         m_edgeCountPriorPtr->checkSelfConsistency();
         if (m_graph.getTotalEdgeNumber() != getEdgeCount())

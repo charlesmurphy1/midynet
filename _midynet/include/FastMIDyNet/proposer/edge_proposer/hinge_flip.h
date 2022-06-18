@@ -28,10 +28,10 @@ protected:
 public:
     using EdgeProposer::EdgeProposer;
     const GraphMove proposeRawMove() const override;
-    void setUpFromGraph(const MultiGraph&) override;
+    void setUp(const MultiGraph&) override;
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     void applyGraphMove(const GraphMove& move) override;
-    void applyBlockMove(const BlockMove& move) override { };
+    // void applyBlockMove(const BlockMove& move) override { };
     const double getLogProposalProbRatio(const GraphMove& move) const override ;
     virtual const double getLogVertexWeightRatio(const GraphMove& move) const = 0;
 
@@ -86,10 +86,7 @@ public:
     const double getLogVertexWeightRatio(const GraphMove& move) const override {
         BaseGraph::VertexIndex gainingVertex = move.addedEdges[0].second;
         double wk = m_vertexDegreeSampler.getVertexWeight(gainingVertex);
-        if (move.addedEdges[0].first == move.addedEdges[0].second)
-            return log(wk + 2) - log(wk);
-        else
-            return log(wk + 1) - log(wk);
+        return log(wk + (move.addedEdges[0].first == move.addedEdges[0].second) ? 2 : 1) - log(wk)
     }
 };
 

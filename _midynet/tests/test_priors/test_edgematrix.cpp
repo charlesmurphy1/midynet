@@ -18,13 +18,11 @@ class DummyEdgeMatrixPrior: public EdgeMatrixPrior {
         void sampleState() {}
         const double getLogLikelihood() const { return 0.; }
         const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const { return 0; }
-        const double getLogLikelihoodRatioFromBlockMove(const BlockMove&) const { return 0; }
+        const double getLogLikelihoodRatioFromLabelMove(const BlockMove&) const { return 0; }
 
         void applyGraphMove(const GraphMove&) { };
-        void applyBlockMove(const BlockMove&) { };
-
-        void applyBlockMoveToState(const BlockMove& move) { EdgeMatrixPrior::applyBlockMoveToState(move); }
-        void onBlockCreation(const BlockMove& move){ EdgeMatrixPrior::onBlockCreation(move); }
+        void applyLabelMove(const BlockMove&) { };
+        void applyLabelMoveToState(const BlockMove& move) { EdgeMatrixPrior::applyLabelMoveToState(move); }
 };
 
 class TestEdgeMatrixPrior: public ::testing::Test {
@@ -55,8 +53,8 @@ TEST_F(TestEdgeMatrixPrior, setGraph_anyGraph_edgeMatrixCorrectlySet) {
     EXPECT_EQ(prior.getState().getEdgeMultiplicityIdx(0, 0), 4);
     EXPECT_EQ(prior.getState().getEdgeMultiplicityIdx(0, 1), 6);
     EXPECT_EQ(prior.getState().getEdgeMultiplicityIdx(1, 1), 1);
-    EXPECT_EQ(prior.getEdgeCountsInBlocks()[0], 14);
-    EXPECT_EQ(prior.getEdgeCountsInBlocks()[1], 8);
+    EXPECT_EQ(prior.getEdgeCounts()[0], 14);
+    EXPECT_EQ(prior.getEdgeCounts()[1], 8);
 }
 
 TEST_F(TestEdgeMatrixPrior, samplePriors_anyGraph_returnSumOfPriors) {
@@ -73,12 +71,12 @@ TEST_F(TestEdgeMatrixPrior, samplePriors_anyGraph_returnSumOfPriors) {
 //
 // TEST_F(TestEdgeMatrixPrior, createBlock_anySetup_addElementToEdgeCountOfBlocks) {
 //     prior.onBlockCreation({0, 0, 2, 1});
-//     EXPECT_EQ(prior.getEdgeCountsInBlocks(), std::vector<size_t>({14, 8, 0}));
+//     EXPECT_EQ(prior.getEdgeCounts(), std::vector<size_t>({14, 8, 0}));
 //     expectConsistencyError = true;
 // }
 
-TEST_F(TestEdgeMatrixPrior, applyBlockMoveToState_vertexChangingBlock_neighborsOfVertexChangedOfBlocks) {
-    prior.applyBlockMoveToState({0, 0, 1});
+TEST_F(TestEdgeMatrixPrior, applyLabelMoveToState_vertexChangingBlock_neighborsOfVertexChangedOfBlocks) {
+    prior.applyLabelMoveToState({0, 0, 1});
     // EXPECT_EQ(prior.getState(), Matrix<size_t>({{6, 4}, {4, 8}}) );
     EXPECT_EQ(prior.getState().getEdgeMultiplicityIdx(0, 0), 3);
     EXPECT_EQ(prior.getState().getEdgeMultiplicityIdx(0, 1), 4);
@@ -86,8 +84,8 @@ TEST_F(TestEdgeMatrixPrior, applyBlockMoveToState_vertexChangingBlock_neighborsO
 
 }
 
-TEST_F(TestEdgeMatrixPrior, applyBlockMoveToState_vertexChangingBlockWithSelfloop_neighborsOfVertexChangedOfBlocks) {
-    prior.applyBlockMoveToState({5, 1, 0});
+TEST_F(TestEdgeMatrixPrior, applyLabelMoveToState_vertexChangingBlockWithSelfloop_neighborsOfVertexChangedOfBlocks) {
+    prior.applyLabelMoveToState({5, 1, 0});
     EXPECT_EQ(prior.getState().getEdgeMultiplicityIdx(0, 0), 6);
     EXPECT_EQ(prior.getState().getEdgeMultiplicityIdx(0, 1), 5);
     EXPECT_EQ(prior.getState().getEdgeMultiplicityIdx(1, 1), 0);
@@ -166,14 +164,14 @@ TEST_F(TestEdgeMatrixDeltaPrior, getLogLikelihoodRatioFromGraphMove_forGraphMove
     EXPECT_EQ(prior.getLogLikelihoodRatioFromGraphMove(move), -INFINITY);
 }
 
-TEST_F(TestEdgeMatrixDeltaPrior, getLogLikelihoodRatioFromBlockMove_forBlockMovePreservingEdgeMatrix_return0){
+TEST_F(TestEdgeMatrixDeltaPrior, getLogLikelihoodRatioFromLabelMove_forLabelMovePreservingEdgeMatrix_return0){
     BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockOfIdx(0)};
-    EXPECT_EQ(prior.getLogLikelihoodRatioFromBlockMove(move), 0);
+    EXPECT_EQ(prior.getLogLikelihoodRatioFromLabelMove(move), 0);
 }
 
-TEST_F(TestEdgeMatrixDeltaPrior, getLogLikelihoodRatioFromBlockMove_forBlockMoveNotPreservingEdgeMatrix_returnMinusInfinity){
+TEST_F(TestEdgeMatrixDeltaPrior, getLogLikelihoodRatioFromLabelMove_forLabelMoveNotPreservingEdgeMatrix_returnMinusInfinity){
     BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockOfIdx(0) + 1};
-    EXPECT_EQ(prior.getLogLikelihoodRatioFromBlockMove(move), -INFINITY);
+    EXPECT_EQ(prior.getLogLikelihoodRatioFromLabelMove(move), -INFINITY);
 }
 
 class TestEdgeMatrixUniformPrior: public ::testing::Test {
@@ -248,16 +246,16 @@ TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveChangin
     EXPECT_EQ(actualLogLikelihoodRatio, expectedLogLikelihood);
 }
 
-TEST_F(TestEdgeMatrixUniformPrior, applyMove_forSomeBlockMove_changeEdgeMatrix){
+TEST_F(TestEdgeMatrixUniformPrior, applyMove_forSomeLabelMove_changeEdgeMatrix){
     BlockMove move = {0, BLOCK_SEQUENCE[0], BLOCK_SEQUENCE[0] + 1};
-    prior.applyBlockMove(move);
+    prior.applyLabelMove(move);
 }
 
-TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeBlockMove_returnCorrectLogLikelihoodRatio){
+TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeLabelMove_returnCorrectLogLikelihoodRatio){
     BlockMove move = {0, BLOCK_SEQUENCE[0], BLOCK_SEQUENCE[0]+1};
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromBlockMove(move);
+    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
-    prior.applyBlockMove(move);
+    prior.applyLabelMove(move);
     double logLikelihoodAfterMove = prior.getLogLikelihood();
     double expectedLogLikelihood = logLikelihoodAfterMove - logLikelihoodBeforeMove ;
 

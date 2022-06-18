@@ -11,24 +11,27 @@
 
 namespace FastMIDyNet{
 
-class Collector: public CallBack{
+template<typename MCMCType>
+class Collector: public CallBack<MCMCType>{
 public:
     virtual void onBegin() { clear(); }
     virtual void collect() = 0;
     virtual void clear() = 0;
 };
 
-class SweepCollector: public Collector{
+template<typename MCMCType>
+class SweepCollector: public Collector<MCMCType>{
 public:
-    virtual void onSweepEnd() { collect(); }
+    virtual void onSweepEnd() { Collector<MCMCType>::collect(); }
 };
 
-class StepCollector: public Collector{
+template<typename MCMCType>
+class StepCollector: public Collector<MCMCType>{
 public:
-    virtual void onStepEnd() { collect(); }
+    virtual void onStepEnd() { Collector<MCMCType>::collect(); }
 };
 
-class CollectGraphOnSweep: public SweepCollector{
+class CollectGraphOnSweep: public SweepCollector<RandomGraphMCMC>{
 private:
     std::vector<MultiGraph> m_collectedGraphs;
 public:
@@ -37,14 +40,14 @@ public:
     const std::vector<MultiGraph>& getGraphs() const { return m_collectedGraphs; }
 };
 
-class CollectEdgeMultiplicityOnSweep: public SweepCollector{
+class CollectEdgeMultiplicityOnSweep: public SweepCollector<RandomGraphMCMC>{
 private:
     CounterMap<BaseGraph::Edge> m_observedEdges;
     CounterMap<std::pair<BaseGraph::Edge, size_t>> m_observedEdgesCount;
     CounterMap<BaseGraph::Edge> m_observedEdgesMaxCount;
     size_t m_totalCount;
 public:
-    void setUp(MCMC* mcmcPtr) {
+    void setUp(RandomGraphMCMC* mcmcPtr) {
         Collector::setUp(mcmcPtr);
     }
     void collect() override ;
@@ -59,18 +62,17 @@ public:
 
 };
 
-class CollectPartitionOnSweep: public SweepCollector{
+class CollectPartitionOnSweep: public SweepCollector<StochasticBlockModelMCMC>{
 private:
-    std::vector<BlockSequence> m_partitions;
+    std::vector<std::vector<BlockIndex>> m_partitions;
 public:
-    void setUp(MCMC* mcmcPtr) { Collector::setUp(mcmcPtr); }
-    void collect() override { m_partitions.push_back(m_mcmcPtr->getBlocks()); }
+    void setUp(StochasticBlockModelMCMC* mcmcPtr) { Collector::setUp(mcmcPtr); }
+    void collect() override { m_partitions.push_back(m_mcmcPtr->getVertexLabels()); }
     void clear() override { m_partitions.clear(); }
     const std::vector<BlockSequence>& getPartitions() const { return m_partitions; }
-
 };
 
-class WriteGraphToFileOnSweep: public SweepCollector{
+class WriteGraphToFileOnSweep: public SweepCollector<RandomGraphMCMC>{
 private:
     std::string m_filename;
     std::string m_ext;
@@ -81,7 +83,7 @@ public:
     void clear() override { };
 };
 
-class CollectLikelihoodOnSweep: public SweepCollector{
+class CollectLikelihoodOnSweep: public SweepCollector<MCMC>{
 private:
     std::vector<double> m_collectedLikelihoods;
 public:
@@ -90,7 +92,7 @@ public:
     const std::vector<double>& getLogLikelihoods() const { return m_collectedLikelihoods; }
 };
 
-class CollectPriorOnSweep: public SweepCollector{
+class CollectPriorOnSweep: public SweepCollector<MCMC>{
 private:
     std::vector<double> m_collectedPriors;
 public:
@@ -99,7 +101,7 @@ public:
     const std::vector<double>& getLogPriors() const { return m_collectedPriors; }
 };
 
-class CollectJointOnSweep: public SweepCollector{
+class CollectJointOnSweep: public SweepCollector<MCMC>{
 private:
     std::vector<double> m_collectedJoints;
 public:
@@ -109,7 +111,7 @@ public:
 
 };
 
-class CollectGraphDistance: public Collector{
+class CollectGraphDistance: public Collector<RandomGraphMCMC>{
 private:
     MultiGraph m_originalGraph;
     const GraphDistance& m_distance;
@@ -125,9 +127,6 @@ public:
     }
     void clear() { m_collectedDistances.clear(); };
     void onStepEnd() { collect(); }
-
-
-
 };
 
 }

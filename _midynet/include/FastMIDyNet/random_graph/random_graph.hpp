@@ -12,44 +12,29 @@
 
 
 namespace FastMIDyNet{
-
 class RandomGraph: public NestedRandomVariable{
 protected:
     size_t m_size;
     MultiGraph m_graph;
     virtual void samplePriors() = 0;
-
     virtual void _applyGraphMove(const GraphMove&);
-    virtual void _applyBlockMove(const BlockMove&) { };
 public:
-
     RandomGraph(size_t size=0):
         m_size(size),
         m_graph(size)
         { }
-
     const MultiGraph& getGraph() const { return m_graph; }
+
     virtual void setGraph(const MultiGraph& state) {
         m_graph = state;
     }
-
     const int getSize() const { return m_size; }
+    virtual const size_t& getEdgeCount() const = 0;
     const double getAverageDegree() const {
         double avgDegree = 2 * (double) getEdgeCount();
         avgDegree /= (double) getSize();
         return avgDegree;
     }
-    virtual const std::vector<BlockIndex>& getBlocks() const = 0;
-    virtual const size_t& getBlockCount() const = 0;
-    virtual const CounterMap<size_t>& getVertexCountsInBlocks() const = 0;
-    virtual const MultiGraph& getEdgeMatrix() const = 0;
-    virtual const CounterMap<size_t>& getEdgeCountsInBlocks() const = 0;
-    virtual const size_t& getEdgeCount() const = 0;
-    virtual const std::vector<size_t>& getDegrees() const = 0;
-    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getBlocks()[vertexIdx]; }
-    const size_t& getDegreeOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getDegrees()[vertexIdx]; }
-
-    virtual const bool isCompatible(const MultiGraph& graph) const { return graph.getSize() == m_size; }
 
     const MultiGraph& sample() {
         samplePriors();
@@ -62,17 +47,14 @@ public:
     virtual void sampleGraph() = 0;
     virtual const double getLogLikelihood() const = 0;
     virtual const double getLogPrior() const = 0;
-    const double getLogJoint() const { return getLogLikelihood() + getLogPrior(); }
+    const double getLogJoint() const {
+        return processRecursiveConstFunction<double>([&](){return getLogLikelihood() + getLogPrior();}, 0);
+    }
 
     virtual const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const = 0;
-    virtual const double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const = 0;
     virtual const double getLogPriorRatioFromGraphMove (const GraphMove& move) const = 0;
-    virtual const double getLogPriorRatioFromBlockMove (const BlockMove& move) const = 0;
     const double getLogJointRatioFromGraphMove (const GraphMove& move) const{
         return processRecursiveFunction<double>([&](){ return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move); }, 0);
-    }
-    const double getLogJointRatioFromBlockMove (const BlockMove& move) const{
-        return getLogPriorRatioFromBlockMove(move) + getLogLikelihoodRatioFromBlockMove(move);
     }
     void applyGraphMove(const GraphMove& move){
         processRecursiveFunction([&](){ _applyGraphMove(move); });
@@ -80,14 +62,35 @@ public:
         checkConsistency();
         #endif
     }
-    void applyBlockMove(const BlockMove& move) {
-        processRecursiveFunction([&](){ _applyBlockMove(move); });
+
+    virtual const bool isCompatible(const MultiGraph& graph) const { return graph.getSize() == m_size; }
+    virtual bool isSafe() const { return true; }
+
+};
+
+template <typename Label>
+class VertexLabeledRandomGraph: public RandomGraph{
+protected:
+    virtual void _applyLabelMove(const LabelMove<Label>&) { };
+public:
+    using RandomGraph::RandomGraph;
+    virtual const std::vector<Label>& getVertexLabels() const = 0;
+    virtual const CounterMap<Label>& getLabelCounts() const = 0;
+    virtual const CounterMap<Label>& getEdgeLabelCounts() const = 0;
+    virtual const MultiGraph& getLabelGraph() const = 0;
+    const Label& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getVertexLabels()[vertexIdx]; }
+
+    virtual const double getLogLikelihoodRatioFromLabelMove (const LabelMove<Label>& move) const = 0;
+    virtual const double getLogPriorRatioFromLabelMove (const LabelMove<Label>& move) const = 0;
+    const double getLogJointRatioFromLabelMove (const LabelMove<Label>& move) const{
+        return getLogPriorRatioFromLabelMove(move) + getLogLikelihoodRatioFromLabelMove(move);
+    }
+    void applyLabelMove(const LabelMove<Label>& move) {
+        processRecursiveFunction([&](){ _applyLabelMove(move); });
         #if DEBUG
         checkConsistency();
         #endif
     }
-
-    virtual bool isSafe() const { return true; }
 };
 
 } // namespace FastMIDyNet

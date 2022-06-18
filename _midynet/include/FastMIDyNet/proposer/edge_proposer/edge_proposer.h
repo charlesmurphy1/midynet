@@ -8,7 +8,7 @@
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/exceptions.h"
-#include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 
 
 namespace FastMIDyNet{
@@ -33,10 +33,10 @@ public:
     const GraphMove getReverseMove(const GraphMove& move) const {
         return {move.addedEdges, move.removedEdges};
     }
-    virtual void setUp( const RandomGraph& randomGraph ) { clear(); setUpFromGraph(randomGraph.getGraph()); }
-    virtual void setUpFromGraph( const MultiGraph& graph ) { m_graphPtr = &graph; }
+    // virtual void setUp( const RandomGraph& randomGraph ) { clear(); setUpFromGraph(randomGraph.getGraph()); }
+    virtual void setUp( const MultiGraph& graph ) { clear(); m_graphPtr = &graph; }
     virtual void applyGraphMove(const GraphMove& move) {};
-    virtual void applyBlockMove(const BlockMove& move) {};
+    // virtual void applyBlockMove(const BlockMove& move) {};
     const bool& allowSelfLoops() const { return m_allowSelfLoops; }
     const bool& allowMultiEdges() const { return m_allowMultiEdges; }
 

@@ -14,27 +14,26 @@
 
 namespace FastMIDyNet{
 
-class BlockPrior: public Prior<BlockSequence>{
+class BlockPrior: public SBMPrior<BlockSequence>{
 private:
-    void moveVertexCountsInBlocks(const BlockMove& move);
+    void moveVertexCounts(const BlockMove& move);
 protected:
     size_t m_size;
     BlockCountPrior* m_blockCountPriorPtr = nullptr;
-    CounterMap<size_t> m_vertexCountsInBlocks;
+    CounterMap<size_t> m_vertexCounts;
 
     void _applyGraphMove(const GraphMove&) override { };
-    void _applyBlockMove(const BlockMove& move) override {
-        BlockMove moveCopy = move;
-        moveCopy.addedBlocks = getAddedBlocks(move);
-        m_blockCountPriorPtr->applyBlockMove(moveCopy);
-        m_vertexCountsInBlocks.decrement(move.prevBlockIdx);
-        m_vertexCountsInBlocks.increment(move.nextBlockIdx);
-        m_state[move.vertexIdx] = move.nextBlockIdx;
+    void _applyLabelMove(const BlockMove& move) override {
+        // moveCopy.addedBlocks = getAddedBlocks(move);
+        m_blockCountPriorPtr->setState(m_blockCountPriorPtr->getState() + getAddedBlocks(move));
+        m_vertexCounts.decrement(move.prevLabel);
+        m_vertexCounts.increment(move.nextLabel);
+        m_state[move.vertexIndex] = move.nextLabel;
     }
 
     const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; };
-    const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override {
-        return getLogLikelihoodRatioFromBlockMove(move) + getLogPriorRatioFromBlockMove(move);
+    const double _getLogJointRatioFromLabelMove(const BlockMove& move) const override {
+        return getLogLikelihoodRatioFromLabelMove(move) + getLogPriorRatioFromLabelMove(move);
     };
 
     void remapBlockIndex(const std::map<size_t, size_t> indexMap){
@@ -64,7 +63,7 @@ public:
 
     virtual void setState(const BlockSequence& blocks) override{
         m_size = blocks.size();
-        m_vertexCountsInBlocks = computeVertexCountsInBlocks(blocks);
+        m_vertexCounts = computeVertexCounts(blocks);
         m_blockCountPriorPtr->setStateFromPartition(blocks);
         m_state = blocks;
     }
@@ -82,9 +81,9 @@ public:
     }
 
     const size_t& getBlockCount() const { return m_blockCountPriorPtr->getState(); }
-    const CounterMap<size_t>& getVertexCountsInBlocks() const { return m_vertexCountsInBlocks; };
+    const CounterMap<size_t>& getVertexCounts() const { return m_vertexCounts; };
     const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
-    static CounterMap<size_t> computeVertexCountsInBlocks(const BlockSequence&);
+    static CounterMap<size_t> computeVertexCounts(const BlockSequence&);
 
 
 
@@ -94,23 +93,25 @@ public:
     /* MCMC methods */
     const double getLogPrior() const override { return m_blockCountPriorPtr->getLogJoint(); };
 
-    virtual const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const = 0;
-    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const {
-        return m_blockCountPriorPtr->getLogJointRatioFromBlockMove(move);
+    virtual const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const = 0;
+    const double getLogPriorRatioFromLabelMove(const BlockMove& move) const {
+        // return m_blockCountPriorPtr->getLogJointRatioFromLabelMove(move);
+        int addedBlocks = getAddedBlocks(move);
+        size_t B = m_blockCountPriorPtr->getState();
+        return m_blockCountPriorPtr->getLogLikelihoodFromState(B + addedBlocks) - m_blockCountPriorPtr->getLogLikelihoodFromState(B);
     }
     bool creatingNewBlock(const BlockMove& move) const {
-        return m_vertexCountsInBlocks.get(move.nextBlockIdx) == 0;
+        return m_vertexCounts.get(move.nextLabel) == 0;
     };
     bool destroyingBlock(const BlockMove& move) const {
-        return move.prevBlockIdx != move.nextBlockIdx and m_vertexCountsInBlocks.get(move.prevBlockIdx) == 1 ;
+        return move.prevLabel != move.nextLabel and m_vertexCounts.get(move.prevLabel) == 1 ;
     }
     const int getAddedBlocks(const BlockMove& move) const {
         return (int) creatingNewBlock(move) - (int) destroyingBlock(move);
     }
 
     /* Consistency methods */
-    static void checkBlockSequenceConsistencyWithBlockCount(const BlockSequence& blockSeq, size_t expectedBlockCount) ;
-    static void checkBlockSequenceConsistencyWithVertexCountsInBlocks(const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCountsInBlocks) ;
+    static void checkBlockSequenceConsistencyWithVertexCounts(const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCounts) ;
 
     void computationFinished() const override {
         m_isProcessed=false;
@@ -119,11 +120,10 @@ public:
 
     void checkSelfConsistency() const override {
         m_blockCountPriorPtr->checkConsistency();
-        checkBlockSequenceConsistencyWithBlockCount(m_state, getBlockCount());
-        checkBlockSequenceConsistencyWithVertexCountsInBlocks(m_state, getVertexCountsInBlocks());
-        if (m_vertexCountsInBlocks.size() > getBlockCount()){
+        checkBlockSequenceConsistencyWithVertexCounts(m_state, getVertexCounts());
+        if (m_vertexCounts.size() > getBlockCount()){
             throw ConsistencyError("BlockPrior: vertex counts (size "
-            + std::to_string(m_vertexCountsInBlocks.size()) +
+            + std::to_string(m_vertexCounts.size()) +
             ") are inconsistent with block count (" + std::to_string(getBlockCount()) +  ").");
         }
     }
@@ -157,8 +157,8 @@ public:
 
     void sampleState() override { }
     const double getLogLikelihood() const override { return 0; }
-    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
-        return (move.prevBlockIdx != move.nextBlockIdx) ? -INFINITY : 0;
+    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+        return (move.prevLabel != move.nextLabel) ? -INFINITY : 0;
     }
 };
 
@@ -168,7 +168,7 @@ public:
     using BlockPrior::BlockPrior;
     void sampleState() override ;
     const double getLogLikelihood() const override ;
-    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const ;
+    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const ;
 };
 
 class BlockUniformHyperPrior: public BlockPrior{
@@ -176,7 +176,7 @@ public:
     using BlockPrior::BlockPrior;
     void sampleState() override ;
     const double getLogLikelihood() const override ;
-    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const ;
+    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const ;
 };
 
 }

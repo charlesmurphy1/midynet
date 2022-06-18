@@ -19,7 +19,7 @@ void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
     const auto& blockCount = m_blockPriorPtr->getBlockCount();
 
     m_state = MultiGraph(blockCount);
-    m_edgeCountsInBlocks.clear();
+    m_edgeCounts.clear();
     size_t edgeCount = 0;
     for (auto vertex: graph) {
         const BlockIndex& r(blockSeq[vertex]);
@@ -28,8 +28,8 @@ void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
                 continue;
 
             const BlockIndex& s(blockSeq[neighbor.vertexIndex]);
-            m_edgeCountsInBlocks.increment(r, neighbor.label);
-            m_edgeCountsInBlocks.increment(s, neighbor.label);
+            m_edgeCounts.increment(r, neighbor.label);
+            m_edgeCounts.increment(s, neighbor.label);
             m_state.addMultiedgeIdx(r, s, neighbor.label);
         }
     }
@@ -38,33 +38,33 @@ void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
 
 void EdgeMatrixPrior::setState(const MultiGraph& edgeMatrix) {
     m_state = edgeMatrix;
-    m_edgeCountsInBlocks.clear();
+    m_edgeCounts.clear();
     for (auto r : m_state)
-        m_edgeCountsInBlocks.set(r, m_state.getDegreeOfIdx(r));
+        m_edgeCounts.set(r, m_state.getDegreeOfIdx(r));
     m_edgeCountPriorPtr->setState(edgeMatrix.getTotalEdgeNumber());
 }
 
-void EdgeMatrixPrior::applyBlockMoveToState(const BlockMove& move) {
-    if (move.prevBlockIdx == move.nextBlockIdx)
+void EdgeMatrixPrior::applyLabelMoveToState(const BlockMove& move) {
+    if (move.prevLabel == move.nextLabel)
         return;
 
-    if (m_state.getSize() == move.nextBlockIdx)
-        m_state.resize(move.nextBlockIdx + 1);
+    if (m_state.getSize() == move.nextLabel)
+        m_state.resize(move.nextLabel + 1);
     const auto& blockSeq = m_blockPriorPtr->getState();
-    const auto& degree = m_graphPtr->getDegreeOfIdx(move.vertexIdx);
+    const auto& degree = m_graphPtr->getDegreeOfIdx(move.vertexIndex);
 
-    m_edgeCountsInBlocks.decrement(move.prevBlockIdx, degree);
-    m_edgeCountsInBlocks.increment(move.nextBlockIdx, degree);
-    for (auto neighbor: m_graphPtr->getNeighboursOfIdx(move.vertexIdx)) {
+    m_edgeCounts.decrement(move.prevLabel, degree);
+    m_edgeCounts.increment(move.nextLabel, degree);
+    for (auto neighbor: m_graphPtr->getNeighboursOfIdx(move.vertexIndex)) {
         auto neighborBlock = blockSeq[neighbor.vertexIndex];
 
-        if (move.vertexIdx == neighbor.vertexIndex) // for self-loops
-            neighborBlock = move.prevBlockIdx;
-        m_state.removeMultiedgeIdx(move.prevBlockIdx, neighborBlock, neighbor.label) ;
+        if (move.vertexIndex == neighbor.vertexIndex) // for self-loops
+            neighborBlock = move.prevLabel;
+        m_state.removeMultiedgeIdx(move.prevLabel, neighborBlock, neighbor.label) ;
 
-        if (move.vertexIdx == neighbor.vertexIndex) // for self-loops
-            neighborBlock = move.nextBlockIdx;
-        m_state.addMultiedgeIdx(move.nextBlockIdx, neighborBlock, neighbor.label) ;
+        if (move.vertexIndex == neighbor.vertexIndex) // for self-loops
+            neighborBlock = move.nextLabel;
+        m_state.addMultiedgeIdx(move.nextLabel, neighborBlock, neighbor.label) ;
     }
 
 }
@@ -75,14 +75,14 @@ void EdgeMatrixPrior::applyGraphMoveToState(const GraphMove& move){
     for (auto removedEdge: move.removedEdges) {
         const BlockIndex& r(blockSeq[removedEdge.first]), s(blockSeq[removedEdge.second]);
         m_state.removeEdgeIdx(r, s);
-        m_edgeCountsInBlocks.decrement(r);
-        m_edgeCountsInBlocks.decrement(s);
+        m_edgeCounts.decrement(r);
+        m_edgeCounts.decrement(s);
     }
     for (auto addedEdge: move.addedEdges) {
         const BlockIndex& r(blockSeq[addedEdge.first]), s(blockSeq[addedEdge.second]);
         m_state.addEdgeIdx(r, s);
-        m_edgeCountsInBlocks.increment(r);
-        m_edgeCountsInBlocks.increment(s);
+        m_edgeCounts.increment(r);
+        m_edgeCounts.increment(s);
     }
 }
 
@@ -93,12 +93,12 @@ void EdgeMatrixPrior::checkSelfConsistency() const {
     const size_t& blockCount = m_blockPriorPtr->getBlockCount();
     size_t sumEdges = 0;
     for (BlockIndex r : m_state) {
-        size_t actualEdgeCountsInBlocks = m_state.getDegreeOfIdx(r);
-        if (actualEdgeCountsInBlocks != m_edgeCountsInBlocks[r])
+        size_t actualEdgeCounts = m_state.getDegreeOfIdx(r);
+        if (actualEdgeCounts != m_edgeCounts[r])
             throw ConsistencyError("EdgeMatrixPrior: Edge matrix row ("
-            + std::to_string(actualEdgeCountsInBlocks) + ") doesn't sum to edgeCountsInBlocks["
-            + std::to_string(r) + "] (" + std::to_string(m_edgeCountsInBlocks[r]) + ").");
-        sumEdges += actualEdgeCountsInBlocks;
+            + std::to_string(actualEdgeCounts) + ") doesn't sum to edgeCounts["
+            + std::to_string(r) + "] (" + std::to_string(m_edgeCounts[r]) + ").");
+        sumEdges += actualEdgeCounts;
     }
     if (sumEdges != 2*m_edgeCountPriorPtr->getState())
         throw ConsistencyError("EdgeMatrixPrior: Sum of edge matrix isn't equal to the number of edges.");
@@ -128,8 +128,8 @@ const double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromGraphMove(const Grap
     return 0.;
 }
 
-const double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
-    if (move.prevBlockIdx != move.nextBlockIdx)
+const double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+    if (move.prevLabel != move.nextLabel)
         return -INFINITY;
     return 0.;
 }
@@ -148,12 +148,12 @@ void EdgeMatrixUniformPrior::sampleState() {
             );
     m_state = MultiGraph(*max_element(blocks.begin(), blocks.end()) + 1);
     std::pair<BlockIndex, BlockIndex> rs;
-    m_edgeCountsInBlocks.clear();
+    m_edgeCounts.clear();
     size_t index = 0, correctedEdgeCount;
     for (auto edgeCountBetweenBlocks: flattenedEdgeMatrix) {
         rs = getUndirectedPairFromIndex(index, blockCount);
-        m_edgeCountsInBlocks.increment(rs.first, edgeCountBetweenBlocks);
-        m_edgeCountsInBlocks.increment(rs.second, edgeCountBetweenBlocks);
+        m_edgeCounts.increment(rs.first, edgeCountBetweenBlocks);
+        m_edgeCounts.increment(rs.second, edgeCountBetweenBlocks);
         m_state.addMultiedgeIdx(rs.first, rs.second, edgeCountBetweenBlocks);
         index++;
     }
@@ -165,11 +165,11 @@ const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromGraphMove(const Gr
     return newLogLikelihood - currentLogLikelihood;
 }
 
-const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
-    auto vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
+const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+    auto vertexCounts = m_blockPriorPtr->getVertexCounts();
 
-    // bool creatingBlock = move.nextBlockIdx == m_blockPriorPtr->getBlockCount();
-    // bool destroyingBlock = move.nextBlockIdx != move.prevBlockIdx && vertexCountsInBlocks[move.prevBlockIdx] == 1;
+    // bool creatingBlock = move.nextLabel == m_blockPriorPtr->getBlockCount();
+    // bool destroyingBlock = move.nextLabel != move.prevLabel && vertexCounts[move.prevLabel] == 1;
     int addedBlocks = m_blockPriorPtr->getAddedBlocks(move);
     double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
     double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount() + addedBlocks, m_edgeCountPriorPtr->getState());
@@ -187,12 +187,12 @@ const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromBlockMove(const Bl
 //
 //     m_state = EdgeMatrix(blockCount, std::vector<size_t>(blockCount, 0));
 //     std::pair<BlockIndex, BlockIndex> rs;
-//     m_edgeCountsInBlocks = std::vector<size_t>(blockCount, 0);
+//     m_edgeCounts = std::vector<size_t>(blockCount, 0);
 //     size_t index = 0, correctedEdgeCount;
 //     for (auto edgeCountBetweenBlocks: flattenedEdgeMatrix) {
 //         rs = getUndirectedPairFromIndex(index, blockCount);
-//         m_edgeCountsInBlocks[rs.first] += edgeCountBetweenBlocks;
-//         m_edgeCountsInBlocks[rs.second] += edgeCountBetweenBlocks;
+//         m_edgeCounts[rs.first] += edgeCountBetweenBlocks;
+//         m_edgeCounts[rs.second] += edgeCountBetweenBlocks;
 //         m_state[rs.first][rs.second] += edgeCountBetweenBlocks;
 //         m_state[rs.second][rs.first] += edgeCountBetweenBlocks;
 //         index++;
@@ -205,12 +205,12 @@ const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromBlockMove(const Bl
 //     return newLogLikelihood - currentLogLikelihood;
 // }
 //
-// double EdgeMatrixExponentialPrior::getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const {
-//     auto vertexCountsInBlocks = m_blockPriorPtr->getVertexCountsInBlocks();
+// double EdgeMatrixExponentialPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+//     auto vertexCounts = m_blockPriorPtr->getVertexCounts();
 //
-//     bool creatingBlock = move.nextBlockIdx == m_blockPriorPtr->getBlockCount();
-//     bool destroyingBlock = move.nextBlockIdx != move.prevBlockIdx &&
-//                         vertexCountsInBlocks[move.prevBlockIdx] == 1;
+//     bool creatingBlock = move.nextLabel == m_blockPriorPtr->getBlockCount();
+//     bool destroyingBlock = move.nextLabel != move.prevLabel &&
+//                         vertexCounts[move.prevLabel] == 1;
 //     double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
 //     double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount() + creatingBlock - destroyingBlock, m_edgeCountPriorPtr->getState());
 //     return newLogLikelihood - currentLogLikelihood;

@@ -8,14 +8,14 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/prior/sbm/block.h"
-#include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 
 namespace FastMIDyNet{
 
-class StochasticBlockModelFamily: public RandomGraph{
+class StochasticBlockModelFamily: public VertexLabeledRandomGraph<BlockIndex>{
 protected:
     BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
@@ -24,12 +24,12 @@ protected:
 
 
     virtual void _applyGraphMove (const GraphMove&) override;
-    virtual void _applyBlockMove (const BlockMove&) override;
+    virtual void _applyLabelMove (const BlockMove&) override;
 
 public:
-    StochasticBlockModelFamily(size_t graphSize): RandomGraph(graphSize) { }
+    StochasticBlockModelFamily(size_t graphSize): VertexLabeledRandomGraph<BlockIndex>(graphSize) { }
     StochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
-        RandomGraph(graphSize){
+        VertexLabeledRandomGraph<BlockIndex>(graphSize){
             setBlockPrior(blockPrior);
             m_blockPriorPtr->setSize(graphSize);
             setEdgeMatrixPrior(edgeMatrixPrior);
@@ -63,13 +63,13 @@ public:
         m_edgeMatrixPriorPtr->setBlockPrior(*m_blockPriorPtr);
     }
 
-    const BlockSequence& getBlocks() const override { return m_blockPriorPtr->getState(); }
-    const size_t& getBlockCount() const { return m_blockPriorPtr->getBlockCount(); }
-    const CounterMap<size_t>& getVertexCountsInBlocks() const { return m_blockPriorPtr->getVertexCountsInBlocks(); }
-    const MultiGraph& getEdgeMatrix() const { return m_edgeMatrixPriorPtr->getState(); }
-    const CounterMap<size_t>& getEdgeCountsInBlocks() const { return m_edgeMatrixPriorPtr->getEdgeCountsInBlocks(); }
+    const BlockSequence& getVertexLabels() const override { return m_blockPriorPtr->getState(); }
+    const CounterMap<BlockIndex>& getLabelCounts() const override { return m_blockPriorPtr->getVertexCounts(); }
+    const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return m_edgeMatrixPriorPtr->getEdgeCounts(); }
+    const MultiGraph& getLabelGraph() const override { return m_edgeMatrixPriorPtr->getState(); }
     const size_t& getEdgeCount() const { return m_edgeMatrixPriorPtr->getEdgeCount(); }
-    virtual const std::vector<size_t>& getDegrees() const { return m_degrees; }
+
+    // virtual const std::vector<size_t>& getDegrees() const { return m_degrees; }
 
     void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BlockIndex, BlockIndex>>&) const;
     void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>>&) const;
@@ -82,10 +82,10 @@ public:
     virtual const double getLogLikelihoodRatioAdjTerm (const GraphMove&) const;
 
     virtual const double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
-    virtual const double getLogLikelihoodRatioFromBlockMove (const BlockMove&) const override;
+    virtual const double getLogLikelihoodRatioFromLabelMove (const BlockMove&) const override;
 
     virtual const double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
-    virtual const double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
+    virtual const double getLogPriorRatioFromLabelMove (const BlockMove&) const override;
 
 
     virtual bool isSafe() const override { return m_blockPriorPtr != nullptr and m_edgeMatrixPriorPtr != nullptr; }
@@ -95,9 +95,9 @@ public:
     virtual void checkSelfConsistency() const override;
     virtual void checkSelfSafety() const override;
     virtual const bool isCompatible(const MultiGraph& graph) const override{
-        if (not RandomGraph::isCompatible(graph)) return false;
-        auto edgeMatrix = getEdgeMatrixFromGraph(graph, getBlocks());
-        return edgeMatrix == getEdgeMatrix();
+        if (not VertexLabeledRandomGraph<BlockIndex>::isCompatible(graph)) return false;
+        auto edgeMatrix = getEdgeMatrixFromGraph(graph, getVertexLabels());
+        return edgeMatrix.getAdjacencyMatrix() == m_edgeMatrixPriorPtr->getState().getAdjacencyMatrix();
     };
     virtual void computationFinished() const override {
         m_isProcessed = false;

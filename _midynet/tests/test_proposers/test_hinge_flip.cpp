@@ -28,7 +28,7 @@ class TestHingeFlipUniformProposer: public::testing::Test {
             randomGraph.sample();
             graph = randomGraph.getGraph();
             randomGraph.setGraph(graph);
-            proposer.setUp(randomGraph);
+            proposer.setUp(graph);
             proposer.checkSafety();
         }
         void TearDown() {
@@ -108,7 +108,7 @@ TEST_F(TestHingeFlipUniformProposer, applyGraphMove_removeEdge_edgeWeightDecreas
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forNormalMove_returnCorrectValue) {
-    proposer.setUpFromGraph(toyGraph);
+    proposer.setUp(toyGraph);
 
     GraphMove normalMove1 = {{{0, 1}}, {{0, 3}}};
     EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(normalMove1), 0);
@@ -121,7 +121,7 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forNormalMove_retur
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopyMove_returnCorrectValue) {
-    proposer.setUpFromGraph(toyGraph);
+    proposer.setUp(toyGraph);
 
     GraphMove loopyMove1 = {{{1, 1}}, {{1, 3}}};
     EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(loopyMove1), -log(2));
@@ -131,7 +131,7 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopyMove_return
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forSelfieMove_returnCorrectValue) {
-    proposer.setUpFromGraph(toyGraph);
+    proposer.setUp(toyGraph);
 
     GraphMove selfieMove1 = {{{0, 1}}, {{0, 0}}};
     EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(selfieMove1), log(2));
@@ -147,7 +147,7 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forSelfieMove_retur
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopySelfieMove_returnCorrectValue) {
-    proposer.setUpFromGraph(toyGraph);
+    proposer.setUp(toyGraph);
 
     GraphMove selfieMove1 = {{{1, 1}}, {{1, 1}}};
     EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(selfieMove1), 0);

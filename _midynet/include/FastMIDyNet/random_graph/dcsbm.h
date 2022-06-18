@@ -22,7 +22,7 @@ protected:
     void samplePriors () override;
 
     void _applyGraphMove (const GraphMove&) override;
-    void _applyBlockMove (const BlockMove&) override;
+    void _applyLabelMove (const BlockMove&) override;
 public:
     DegreeCorrectedStochasticBlockModelFamily(size_t graphSize):
         StochasticBlockModelFamily(graphSize) { }
@@ -57,9 +57,6 @@ public:
         m_degreePriorPtr->setEdgeMatrixPrior(*m_edgeMatrixPriorPtr);
     }
 
-
-    const DegreeSequence& getDegrees() const override { return m_degreePriorPtr->getState(); }
-
     const double getLogLikelihood() const override ;
     const double getLogPrior() const override ;
 
@@ -67,10 +64,10 @@ public:
     const double getLogLikelihoodRatioAdjTerm (const GraphMove&) const override;
 
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
-    const double getLogLikelihoodRatioFromBlockMove (const BlockMove&) const override;
+    const double getLogLikelihoodRatioFromLabelMove (const BlockMove&) const override;
 
     const double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
-    const double getLogPriorRatioFromBlockMove (const BlockMove&) const override;
+    const double getLogPriorRatioFromLabelMove (const BlockMove&) const override;
 
     void computationFinished() const override{
         m_isProcessed = false;

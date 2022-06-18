@@ -10,9 +10,9 @@
 namespace FastMIDyNet{
 
 
-size_t BlockCountPrior::getStateAfterBlockMove(const BlockMove& move) const {
-    return getState() + move.addedBlocks;
-};
+// size_t BlockCountPrior::getStateAfterLabelMove(const BlockMove& move) const {
+//     return getState() + move.addedLabels;
+// };
 
 void BlockCountPoissonPrior::sampleState() {
     auto blockCount = 0;
