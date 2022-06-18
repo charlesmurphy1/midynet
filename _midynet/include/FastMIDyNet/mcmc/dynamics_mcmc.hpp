@@ -84,7 +84,10 @@ public:
     virtual bool _doMetropolisHastingsStep() override ;
 
     virtual void applyGraphMove(const GraphMove& move){
-        processRecursiveFunction([&](){ m_dynamicsPtr->applyGraphMove(move); });
+        processRecursiveFunction([&](){
+            m_dynamicsPtr->applyGraphMove(move);
+            m_edgeProposerPtr->applyGraphMove(move);
+        });
     }
 
     // Debug related
@@ -145,9 +148,10 @@ bool DynamicsOnRandomGraphMCMC::_doMetropolisHastingsStep() {
 
 
 template<typename Label>
-class DynanicsOnVertexLabeledRandomGraphMCMC: public VertexLabeledRandomGraphMCMC<Label>, public DynamicsOnRandomGraphMCMC{
+class DynanicsOnVertexLabeledRandomGraphMCMC:
+public VertexLabeledRandomGraphMCMC<Label>, public DynamicsOnRandomGraphMCMC{
     double m_sampleLabelProb;
-    bool m_lastMoveWasGraphMove;
+    mutable bool m_lastMoveWasLabelMove;
 public:
     DynanicsOnVertexLabeledRandomGraphMCMC(
         Dynamics& dynamics,
@@ -161,22 +165,41 @@ public:
             RandomGraphMCMC(dynamics.getRandomGraphRef(), betaLikelihood, betaPrior),
             m_sampleLabelProb(sampleLabelProb)
             { }
-        bool _doMetropolisHastingsStep() override {
-            if (m_uniform(rng) < m_sampleLabelProb){
-                m_lastMoveWasGraphMove = false;
-                return VertexLabeledRandomGraphMCMC<Label>::doMetropolisHastingsStep();
-            } else {
-                m_lastMoveWasGraphMove = true;
-                return DynamicsOnRandomGraphMCMC::doMetropolisHastingsStep();
-            }
-        }
 
-        void applyGraphMove(const GraphMove& move) override {
-            DynamicsOnRandomGraphMCMC::applyGraphMove(move);
-            processRecursiveFunction([&](){
-                VertexLabeledRandomGraphMCMC<Label>::m_labelProposerPtr->applyGraphMove(move);
-            });
-        }
+
+
+    bool _doMetropolisHastingsStep() override {
+        m_lastMoveWasLabelMove = ( m_uniform(rng) < m_sampleLabelProb );
+        return (m_lastMoveWasLabelMove) ?
+            VertexLabeledRandomGraphMCMC<Label>::doMetropolisHastingsStep() :
+            DynamicsOnRandomGraphMCMC::doMetropolisHastingsStep();
+    }
+
+    void applyGraphMove(const GraphMove& move) override {
+        processRecursiveFunction([&](){
+            m_dynamicsPtr->applyGraphMove(move);
+            m_edgeProposerPtr->applyGraphMove(move);
+            VertexLabeledRandomGraphMCMC<Label>::m_labelProposerPtr->applyGraphMove(move);
+        });
+    }
+
+    bool isSafe() const override {
+        return DynamicsOnRandomGraphMCMC::isSafe() and VertexLabeledRandomGraphMCMC<Label>::isSafe();
+    }
+
+    void checkSelfSafety() const override {
+        DynamicsOnRandomGraphMCMC::checkSelfSafety();
+        VertexLabeledRandomGraphMCMC<Label>::checkSelfSafety();
+    }
+    void checkSelfConsistency() const override {
+        DynamicsOnRandomGraphMCMC::checkSelfConsistency();
+        VertexLabeledRandomGraphMCMC<Label>::checkSelfConsistency();
+    }
+    void computationFinished() const override {
+        m_isProcessed = false;
+        DynamicsOnRandomGraphMCMC::computationFinished();
+        VertexLabeledRandomGraphMCMC<Label>::computationFinished();
+    }
 };
 
 }
