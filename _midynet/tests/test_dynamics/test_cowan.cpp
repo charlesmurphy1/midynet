@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 #include <list>
 
-#include "FastMIDyNet/dynamics/cowan.h"
+#include "FastMIDyNet/dynamics/cowan.hpp"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
-#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
+#include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "fixtures.hpp"
 
 
@@ -15,9 +15,9 @@ const std::list<std::vector<int>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}, {2,
 class TestWilsonCowan: public::testing::Test{
 public:
     EdgeCountDeltaPrior edgeCountPrior = {10};
-    ErdosRenyiFamily graph = ErdosRenyiFamily(10, edgeCountPrior);
+    ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    FastMIDyNet::CowanDynamics dynamics = FastMIDyNet::CowanDynamics(graph, NUM_STEPS, NU, A, MU, ETA, 0, 0, false, -1);
+    FastMIDyNet::CowanDynamics<RandomGraph> dynamics = FastMIDyNet::CowanDynamics<RandomGraph>(randomGraph, NUM_STEPS, NU, A, MU, ETA, 0, 0, false, -1);
 };
 
 
@@ -54,7 +54,7 @@ TEST_F(TestWilsonCowan, getLogLikelihood_returnCorrectLogLikelikehood){
 
 TEST_F(TestWilsonCowan, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
     dynamics.sample();
-    edgeProposer.setUp(graph);
+    edgeProposer.setUp(randomGraph.getGraph());
     auto graphMove = edgeProposer.proposeMove();
     double ratio = dynamics.getLogLikelihoodRatioFromGraphMove(graphMove);
     double logLikelihoodBefore = dynamics.getLogLikelihood();

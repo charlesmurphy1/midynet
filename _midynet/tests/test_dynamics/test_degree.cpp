@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 #include <list>
 
-#include "FastMIDyNet/dynamics/degree.h"
+#include "FastMIDyNet/dynamics/degree.hpp"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
-#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
+#include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "fixtures.hpp"
 
 namespace FastMIDyNet{
@@ -15,9 +15,9 @@ const std::list<std::vector<int>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}, {2,
 class TestDegreeDynamics: public::testing::Test{
 public:
     EdgeCountDeltaPrior edgeCountPrior = {10};
-    ErdosRenyiFamily graph = ErdosRenyiFamily(10, edgeCountPrior);
+    ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    FastMIDyNet::DegreeDynamics dynamics = FastMIDyNet::DegreeDynamics(graph, NUM_STEPS, C);
+    FastMIDyNet::DegreeDynamics<RandomGraph> dynamics = FastMIDyNet::DegreeDynamics<RandomGraph>(randomGraph, NUM_STEPS, C);
 };
 
 
@@ -58,7 +58,7 @@ TEST_F(TestDegreeDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
 
 TEST_F(TestDegreeDynamics, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
     dynamics.sample();
-    edgeProposer.setUp(graph);
+    edgeProposer.setUp(randomGraph.getGraph());
     auto graphMove = edgeProposer.proposeMove();
     double ratio = dynamics.getLogLikelihoodRatioFromGraphMove(graphMove);
     double logLikelihoodBefore = dynamics.getLogLikelihood();

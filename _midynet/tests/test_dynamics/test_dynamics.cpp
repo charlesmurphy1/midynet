@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "FastMIDyNet/dynamics/dynamics.h"
+#include "FastMIDyNet/dynamics/dynamics.hpp"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "BaseGraph/types.h"

@@ -2,9 +2,9 @@
 #include <list>
 #include <cmath>
 
-#include "FastMIDyNet/dynamics/sis.h"
+#include "FastMIDyNet/dynamics/sis.hpp"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
-#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
+#include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "fixtures.hpp"
 
 namespace FastMIDyNet{
@@ -18,10 +18,10 @@ const std::list<std::vector<int>> neighbor_states = {{1, 3}, {2, 2}, {3, 1}};
 class TestSISDynamics: public::testing::Test{
 public:
     EdgeCountDeltaPrior edgeCountPrior = {10};
-    ErdosRenyiFamily graph = ErdosRenyiFamily(10, edgeCountPrior);
+    ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    FastMIDyNet::SISDynamics dynamics = FastMIDyNet::SISDynamics(
-        graph, NUM_STEPS, INFECTION_PROB, RECOVERY_PROB,
+    FastMIDyNet::SISDynamics<RandomGraph> dynamics = FastMIDyNet::SISDynamics<RandomGraph>(
+        randomGraph, NUM_STEPS, INFECTION_PROB, RECOVERY_PROB,
         AUTO_ACTIVATION_PROB, AUTO_DEACTIVATION_PROB,
         NORMALIZE_COUPLING, NUM_INITIAL_ACTIVE);
 };
@@ -71,7 +71,7 @@ TEST_F(TestSISDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
 
 TEST_F(TestSISDynamics, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
     dynamics.sample();
-    edgeProposer.setUp(graph);
+    edgeProposer.setUp(randomGraph.getGraph());
     auto graphMove = edgeProposer.proposeMove();
     double ratio = dynamics.getLogLikelihoodRatioFromGraphMove(graphMove);
     double logLikelihoodBefore = dynamics.getLogLikelihood();
