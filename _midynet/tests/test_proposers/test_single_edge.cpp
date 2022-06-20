@@ -2,7 +2,7 @@
 
 #include "FastMIDyNet/prior/sbm/edge_count.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
-#include "FastMIDyNet/proposer/edge_proposer/single_edge.h"
+#include "FastMIDyNet/proposer/edge/single_edge.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "fixtures.hpp"

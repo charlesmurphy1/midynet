@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "FastMIDyNet/proposer/edge_proposer/double_edge_swap.h"
+#include "FastMIDyNet/proposer/edge/double_edge_swap.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "fixtures.hpp"
 

@@ -4,7 +4,7 @@
 #include "hash_specialization.hpp"
 #include "FastMIDyNet/prior/sbm/edge_count.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
-#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
+#include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/rng.h"
 #include "fixtures.hpp"
