@@ -48,8 +48,7 @@ public:
     }
     bool const isCompatible(const MultiGraph& graph) const override{
         if (not RandomGraph::isCompatible(graph)) return false;
-        auto degrees = getDegreesFromGraph(graph);
-        return degrees == getDegrees();
+        return graph.getDegrees() == getDegrees();
     }
 };
 

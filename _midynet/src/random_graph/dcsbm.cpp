@@ -136,7 +136,7 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioFro
     const CounterMap<size_t>& edgesInBlock = getEdgeLabelCounts();
     double logLikelihoodRatio = 0;
 
-    if (move.prevBlockIdx == move.nextBlockIdx)
+    if (move.prevLabel == move.nextLabel)
         return 0;
 
     IntMap<pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
@@ -172,7 +172,7 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatioFromGrap
 }
 
 const double DegreeCorrectedStochasticBlockModelFamily::getLogPriorRatioFromLabelMove(const BlockMove& move) const {
-    double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move) + m_degreePriorPtr->getLogJointRatioFromBlockMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromLabelMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromLabelMove(move) + m_degreePriorPtr->getLogJointRatioFromLabelMove(move);
     computationFinished();
     return logPriorRatio;
 }
@@ -184,26 +184,13 @@ void DegreeCorrectedStochasticBlockModelFamily::_applyGraphMove (const GraphMove
     RandomGraph::_applyGraphMove(move);
 };
 void DegreeCorrectedStochasticBlockModelFamily::_applyLabelMove (const BlockMove& move){
-    m_blockPriorPtr->applyBlockMove(move);
-    m_edgeMatrixPriorPtr->applyBlockMove(move);
-    m_degreePriorPtr->applyBlockMove(move);
+    m_blockPriorPtr->applyLabelMove(move);
+    m_edgeMatrixPriorPtr->applyLabelMove(move);
+    m_degreePriorPtr->applyLabelMove(move);
 };
 
-DegreeSequence DegreeCorrectedStochasticBlockModelFamily::getDegreesFromGraph(const MultiGraph& graph){
-    DegreeSequence degreeSeq(graph.getSize(), 0);
-
-    for (auto idx : graph){
-        for (auto neighbor : graph.getNeighboursOfIdx(idx)){
-            if (idx == neighbor.vertexIndex) degreeSeq[idx] += 2 * neighbor.label;
-            else degreeSeq[idx] += neighbor.label;
-        }
-    }
-
-    return degreeSeq;
-}
-
 void DegreeCorrectedStochasticBlockModelFamily::checkGraphConsistencyWithDegreeSequence(const MultiGraph& graph, const DegreeSequence& expectedDegreeSeq){
-    DegreeSequence actualDegreeSeq = getDegreesFromGraph(graph);
+    DegreeSequence actualDegreeSeq = graph.getDegrees();
 
     for (auto idx : graph){
         if (expectedDegreeSeq[idx] != actualDegreeSeq[idx])

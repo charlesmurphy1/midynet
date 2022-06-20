@@ -132,16 +132,16 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove(
     const BlockMove& move, IntMap<pair<BlockIndex, BlockIndex>>& diffEdgeMatMap
 ) const {
     const BlockSequence& blockSeq = getVertexLabels();
-    for (auto neighbor : m_graph.getNeighboursOfIdx(move.vertexIdx)){
+    for (auto neighbor : m_graph.getNeighboursOfIdx(move.vertexIndex)){
         BlockIndex blockIdx = blockSeq[neighbor.vertexIndex];
         size_t edgeMult = neighbor.label;
-        pair<BlockIndex, BlockIndex> orderedBlockPair = getOrderedPair<BlockIndex> ({move.prevBlockIdx, blockIdx});
+        pair<BlockIndex, BlockIndex> orderedBlockPair = getOrderedPair<BlockIndex> ({move.prevLabel, blockIdx});
         diffEdgeMatMap.decrement(orderedBlockPair, neighbor.label);
 
-        if (neighbor.vertexIndex == move.vertexIdx) // handling self-loops
-            blockIdx = move.nextBlockIdx;
+        if (neighbor.vertexIndex == move.vertexIndex) // handling self-loops
+            blockIdx = move.nextLabel;
 
-        orderedBlockPair = getOrderedPair<BlockIndex> ({move.nextBlockIdx, blockIdx});
+        orderedBlockPair = getOrderedPair<BlockIndex> ({move.nextLabel, blockIdx});
         diffEdgeMatMap.increment(orderedBlockPair, neighbor.label);
     }
 };
@@ -151,10 +151,10 @@ const double StochasticBlockModelFamily::getLogLikelihoodRatioFromLabelMove(cons
     const MultiGraph& edgeMat = m_edgeMatrixPriorPtr->getState();
     const CounterMap<size_t>& edgeCounts = getEdgeLabelCounts();
     const CounterMap<size_t>& vertexCounts = getLabelCounts();
-    const size_t& degree = m_graph.getDegreeOfIdx(move.vertexIdx);
+    const size_t& degree = m_graph.getDegreeOfIdx(move.vertexIndex);
     double logLikelihoodRatio = 0;
 
-    if (move.prevBlockIdx == move.nextBlockIdx)
+    if (move.prevLabel == move.nextLabel)
         return 0;
 
     IntMap<pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
@@ -168,11 +168,11 @@ const double StochasticBlockModelFamily::getLogLikelihoodRatioFromLabelMove(cons
         logLikelihoodRatio -= (r == s) ? logDoubleFactorial(2 * ers) : logFactorial(ers);
     }
 
-    logLikelihoodRatio += edgeCounts[move.prevBlockIdx] * log(vertexCounts[move.prevBlockIdx]) ;
-    logLikelihoodRatio -= (edgeCounts[move.prevBlockIdx] == degree) ? 0: (edgeCounts[move.prevBlockIdx] - degree) * log(vertexCounts[move.prevBlockIdx] - 1);
+    logLikelihoodRatio += edgeCounts[move.prevLabel] * log(vertexCounts[move.prevLabel]) ;
+    logLikelihoodRatio -= (edgeCounts[move.prevLabel] == degree) ? 0: (edgeCounts[move.prevLabel] - degree) * log(vertexCounts[move.prevLabel] - 1);
 
-    logLikelihoodRatio += (edgeCounts[move.nextBlockIdx] == 0) ? 0: edgeCounts[move.nextBlockIdx] * log(vertexCounts[move.nextBlockIdx]);
-    logLikelihoodRatio -= (edgeCounts[move.nextBlockIdx] + degree) * log(vertexCounts[move.nextBlockIdx] + 1) ;
+    logLikelihoodRatio += (edgeCounts[move.nextLabel] == 0) ? 0: edgeCounts[move.nextLabel] * log(vertexCounts[move.nextLabel]);
+    logLikelihoodRatio -= (edgeCounts[move.nextLabel] + degree) * log(vertexCounts[move.nextLabel] + 1) ;
 
     return logLikelihoodRatio;
 };
@@ -183,7 +183,7 @@ const double StochasticBlockModelFamily::getLogPriorRatioFromGraphMove (const Gr
 };
 
 const double StochasticBlockModelFamily::getLogPriorRatioFromLabelMove (const BlockMove& move) const {
-    double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromBlockMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromBlockMove(move);
+    double logPriorRatio = m_blockPriorPtr->getLogJointRatioFromLabelMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromLabelMove(move);
     return logPriorRatio;
 };
 
@@ -194,8 +194,8 @@ void StochasticBlockModelFamily::_applyGraphMove (const GraphMove& move) {
 };
 
 void StochasticBlockModelFamily::_applyLabelMove (const BlockMove& move){
-    m_blockPriorPtr->applyBlockMove(move);
-    m_edgeMatrixPriorPtr->applyBlockMove(move);
+    m_blockPriorPtr->applyLabelMove(move);
+    m_edgeMatrixPriorPtr->applyLabelMove(move);
 };
 
 MultiGraph StochasticBlockModelFamily::getEdgeMatrixFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq){

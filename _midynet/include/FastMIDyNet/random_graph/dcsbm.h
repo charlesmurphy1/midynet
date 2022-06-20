@@ -57,6 +57,9 @@ public:
         m_degreePriorPtr->setEdgeMatrixPrior(*m_edgeMatrixPriorPtr);
     }
 
+    const std::vector<size_t>& getDegrees() const { return m_degreePriorPtr->getState(); }
+
+
     const double getLogLikelihood() const override ;
     const double getLogPrior() const override ;
 
@@ -77,7 +80,6 @@ public:
     }
 
 
-    static DegreeSequence getDegreesFromGraph(const MultiGraph&) ;
     static void checkGraphConsistencyWithDegreeSequence(const MultiGraph&, const DegreeSequence&) ;
 
     virtual bool isSafe() const override {
@@ -89,8 +91,7 @@ public:
     virtual void checkSelfSafety() const override;
     virtual const bool isCompatible(const MultiGraph& graph) const override{
         if (not StochasticBlockModelFamily::isCompatible(graph)) return false;
-        auto degrees = getDegreesFromGraph(graph);
-        return degrees == getDegrees();
+        return graph.getDegrees() == getDegrees();
     }
 
 };
