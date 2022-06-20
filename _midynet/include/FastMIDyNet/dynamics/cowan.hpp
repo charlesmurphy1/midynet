@@ -2,21 +2,23 @@
 #define FAST_MIDYNET_WILSON_COWAN_H
 
 
-#include "FastMIDyNet/dynamics/binary_dynamics.h"
-#include "FastMIDyNet/dynamics/glauber.h"
+#include "FastMIDyNet/dynamics/binary_dynamics.hpp"
+#include "FastMIDyNet/dynamics/util.h"
 
 
 namespace FastMIDyNet{
 
-
-class CowanDynamics: public BinaryDynamics {
+template<typename RandomGraphType=RandomGraph>
+class CowanDynamics: public BinaryDynamics<RandomGraphType> {
 private:
     double m_a;
     double m_nu;
     double m_mu;
     double m_eta;
+    bool m_normalizeCoupling;
 
 public:
+    using BaseClass = BinaryDynamics<RandomGraphType>;
     CowanDynamics(
             size_t numSteps,
             double nu,
@@ -27,7 +29,7 @@ public:
             double autoDeactivationProb=0,
             bool normalizeCoupling=true,
             size_t numInitialActive=1):
-        BinaryDynamics(
+        BaseClass(
             numSteps,
             autoActivationProb,
             autoDeactivationProb,
@@ -38,7 +40,7 @@ public:
         m_mu(mu),
         m_eta(eta) {}
     CowanDynamics(
-            RandomGraph& randomGraph,
+            RandomGraphType& randomGraph,
             size_t numSteps,
             double nu,
             double a=1,
@@ -48,7 +50,7 @@ public:
             double autoDeactivationProb=0,
             bool normalizeCoupling=true,
             size_t numInitialActive=1):
-        BinaryDynamics(
+        BaseClass(
             randomGraph,
             numSteps,
             autoActivationProb,
@@ -69,8 +71,8 @@ public:
     const double getA() const { return m_a; }
     void setA(double a) { m_a = a; }
     const double getNu() const {
-        if (m_normalizeCoupling)
-            return m_nu / (2 * m_randomGraphPtr->getEdgeCount() / m_randomGraphPtr->getSize());
+        if (BaseClass::m_normalizeCoupling)
+            return m_nu / (2 * BaseClass::m_randomGraphPtr->getEdgeCount() / BaseClass::m_randomGraphPtr->getSize());
         else
             return m_nu;
 

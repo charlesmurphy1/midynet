@@ -2,20 +2,20 @@
 #define FAST_MIDYNET_ISING_MODEL_H
 
 
-#include "FastMIDyNet/dynamics/binary_dynamics.h"
+#include "FastMIDyNet/dynamics/binary_dynamics.hpp"
+#include "FastMIDyNet/dynamics/util.h"
 
 
 namespace FastMIDyNet{
 
-static inline double sigmoid(double x) {
-    return 1/(1+exp(-x));
-}
 
-
-class GlauberDynamics: public BinaryDynamics {
+template<typename RandomGraphType=RandomGraph>
+class GlauberDynamics: public BinaryDynamics<RandomGraphType> {
     double m_couplingConstant;
 
     public:
+        using BaseClass = BinaryDynamics<RandomGraphType>;
+
         GlauberDynamics(
                 size_t numSteps,
                 double couplingConstant,
@@ -23,7 +23,7 @@ class GlauberDynamics: public BinaryDynamics {
                 double autoDeactivationProb=0,
                 bool normalizeCoupling=true,
                 size_t numInitialActive=-1):
-            BinaryDynamics(
+            BaseClass(
                 numSteps,
                 autoActivationProb,
                 autoDeactivationProb,
@@ -31,14 +31,14 @@ class GlauberDynamics: public BinaryDynamics {
                 numInitialActive),
             m_couplingConstant(couplingConstant) {}
         GlauberDynamics(
-                RandomGraph& randomGraph,
+                RandomGraphType& randomGraph,
                 size_t numSteps,
                 double couplingConstant,
                 double autoActivationProb=0,
                 double autoDeactivationProb=0,
                 bool normalizeCoupling=true,
                 size_t numInitialActive=-1):
-            BinaryDynamics(
+            BaseClass(
                 randomGraph,
                 numSteps,
                 autoActivationProb,
@@ -54,9 +54,9 @@ class GlauberDynamics: public BinaryDynamics {
             return sigmoid(-2 * getCoupling() * (vertexNeighborState[0]-vertexNeighborState[1]));
         }
         const double getCoupling() const {
-            if (not m_normalizeCoupling)
+            if (not BaseClass::m_normalizeCoupling)
                 return m_couplingConstant;
-            double coupling = m_couplingConstant / (2 * m_randomGraphPtr->getEdgeCount() / m_randomGraphPtr->getSize());
+            double coupling = m_couplingConstant / (2 * BaseClass::m_randomGraphPtr->getEdgeCount() / BaseClass::m_randomGraphPtr->getSize());
             return coupling;
         }
         void setCoupling(double couplingConstant) { m_couplingConstant = couplingConstant; }

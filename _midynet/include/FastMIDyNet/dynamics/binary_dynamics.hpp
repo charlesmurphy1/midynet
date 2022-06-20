@@ -5,27 +5,28 @@
 #include <vector>
 #include <map>
 
-#include "FastMIDyNet/random_graph/random_graph.h"
-#include "FastMIDyNet/dynamics/dynamics.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
+#include "FastMIDyNet/dynamics/dynamics.hpp"
 #include "FastMIDyNet/types.h"
 
 
 namespace FastMIDyNet{
 
-
-class BinaryDynamics: public Dynamics{
+template <typename RandomGraphType=RandomGraph>
+class BinaryDynamics: public Dynamics<RandomGraphType>{
 private:
     size_t m_numInitialActive;
     double m_autoActivationProb;
     double m_autoDeactivationProb;
 public:
+    using BaseClass = Dynamics<RandomGraphType>;
     explicit BinaryDynamics(
             size_t numSteps,
             double autoActivationProb=0.0,
             double autoDeactivationProb=0.0,
             bool normalizeCoupling=true,
             size_t numInitialActive=-1):
-        Dynamics(2, numSteps, normalizeCoupling),
+        BaseClass(2, numSteps, normalizeCoupling),
         m_autoActivationProb(autoActivationProb),
         m_autoDeactivationProb(autoDeactivationProb),
         m_numInitialActive(numInitialActive) { }
@@ -36,7 +37,7 @@ public:
             double autoDeactivationProb=0.0,
             bool normalizeCoupling=true,
             size_t numInitialActive=-1):
-        Dynamics(randomGraph, 2, numSteps, normalizeCoupling),
+        BaseClass(randomGraph, 2, numSteps, normalizeCoupling),
         m_autoActivationProb(autoActivationProb),
         m_autoDeactivationProb(autoDeactivationProb),
         m_numInitialActive(numInitialActive) { }
@@ -56,6 +57,38 @@ public:
     const double getAutoActivationProb() const { return m_autoActivationProb; }
     const double getAutoDeactivationProb() const { return m_autoDeactivationProb; }
 
+};
+
+template <typename RandomGraphType>
+const State BinaryDynamics<RandomGraphType>::getRandomState() const {
+    size_t N = BaseClass::m_randomGraphPtr->getSize();
+    State randomState(N);
+    if (m_numInitialActive > N)
+        return Dynamics<RandomGraphType>::getRandomState();
+
+    auto indices = sampleUniformlySequenceWithoutReplacement(N, m_numInitialActive);
+    for (auto i: indices)
+        randomState[i] = 1;
+    return randomState;
+};
+
+template <typename RandomGraphType>
+const double BinaryDynamics<RandomGraphType>::getTransitionProb(VertexState prevVertexState, VertexState nextVertexState,
+        VertexNeighborhoodState neighborhoodState) const {
+    double p;
+    double transProb;
+    if ( prevVertexState == 0 ) {
+        p = (1 - m_autoActivationProb) * getActivationProb(neighborhoodState) + m_autoActivationProb;
+        if (nextVertexState == 0) transProb = 1 - p;
+        else transProb = p;
+    }
+    else {
+        p = (1 - m_autoDeactivationProb) * getDeactivationProb(neighborhoodState) + m_autoDeactivationProb;
+        if (nextVertexState == 1) transProb = 1 - p;
+        else transProb = p;
+    }
+
+    return clipProb(transProb);
 };
 
 } // namespace FastMIDyNet

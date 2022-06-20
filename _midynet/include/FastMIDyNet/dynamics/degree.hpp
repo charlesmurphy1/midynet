@@ -2,20 +2,22 @@
 #define FASTMIDYNET_DEGREE_DYNAMICS_H
 
 
-#include "FastMIDyNet/dynamics/binary_dynamics.h"
+#include "FastMIDyNet/dynamics/binary_dynamics.hpp"
 
 
 namespace FastMIDyNet{
 
-
-class DegreeDynamics: public BinaryDynamics {
+template<typename RandomGraphType=RandomGraph>
+class DegreeDynamics: public BinaryDynamics<RandomGraphType> {
     double m_C;
 
     public:
+        using BaseClass = BinaryDynamics<RandomGraphType>;
+
         DegreeDynamics(size_t numSteps, double C):
-                BinaryDynamics(numSteps, 0, 0, false, -1), m_C(C) {}
-        DegreeDynamics(RandomGraph& random_graph, size_t numSteps, double C):
-                BinaryDynamics(random_graph, numSteps, 0, 0, false, -1), m_C(C) { }
+                BaseClass(numSteps, 0, 0, false, -1), m_C(C) {}
+        DegreeDynamics(RandomGraphType& random_graph, size_t numSteps, double C):
+                BaseClass(random_graph, numSteps, 0, 0, false, -1), m_C(C) { }
 
         const double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override {
             return (vertexNeighborState[0] + vertexNeighborState[1]) / m_C;
