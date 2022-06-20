@@ -1,6 +1,6 @@
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/rng.h"
-#include "FastMIDyNet/proposer/edge_proposer/double_edge_swap.h"
+#include "FastMIDyNet/proposer/edge/double_edge_swap.h"
 
 
 namespace FastMIDyNet {
@@ -26,7 +26,7 @@ const GraphMove DoubleEdgeSwapProposer::proposeRawMove() const {
     return move;
 }
 
-void DoubleEdgeSwapProposer::setUpFromGraph( const MultiGraph& graph ) {
+void DoubleEdgeSwapProposer::setUp( const MultiGraph& graph ) {
     m_edgeSampler.clear();
     m_graphPtr = &graph;
     for (auto vertex : graph)

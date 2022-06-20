@@ -1,6 +1,6 @@
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/rng.h"
-#include "FastMIDyNet/proposer/edge_proposer/single_edge.h"
+#include "FastMIDyNet/proposer/edge/single_edge.h"
 
 
 namespace FastMIDyNet {
@@ -27,7 +27,7 @@ const GraphMove SingleEdgeProposer::proposeRawMove() const {
     return {{proposedEdge}, {}};
 }
 
-void SingleEdgeProposer::setUpFromGraph(const MultiGraph& graph) {
+void SingleEdgeProposer::setUp(const MultiGraph& graph) {
     m_graphPtr = &graph;
     for (auto vertex : graph){
         m_vertexSamplerPtr->onVertexInsertion(vertex);

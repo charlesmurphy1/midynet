@@ -1,6 +1,6 @@
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/rng.h"
-#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
+#include "FastMIDyNet/proposer/edge/hinge_flip.h"
 
 
 namespace FastMIDyNet {
@@ -37,7 +37,7 @@ const GraphMove HingeFlipProposer::proposeRawMove() const {
     return {{edge}, {newEdge}};
 };
 
-void HingeFlipProposer::setUpFromGraph(const MultiGraph& graph){
+void HingeFlipProposer::setUp(const MultiGraph& graph){
     m_edgeSampler.clear();
     m_vertexSamplerPtr->clear();
 

@@ -1,4 +1,4 @@
-#include "FastMIDyNet/proposer/edge_proposer/edge_proposer.h"
+#include "FastMIDyNet/proposer/edge/edge_proposer.h"
 #include "FastMIDyNet/utility/functions.h"
 
 namespace FastMIDyNet{
