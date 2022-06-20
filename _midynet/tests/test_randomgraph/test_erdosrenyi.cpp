@@ -26,7 +26,7 @@ class TestErdosRenyiFamily: public::testing::Test{
 };
 
 TEST_F(TestErdosRenyiFamily, randomGraph_hasCorrectBlockSequence){
-    auto blocks = randomGraph.getBlocks();
+    auto blocks = randomGraph.getVertexLabels();
     for (auto b : blocks) EXPECT_EQ(b, 0);
 }
 
@@ -35,15 +35,15 @@ TEST_F(TestErdosRenyiFamily, sample_getGraphWithCorrectNumberOfEdges){
     EXPECT_EQ(randomGraph.getGraph().getTotalEdgeNumber(), randomGraph.getEdgeCount());
 }
 
-TEST_F(TestErdosRenyiFamily, getLogLikelihoodRatioFromBlockMove_returnMinusInfinity){
-    BlockMove move = {0, 0, 1, 1};
-    double dS = randomGraph.getLogPriorRatioFromBlockMove(move);
+TEST_F(TestErdosRenyiFamily, getLogPriorRatioFromLabelMove_returnMinusInfinity){
+    BlockMove move = {0, 0, 1};
+    double dS = randomGraph.getLogPriorRatioFromLabelMove(move);
     EXPECT_EQ(dS, -INFINITY);
 }
 
 TEST_F(TestErdosRenyiFamily, applyBlockMove_throwConsistencyError){
     #if DEBUG
-    BlockMove move = {0, 0, 1, 1};
+    BlockMove move = {0, 0, 1};
     EXPECT_THROW(randomGraph.applyBlockMove(move), ConsistencyError);
     #endif
 }
@@ -81,11 +81,6 @@ class TestSimpleErdosRenyiFamily: public::testing::Test{
             randomGraph.sample();
         }
 };
-
-TEST_F(TestSimpleErdosRenyiFamily, randomGraph_hasCorrectBlockSequence){
-    auto blocks = randomGraph.getBlocks();
-    for (auto b : blocks) EXPECT_EQ(b, 0);
-}
 
 TEST_F(TestSimpleErdosRenyiFamily, sample_getGraphWithCorrectNumberOfEdges){
     randomGraph.sample();

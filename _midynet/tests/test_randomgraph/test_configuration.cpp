@@ -28,7 +28,7 @@ class TestConfigurationModelFamily: public::testing::Test{
 };
 
 TEST_F(TestConfigurationModelFamily, randomGraph_hasCorrectBlockSequence){
-    auto blocks = randomGraph.getBlocks();
+    auto blocks = randomGraph.getVertexLabels();
     for (auto b : blocks) EXPECT_EQ(b, 0);
 }
 
@@ -38,8 +38,8 @@ TEST_F(TestConfigurationModelFamily, sample_getGraphWithCorrectNumberOfEdges){
 }
 
 TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromBlockMove_returnMinusInfinity){
-    BlockMove move = {0, 0, 1, 1};
-    double dS = randomGraph.getLogPriorRatioFromBlockMove(move);
+    BlockMove move = {0, 0, 1};
+    double dS = randomGraph.getLogPriorRatioFromLabelMove(move);
     EXPECT_EQ(dS, -INFINITY);
 }
 
