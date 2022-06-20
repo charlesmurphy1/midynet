@@ -86,7 +86,7 @@ public:
     const double getLogVertexWeightRatio(const GraphMove& move) const override {
         BaseGraph::VertexIndex gainingVertex = move.addedEdges[0].second;
         double wk = m_vertexDegreeSampler.getVertexWeight(gainingVertex);
-        return log(wk + (move.addedEdges[0].first == move.addedEdges[0].second) ? 2 : 1) - log(wk)
+        return log(wk + (move.addedEdges[0].first == move.addedEdges[0].second) ? 2 : 1) - log(wk);
     }
 };
 
