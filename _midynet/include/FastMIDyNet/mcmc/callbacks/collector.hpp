@@ -4,7 +4,7 @@
 #include <vector>
 #include <fstream>
 
-#include "callback.h"
+#include "callback.hpp"
 #include "FastMIDyNet/mcmc/reconstruction.hpp"
 #include "FastMIDyNet/utility/distance.h"
 #include "BaseGraph/fileio.h"
@@ -22,13 +22,13 @@ public:
 template<typename MCMCType>
 class SweepCollector: public Collector<MCMCType>{
 public:
-    void onSweepEnd() override { Collector<MCMCType>::collect(); }
+    void onSweepEnd() override { this->collect(); }
 };
 
 template<typename MCMCType>
 class StepCollector: public Collector<MCMCType>{
 public:
-    void onStepEnd() override { Collector<MCMCType>::collect(); }
+    void onStepEnd() override { this->collect(); }
 };
 
 template<typename GraphMCMC>
@@ -67,6 +67,68 @@ public:
 };
 
 template<typename GraphMCMC>
+void CollectEdgeMultiplicityOnSweep<GraphMCMC>::collect(){
+    ++m_totalCount;
+    const MultiGraph& graph = BaseClass::m_mcmcPtr->getGraph();
+
+    for ( auto vertex : graph){
+        for (auto neighbor : graph.getNeighboursOfIdx(vertex)){
+            if (vertex <= neighbor.vertexIndex){
+                auto edge = getOrderedPair<BaseGraph::VertexIndex>({vertex, neighbor.vertexIndex});
+                m_observedEdges.increment(edge);
+                m_observedEdgesCount.increment({edge, neighbor.label});
+                if (neighbor.label > m_observedEdgesMaxCount[edge])
+                    m_observedEdgesMaxCount.set(edge, neighbor.label);
+            }
+        }
+    }
+}
+
+
+template<typename GraphMCMC>
+const double CollectEdgeMultiplicityOnSweep<GraphMCMC>::getEdgeCountProb(BaseGraph::Edge edge, size_t count) const {
+    if (count == 0)
+        return 1.0 - ((double)m_observedEdges.get(edge)) / ((double)m_totalCount);
+    else
+        return ((double)m_observedEdgesCount.get({edge, count})) / ((double)m_totalCount);
+}
+
+template<typename GraphMCMC>
+const double CollectEdgeMultiplicityOnSweep<GraphMCMC>::getMarginalEntropy() {
+    double marginalEntropy = 0;
+    for (auto edge : m_observedEdges){
+        for (size_t count = 0; count <= m_observedEdgesMaxCount[edge.first]; ++count){
+            double p = getEdgeCountProb(edge.first, count);
+            if (p > 0)
+                marginalEntropy -= p * log(p);
+        }
+    }
+    return marginalEntropy;
+}
+
+template<typename GraphMCMC>
+const double CollectEdgeMultiplicityOnSweep<GraphMCMC>::getLogPosteriorEstimate(const MultiGraph& graph) {
+    double logPosterior = 0;
+    for (auto edge : m_observedEdges)
+        logPosterior += log(getEdgeCountProb(edge.first, graph.getEdgeMultiplicityIdx(edge.first)));
+    return logPosterior;
+}
+
+template<typename GraphMCMC>
+const std::map<BaseGraph::Edge, std::vector<double>> CollectEdgeMultiplicityOnSweep<GraphMCMC>::getEdgeProbs() {
+    std::map<BaseGraph::Edge, std::vector<double>> edgeProbs;
+
+    for (auto edge : m_observedEdges){
+        edgeProbs.insert({edge.first, {}});
+        for (size_t count = 0; count <= m_observedEdgesMaxCount[edge.first]; ++count){
+            double p = getEdgeCountProb(edge.first, count);
+            edgeProbs[edge.first].push_back(p);
+        }
+    }
+    return edgeProbs;
+}
+
+template<typename GraphMCMC>
 class CollectPartitionOnSweep: public SweepCollector<GraphMCMC>{
 private:
     std::vector<std::vector<BlockIndex>> m_partitions;
@@ -88,6 +150,17 @@ public:
     void collect() override ;
     void clear() override { };
 };
+
+template<typename GraphMCMC>
+void WriteGraphToFileOnSweep<GraphMCMC>::collect(){
+    std::ofstream file;
+    file.open(m_filename + "_" + std::to_string(SweepCollector<GraphMCMC>::m_mcmcPtr->getNumSweeps()) + m_ext);
+
+    // BaseGraph::writeEdgeListIdxInBinaryFile(m_mcmcPtr->getGraph(), file);
+    // BaseGraph::writeEdgeListInBinaryFile(m_mcmcPtr->getGraph(), file);
+
+    file.close();
+}
 
 class CollectLikelihoodOnSweep: public SweepCollector<MCMC>{
 private:

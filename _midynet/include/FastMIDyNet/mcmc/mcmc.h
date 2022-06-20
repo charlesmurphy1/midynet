@@ -5,7 +5,7 @@
 #include <tuple>
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/rv.hpp"
-#include "FastMIDyNet/mcmc/callbacks/callback.h"
+#include "FastMIDyNet/mcmc/callbacks/callback.hpp"
 
 
 namespace FastMIDyNet{

@@ -1,4 +1,4 @@
-#include "FastMIDyNet/dynamics/glauber.h"
+#include "FastMIDyNet/dynamics/glauber.hpp"
 
 namespace FastMIDyNet{
 

@@ -20,7 +20,7 @@
 
 namespace FastMIDyNet{
 
-template<typename RandomGraphType=RandomGraph>
+template<typename GraphPriorType=RandomGraph>
 class Dynamics: public NestedRandomVariable{
 protected:
     size_t m_numStates;
@@ -30,7 +30,7 @@ protected:
     const bool m_normalizeCoupling;
     StateSequence m_pastStateSequence;
     StateSequence m_futureStateSequence;
-    RandomGraphType* m_randomGraphPtr = nullptr;
+    GraphPriorType* m_graphPriorPtr = nullptr;
     NeighborsStateSequence m_neighborsPastStateSequence;
 
     void updateNeighborsStateInPlace(
@@ -54,11 +54,11 @@ public:
         m_numSteps(numSteps),
         m_normalizeCoupling(normalizeCoupling)
         { }
-    explicit Dynamics(RandomGraphType& randomGraph, size_t numStates, size_t numSteps, bool normalizeCoupling=true):
+    explicit Dynamics(GraphPriorType& randomGraph, size_t numStates, size_t numSteps, bool normalizeCoupling=true):
         m_numStates(numStates),
         m_numSteps(numSteps),
         m_normalizeCoupling(normalizeCoupling)
-        { setRandomGraph(randomGraph); }
+        { setGraphPrior(randomGraph); }
 
     const State& getCurrentState() const { return m_state; }
     const NeighborsState& getCurrentNeighborsState() const { return m_neighborsState; }
@@ -73,30 +73,30 @@ public:
         checkConsistency();
         #endif
     }
-    const MultiGraph& getGraph() const { return m_randomGraphPtr->getGraph(); }
+    const MultiGraph& getGraph() const { return m_graphPriorPtr->getGraph(); }
     void setGraph(const MultiGraph& graph) ;
 
-    const RandomGraphType& getRandomGraph() const { return *m_randomGraphPtr; }
-    RandomGraphType& getRandomGraphTypeRef() const { return *m_randomGraphPtr; }
-    void setRandomGraph(RandomGraphType& randomGraph) {
-        m_randomGraphPtr = &randomGraph;
-        m_randomGraphPtr->isRoot(false);
+    const GraphPriorType& getGraphPrior() const { return *m_graphPriorPtr; }
+    GraphPriorType& getGraphPriorTypeRef() const { return *m_graphPriorPtr; }
+    void setGraphPrior(GraphPriorType& randomGraph) {
+        m_graphPriorPtr = &randomGraph;
+        m_graphPriorPtr->isRoot(false);
     }
 
-    const int getSize() const { return m_randomGraphPtr->getSize(); }
+    const int getSize() const { return m_graphPriorPtr->getSize(); }
     const int getNumStates() const { return m_numStates; }
     const int getNumSteps() const { return m_numSteps; }
     void setNumSteps(int numSteps) { m_numSteps = numSteps; }
 
     const State& sample(const State& initialState, bool async=true){
-        m_randomGraphPtr->sample();
+        m_graphPriorPtr->sample();
         sampleState(initialState, async);
         return getCurrentState();
     }
     const State& sample(bool async=true){ return sample(getRandomState(), async); }
     void sampleState(const State& initialState, bool async=true);
     void sampleState(bool async=true){ sampleState(getRandomState(), async); }
-    void sampleGraph() { setGraph(m_randomGraphPtr->sample()); }
+    void sampleGraph() { setGraph(m_graphPriorPtr->sample()); }
     virtual const State getRandomState() const;
     const NeighborsState computeNeighborsState(const State& state) const;
     const NeighborsStateSequence computeNeighborsStateSequence(const StateSequence& stateSequence) const;
@@ -105,7 +105,7 @@ public:
     void asyncUpdateState(int num_updates);
 
     const double getLogLikelihood() const;
-    const double getLogPrior() const { return m_randomGraphPtr->getLogJoint(); }
+    const double getLogPrior() const { return m_graphPriorPtr->getLogJoint(); }
     const double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
     virtual const double getTransitionProb(
         VertexState prevVertexState,
@@ -119,7 +119,7 @@ public:
 
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const;
     const double getLogPriorRatioFromGraphMove(const GraphMove& move) const {
-        return m_randomGraphPtr->getLogJointRatioFromGraphMove(move);
+        return m_graphPriorPtr->getLogJointRatioFromGraphMove(move);
     }
     const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
         return processRecursiveConstFunction<double>([&](){
@@ -136,18 +136,18 @@ public:
 
     void computationFinished() const override {
         m_isProcessed = false;
-        m_randomGraphPtr->computationFinished();
+        m_graphPriorPtr->computationFinished();
     }
 
     bool isSafe() const override {
-        return (m_randomGraphPtr != nullptr) and (m_randomGraphPtr->isSafe())
+        return (m_graphPriorPtr != nullptr) and (m_graphPriorPtr->isSafe())
            and (m_state.size() != 0) and (m_pastStateSequence.size() != 0)
            and (m_futureStateSequence.size() != 0) and (m_neighborsPastStateSequence.size() != 0);
     }
 };
 
-template<typename RandomGraphType>
-void Dynamics<RandomGraphType>::sampleState(const State& x0, bool async){
+template<typename GraphPriorType>
+void Dynamics<GraphPriorType>::sampleState(const State& x0, bool async){
     m_state = x0;
     m_neighborsState = computeNeighborsState(m_state);
 
@@ -186,9 +186,9 @@ void Dynamics<RandomGraphType>::sampleState(const State& x0, bool async){
 
 }
 
-template<typename RandomGraphType>
-void Dynamics<RandomGraphType>::setGraph(const MultiGraph& graph) {
-    m_randomGraphPtr->setGraph(graph);
+template<typename GraphPriorType>
+void Dynamics<GraphPriorType>::setGraph(const MultiGraph& graph) {
+    m_graphPriorPtr->setGraph(graph);
     if (m_pastStateSequence.size() == 0)
         return;
     m_neighborsState = computeNeighborsState(m_state);
@@ -199,9 +199,9 @@ void Dynamics<RandomGraphType>::setGraph(const MultiGraph& graph) {
     #endif
 }
 
-template<typename RandomGraphType>
-const State Dynamics<RandomGraphType>::getRandomState() const{
-    size_t N = m_randomGraphPtr->getSize();
+template<typename GraphPriorType>
+const State Dynamics<GraphPriorType>::getRandomState() const{
+    size_t N = m_graphPriorPtr->getSize();
     State rnd_state(N);
     std::uniform_int_distribution<int> dist(0, m_numStates - 1);
 
@@ -211,9 +211,9 @@ const State Dynamics<RandomGraphType>::getRandomState() const{
     return rnd_state;
 };
 
-template<typename RandomGraphType>
-const NeighborsState Dynamics<RandomGraphType>::computeNeighborsState(const State& state) const {
-    size_t N = m_randomGraphPtr->getSize();
+template<typename GraphPriorType>
+const NeighborsState Dynamics<GraphPriorType>::computeNeighborsState(const State& state) const {
+    size_t N = m_graphPriorPtr->getSize();
     NeighborsState neighborsState(N);
     int neighborIdx, edgeMultiplicity;
 
@@ -228,8 +228,8 @@ const NeighborsState Dynamics<RandomGraphType>::computeNeighborsState(const Stat
     return neighborsState;
 };
 
-template<typename RandomGraphType>
-const NeighborsStateSequence Dynamics<RandomGraphType>::computeNeighborsStateSequence(const StateSequence& stateSequence) const {
+template<typename GraphPriorType>
+const NeighborsStateSequence Dynamics<GraphPriorType>::computeNeighborsStateSequence(const StateSequence& stateSequence) const {
 
     NeighborsStateSequence neighborsStateSequence(getSize());
     for ( const auto& idx: getGraph() ){
@@ -244,8 +244,8 @@ const NeighborsStateSequence Dynamics<RandomGraphType>::computeNeighborsStateSeq
 };
 
 
-template<typename RandomGraphType>
-void Dynamics<RandomGraphType>::updateNeighborsStateInPlace(
+template<typename GraphPriorType>
+void Dynamics<GraphPriorType>::updateNeighborsStateInPlace(
     BaseGraph::VertexIndex vertexIdx,
     VertexState prevVertexState,
     VertexState newVertexState,
@@ -261,8 +261,8 @@ void Dynamics<RandomGraphType>::updateNeighborsStateInPlace(
     }
 };
 
-template<typename RandomGraphType>
-void Dynamics<RandomGraphType>::syncUpdateState(){
+template<typename GraphPriorType>
+void Dynamics<GraphPriorType>::syncUpdateState(){
     State futureState(m_state);
     std::vector<double> transProbs(m_numStates);
 
@@ -275,9 +275,9 @@ void Dynamics<RandomGraphType>::syncUpdateState(){
     m_state = futureState;
 };
 
-template<typename RandomGraphType>
-void Dynamics<RandomGraphType>::asyncUpdateState(int numUpdates){
-    size_t N = m_randomGraphPtr->getSize();
+template<typename GraphPriorType>
+void Dynamics<GraphPriorType>::asyncUpdateState(int numUpdates){
+    size_t N = m_graphPriorPtr->getSize();
     VertexState newVertexState;
     State currentState(m_state);
     std::vector<double> transProbs(m_numStates);
@@ -293,8 +293,8 @@ void Dynamics<RandomGraphType>::asyncUpdateState(int numUpdates){
     m_state = currentState;
 };
 
-template<typename RandomGraphType>
-const double Dynamics<RandomGraphType>::getLogLikelihood() const {
+template<typename GraphPriorType>
+const double Dynamics<GraphPriorType>::getLogLikelihood() const {
     double logLikelihood = 0;
     std::vector<int> neighborsState(getNumStates(), 0);
     int neighborIdx, edgeMultiplicity;
@@ -310,8 +310,8 @@ const double Dynamics<RandomGraphType>::getLogLikelihood() const {
     return logLikelihood;
 };
 
-template<typename RandomGraphType>
-const std::vector<double> Dynamics<RandomGraphType>::getTransitionProbs(VertexState prevVertexState, VertexNeighborhoodState neighborhoodState) const{
+template<typename GraphPriorType>
+const std::vector<double> Dynamics<GraphPriorType>::getTransitionProbs(VertexState prevVertexState, VertexNeighborhoodState neighborhoodState) const{
     std::vector<double> transProbs(getNumStates());
     for (VertexState nextVertexState = 0; nextVertexState < getNumStates(); nextVertexState++) {
         transProbs[nextVertexState] = getTransitionProb(prevVertexState, nextVertexState, neighborhoodState);
@@ -319,8 +319,8 @@ const std::vector<double> Dynamics<RandomGraphType>::getTransitionProbs(VertexSt
     return transProbs;
 };
 
-template<typename RandomGraphType>
-void Dynamics<RandomGraphType>::updateNeighborsStateFromEdgeMove(
+template<typename GraphPriorType>
+void Dynamics<GraphPriorType>::updateNeighborsStateFromEdgeMove(
     BaseGraph::Edge edge,
     int counter,
     std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence>& prevNeighborMap,
@@ -328,7 +328,7 @@ void Dynamics<RandomGraphType>::updateNeighborsStateFromEdgeMove(
     edge = getOrderedEdge(edge);
     BaseGraph::VertexIndex v = edge.first, u = edge.second;
 
-    if (m_randomGraphPtr->getGraph().getEdgeMultiplicityIdx(edge) == 0 and counter < 0)
+    if (m_graphPriorPtr->getGraph().getEdgeMultiplicityIdx(edge) == 0 and counter < 0)
         throw std::logic_error("Dynamics: Edge ("
                                 + std::to_string(edge.first) + ", "
                                 + std::to_string(edge.second) + ") "
@@ -354,8 +354,8 @@ void Dynamics<RandomGraphType>::updateNeighborsStateFromEdgeMove(
     }
 };
 
-template<typename RandomGraphType>
-const double Dynamics<RandomGraphType>::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const{
+template<typename GraphPriorType>
+const double Dynamics<GraphPriorType>::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const{
     double logLikelihoodRatio = 0;
     std::set<size_t> verticesAffected;
     std::map<BaseGraph::VertexIndex,VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
@@ -389,8 +389,8 @@ const double Dynamics<RandomGraphType>::getLogLikelihoodRatioFromGraphMove(const
 }
 
 
-template<typename RandomGraphType>
-void Dynamics<RandomGraphType>::_applyGraphMove(const GraphMove& move) {
+template<typename GraphPriorType>
+void Dynamics<GraphPriorType>::_applyGraphMove(const GraphMove& move) {
     std::set<BaseGraph::VertexIndex> verticesAffected;
     std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
     VertexNeighborhoodStateSequence neighborsState(m_numSteps);
@@ -422,11 +422,11 @@ void Dynamics<RandomGraphType>::_applyGraphMove(const GraphMove& move) {
             m_neighborsPastStateSequence[idx][t] = nextNeighborMap[idx][t];
         }
     }
-    m_randomGraphPtr->applyGraphMove(move);
+    m_graphPriorPtr->applyGraphMove(move);
 }
 
-template<typename RandomGraphType>
-void Dynamics<RandomGraphType>::checkConsistencyOfNeighborsPastStateSequence() const {
+template<typename GraphPriorType>
+void Dynamics<GraphPriorType>::checkConsistencyOfNeighborsPastStateSequence() const {
     if (m_neighborsPastStateSequence.size() == 0)
         return;
     else if (m_neighborsPastStateSequence.size() != getSize())
@@ -456,8 +456,8 @@ void Dynamics<RandomGraphType>::checkConsistencyOfNeighborsPastStateSequence() c
     }
 }
 
-template<typename RandomGraphType>
-void Dynamics<RandomGraphType>::checkConsistencyOfNeighborsState() const {
+template<typename GraphPriorType>
+void Dynamics<GraphPriorType>::checkConsistencyOfNeighborsState() const {
     if (m_neighborsState.size() == 0)
         return;
     else if (m_neighborsState.size() != getSize())
@@ -481,17 +481,17 @@ void Dynamics<RandomGraphType>::checkConsistencyOfNeighborsState() const {
 
 }
 
-template<typename RandomGraphType>
-void Dynamics<RandomGraphType>::checkSelfConsistency() const {
+template<typename GraphPriorType>
+void Dynamics<GraphPriorType>::checkSelfConsistency() const {
     checkConsistencyOfNeighborsPastStateSequence();
     checkConsistencyOfNeighborsState();
 }
 
-template<typename RandomGraphType>
-void Dynamics<RandomGraphType>::checkSelfSafety() const {
-    if (m_randomGraphPtr == nullptr)
-        throw SafetyError("Dynamics: unsafe graph family since `m_randomGraphPtr` is empty.");
-    m_randomGraphPtr->checkSafety();
+template<typename GraphPriorType>
+void Dynamics<GraphPriorType>::checkSelfSafety() const {
+    if (m_graphPriorPtr == nullptr)
+        throw SafetyError("Dynamics: unsafe graph family since `m_graphPriorPtr` is empty.");
+    m_graphPriorPtr->checkSafety();
 
     if (m_state.size() == 0)
         throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");

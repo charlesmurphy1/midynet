@@ -1,21 +1,23 @@
 #include "gtest/gtest.h"
 
 #include "fixtures.hpp"
+#include "FastMIDyNet/dynamics/sis.hpp"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/proposer/label/uniform.hpp"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
-#include "FastMIDyNet/mcmc/graph.hpp"
-#include "FastMIDyNet/mcmc/callbacks/callback.h"
-#include "FastMIDyNet/mcmc/callbacks/collector.h"
+#include "FastMIDyNet/mcmc/callbacks/callback.hpp"
+#include "FastMIDyNet/mcmc/callbacks/collector.hpp"
 #include "FastMIDyNet/mcmc/callbacks/verbose.h"
 namespace FastMIDyNet{
 
 #define CALLBACK_TESTS(TEST_CALL_BACK, TESTED_CALL_CLASS)\
     class TEST_CALL_BACK: public::testing::Test{\
     public:\
-        DummySBM sbm = DummySBM();\
+        using BaseClass = GraphReconstructionMCMC<RandomGraph>;\
+        DummyER randomGraph = DummyER();\
+        SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);\
         HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();\
-        BlockUniformProposer blockProposer = BlockUniformProposer();\
-        VertexLabeledGraphMCMC<BlockIndex> mcmc = VertexLabeledGraphMCMC<BlockIndex>(sbm, blockProposer);\
+        GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, edgeProposer);\
         TESTED_CALL_CLASS callback = TESTED_CALL_CLASS();\
         void SetUp(){\
             seedWithTime();\
@@ -59,11 +61,11 @@ namespace FastMIDyNet{
 
 CALLBACK_TESTS(TestCallBackBaseClass, CallBack<MCMC>);
 
-COLLECTOR_TESTS(TestCollectGraphOnSweep, CollectGraphOnSweep, getGraphs);
+COLLECTOR_TESTS(TestCollectGraphOnSweep, CollectGraphOnSweep<BaseClass>, getGraphs);
 
-CALLBACK_TESTS(TestCollectEdgeMultiplicityOnSweep, CollectEdgeMultiplicityOnSweep);
+CALLBACK_TESTS(TestCollectEdgeMultiplicityOnSweep, CollectEdgeMultiplicityOnSweep<BaseClass>);
 
-COLLECTOR_TESTS(TestCollectPartitionOnSweep, CollectPartitionOnSweep, getPartitions);
+// COLLECTOR_TESTS(TestCollectPartitionOnSweep, CollectPartitionOnSweep<BaseClass>, getPartitions);
 
 COLLECTOR_TESTS(TestCollectLikelihoodOnSweep, CollectLikelihoodOnSweep, getLogLikelihoods);
 

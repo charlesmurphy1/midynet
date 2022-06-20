@@ -72,7 +72,7 @@ public:
     void setA(double a) { m_a = a; }
     const double getNu() const {
         if (BaseClass::m_normalizeCoupling)
-            return m_nu / (2 * BaseClass::m_randomGraphPtr->getEdgeCount() / BaseClass::m_randomGraphPtr->getSize());
+            return m_nu / (2 * BaseClass::m_graphPriorPtr->getEdgeCount() / BaseClass::m_graphPriorPtr->getSize());
         else
             return m_nu;
 

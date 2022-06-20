@@ -8,7 +8,7 @@
 #include <math.h>
 #include "FastMIDyNet/mcmc/mcmc.h"
 #include "FastMIDyNet/utility/functions.h"
-#include "callback.h"
+#include "callback.hpp"
 
 namespace FastMIDyNet{
 

@@ -12,14 +12,14 @@
 
 namespace FastMIDyNet{
 
-template <typename RandomGraphType=RandomGraph>
-class BinaryDynamics: public Dynamics<RandomGraphType>{
+template <typename GraphPriorType=RandomGraph>
+class BinaryDynamics: public Dynamics<GraphPriorType>{
 private:
     size_t m_numInitialActive;
     double m_autoActivationProb;
     double m_autoDeactivationProb;
 public:
-    using BaseClass = Dynamics<RandomGraphType>;
+    using BaseClass = Dynamics<GraphPriorType>;
     explicit BinaryDynamics(
             size_t numSteps,
             double autoActivationProb=0.0,
@@ -31,7 +31,7 @@ public:
         m_autoDeactivationProb(autoDeactivationProb),
         m_numInitialActive(numInitialActive) { }
     explicit BinaryDynamics(
-            RandomGraph& randomGraph,
+            GraphPriorType& randomGraph,
             size_t numSteps,
             double autoActivationProb=0.0,
             double autoDeactivationProb=0.0,
@@ -59,12 +59,12 @@ public:
 
 };
 
-template <typename RandomGraphType>
-const State BinaryDynamics<RandomGraphType>::getRandomState() const {
-    size_t N = BaseClass::m_randomGraphPtr->getSize();
+template <typename GraphPriorType>
+const State BinaryDynamics<GraphPriorType>::getRandomState() const {
+    size_t N = BaseClass::m_graphPriorPtr->getSize();
     State randomState(N);
     if (m_numInitialActive > N)
-        return Dynamics<RandomGraphType>::getRandomState();
+        return Dynamics<GraphPriorType>::getRandomState();
 
     auto indices = sampleUniformlySequenceWithoutReplacement(N, m_numInitialActive);
     for (auto i: indices)
@@ -72,8 +72,8 @@ const State BinaryDynamics<RandomGraphType>::getRandomState() const {
     return randomState;
 };
 
-template <typename RandomGraphType>
-const double BinaryDynamics<RandomGraphType>::getTransitionProb(VertexState prevVertexState, VertexState nextVertexState,
+template <typename GraphPriorType>
+const double BinaryDynamics<GraphPriorType>::getTransitionProb(VertexState prevVertexState, VertexState nextVertexState,
         VertexNeighborhoodState neighborhoodState) const {
     double p;
     double transProb;

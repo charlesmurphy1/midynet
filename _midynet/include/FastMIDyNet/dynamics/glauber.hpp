@@ -56,7 +56,7 @@ class GlauberDynamics: public BinaryDynamics<RandomGraphType> {
         const double getCoupling() const {
             if (not BaseClass::m_normalizeCoupling)
                 return m_couplingConstant;
-            double coupling = m_couplingConstant / (2 * BaseClass::m_randomGraphPtr->getEdgeCount() / BaseClass::m_randomGraphPtr->getSize());
+            double coupling = m_couplingConstant / (2 * BaseClass::m_graphPriorPtr->getEdgeCount() / BaseClass::m_graphPriorPtr->getSize());
             return coupling;
         }
         void setCoupling(double couplingConstant) { m_couplingConstant = couplingConstant; }

@@ -6,7 +6,6 @@
 
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/random_graph/sbm.h"
-#include "FastMIDyNet/dynamics/dynamics.h"
 #include "FastMIDyNet/types.h"
 #include "BaseGraph/undirected_multigraph.h"
 

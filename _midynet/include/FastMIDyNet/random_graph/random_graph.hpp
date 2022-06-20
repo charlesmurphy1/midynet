@@ -65,7 +65,6 @@ public:
 
     virtual const bool isCompatible(const MultiGraph& graph) const { return graph.getSize() == m_size; }
     virtual bool isSafe() const { return true; }
-
 };
 
 template <typename Label>

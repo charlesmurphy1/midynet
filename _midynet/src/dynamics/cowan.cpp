@@ -1,4 +1,4 @@
-#include "FastMIDyNet/dynamics/cowan.h"
+#include "FastMIDyNet/dynamics/cowan.hpp"
 
 
 namespace FastMIDyNet{

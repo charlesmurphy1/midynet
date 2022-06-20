@@ -3,23 +3,23 @@
 
 #include "FastMIDyNet/dynamics/dynamics.hpp"
 #include "FastMIDyNet/mcmc/mcmc.h"
-#include "FastMIDyNet/mcmc/callbacks/callback.h"
+#include "FastMIDyNet/mcmc/callbacks/callback.hpp"
 #include "FastMIDyNet/proposer/edge/edge_proposer.h"
 #include "FastMIDyNet/proposer/label/label_proposer.hpp"
 #include "FastMIDyNet/utility/maps.hpp"
 
 namespace FastMIDyNet{
 
-template<typename RandomGraphType>
+template<typename GraphPriorType>
 class GraphReconstructionMCMC: public MCMC{
 protected:
-    Dynamics<RandomGraphType>* m_dynamicsPtr = nullptr;
+    Dynamics<GraphPriorType>* m_dynamicsPtr = nullptr;
     bool m_lastMoveWasGraphMove;
     EdgeProposer* m_edgeProposerPtr = nullptr;
-    CallBackMap<GraphReconstructionMCMC<RandomGraphType>> m_reconCallBacks;
+    CallBackMap<GraphReconstructionMCMC<GraphPriorType>> m_reconCallBacks;
 public:
     GraphReconstructionMCMC(
-        Dynamics<RandomGraphType>& dynamics,
+        Dynamics<GraphPriorType>& dynamics,
         EdgeProposer& edgeProposer,
         double betaLikelihood=1,
         double betaPrior=1):
@@ -33,9 +33,9 @@ public:
     MCMC(betaLikelihood, betaPrior){ }
 
     // Accessors and mutators
-    const Dynamics<RandomGraphType>& getDynamics() const { return *m_dynamicsPtr; }
-    Dynamics<RandomGraphType>& getDynamicsRef() const { return *m_dynamicsPtr; }
-    void setDynamics(Dynamics<RandomGraphType>& dynamics) {
+    const Dynamics<GraphPriorType>& getDynamics() const { return *m_dynamicsPtr; }
+    Dynamics<GraphPriorType>& getDynamicsRef() const { return *m_dynamicsPtr; }
+    void setDynamics(Dynamics<GraphPriorType>& dynamics) {
         m_dynamicsPtr = &dynamics;
         m_dynamicsPtr->isRoot(false);
     }
@@ -65,10 +65,10 @@ public:
     }
 
     using MCMC::insertCallBack;
-    void insertCallBack(std::pair<std::string, CallBack<GraphReconstructionMCMC<RandomGraphType>>*> pair) {
+    void insertCallBack(std::pair<std::string, CallBack<GraphReconstructionMCMC<GraphPriorType>>*> pair) {
         m_reconCallBacks.insert(pair);
     }
-    void insertCallBack(std::string key, CallBack<GraphReconstructionMCMC<RandomGraphType>>& callback) { insertCallBack({key, &callback}); }
+    void insertCallBack(std::string key, CallBack<GraphReconstructionMCMC<GraphPriorType>>& callback) { insertCallBack({key, &callback}); }
     virtual void removeCallBack(std::string key, bool force=false) override {
         MCMC::removeCallBack(key, true);
         if( m_reconCallBacks.contains(key) )
@@ -96,13 +96,13 @@ public:
     }
 
     // Debug related
-    bool isSafe() const override {
+    virtual bool isSafe() const override {
         return MCMC::isSafe()
         and (m_dynamicsPtr != nullptr) and (m_dynamicsPtr->isSafe())
         and (m_edgeProposerPtr != nullptr)  and (m_edgeProposerPtr->isSafe());
     }
 
-    void checkSelfSafety() const override {
+    virtual void checkSelfSafety() const override {
         if (not MCMC::isSafe())
             throw SafetyError("GraphReconstructionMCMC: it is unsafe to set up, since `MCMC` is not safe.");
 
@@ -114,7 +114,7 @@ public:
             throw SafetyError("GraphReconstructionMCMC: it is unsafe to set up, since `m_edgeProposerPtr` is NULL.");
         m_edgeProposerPtr->checkSafety();
     }
-    void checkSelfConsistency() const override {
+    virtual void checkSelfConsistency() const override {
         MCMC::checkSelfConsistency();
         if (m_dynamicsPtr != nullptr)
             m_dynamicsPtr->checkConsistency();
@@ -122,7 +122,7 @@ public:
         if (m_edgeProposerPtr != nullptr)
             m_edgeProposerPtr->checkConsistency();
     }
-    void computationFinished() const override {
+    virtual void computationFinished() const override {
         m_isProcessed = false;
         MCMC::computationFinished();
         m_dynamicsPtr->computationFinished();
@@ -130,8 +130,8 @@ public:
     }
 };
 
-template<typename RandomGraphType>
-double GraphReconstructionMCMC<RandomGraphType>::getLogAcceptanceProbFromGraphMove(const GraphMove& move) const {
+template<typename GraphPriorType>
+double GraphReconstructionMCMC<GraphPriorType>::getLogAcceptanceProbFromGraphMove(const GraphMove& move) const {
     double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_dynamicsPtr->getLogLikelihoodRatioFromGraphMove(move);
     double logPriorRatio = (m_betaPrior == 0) ? 0 : m_betaPrior * m_dynamicsPtr->getLogPriorRatioFromGraphMove(move);
     if (logLikelihoodRatio == -INFINITY or logPriorRatio == -INFINITY){
@@ -142,8 +142,8 @@ double GraphReconstructionMCMC<RandomGraphType>::getLogAcceptanceProbFromGraphMo
     return getLogProposalProbRatioFromGraphMove(move); + m_lastLogJointRatio;
 }
 
-template<typename RandomGraphType>
-bool GraphReconstructionMCMC<RandomGraphType>::doMetropolisHastingsStep() {
+template<typename GraphPriorType>
+bool GraphReconstructionMCMC<GraphPriorType>::doMetropolisHastingsStep() {
     onStepBegin();
     m_lastMoveWasGraphMove = true;
     GraphMove move = m_edgeProposerPtr->proposeMove();
@@ -165,11 +165,11 @@ protected:
     double m_sampleLabelProb;
     bool m_lastMoveWasLabelMove;
 public:
-    using RandomGraphType = VertexLabeledRandomGraph<Label>;
+    using GraphPriorType = VertexLabeledRandomGraph<Label>;
     using BaseClass = GraphReconstructionMCMC<VertexLabeledRandomGraph<Label>>;
 
     VertexLabeledGraphReconstructionMCMC(
-        Dynamics<RandomGraphType>& dynamics,
+        Dynamics<GraphPriorType>& dynamics,
         EdgeProposer& edgeProposer,
         LabelProposer<Label>& labelProposer,
         double sampleLabelProb=0.1,
@@ -192,12 +192,12 @@ public:
     }
 
     const std::vector<Label>& getVertexLabels() const {
-        return BaseClass::m_dynamicsPtr->getRandomGraph().getVertexLabels();
+        return BaseClass::m_dynamicsPtr->getGraphPrior().getVertexLabels();
     }
 
     void setUp() override {
         BaseClass::setUp();
-        m_labelProposerPtr->setUp(BaseClass::m_dynamicsPtr->getRandomGraph());
+        m_labelProposerPtr->setUp(BaseClass::m_dynamicsPtr->getGraphPrior());
     }
 
 
@@ -210,7 +210,7 @@ public:
         return m_labelProposerPtr->getLogProposalProbRatio(move);
     }
     void applyLabelMove(const LabelMove<Label>& move) {
-        BaseClass::m_dynamicsPtr->getRandomGraphRef().applyLabelMove(move);
+        BaseClass::m_dynamicsPtr->getGraphPriorRef().applyLabelMove(move);
         m_labelProposerPtr->applyLabelMove(move);
     }
     bool doMetropolisHastingsStep() override ;
@@ -242,8 +242,8 @@ public:
 
 template<typename Label>
 double VertexLabeledGraphReconstructionMCMC<Label>::getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const {
-    double logLikelihoodRatio = (BaseClass::m_betaLikelihood == 0) ? 0 : BaseClass::m_betaLikelihood * BaseClass::m_dynamicsPtr->getRandomGraph()->getLogLikelihoodRatioFromLabelMove(move);
-    double logPriorRatio = (BaseClass::m_betaPrior == 0) ? 0 : BaseClass::m_betaPrior * BaseClass::m_dynamicsPtr->getRandomGraph()->getLogPriorRatioFromLabelMove(move);
+    double logLikelihoodRatio = (BaseClass::m_betaLikelihood == 0) ? 0 : BaseClass::m_betaLikelihood * BaseClass::m_dynamicsPtr->getGraphPrior()->getLogLikelihoodRatioFromLabelMove(move);
+    double logPriorRatio = (BaseClass::m_betaPrior == 0) ? 0 : BaseClass::m_betaPrior * BaseClass::m_dynamicsPtr->getGraphPrior()->getLogPriorRatioFromLabelMove(move);
     BaseClass::m_lastLogJointRatio = logPriorRatio + logLikelihoodRatio;
     return m_labelProposerPtr->getLogProposalProbRatio(move) + BaseClass::m_lastLogJointRatio;
 }

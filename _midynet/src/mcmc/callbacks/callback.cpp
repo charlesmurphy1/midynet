@@ -1,1 +1,1 @@
-#include "FastMIDyNet/mcmc/callbacks/callback.h"
+#include "FastMIDyNet/mcmc/callbacks/callback.hpp"

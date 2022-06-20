@@ -61,7 +61,7 @@ public:
     const double getInfectionProb() const {
         if (not BaseClass::m_normalizeCoupling)
             return m_infectionProb;
-        double infProb = m_infectionProb / (2 * BaseClass::m_randomGraphPtr->getEdgeCount() / BaseClass::m_randomGraphPtr->getSize());
+        double infProb = m_infectionProb / (2 * BaseClass::m_graphPriorPtr->getEdgeCount() / BaseClass::m_graphPriorPtr->getSize());
         if (infProb > 1 - EPSILON)
             return 1 - EPSILON;
         if (infProb < 0)
