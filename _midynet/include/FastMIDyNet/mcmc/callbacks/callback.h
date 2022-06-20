@@ -22,6 +22,7 @@ public:
     virtual void onStepEnd() { };
     virtual void onSweepBegin() { };
     virtual void onSweepEnd() { };
+    virtual void clear() { };
 
 };
 
@@ -42,6 +43,7 @@ public:
     void onStepEnd() { for(auto c : m_callbacksMap) c.second->onStepEnd(); }
     void onSweepBegin() { for(auto c : m_callbacksMap) c.second->onSweepBegin(); }
     void onSweepEnd() { for(auto c : m_callbacksMap) c.second->onSweepEnd(); }
+    void clear() { for(auto c : m_callbacksMap) c.second->clear(); }
 
 
     const CallBack<MCMCType>& get(std::string key) const { return *m_callbacksMap.at(key); }

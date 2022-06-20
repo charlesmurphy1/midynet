@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "callback.h"
-#include "FastMIDyNet/mcmc/dynamics_mcmc.h"
+#include "FastMIDyNet/mcmc/reconstruction.hpp"
 #include "FastMIDyNet/utility/distance.h"
 #include "BaseGraph/fileio.h"
 
@@ -14,7 +14,7 @@ namespace FastMIDyNet{
 template<typename MCMCType>
 class Collector: public CallBack<MCMCType>{
 public:
-    virtual void onBegin() { clear(); }
+    virtual void onBegin() override { clear(); }
     virtual void collect() = 0;
     virtual void clear() = 0;
 };
@@ -22,39 +22,43 @@ public:
 template<typename MCMCType>
 class SweepCollector: public Collector<MCMCType>{
 public:
-    virtual void onSweepEnd() { Collector<MCMCType>::collect(); }
+    void onSweepEnd() override { Collector<MCMCType>::collect(); }
 };
 
 template<typename MCMCType>
 class StepCollector: public Collector<MCMCType>{
 public:
-    virtual void onStepEnd() { Collector<MCMCType>::collect(); }
+    void onStepEnd() override { Collector<MCMCType>::collect(); }
 };
 
-class CollectGraphOnSweep: public SweepCollector<RandomGraphMCMC>{
+template<typename GraphMCMC>
+class CollectGraphOnSweep: public SweepCollector<GraphMCMC>{
 private:
     std::vector<MultiGraph> m_collectedGraphs;
 public:
-    void collect() override { m_collectedGraphs.push_back( m_mcmcPtr->getGraph() ); }
+    using BaseClass = SweepCollector<GraphMCMC>;
+    void collect() override { m_collectedGraphs.push_back( BaseClass::m_mcmcPtr->getGraph() ); }
     void clear() override { m_collectedGraphs.clear(); }
     const std::vector<MultiGraph>& getGraphs() const { return m_collectedGraphs; }
 };
 
-class CollectEdgeMultiplicityOnSweep: public SweepCollector<RandomGraphMCMC>{
+template<typename GraphMCMC>
+class CollectEdgeMultiplicityOnSweep: public SweepCollector<GraphMCMC>{
 private:
     CounterMap<BaseGraph::Edge> m_observedEdges;
     CounterMap<std::pair<BaseGraph::Edge, size_t>> m_observedEdgesCount;
     CounterMap<BaseGraph::Edge> m_observedEdgesMaxCount;
     size_t m_totalCount;
 public:
-    void setUp(RandomGraphMCMC* mcmcPtr) {
-        Collector::setUp(mcmcPtr);
+    using BaseClass = SweepCollector<GraphMCMC>;
+    void setUp(GraphMCMC* mcmcPtr) {
+        BaseClass::setUp(mcmcPtr);
     }
     void collect() override ;
     void clear() override { m_observedEdges.clear(); m_observedEdgesCount.clear(); m_observedEdgesMaxCount.clear();}
     const double getMarginalEntropy() ;
     const double getLogPosteriorEstimate(const MultiGraph&) ;
-    const double getLogPosteriorEstimate() { return getLogPosteriorEstimate(m_mcmcPtr->getGraph()); }
+    const double getLogPosteriorEstimate() { return getLogPosteriorEstimate(BaseClass::m_mcmcPtr->getGraph()); }
     size_t getTotalCount() const { return m_totalCount; }
     size_t getEdgeObservationCount(BaseGraph::Edge edge) const { return m_observedEdges[edge]; }
     const double getEdgeCountProb(BaseGraph::Edge edge, size_t count) const ;
@@ -62,17 +66,19 @@ public:
 
 };
 
-class CollectPartitionOnSweep: public SweepCollector<StochasticBlockModelMCMC>{
+template<typename GraphMCMC>
+class CollectPartitionOnSweep: public SweepCollector<GraphMCMC>{
 private:
     std::vector<std::vector<BlockIndex>> m_partitions;
 public:
-    void setUp(StochasticBlockModelMCMC* mcmcPtr) { Collector::setUp(mcmcPtr); }
-    void collect() override { m_partitions.push_back(m_mcmcPtr->getVertexLabels()); }
+    using BaseClass = SweepCollector<GraphMCMC>;
+    void collect() override { m_partitions.push_back(BaseClass::m_mcmcPtr->getVertexLabels()); }
     void clear() override { m_partitions.clear(); }
     const std::vector<BlockSequence>& getPartitions() const { return m_partitions; }
 };
 
-class WriteGraphToFileOnSweep: public SweepCollector<RandomGraphMCMC>{
+template<typename GraphMCMC>
+class WriteGraphToFileOnSweep: public SweepCollector<GraphMCMC>{
 private:
     std::string m_filename;
     std::string m_ext;
@@ -111,23 +117,23 @@ public:
 
 };
 
-class CollectGraphDistance: public Collector<RandomGraphMCMC>{
-private:
-    MultiGraph m_originalGraph;
-    const GraphDistance& m_distance;
-    std::vector<double> m_collectedDistances;
-public:
-    CollectGraphDistance(const GraphDistance& distance): m_distance(distance){}
-    const std::vector<double>& getCollectedDistances() { return m_collectedDistances; }
-    void onSweepBegin() { m_originalGraph = m_mcmcPtr->getGraph(); }
-    void collect() {
-        m_collectedDistances.push_back(
-            m_distance.compute( m_originalGraph, m_mcmcPtr->getGraph() )
-        );
-    }
-    void clear() { m_collectedDistances.clear(); };
-    void onStepEnd() { collect(); }
-};
+// class CollectGraphDistance: public Collector<GraphMCMC>{
+// private:
+//     MultiGraph m_originalGraph;
+//     const GraphDistance& m_distance;
+//     std::vector<double> m_collectedDistances;
+// public:
+//     CollectGraphDistance(const GraphDistance& distance): m_distance(distance){}
+//     const std::vector<double>& getCollectedDistances() { return m_collectedDistances; }
+//     void onSweepBegin() { m_originalGraph = m_mcmcPtr->getGraph(); }
+//     void collect() {
+//         m_collectedDistances.push_back(
+//             m_distance.compute( m_originalGraph, m_mcmcPtr->getGraph() )
+//         );
+//     }
+//     void clear() { m_collectedDistances.clear(); };
+//     void onStepEnd() { collect(); }
+// };
 
 }
 

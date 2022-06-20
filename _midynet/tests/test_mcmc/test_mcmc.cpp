@@ -29,8 +29,6 @@ public:
     const double getLogLikelihood() const override { return 1; }
     const double getLogPrior() const override { return 2; }
     const double getLogJoint() const override { return getLogLikelihood() + getLogPrior(); }
-    const MultiGraph& getGraph() const override { return graph; }
-    const BlockSequence& getBlocks() const override { return blocks; }
 };
 
 class TestMCMC: public::testing::Test{

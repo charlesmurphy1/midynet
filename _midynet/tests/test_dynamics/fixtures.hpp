@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "FastMIDyNet/random_graph/random_graph.hpp"
-#include "FastMIDyNet/dynamics/dynamics.h"
+#include "FastMIDyNet/dynamics/dynamics.hpp"
 #include "FastMIDyNet/types.h"
 #include "BaseGraph/undirected_multigraph.h"
 
@@ -24,9 +24,6 @@ public:
     void setGraph(const MultiGraph& graph) override{
         m_graph = graph;
         m_edgeCount = graph.getTotalEdgeNumber();
-        m_edgeMatrix = MultiGraph(1); m_edgeMatrix.setEdgeMultiplicityIdx(0, 0, m_edgeCount);
-        m_edgeCounts.set(0, 2 * m_edgeCount);
-        m_degrees = graph.getDegrees();
     }
 
     const size_t& getEdgeCount() const override { return m_edgeCount; }
@@ -41,7 +38,7 @@ public:
 
 };
 
-class DummyDynamics: public Dynamics{
+class DummyDynamics: public Dynamics<RandomGraph>{
     public:
         DummyDynamics(RandomGraph& randomGraph, int numStates, size_t numSteps):
             Dynamics(randomGraph, numStates, numSteps) { }

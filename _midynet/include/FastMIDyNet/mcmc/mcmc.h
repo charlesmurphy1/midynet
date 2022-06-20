@@ -18,24 +18,28 @@ protected:
     mutable double m_lastLogJointRatio;
     mutable double m_lastLogAcceptance;
     mutable bool m_isLastAccepted;
+    double m_betaLikelihood, m_betaPrior;
+    mutable std::uniform_real_distribution<double> m_uniform;
 public:
-    MCMC():
+    MCMC(double betaPrior=1, double betaLikelihood=1):
+        m_betaPrior(betaPrior),
+        m_betaLikelihood(betaLikelihood),
         m_numSteps(0),
         m_numSweeps(0),
         m_lastLogJointRatio(0),
-        m_isLastAccepted(false) {}
-    MCMC(const CallBackMap<MCMC>& callbacks):
-        m_mcmcCallBacks(callbacks),
-        m_numSteps(0),
-        m_numSweeps(0),
-        m_lastLogJointRatio(0),
-        m_isLastAccepted(false) {}
+        m_isLastAccepted(false),
+        m_uniform(0, 1) {}
 
     const double getLastLogJointRatio() const { return m_lastLogJointRatio; }
     const double getLastLogAcceptance() const { return m_lastLogAcceptance; }
     const bool isLastAccepted() const { return m_isLastAccepted; }
     const size_t getNumSteps() const { return m_numSteps; }
     const size_t getNumSweeps() const { return m_numSweeps; }
+
+    double getBetaPrior() const { return m_betaPrior; }
+    void setBetaPrior(double betaPrior) { m_betaPrior = betaPrior; }
+    double getBetaLikelihood() const { return m_betaLikelihood; }
+    void setBetaLikelihood(double betaLikelihood) { m_betaLikelihood = betaLikelihood; }
 
     virtual const double getLogLikelihood() const = 0 ;
     virtual const double getLogPrior() const = 0 ;
@@ -58,13 +62,13 @@ public:
     virtual void onSweepEnd() { m_mcmcCallBacks.onSweepEnd(); }
     virtual void onStepBegin() { m_mcmcCallBacks.onStepBegin(); }
     virtual void onStepEnd() { m_mcmcCallBacks.onStepEnd(); }
-    virtual bool _doMetropolisHastingsStep() = 0;
-    bool doMetropolisHastingsStep() {
-        onStepBegin();
-        bool isAccepted = processRecursiveFunction<bool>([&](){ return _doMetropolisHastingsStep(); }, false);
-        onStepEnd();
-        return isAccepted;
-    };
+    virtual bool doMetropolisHastingsStep() = 0;
+    // bool doMetropolisHastingsStep() {
+    //     onStepBegin();
+    //     bool isAccepted = _doMetropolisHastingsStep();
+    //     onStepEnd();
+    //     return isAccepted;
+    // };
 
     std::tuple<size_t, size_t> doMHSweep(size_t burn=1);
 };

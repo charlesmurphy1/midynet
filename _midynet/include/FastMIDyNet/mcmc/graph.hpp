@@ -4,8 +4,7 @@
 #include <random>
 
 #include "FastMIDyNet/random_graph/sbm.h"
-#include "FastMIDyNet/proposer/label_proposer/label_proposer.hpp"
-#include "FastMIDyNet/proposer/edge_proposer/edge_proposer.h"
+#include "FastMIDyNet/proposer/label/label_proposer.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/mcmc/mcmc.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.h"
@@ -13,14 +12,14 @@
 
 namespace FastMIDyNet{
 
-class RandomGraphMCMC: public MCMC {
+class GraphMCMC: public MCMC {
 protected:
     RandomGraph* m_randomGraphPtr = nullptr;
     double m_betaLikelihood, m_betaPrior;
     mutable std::uniform_real_distribution<double> m_uniform;
-    CallBackMap<RandomGraphMCMC> m_randomGraphMCMCCallBacks;
+    CallBackMap<GraphMCMC> m_randomGraphMCMCCallBacks;
 public:
-    RandomGraphMCMC(
+    GraphMCMC(
         RandomGraph& randomGraph,
         double betaLikelihood=1,
         double betaPrior=1):
@@ -30,7 +29,7 @@ public:
         setRandomGraph(randomGraph);
     }
 
-    RandomGraphMCMC(
+    GraphMCMC(
         double betaLikelihood=1,
         double betaPrior=1):
     m_uniform(0., 1.) {}
@@ -45,7 +44,10 @@ public:
 
     const RandomGraph& getRandomGraph() const { return *m_randomGraphPtr; }
     RandomGraph& getRandomGraphRef() const { return *m_randomGraphPtr; }
-    virtual void setRandomGraph(RandomGraph& randomGraph) { m_randomGraphPtr = &randomGraph; m_randomGraphPtr->isRoot(false);}
+    virtual void setRandomGraph(RandomGraph& randomGraph) {
+        m_randomGraphPtr = &randomGraph;
+        m_randomGraphPtr->isRoot(false);
+    }
 
     const double getLogLikelihood() const override { return m_randomGraphPtr->getLogLikelihood(); }
     const double getLogPrior() const override { return m_randomGraphPtr->getLogPrior(); }
@@ -64,17 +66,20 @@ public:
     virtual void onSweepEnd() override { MCMC::onSweepEnd(); m_randomGraphMCMCCallBacks.onSweepEnd(); }
     virtual void onStepBegin() override { MCMC::onStepBegin(); m_randomGraphMCMCCallBacks.onStepBegin(); }
     virtual void onStepEnd() override { MCMC::onStepEnd(); m_randomGraphMCMCCallBacks.onStepEnd(); }
-    void insertCallBack(std::pair<std::string, CallBack<RandomGraphMCMC>*> pair) {
+
+    using MCMC::insertCallBack;
+    void insertCallBack(std::pair<std::string, CallBack<GraphMCMC>*> pair) {
         pair.second->setUp(this);
         m_randomGraphMCMCCallBacks.insert(pair);
     }
-    void insertCallBack(std::string key, CallBack<RandomGraphMCMC>& callback) { insertCallBack({key, &callback}); }
+    void insertCallBack(std::string key, CallBack<GraphMCMC>& callback) { insertCallBack({key, &callback}); }
+
     virtual void removeCallBack(std::string key, bool force=false) override {
         MCMC::removeCallBack(key, true);
         if ( m_randomGraphMCMCCallBacks.contains(key) )
             m_randomGraphMCMCCallBacks.remove(key);
         else if ( not force)
-            throw std::logic_error("RandomGraphMCMC: callback of key `" + key + "` cannot be removed.");
+            throw std::logic_error("GraphMCMC: callback of key `" + key + "` cannot be removed.");
     }
 
     // Move related
@@ -87,7 +92,7 @@ public:
 
     virtual void checkSelfSafety() const override {
         if (m_randomGraphPtr == nullptr)
-            throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_randomGraphPtr` is NULL.");
+            throw SafetyError("GraphMCMC: it is unsafe to set up, since `m_randomGraphPtr` is NULL.");
         m_randomGraphPtr->checkSafety();
     };
 
@@ -98,29 +103,49 @@ public:
 };
 
 template<typename Label>
-class VertexLabeledRandomGraphMCMC: virtual public RandomGraphMCMC{
+class VertexLabeledGraphMCMC: virtual public GraphMCMC{
+protected:
     LabelProposer<Label>* m_labelProposerPtr = nullptr;
     VertexLabeledRandomGraph<Label>* m_vertexLabeledRandomGraphPtr = nullptr;
-    CallBackMap<VertexLabeledRandomGraphMCMC<Label>> m_vertexLabeledRandomGraphMCMCCallbacks;
+    CallBackMap<VertexLabeledGraphMCMC<Label>> m_vertexLabeledGraphMCMCCallbacks;
 public:
-    VertexLabeledRandomGraphMCMC(
+    VertexLabeledGraphMCMC(
         VertexLabeledRandomGraph<Label>& randomGraph,
-        EdgeProposer& edgeProposer,
         LabelProposer<Label>& labelProposer,
         double betaLikelihood=1,
         double betaPrior=1):
-    RandomGraphMCMC(randomGraph, edgeProposer, betaLikelihood, betaPrior) {
+    GraphMCMC(randomGraph, betaLikelihood, betaPrior) {
         m_vertexLabeledRandomGraphPtr = &randomGraph;
         setLabelProposer(labelProposer);
     }
-    VertexLabeledRandomGraphMCMC(
+    VertexLabeledGraphMCMC(
         double betaLikelihood=1,
         double betaPrior=1):
-    RandomGraphMCMC(betaLikelihood, betaPrior) {}
+    GraphMCMC(betaLikelihood, betaPrior) {}
+
+    VertexLabeledGraphMCMC(VertexLabeledGraphMCMC<Label>&& other){
+        m_labelProposerPtr = other.m_labelProposerPtr;
+        other.m_labelProposerPtr = nullptr;
+        m_labelProposerPtr = other.m_labelProposerPtr;
+        other.m_labelProposerPtr = nullptr;
+        m_vertexLabeledGraphMCMCCallbacks = std::move(other.m_vertexLabeledGraphMCMCCallbacks);
+    }
+
+    VertexLabeledGraphMCMC<Label>& operator=(VertexLabeledGraphMCMC<Label>&& other){
+        if (&other == this)
+            return *this;
+        m_labelProposerPtr = other.m_labelProposerPtr;
+        other.m_labelProposerPtr = nullptr;
+        m_labelProposerPtr = other.m_labelProposerPtr;
+        other.m_labelProposerPtr = nullptr;
+        m_vertexLabeledGraphMCMCCallbacks = std::move(other.m_vertexLabeledGraphMCMCCallbacks);
+        return *this;
+    }
 
     // Mutations and Accessors
-    void setRandomGraph(VertexLabeledRandomGraph<Label>& randomGraph) {
-        RandomGraphMCMC::setRandomGraph(randomGraph); m_vertexLabeledRandomGraphPtr = &randomGraph;
+    virtual void setRandomGraph(VertexLabeledRandomGraph<Label>& randomGraph) {
+        GraphMCMC::setRandomGraph(randomGraph);
+        m_vertexLabeledRandomGraphPtr = &randomGraph;
     }
 
     const std::vector<Label>& getVertexLabels() const { return m_vertexLabeledRandomGraphPtr->getVertexLabels(); }
@@ -132,30 +157,31 @@ public:
 
     // Callback related
     virtual void setUp() override {
-        RandomGraphMCMC::setUp();
-        m_vertexLabeledRandomGraphMCMCCallbacks.setUp(this);
+        GraphMCMC::setUp();
+        m_vertexLabeledGraphMCMCCallbacks.setUp(this);
         m_labelProposerPtr->setUp(*m_vertexLabeledRandomGraphPtr);
     }
     virtual void tearDown() override {
-        RandomGraphMCMC::tearDown();
-        m_vertexLabeledRandomGraphMCMCCallbacks.tearDown();
+        GraphMCMC::tearDown();
+        m_vertexLabeledGraphMCMCCallbacks.tearDown();
     }
-    virtual void onSweepBegin() override { RandomGraphMCMC::onSweepBegin(); m_vertexLabeledRandomGraphMCMCCallbacks.onSweepBegin(); }
-    virtual void onSweepEnd() override { RandomGraphMCMC::onSweepEnd(); m_vertexLabeledRandomGraphMCMCCallbacks.onSweepEnd(); }
-    virtual void onStepBegin() override { RandomGraphMCMC::onStepBegin(); m_vertexLabeledRandomGraphMCMCCallbacks.onStepBegin(); }
-    virtual void onStepEnd() override { RandomGraphMCMC::onStepEnd(); m_vertexLabeledRandomGraphMCMCCallbacks.onStepEnd(); }
+    virtual void onSweepBegin() override { GraphMCMC::onSweepBegin(); m_vertexLabeledGraphMCMCCallbacks.onSweepBegin(); }
+    virtual void onSweepEnd() override { GraphMCMC::onSweepEnd(); m_vertexLabeledGraphMCMCCallbacks.onSweepEnd(); }
+    virtual void onStepBegin() override { GraphMCMC::onStepBegin(); m_vertexLabeledGraphMCMCCallbacks.onStepBegin(); }
+    virtual void onStepEnd() override { GraphMCMC::onStepEnd(); m_vertexLabeledGraphMCMCCallbacks.onStepEnd(); }
 
-    void insertCallBack(std::pair<std::string, CallBack<VertexLabeledRandomGraphMCMC<Label>>*> pair) {
+    using GraphMCMC::insertCallBack;
+    void insertCallBack(std::pair<std::string, CallBack<VertexLabeledGraphMCMC<Label>>*> pair) {
         pair.second->setUp(this);
-        m_vertexLabeledRandomGraphMCMCCallbacks.insert(pair);
+        m_vertexLabeledGraphMCMCCallbacks.insert(pair);
     }
-    void insertCallBack(std::string key, CallBack<VertexLabeledRandomGraphMCMC<Label>>& callback) { insertCallBack({key, &callback}); }
+    void insertCallBack(std::string key, CallBack<VertexLabeledGraphMCMC<Label>>& callback) { insertCallBack({key, &callback}); }
     virtual void removeCallBack(std::string key, bool force=false) override {
-        RandomGraphMCMC::removeCallBack(key, true);
-        if ( m_vertexLabeledRandomGraphMCMCCallbacks.contains(key) )
-            m_vertexLabeledRandomGraphMCMCCallbacks.remove(key);
+        GraphMCMC::removeCallBack(key, true);
+        if ( m_vertexLabeledGraphMCMCCallbacks.contains(key) )
+            m_vertexLabeledGraphMCMCCallbacks.remove(key);
         else if ( not force)
-            throw std::logic_error("VertexLabeledRandomGraphMCMC: callback of key `" + key + "` cannot be removed.");
+            throw std::logic_error("VertexLabeledGraphMCMC: callback of key `" + key + "` cannot be removed.");
     }
 
     // Move related
@@ -175,28 +201,28 @@ public:
 
     // Debug related
     bool isSafe() const override {
-        return RandomGraphMCMC::isSafe() and (m_labelProposerPtr != nullptr)
+        return GraphMCMC::isSafe() and (m_labelProposerPtr != nullptr)
         and (m_labelProposerPtr->isSafe());
     }
     void checkSelfSafety() const override {
-        RandomGraphMCMC::checkSelfSafety();
+        GraphMCMC::checkSelfSafety();
         if (m_labelProposerPtr == nullptr)
-            throw SafetyError("RandomGraphMCMC: it is unsafe to set up, since `m_labelProposerPtr` is NULL.");
+            throw SafetyError("GraphMCMC: it is unsafe to set up, since `m_labelProposerPtr` is NULL.");
         m_labelProposerPtr->checkSafety();
     }
     void checkSelfConsistency() const override {
-        RandomGraphMCMC::checkSelfConsistency();
+        GraphMCMC::checkSelfConsistency();
         if (m_labelProposerPtr != nullptr)
             m_labelProposerPtr->checkConsistency();
     }
     void computationFinished() const override {
-        RandomGraphMCMC::computationFinished();
+        GraphMCMC::computationFinished();
         m_labelProposerPtr->computationFinished();
     }
 };
 
 template<typename Label>
-double VertexLabeledRandomGraphMCMC<Label>::_getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const {
+double VertexLabeledGraphMCMC<Label>::_getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const {
     double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_vertexLabeledRandomGraphPtr->getLogLikelihoodRatioFromLabelMove(move);
     double logPriorRatio = (m_betaPrior == 0) ? 0 : m_betaPrior * m_vertexLabeledRandomGraphPtr->getLogPriorRatioFromLabelMove(move);
     m_lastLogJointRatio = logPriorRatio + logLikelihoodRatio;
@@ -204,7 +230,7 @@ double VertexLabeledRandomGraphMCMC<Label>::_getLogAcceptanceProbFromLabelMove(c
 }
 
 template<typename Label>
-bool VertexLabeledRandomGraphMCMC<Label>::_doMetropolisHastingsStep() {
+bool VertexLabeledGraphMCMC<Label>::_doMetropolisHastingsStep() {
     LabelMove<Label> move = m_labelProposerPtr->proposeMove();
     m_lastLogAcceptance = getLogAcceptanceProbFromLabelMove(move);
     m_isLastAccepted = false;

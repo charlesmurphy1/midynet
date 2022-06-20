@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 
 #include "fixtures.hpp"
-#include "FastMIDyNet/proposer/block_proposer/uniform.h"
-#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
-#include "FastMIDyNet/mcmc/graph_mcmc.h"
+#include "FastMIDyNet/proposer/label/uniform.hpp"
+#include "FastMIDyNet/proposer/edge/hinge_flip.h"
+#include "FastMIDyNet/mcmc/graph.hpp"
 #include "FastMIDyNet/mcmc/callbacks/callback.h"
 #include "FastMIDyNet/mcmc/callbacks/collector.h"
 #include "FastMIDyNet/mcmc/callbacks/verbose.h"
@@ -12,10 +12,10 @@ namespace FastMIDyNet{
 #define CALLBACK_TESTS(TEST_CALL_BACK, TESTED_CALL_CLASS)\
     class TEST_CALL_BACK: public::testing::Test{\
     public:\
-        DummyRandomGraph g = DummyRandomGraph(10);\
+        DummySBM sbm = DummySBM();\
         HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();\
         BlockUniformProposer blockProposer = BlockUniformProposer();\
-        RandomGraphMCMC mcmc = RandomGraphMCMC(g, edgeProposer, blockProposer);\
+        VertexLabeledGraphMCMC<BlockIndex> mcmc = VertexLabeledGraphMCMC<BlockIndex>(sbm, blockProposer);\
         TESTED_CALL_CLASS callback = TESTED_CALL_CLASS();\
         void SetUp(){\
             seedWithTime();\
@@ -57,7 +57,7 @@ namespace FastMIDyNet{
     }\
 
 
-CALLBACK_TESTS(TestCallBackBaseClass, CallBack);
+CALLBACK_TESTS(TestCallBackBaseClass, CallBack<MCMC>);
 
 COLLECTOR_TESTS(TestCollectGraphOnSweep, CollectGraphOnSweep, getGraphs);
 
