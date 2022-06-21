@@ -161,15 +161,16 @@ public:
     using EdgeMatrixPrior::EdgeMatrixPrior;
     void sampleState() override;
     const double getLogLikelihood() const override {
-        return getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
+        return getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState());
     }
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override;
     const double getLogLikelihoodRatioFromLabelMove(const BlockMove&) const override;
 
 private:
-    double getLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {
-        return getLogLikelihood(m_edgeCountPriorPtr->getState(), m_blockPriorPtr->getBlockCount())
-            - getLogLikelihood(blockCountAfter, edgeNumberAfter);
+    double getLogLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {
+        return getLogLikelihood(blockCountAfter, edgeNumberAfter)
+        -getLogLikelihood(m_edgeCountPriorPtr->getState(), m_blockPriorPtr->getEffectiveBlockCount());
+
     }
     double getLogLikelihood(size_t blockCount, size_t edgeCount) const {
         return -logMultisetCoefficient( blockCount*(blockCount+1)/2, edgeCount );

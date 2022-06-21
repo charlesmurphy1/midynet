@@ -13,6 +13,7 @@
 using namespace std;
 
 namespace FastMIDyNet{
+
 void DegreePrior::setGraph(const MultiGraph& graph) {
     m_graph = &graph;
     m_edgeMatrixPriorPtr->setGraph(graph);
@@ -125,10 +126,6 @@ void DegreePrior::checkDegreeSequenceConsistencyWithDegreeCounts(
             + to_string(expected.get(nk.first)) + "!=" + to_string(nk.second));
 
     }
-    // for (size_t r = 0; r < numBlocks; ++r){
-    //     for (auto k : actualDegreeCounts[r]){
-    //     }
-    // }
 }
 
 void DegreePrior::checkSelfConsistency() const{
@@ -137,10 +134,6 @@ void DegreePrior::checkSelfConsistency() const{
     checkDegreeSequenceConsistencyWithEdgeCount(getState(), m_edgeMatrixPriorPtr->getEdgeCount());
     checkDegreeSequenceConsistencyWithDegreeCounts(getState(), m_blockPriorPtr->getState(), getDegreeCounts());
 };
-
-// void DegreePrior::onBlockCreation(const BlockMove& move){
-//     m_degreeCounts.push_back(CounterMap<size_t>());
-// }
 
 const double DegreeDeltaPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
     CounterMap<BaseGraph::VertexIndex> map;
@@ -188,9 +181,9 @@ const double DegreeUniformPrior::getLogLikelihood() const{
     const CounterMap<size_t>& edgeCounts = m_edgeMatrixPriorPtr->getEdgeCounts();
     const CounterMap<size_t>& vertexCounts = m_blockPriorPtr->getVertexCounts();
 
-    for (size_t r = 0; r < m_blockPriorPtr->getBlockCount(); r++) {
-        logLikelihood -= logMultisetCoefficient(edgeCounts[r], vertexCounts[r]);
-    }
+    for (size_t r = 0; r < m_blockPriorPtr->getBlockCount(); r++)
+        if (vertexCounts[r] > 0)
+            logLikelihood -= logMultisetCoefficient(edgeCounts[r], vertexCounts[r]);
     return logLikelihood;
 }
 

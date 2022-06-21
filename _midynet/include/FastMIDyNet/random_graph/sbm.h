@@ -19,9 +19,6 @@ class StochasticBlockModelFamily: public VertexLabeledRandomGraph<BlockIndex>{
 protected:
     BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
-    std::vector<size_t> m_degrees;
-    void samplePriors () ;
-
 
     virtual void _applyGraphMove (const GraphMove&) override;
     virtual void _applyLabelMove (const BlockMove&) override;
@@ -35,13 +32,12 @@ public:
             setEdgeMatrixPrior(edgeMatrixPrior);
         }
 
-    void sampleGraph () override;
+    void sample () override;
 
 
     void setGraph(const MultiGraph& graph) override{
-        m_graph = graph;
+        RandomGraph::setGraph(graph);
         m_edgeMatrixPriorPtr->setGraph(m_graph);
-        m_degrees = m_graph.getDegrees();
     }
 
 

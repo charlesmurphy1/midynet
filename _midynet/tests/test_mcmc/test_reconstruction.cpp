@@ -17,13 +17,13 @@ namespace FastMIDyNet{
 class TestGraphReconstructionMCMC: public::testing::Test{
     size_t numSteps=10;
 public:
-    DummyER randomGraph = DummyER();
+    DummyGraphPrior randomGraph = DummyGraphPrior();
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
-    SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, numSteps, 0.5);
+    DummyDynamics dynamics = DummyDynamics(randomGraph);
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
     bool expectConsistencyError = false;
     void SetUp(){
-        seed(time(NULL));
+        seed(1);
         dynamics.sample();
         mcmc.setUp();
         mcmc.checkSafety();
@@ -40,6 +40,36 @@ TEST_F(TestGraphReconstructionMCMC, doMetropolisHastingsStep){
 }
 
 TEST_F(TestGraphReconstructionMCMC, doMHSweep){
+    mcmc.doMHSweep(1000);
+}
+
+class TestVertexLabeledGraphReconstructionMCMC: public::testing::Test{
+    size_t numSteps=10;
+public:
+    DummySBM randomGraph = DummySBM();
+    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
+    BlockUniformProposer blockProposer = BlockUniformProposer();
+    DummyLabeledDynamics dynamics = DummyLabeledDynamics(randomGraph);
+    VertexLabeledGraphReconstructionMCMC<BlockIndex> mcmc = VertexLabeledGraphReconstructionMCMC<BlockIndex>(dynamics, edgeProposer, blockProposer);
+    bool expectConsistencyError = false;
+    void SetUp(){
+        seedWithTime();
+        dynamics.sample();
+        mcmc.setUp();
+        mcmc.checkSafety();
+    }
+    void TearDown(){
+        if (not expectConsistencyError)
+            mcmc.checkConsistency();
+        mcmc.tearDown();
+    }
+};
+
+TEST_F(TestVertexLabeledGraphReconstructionMCMC, doMetropolisHastingsStep){
+    mcmc.doMetropolisHastingsStep();
+}
+
+TEST_F(TestVertexLabeledGraphReconstructionMCMC, doMHSweep){
     mcmc.doMHSweep(1000);
 }
 

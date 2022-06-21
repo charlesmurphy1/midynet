@@ -81,6 +81,7 @@ public:
     }
 
     const size_t& getBlockCount() const { return m_blockCountPriorPtr->getState(); }
+    const size_t getEffectiveBlockCount() const { return m_vertexCounts.size(); }
     const CounterMap<size_t>& getVertexCounts() const { return m_vertexCounts; };
     const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
     static CounterMap<size_t> computeVertexCounts(const BlockSequence&);
@@ -88,7 +89,9 @@ public:
 
 
     /* sampling methods */
-    void samplePriors() override { m_blockCountPriorPtr->sample(); }
+    void samplePriors() override {
+        m_blockCountPriorPtr->sample();
+    }
 
     /* MCMC methods */
     const double getLogPrior() const override { return m_blockCountPriorPtr->getLogJoint(); };

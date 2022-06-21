@@ -55,6 +55,7 @@ public:
         else if ( not force)
             throw std::logic_error("MCMC: callback of key `" + key + "` cannot be removed.");
     }
+    const CallBack<MCMC>& getCallBack(std::string key){ return m_mcmcCallBacks.get(key); }
 
     virtual void setUp() { m_mcmcCallBacks.setUp(this); m_numSteps = m_numSweeps = 0; }
     virtual void tearDown() { m_mcmcCallBacks.tearDown(); m_numSteps = m_numSweeps = 0; }
@@ -63,12 +64,6 @@ public:
     virtual void onStepBegin() { m_mcmcCallBacks.onStepBegin(); }
     virtual void onStepEnd() { m_mcmcCallBacks.onStepEnd(); }
     virtual bool doMetropolisHastingsStep() = 0;
-    // bool doMetropolisHastingsStep() {
-    //     onStepBegin();
-    //     bool isAccepted = _doMetropolisHastingsStep();
-    //     onStepEnd();
-    //     return isAccepted;
-    // };
 
     std::tuple<size_t, size_t> doMHSweep(size_t burn=1);
 };

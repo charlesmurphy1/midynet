@@ -15,18 +15,16 @@ using namespace std;
 using namespace FastMIDyNet;
 using namespace BaseGraph;
 
-void DegreeCorrectedStochasticBlockModelFamily::samplePriors(){
+
+void DegreeCorrectedStochasticBlockModelFamily::sample(){
     m_blockPriorPtr->sample();
     m_edgeMatrixPriorPtr->sample();
     m_degreePriorPtr->sample();
-    computationFinished();
-};
-
-void DegreeCorrectedStochasticBlockModelFamily::sampleGraph(){
     const BlockSequence& blockSeq = getVertexLabels();
     const MultiGraph& edgeMat = m_edgeMatrixPriorPtr->getState();
     const DegreeSequence& degreeSeq = getDegrees();
-    setGraph( generateDCSBM(blockSeq, edgeMat.getAdjacencyMatrix(), degreeSeq) );
+    setGraph( generateDCSBM(getVertexLabels(), m_edgeMatrixPriorPtr->getState().getAdjacencyMatrix(), getDegrees()) );
+    computationFinished();
 }
 
 const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihood() const{

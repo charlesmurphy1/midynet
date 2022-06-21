@@ -62,7 +62,7 @@ class TestDegreeCorrectedStochasticBlockModelFamily: public::testing::Test{
 TEST_F(TestDegreeCorrectedStochasticBlockModelFamily, sampleState_graphChanges){
     for (size_t i = 0; i < 10; i++) {
         auto prevGraph = randomGraph.getGraph();
-        randomGraph.sampleGraph();
+        randomGraph.sample();
         auto nextGraph = randomGraph.getGraph();
         EXPECT_FALSE(prevGraph == nextGraph);
     }

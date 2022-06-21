@@ -16,7 +16,6 @@ class RandomGraph: public NestedRandomVariable{
 protected:
     size_t m_size;
     MultiGraph m_graph;
-    virtual void samplePriors() = 0;
     virtual void _applyGraphMove(const GraphMove&);
 public:
     RandomGraph(size_t size=0):
@@ -26,7 +25,7 @@ public:
     const MultiGraph& getGraph() const { return m_graph; }
 
     virtual void setGraph(const MultiGraph& state) {
-        m_graph = state;
+        m_graph = std::move(state);
     }
     const int getSize() const { return m_size; }
     virtual const size_t& getEdgeCount() const = 0;
@@ -36,15 +35,7 @@ public:
         return avgDegree;
     }
 
-    const MultiGraph& sample() {
-        samplePriors();
-        sampleGraph();
-        #if DEBUG
-        checkSelfConsistency();
-        #endif
-        return getGraph();
-    }
-    virtual void sampleGraph() = 0;
+    virtual void sample() = 0;
     virtual const double getLogLikelihood() const = 0;
     virtual const double getLogPrior() const = 0;
     const double getLogJoint() const {

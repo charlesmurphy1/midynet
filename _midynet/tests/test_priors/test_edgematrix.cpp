@@ -177,16 +177,16 @@ TEST_F(TestEdgeMatrixDeltaPrior, getLogLikelihoodRatioFromLabelMove_forLabelMove
 class TestEdgeMatrixUniformPrior: public ::testing::Test {
     public:
         MultiGraph graph = getUndirectedHouseMultiGraph();
-        EdgeCountPoissonPrior edgeCountPrior = {2};
-        BlockCountPoissonPrior blockCountPrior = {2};
+        EdgeCountDeltaPrior edgeCountPrior = {10};
+        BlockCountDeltaPrior blockCountPrior = {3};
         BlockUniformPrior blockPrior = {graph.getSize(), blockCountPrior};
-
         EdgeMatrixUniformPrior prior = {edgeCountPrior, blockPrior};
 
         void SetUp() {
+            seedWithTime();
             blockPrior.setState(BLOCK_SEQUENCE);
-            edgeCountPrior.setState(graph.getTotalEdgeNumber());
             prior.setGraph(graph);
+            edgeCountPrior.setState(graph.getTotalEdgeNumber());
             prior.checkSafety();
         }
         void TearDown(){
@@ -196,23 +196,13 @@ class TestEdgeMatrixUniformPrior: public ::testing::Test {
 
 TEST_F(TestEdgeMatrixUniformPrior, sample_returnEdgeMatrixWithCorrectShape){
     prior.sample();
-    auto blockSeq = prior.getState();
     EXPECT_EQ(prior.getState().getSize(), prior.getBlockPrior().getBlockCount());
-
-    auto sum = 0;
-    for (auto r : prior.getState()){
-        EXPECT_EQ(prior.getState().getNeighboursOfIdx(r).size(), prior.getBlockPrior().getBlockCount());
-        for (auto s : prior.getState().getNeighboursOfIdx(r)){
-            EXPECT_TRUE(s.label >= 0);
-            sum += s.label;
-        }
-    }
-    EXPECT_EQ(sum, 2 * prior.getEdgeCount());
+    EXPECT_EQ(prior.getState().getTotalEdgeNumber(), prior.getEdgeCount());
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihood_forSomeSampledMatrix_returnCorrectLogLikelihood){
     prior.sample();
-    auto E = prior.getEdgeCount(), B = prior.getBlockPrior().getBlockCount();
+    auto E = prior.getEdgeCount(), B = prior.getBlockPrior().getEffectiveBlockCount();
     double actualLogLikelihood = prior.getLogLikelihood();
     double expectedLogLikelihood = -logMultisetCoefficient( B * (B + 1) / 2, E);
     EXPECT_EQ(actualLogLikelihood, expectedLogLikelihood);
@@ -247,12 +237,12 @@ TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveChangin
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, applyMove_forSomeLabelMove_changeEdgeMatrix){
-    BlockMove move = {0, BLOCK_SEQUENCE[0], BLOCK_SEQUENCE[0] + 1};
+    BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockOfIdx(0) + 1};
     prior.applyLabelMove(move);
 }
 
 TEST_F(TestEdgeMatrixUniformPrior, getLogLikelihoodRatio_forSomeLabelMove_returnCorrectLogLikelihoodRatio){
-    BlockMove move = {0, BLOCK_SEQUENCE[0], BLOCK_SEQUENCE[0]+1};
+    BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockOfIdx(0) + 1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
     prior.applyLabelMove(move);

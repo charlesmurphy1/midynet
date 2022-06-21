@@ -68,14 +68,12 @@ public:
     void setGraph(const MultiGraph& graph) override{
         RandomGraph::setGraph(graph);
         m_edgeCountPriorPtr->setState(graph.getTotalEdgeNumber());
-        #if DEBUG
-        checkSelfConsistency();
-        #endif
     }
 
-    void sampleGraph() override { setGraph(generateSER(m_size, getEdgeCount())); }
-    void samplePriors() override {
+    void sample() override {
         m_edgeCountPriorPtr->sample();
+        setGraph(generateSER(m_size, getEdgeCount()));
+        computationFinished();
     }
     const double getLogLikelihood() const override { return -logBinomialCoefficient( m_size * (m_size - 1) / 2, getEdgeCount()); }
     const double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint(); }

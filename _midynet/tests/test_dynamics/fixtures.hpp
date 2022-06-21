@@ -22,14 +22,13 @@ public:
     DummyRandomGraph(size_t size): RandomGraph(size) {}
 
     void setGraph(const MultiGraph& graph) override{
-        m_graph = graph;
+        RandomGraph::setGraph(graph);
         m_edgeCount = graph.getTotalEdgeNumber();
     }
 
     const size_t& getEdgeCount() const override { return m_edgeCount; }
 
-    void sampleGraph() override { };
-    virtual void samplePriors() override { };
+    void sample() override { };
     const double getLogLikelihood() const override { return 0; }
     const double getLogPrior() const override { return 0; }
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override{ return 0; }

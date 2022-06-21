@@ -19,7 +19,6 @@ namespace FastMIDyNet{
 class DegreeCorrectedStochasticBlockModelFamily: public StochasticBlockModelFamily{
 protected:
     DegreePrior* m_degreePriorPtr = nullptr;
-    void samplePriors () override;
 
     void _applyGraphMove (const GraphMove&) override;
     void _applyLabelMove (const BlockMove&) override;
@@ -31,9 +30,12 @@ public:
             setDegreePrior(degreePrior);
         }
 
-    void sampleGraph () override;
+    void sample () override;
 
-    void setGraph(const MultiGraph& graph) override { m_graph = graph; m_degreePriorPtr->setGraph(m_graph); }
+    void setGraph(const MultiGraph& graph) override {
+        StochasticBlockModelFamily::setGraph(graph); 
+        m_degreePriorPtr->setGraph(m_graph);
+    }
 
     const DegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
     DegreePrior& getDegreePriorRef() const { return *m_degreePriorPtr; }

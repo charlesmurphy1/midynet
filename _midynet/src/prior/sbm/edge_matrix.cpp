@@ -90,7 +90,6 @@ void EdgeMatrixPrior::checkSelfConsistency() const {
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeCountPriorPtr->checkSelfConsistency();
 
-    const size_t& blockCount = m_blockPriorPtr->getBlockCount();
     size_t sumEdges = 0;
     for (BlockIndex r : m_state) {
         size_t actualEdgeCounts = m_state.getDegreeOfIdx(r);
@@ -139,40 +138,44 @@ const double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromLabelMove(const Bloc
 /* DEFINITION OF EDGE MATRIX UNIFORM PRIOR */
 
 void EdgeMatrixUniformPrior::sampleState() {
-
-    const auto& blockCount = m_blockPriorPtr->getBlockCount();
+    const auto& blockCount = m_blockPriorPtr->getEffectiveBlockCount();
     const auto& blocks = m_blockPriorPtr->getState();
     auto flattenedEdgeMatrix = sampleRandomWeakComposition(
-            m_edgeCountPriorPtr->getState(),
-            blockCount*(blockCount+1)/2
+                m_edgeCountPriorPtr->getState(),
+                blockCount*(blockCount+1)/2
             );
-    m_state = MultiGraph(*max_element(blocks.begin(), blocks.end()) + 1);
+    MultiGraph edgeMatrix = MultiGraph(m_blockPriorPtr->getBlockCount());
     std::pair<BlockIndex, BlockIndex> rs;
     m_edgeCounts.clear();
-    size_t index = 0, correctedEdgeCount;
-    for (auto edgeCountBetweenBlocks: flattenedEdgeMatrix) {
-        rs = getUndirectedPairFromIndex(index, blockCount);
-        m_edgeCounts.increment(rs.first, edgeCountBetweenBlocks);
-        m_edgeCounts.increment(rs.second, edgeCountBetweenBlocks);
-        m_state.addMultiedgeIdx(rs.first, rs.second, edgeCountBetweenBlocks);
-        index++;
+    size_t index = 0;
+
+    const auto& vertexCounts = m_blockPriorPtr->getVertexCounts();
+    for (const auto ers: flattenedEdgeMatrix){
+
+        rs = getUndirectedPairFromIndex(index, m_state.getSize());
+        while (vertexCounts[rs.first] == 0 or vertexCounts[rs.second] == 0){
+            ++index;
+            rs = getUndirectedPairFromIndex(index, m_state.getSize());
+        }
+        edgeMatrix.addMultiedgeIdx(rs.first, rs.second, ers);
+        ++index;
     }
+    setState(edgeMatrix);
 }
 
 const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
-    double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
-    double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState() + move.addedEdges.size() - move.removedEdges.size());
+    double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState());
+    double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState() + move.addedEdges.size() - move.removedEdges.size());
     return newLogLikelihood - currentLogLikelihood;
 }
 
 const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
-    auto vertexCounts = m_blockPriorPtr->getVertexCounts();
-
-    // bool creatingBlock = move.nextLabel == m_blockPriorPtr->getBlockCount();
-    // bool destroyingBlock = move.nextLabel != move.prevLabel && vertexCounts[move.prevLabel] == 1;
-    int addedBlocks = m_blockPriorPtr->getAddedBlocks(move);
-    double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
-    double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount() + addedBlocks, m_edgeCountPriorPtr->getState());
+    double currentLogLikelihood =  getLogLikelihood(
+        m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState()
+    );
+    double newLogLikelihood =  getLogLikelihood(
+        m_blockPriorPtr->getEffectiveBlockCount() + m_blockPriorPtr->getAddedBlocks(move), m_edgeCountPriorPtr->getState()
+    );
     return newLogLikelihood - currentLogLikelihood;
 }
 

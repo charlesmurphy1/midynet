@@ -18,16 +18,10 @@ using namespace std;
 using namespace FastMIDyNet;
 using namespace BaseGraph;
 
-void StochasticBlockModelFamily::sampleGraph(){
-    const BlockSequence& blockSeq = getVertexLabels();
-    const MultiGraph& edgeMat = m_edgeMatrixPriorPtr->getState();
-    MultiGraph graph = generateSBM(blockSeq, edgeMat.getAdjacencyMatrix());
-    setGraph(graph);
-}
-
-void StochasticBlockModelFamily::samplePriors(){
+void StochasticBlockModelFamily::sample(){
     m_blockPriorPtr->sample();
     m_edgeMatrixPriorPtr->sample();
+    setGraph(generateSBM(m_blockPriorPtr->getState(), m_edgeMatrixPriorPtr->getState().getAdjacencyMatrix()));
     computationFinished();
 }
 

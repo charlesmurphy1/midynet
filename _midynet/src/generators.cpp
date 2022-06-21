@@ -197,6 +197,7 @@ BaseGraph::UndirectedMultigraph generateDCSBM(
 
 BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq,
         const EdgeMatrix& edgeMat) {
+
     if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= edgeMat.size())
         throw std::logic_error("generateSBM: Vertex is out of range of edgeMat.");
 
@@ -213,10 +214,11 @@ BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq,
     size_t vertex1, vertex2;
     for (size_t inBlock=0; inBlock!=blockNumber; inBlock++) {
         for (size_t outBlock=inBlock; outBlock!=blockNumber; outBlock++) {
+            if (verticesInBlock[inBlock].size() == 0 or verticesInBlock[outBlock].size() == 0)
+                continue;
             edgeNumberBetweenBlocks = edgeMat[inBlock][outBlock];
             if (inBlock==outBlock)
                 edgeNumberBetweenBlocks /= 2;
-
             for (size_t edge=0; edge<edgeNumberBetweenBlocks; edge++) {
                 vertex1 = pickElementUniformly<size_t>(verticesInBlock[outBlock]);
                 vertex2 = pickElementUniformly<size_t>(verticesInBlock[inBlock]);

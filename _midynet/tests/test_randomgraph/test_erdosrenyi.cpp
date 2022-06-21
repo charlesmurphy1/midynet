@@ -77,7 +77,6 @@ class TestSimpleErdosRenyiFamily: public::testing::Test{
         EdgeCountDeltaPrior edgeCountPrior = {NUM_EDGES};
         SimpleErdosRenyiFamily randomGraph = SimpleErdosRenyiFamily(NUM_VERTICES, edgeCountPrior);
         void SetUp() {
-            randomGraph.samplePriors();
             randomGraph.sample();
         }
 };

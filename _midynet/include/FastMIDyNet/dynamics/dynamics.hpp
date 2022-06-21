@@ -77,7 +77,7 @@ public:
     void setGraph(const MultiGraph& graph) ;
 
     const GraphPriorType& getGraphPrior() const { return *m_graphPriorPtr; }
-    GraphPriorType& getGraphPriorTypeRef() const { return *m_graphPriorPtr; }
+    GraphPriorType& getGraphPriorRef() const { return *m_graphPriorPtr; }
     void setGraphPrior(GraphPriorType& randomGraph) {
         m_graphPriorPtr = &randomGraph;
         m_graphPriorPtr->isRoot(false);
@@ -126,9 +126,12 @@ public:
             return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
         }, 0);
     }
-    void _applyGraphMove(const GraphMove& move);
+    void applyGraphMoveToSelf(const GraphMove& move);
     void applyGraphMove(const GraphMove& move) {
-        processRecursiveFunction([&](){ _applyGraphMove(move); });
+        processRecursiveFunction([&](){
+            applyGraphMoveToSelf(move);
+            m_graphPriorPtr->applyGraphMove(move);
+        });
     }
 
     void checkSelfSafety() const override;
@@ -390,7 +393,7 @@ const double Dynamics<GraphPriorType>::getLogLikelihoodRatioFromGraphMove(const 
 
 
 template<typename GraphPriorType>
-void Dynamics<GraphPriorType>::_applyGraphMove(const GraphMove& move) {
+void Dynamics<GraphPriorType>::applyGraphMoveToSelf(const GraphMove& move) {
     std::set<BaseGraph::VertexIndex> verticesAffected;
     std::map<BaseGraph::VertexIndex, VertexNeighborhoodStateSequence> prevNeighborMap, nextNeighborMap;
     VertexNeighborhoodStateSequence neighborsState(m_numSteps);
@@ -422,7 +425,6 @@ void Dynamics<GraphPriorType>::_applyGraphMove(const GraphMove& move) {
             m_neighborsPastStateSequence[idx][t] = nextNeighborMap[idx][t];
         }
     }
-    m_graphPriorPtr->applyGraphMove(move);
 }
 
 template<typename GraphPriorType>
