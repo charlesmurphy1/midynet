@@ -1,5 +1,5 @@
-#ifndef FAST_MIDYNET_DYNAMICS_MCMC_H
-#define FAST_MIDYNET_DYNAMICS_MCMC_H
+#ifndef FAST_MIDYNET_RECONSTRUCTION_H
+#define FAST_MIDYNET_RECONSTRUCTION_H
 
 #include "FastMIDyNet/dynamics/dynamics.hpp"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
@@ -15,7 +15,6 @@ template<typename GraphPriorType=RandomGraph>
 class GraphReconstructionMCMC: public MCMC{
 protected:
     Dynamics<GraphPriorType>* m_dynamicsPtr = nullptr;
-    bool m_lastMoveWasGraphMove;
     EdgeProposer* m_edgeProposerPtr = nullptr;
     CallBackMap<GraphReconstructionMCMC<GraphPriorType>> m_reconCallBacks;
 public:
@@ -154,7 +153,6 @@ double GraphReconstructionMCMC<GraphPriorType>::_getLogAcceptanceProbFromGraphMo
 template<typename GraphPriorType>
 bool GraphReconstructionMCMC<GraphPriorType>::doMetropolisHastingsStep() {
     onStepBegin();
-    m_lastMoveWasGraphMove = true;
     GraphMove move = m_edgeProposerPtr->proposeMove();
     m_lastLogAcceptance = getLogAcceptanceProbFromGraphMove(move);
     m_isLastAccepted = false;
