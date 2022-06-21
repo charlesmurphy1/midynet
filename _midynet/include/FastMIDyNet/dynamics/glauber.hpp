@@ -9,12 +9,12 @@
 namespace FastMIDyNet{
 
 
-template<typename RandomGraphType=RandomGraph>
-class GlauberDynamics: public BinaryDynamics<RandomGraphType> {
+template<typename GraphPriorType=RandomGraph>
+class GlauberDynamics: public BinaryDynamics<GraphPriorType> {
     double m_couplingConstant;
 
     public:
-        using BaseClass = BinaryDynamics<RandomGraphType>;
+        using BaseClass = BinaryDynamics<GraphPriorType>;
 
         GlauberDynamics(
                 size_t numSteps,
@@ -31,7 +31,7 @@ class GlauberDynamics: public BinaryDynamics<RandomGraphType> {
                 numInitialActive),
             m_couplingConstant(couplingConstant) {}
         GlauberDynamics(
-                RandomGraphType& randomGraph,
+                GraphPriorType& graphPrior,
                 size_t numSteps,
                 double couplingConstant,
                 double autoActivationProb=0,
@@ -39,7 +39,7 @@ class GlauberDynamics: public BinaryDynamics<RandomGraphType> {
                 bool normalizeCoupling=true,
                 size_t numInitialActive=-1):
             BaseClass(
-                randomGraph,
+                graphPrior,
                 numSteps,
                 autoActivationProb,
                 autoDeactivationProb,

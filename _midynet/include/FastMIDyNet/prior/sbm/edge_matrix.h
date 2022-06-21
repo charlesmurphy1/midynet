@@ -13,7 +13,7 @@
 
 namespace FastMIDyNet{
 
-class EdgeMatrixPrior: public SBMPrior< MultiGraph >{
+class EdgeMatrixPrior: public BlockLabeledPrior< MultiGraph >{
     protected:
         EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
         BlockPrior* m_blockPriorPtr = nullptr;

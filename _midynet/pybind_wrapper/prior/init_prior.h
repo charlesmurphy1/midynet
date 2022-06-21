@@ -28,16 +28,30 @@ py::class_<Prior<StateType>, NestedRandomVariable, PyPrior<StateType>> declarePr
         .def("get_log_prior", &Prior<StateType>::getLogPrior)
         .def("get_log_joint", &Prior<StateType>::getLogJoint)
         .def("get_log_joint_ratio_from_graph_move", &Prior<StateType>::getLogJointRatioFromGraphMove, py::arg("move"))
-        .def("get_log_joint_ratio_from_block_move", &Prior<StateType>::getLogJointRatioFromBlockMove, py::arg("move"))
         .def("apply_graph_move", &Prior<StateType>::applyGraphMove, py::arg("move"))
-        .def("apply_block_move", &Prior<StateType>::applyBlockMove, py::arg("move"))
+        ;
+}
+
+template <typename StateType, typename Label>
+py::class_<VertexLabeledPrior<StateType, Label>, Prior<StateType>, PyVertexLabeledPrior<StateType, Label>>
+declareVertexLabeledPriorBaseClass(py::module& m, std::string pyName){
+    return py::class_<VertexLabeledPrior<StateType, Label>, Prior<StateType>, PyVertexLabeledPrior<StateType, Label>>(m, pyName.c_str())
+        .def(py::init<>())
+        .def("get_log_joint_ratio_from_label_move", &VertexLabeledPrior<StateType, Label>::getLogJointRatioFromLabelMove, py::arg("move"))
+        .def("apply_label_move", &VertexLabeledPrior<StateType, Label>::applyGraphMove, py::arg("move"))
         ;
 }
 
 void initPrior(pybind11::module& m){
     declarePriorBaseClass<size_t>(m, "UnIntPrior");
+    declareVertexLabeledPriorBaseClass<size_t, BlockIndex>(m, "UnIntVertexLabeledPrior");
+
     declarePriorBaseClass<std::vector<size_t>>(m, "UnIntVectorPrior");
+    declareVertexLabeledPriorBaseClass<std::vector<size_t>, BlockIndex>(m, "UnIntVectorVertexLabeledPrior");
+
     declarePriorBaseClass<MultiGraph>(m, "MultigraphPrior");
+    declareVertexLabeledPriorBaseClass<MultiGraph, BlockIndex>(m, "MultigraphVertexLabeledPrior");
+
     pybind11::module sbm = m.def_submodule("sbm");
     initSBMPriors(sbm);
 }

@@ -78,11 +78,8 @@ public:
     }
 };
 
-template <typename StateType>
-class SBMPrior: public VertexLabeledPrior<StateType, BlockIndex>{
-public:
-    using VertexLabeledPrior<StateType, BlockIndex>::VertexLabeledPrior;
-};
+template<typename StateType>
+using BlockLabeledPrior = VertexLabeledPrior<StateType, BlockIndex>;
 
 }
 

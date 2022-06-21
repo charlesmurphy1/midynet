@@ -14,20 +14,32 @@
 namespace FastMIDyNet{
 
 template <typename DegreePriorBaseClass = DegreePrior>
-class PyDegreePrior: public PyPrior<std::vector<size_t>, DegreePriorBaseClass> {
+class PyDegreePrior: public PyVertexLabeledPrior<std::vector<size_t>, BlockIndex, DegreePriorBaseClass> {
 public:
-    using PyPrior<std::vector<size_t>, DegreePriorBaseClass>::PyPrior;
+    using PyVertexLabeledPrior<std::vector<size_t>, BlockIndex, DegreePriorBaseClass>::PyVertexLabeledPrior;
     /* Pure abstract methods */
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override {
         PYBIND11_OVERRIDE_PURE(const double, DegreePriorBaseClass, getLogLikelihoodRatioFromGraphMove, move);
     }
-    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override {
-        PYBIND11_OVERRIDE_PURE(const double, DegreePriorBaseClass, getLogLikelihoodRatioFromBlockMove, move);
+    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const override {
+        PYBIND11_OVERRIDE_PURE(const double, DegreePriorBaseClass, getLogLikelihoodRatioFromLabelMove, move);
     }
 
     /* Overloaded abstract methods */
-    const DegreeCountsMap& getDegreeCountsInBlocks() const override {
-        PYBIND11_OVERRIDE(const DegreeCountsMap&, DegreePriorBaseClass, getDegreeCountsInBlocks, );
+    void setState(const DegreeSequence& state) override {
+        PYBIND11_OVERRIDE(void, DegreePriorBaseClass, setState, state);
+    }
+    const DegreeCountsMap& getDegreeCounts() const override {
+        PYBIND11_OVERRIDE(const DegreeCountsMap&, DegreePriorBaseClass, getDegreeCounts, );
+    }
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override {
+        PYBIND11_OVERRIDE_PURE(const double, DegreePriorBaseClass, getLogPriorRatioFromGraphMove, move);
+    }
+    const double getLogPriorRatioFromLabelMove(const BlockMove& move) const override {
+        PYBIND11_OVERRIDE_PURE(const double, DegreePriorBaseClass, getLogPriorRatioFromLabelMove, move);
+    }
+    void checkSelfConsistency() const override {
+        PYBIND11_OVERRIDE_PURE(void, DegreePriorBaseClass, checkSelfConsistency, );
     }
 };
 

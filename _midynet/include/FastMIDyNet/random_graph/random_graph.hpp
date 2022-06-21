@@ -27,7 +27,8 @@ public:
     virtual void setGraph(const MultiGraph& state) {
         m_graph = std::move(state);
     }
-    const int getSize() const { return m_size; }
+    const size_t getSize() const { return m_size; }
+    void setSize(const size_t size) { m_size = size; }
     virtual const size_t& getEdgeCount() const = 0;
     const double getAverageDegree() const {
         double avgDegree = 2 * (double) getEdgeCount();
@@ -82,6 +83,8 @@ public:
         #endif
     }
 };
+
+using BlockLabeledRandomGraph = VertexLabeledRandomGraph<BlockIndex>;
 
 } // namespace FastMIDyNet
 

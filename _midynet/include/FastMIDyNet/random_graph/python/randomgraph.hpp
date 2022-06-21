@@ -7,7 +7,7 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/python/rv.hpp"
-#include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"
 
 
@@ -16,13 +16,12 @@ namespace FastMIDyNet{
 template<typename BaseClass = RandomGraph>
 class PyRandomGraph: public PyNestedRandomVariable<BaseClass>{
 protected:
-    void samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePriors, ); }
     void _applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
 public:
     using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
 
     /* Pure abstract methods */
-    void sampleGraph() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleGraph, ); }
+    void sample() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sample, ); }
     const double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, ); }
     const double getLogPrior() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPrior, ); }
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromGraphMove, move); }
@@ -38,16 +37,16 @@ public:
     bool isSafe() const override { PYBIND11_OVERRIDE(bool, BaseClass, isSafe, ); }
 };
 
-template<typename Label, typename LabelMove, typename BaseClass = VertexLabeledRandomGraph<Label, LabelMove>>
+template<typename Label, typename BaseClass = VertexLabeledRandomGraph<Label>>
 class PyVertexLabeledRandomGraph: public PyRandomGraph<BaseClass>{
 protected:
-    void _applyLabelMove(const LabelMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyLabelMove, move); }
+    void _applyLabelMove(const LabelMove<Label>& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyLabelMove, move); }
 public:
     using PyRandomGraph<BaseClass>::PyRandomGraph;
 
     /* Pure abstract methods */
-    const double getLogLikelihoodRatioFromLabelMove (const LabelMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromLabelMove, move); }
-    const double getLogPriorRatioFromLabelMove (const LabelMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPriorRatioFromLabelMove, move); }
+    const double getLogLikelihoodRatioFromLabelMove (const LabelMove<Label>& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromLabelMove, move); }
+    const double getLogPriorRatioFromLabelMove (const LabelMove<Label>& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPriorRatioFromLabelMove, move); }
 
     const std::vector<Label>& getVertexLabels() const override  {
         PYBIND11_OVERRIDE_PURE(const std::vector<Label>&, BaseClass, getVertexLabels, );
@@ -57,6 +56,9 @@ public:
     }
     const CounterMap<Label>& getEdgeLabelCounts() const override  {
         PYBIND11_OVERRIDE_PURE(const CounterMap<Label>&, BaseClass, getEdgeLabelCounts, );
+    }
+    const MultiGraph& getLabelGraph() const override  {
+        PYBIND11_OVERRIDE_PURE(const MultiGraph&, BaseClass, getLabelGraph, );
     }
 
     /* Abstract methods */

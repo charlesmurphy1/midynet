@@ -11,7 +11,7 @@
 
 namespace FastMIDyNet{
 
-class DegreePrior: public SBMPrior< DegreeSequence >{
+class DegreePrior: public BlockLabeledPrior< DegreeSequence >{
 protected:
     BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
@@ -34,7 +34,7 @@ protected:
     void applyGraphMoveToDegreeCounts(const GraphMove&);
     void applyLabelMoveToDegreeCounts(const BlockMove&);
 public:
-    using SBMPrior<DegreeSequence>::SBMPrior;
+    using BlockLabeledPrior<DegreeSequence>::BlockLabeledPrior;
     /* Constructors */
     DegreePrior(){}
     DegreePrior(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior){

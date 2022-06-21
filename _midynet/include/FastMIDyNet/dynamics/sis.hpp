@@ -11,11 +11,11 @@
 
 namespace FastMIDyNet{
 
-template<typename RandomGraphType=RandomGraph>
-class SISDynamics: public BinaryDynamics<RandomGraphType>{
+template<typename GraphPriorType=RandomGraph>
+class SISDynamics: public BinaryDynamics<GraphPriorType>{
 
 public:
-    using BaseClass = BinaryDynamics<RandomGraphType>;
+    using BaseClass = BinaryDynamics<GraphPriorType>;
     explicit SISDynamics(
             size_t numSteps,
             double infectionProb,
@@ -33,7 +33,7 @@ public:
         m_infectionProb(infectionProb),
         m_recoveryProb(recoveryProb){ }
     explicit SISDynamics(
-            RandomGraphType& randomGraph,
+            GraphPriorType& graphPrior,
             size_t numSteps,
             double infectionProb,
             double recoveryProb=0.5,
@@ -42,7 +42,7 @@ public:
             bool normalizeCoupling=true,
             size_t numInitialActive=1) :
         BaseClass(
-            randomGraph,
+            graphPrior,
             numSteps,
             autoActivationProb,
             autoDeactivationProb,

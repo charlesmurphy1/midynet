@@ -5,6 +5,8 @@
 #include <pybind11/stl.h>
 
 #include "FastMIDyNet/python/rv.hpp"
+#include "FastMIDyNet/dynamics/dynamics.hpp"
+#include "FastMIDyNet/dynamics/binary_dynamics.hpp"
 // #include "FastMIDyNet/types.h"
 // #include "FastMIDyNet/random_graph/random_graph.h"
 // #include "FastMIDyNet/proposer/movetypes.h"
@@ -12,7 +14,7 @@
 
 namespace FastMIDyNet{
 
-template<typename BaseClass = Dynamics>
+template<typename GraphPrior, typename BaseClass = Dynamics<GraphPrior>>
 class PyDynamics: public PyNestedRandomVariable<BaseClass>{
 public:
     using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
@@ -30,10 +32,10 @@ public:
 
 };
 
-template<typename BaseClass = BinaryDynamics>
-class PyBinaryDynamics: public PyDynamics<BaseClass>{
+template<typename GraphPrior, typename BaseClass = BinaryDynamics<GraphPrior>>
+class PyBinaryDynamics: public PyDynamics<GraphPrior, BaseClass>{
 public:
-    using PyDynamics<BaseClass>::PyDynamics;
+    using PyDynamics<GraphPrior, BaseClass>::PyDynamics;
     /* Pure abstract methods */
     const double getActivationProb(const VertexNeighborhoodState& neighborState) const override {
         PYBIND11_OVERRIDE_PURE(const double, BaseClass, getActivationProb, neighborState);

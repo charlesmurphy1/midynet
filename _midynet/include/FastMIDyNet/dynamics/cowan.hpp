@@ -8,8 +8,8 @@
 
 namespace FastMIDyNet{
 
-template<typename RandomGraphType=RandomGraph>
-class CowanDynamics: public BinaryDynamics<RandomGraphType> {
+template<typename GraphPriorType=RandomGraph>
+class CowanDynamics: public BinaryDynamics<GraphPriorType> {
 private:
     double m_a;
     double m_nu;
@@ -18,7 +18,7 @@ private:
     bool m_normalizeCoupling;
 
 public:
-    using BaseClass = BinaryDynamics<RandomGraphType>;
+    using BaseClass = BinaryDynamics<GraphPriorType>;
     CowanDynamics(
             size_t numSteps,
             double nu,
@@ -40,7 +40,7 @@ public:
         m_mu(mu),
         m_eta(eta) {}
     CowanDynamics(
-            RandomGraphType& randomGraph,
+            GraphPriorType& graphPrior,
             size_t numSteps,
             double nu,
             double a=1,
@@ -51,7 +51,7 @@ public:
             bool normalizeCoupling=true,
             size_t numInitialActive=1):
         BaseClass(
-            randomGraph,
+            graphPrior,
             numSteps,
             autoActivationProb,
             autoDeactivationProb,

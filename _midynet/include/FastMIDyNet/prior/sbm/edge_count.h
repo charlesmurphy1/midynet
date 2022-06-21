@@ -9,7 +9,7 @@
 
 namespace FastMIDyNet{
 
-class EdgeCountPrior: public SBMPrior<size_t> {
+class EdgeCountPrior: public BlockLabeledPrior<size_t> {
 protected:
     void _applyGraphMove(const GraphMove& move) override {
         setState(getStateAfterGraphMove(move));
@@ -22,7 +22,7 @@ protected:
     const double _getLogJointRatioFromLabelMove(const BlockMove& move) const override { return 0; }
 
 public:
-    using SBMPrior<size_t>::SBMPrior;
+    using BlockLabeledPrior<size_t>::BlockLabeledPrior;
     void samplePriors() override {}
     virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
     const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }

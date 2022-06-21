@@ -16,10 +16,10 @@ namespace py = pybind11;
 namespace FastMIDyNet{
 
 void initEdgeMatrixPrior(py::module& m){
-    py::class_<EdgeMatrixPrior, Prior<MultiGraph>, PyEdgeMatrixPrior<>>(m, "EdgeMatrixPrior")
+    py::class_<EdgeMatrixPrior, BlockLabeledPrior<MultiGraph>, PyEdgeMatrixPrior<>>(m, "EdgeMatrixPrior")
         .def(py::init<EdgeCountPrior&, BlockPrior&>(), py::arg("edge_count_prior"), py::arg("block_prior"))
         .def("get_edge_count", &EdgeMatrixPrior::getEdgeCount)
-        .def("get_edge_counts_in_blocks", &EdgeMatrixPrior::getEdgeCountsInBlocks)
+        .def("get_edge_counts", &EdgeMatrixPrior::getEdgeCounts)
         .def("get_graph", &EdgeMatrixPrior::getGraph)
         .def("get_edge_count_prior", &EdgeMatrixPrior::getEdgeCountPrior)
         .def("set_edge_count_prior", &EdgeMatrixPrior::setEdgeCountPrior)
@@ -33,6 +33,7 @@ void initEdgeMatrixPrior(py::module& m){
         .def(py::init<MultiGraph>(), py::arg("edge_matrix"))
         .def(py::init<MultiGraph, EdgeCountPrior&, BlockPrior&>(),
             py::arg("edge_matrix"), py::arg("edge_count_prior"), py::arg("block_prior"));
+
     py::class_<EdgeMatrixUniformPrior, EdgeMatrixPrior>(m, "EdgeMatrixUniformPrior")
         .def(py::init<>())
         .def(py::init<EdgeCountPrior&, BlockPrior&>(), py::arg("edge_count_prior"), py::arg("block_prior"));

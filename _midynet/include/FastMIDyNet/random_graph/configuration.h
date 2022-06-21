@@ -40,16 +40,7 @@ public:
     void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){
         m_edgeMatrixUniformPrior.setEdgeCountPrior(edgeCountPrior);
     }
-    void setDegreePrior(DegreePrior& degreePrior) {
-        m_degreePriorPtr = &degreePrior;
-        m_degreePriorPtr->isRoot(false);
-        m_degreePriorPtr->setBlockPrior(m_blockDeltaPrior);
-        m_degreePriorPtr->setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
-    }
-    bool const isCompatible(const MultiGraph& graph) const override{
-        if (not RandomGraph::isCompatible(graph)) return false;
-        return graph.getDegrees() == getDegrees();
-    }
+
 };
 
 }// end FastMIDyNet

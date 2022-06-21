@@ -14,49 +14,35 @@
 namespace FastMIDyNet{
 //
 template<typename BaseClass = StochasticBlockModelFamily>
-class PyStochasticBlockModelFamily: public PyRandomGraph<BaseClass>{
+class PyStochasticBlockModelFamily: public PyVertexLabeledRandomGraph<BlockIndex, BaseClass>{
 protected:
     void _applyGraphMove (const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
-    void _applyBlockMove (const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
+    void _applyLabelMove (const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, _applyLabelMove, move); }
 public:
-    using PyRandomGraph<StochasticBlockModelFamily>::PyRandomGraph;
+    using PyVertexLabeledRandomGraph<BlockIndex, BaseClass>::PyVertexLabeledRandomGraph;
 
     /* Pure abstract methods */
 
     /* Abstract methods */
     void setBlockPrior(BlockPrior& blockPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setBlockPrior, blockPrior); }
     void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setEdgeMatrixPrior, edgeMatrixPrior); }
-    const std::vector<size_t>& getDegrees() const {
-        PYBIND11_OVERRIDE(const std::vector<size_t>&, BaseClass, getDegrees, );
-    }
+
     const double getLogLikelihood() const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihood, ); }
     const double getLogPrior() const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPrior, ); }
     const double getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihoodRatioEdgeTerm, move); }
     const double getLogLikelihoodRatioAdjTerm (const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihoodRatioAdjTerm, move); }
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihoodRatioFromGraphMove, move); }
-    const double getLogLikelihoodRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihoodRatioFromBlockMove, move); }
+    const double getLogLikelihoodRatioFromLabelMove (const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogLikelihoodRatioFromLabelMove, move); }
     const double getLogPriorRatioFromGraphMove (const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromGraphMove, move); }
-    const double getLogPriorRatioFromBlockMove (const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromBlockMove, move); }
+    const double getLogPriorRatioFromLabelMove (const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromLabelMove, move); }
     void computationFinished() const override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
     void checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
     void checkSelfSafety() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfSafety, ); }
     const bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
     bool isSafe() const override { PYBIND11_OVERRIDE(bool, BaseClass, isSafe, ); }
-};
-
-template<typename BaseClass = DegreeCorrectedStochasticBlockModelFamily>
-class PyDegreeCorrectedStochasticBlockModelFamily: public PyStochasticBlockModelFamily<BaseClass>{
-public:
-    using PyStochasticBlockModelFamily<BaseClass>::PyStochasticBlockModelFamily;
-
-    /* Pure abstract methods */
-
-    /* Abstract methods */
-    void setBlockPrior(BlockPrior& blockPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setBlockPrior, blockPrior); }
-    void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) override { PYBIND11_OVERRIDE(void, BaseClass, setEdgeMatrixPrior, edgeMatrixPrior); }
-    void setDegreePrior(DegreePrior& DegreePrior) override { PYBIND11_OVERRIDE(void, BaseClass, setDegreePrior, DegreePrior); }
-    const bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
-    bool isSafe() const override { PYBIND11_OVERRIDE(bool, BaseClass, isSafe, ); }
+    // void checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
+    // void checkSelfSafety() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfSafety, ); }
+    // void computationFinished() const override { PYBIND11_OVERRIDE(void, BaseClass, computationFinished, ); }
 };
 
 }

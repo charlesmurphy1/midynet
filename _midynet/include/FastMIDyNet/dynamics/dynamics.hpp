@@ -96,7 +96,7 @@ public:
     const State& sample(bool async=true){ return sample(getRandomState(), async); }
     void sampleState(const State& initialState, bool async=true);
     void sampleState(bool async=true){ sampleState(getRandomState(), async); }
-    void sampleGraph() { setGraph(m_graphPriorPtr->sample()); }
+    void sampleGraph() { m_graphPriorPtr->sample(); setGraph(m_graphPriorPtr->getGraph()); }
     virtual const State getRandomState() const;
     const NeighborsState computeNeighborsState(const State& state) const;
     const NeighborsStateSequence computeNeighborsStateSequence(const StateSequence& stateSequence) const;
@@ -148,6 +148,10 @@ public:
            and (m_futureStateSequence.size() != 0) and (m_neighborsPastStateSequence.size() != 0);
     }
 };
+
+using PlainDynamics = Dynamics<RandomGraph>;
+template<typename Label> using VertexLabeledDynamics = Dynamics<VertexLabeledRandomGraph<Label>>;
+using BlockLabeledDynamics = Dynamics<VertexLabeledDynamics<BlockIndex>>;
 
 template<typename GraphPriorType>
 void Dynamics<GraphPriorType>::sampleState(const State& x0, bool async){

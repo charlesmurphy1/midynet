@@ -33,26 +33,26 @@ public:
     void sample () override;
 
     void setGraph(const MultiGraph& graph) override {
-        StochasticBlockModelFamily::setGraph(graph); 
+        StochasticBlockModelFamily::setGraph(graph);
         m_degreePriorPtr->setGraph(m_graph);
     }
 
     const DegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
     DegreePrior& getDegreePriorRef() const { return *m_degreePriorPtr; }
-    virtual void setBlockPrior(BlockPrior& blockPrior) {
+    void setBlockPrior(BlockPrior& blockPrior) {
         StochasticBlockModelFamily::setBlockPrior(blockPrior);
         if (m_degreePriorPtr){
             m_degreePriorPtr->setBlockPrior(*m_blockPriorPtr);
         }
     }
-    virtual void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) {
+    void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) {
         StochasticBlockModelFamily::setEdgeMatrixPrior(edgeMatrixPrior);
         if (m_degreePriorPtr){
             m_degreePriorPtr->setBlockPrior(*m_blockPriorPtr);
             m_degreePriorPtr->setEdgeMatrixPrior(*m_edgeMatrixPriorPtr);
         }
     }
-    virtual void setDegreePrior(DegreePrior& degreePrior) {
+    void setDegreePrior(DegreePrior& degreePrior) {
         m_degreePriorPtr = &degreePrior;
         m_degreePriorPtr->isRoot(false);
         m_degreePriorPtr->setBlockPrior(*m_blockPriorPtr);
@@ -74,26 +74,26 @@ public:
     const double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
     const double getLogPriorRatioFromLabelMove (const BlockMove&) const override;
 
-    void computationFinished() const override{
-        m_isProcessed = false;
-        m_blockPriorPtr->computationFinished();
-        m_edgeMatrixPriorPtr->computationFinished();
-        m_degreePriorPtr->computationFinished();
-    }
 
 
     static void checkGraphConsistencyWithDegreeSequence(const MultiGraph&, const DegreeSequence&) ;
 
-    virtual bool isSafe() const override {
+    bool isSafe() const override {
         return m_blockPriorPtr != nullptr and m_edgeMatrixPriorPtr != nullptr and m_degreePriorPtr != nullptr;
     }
 
 
     void checkSelfConsistency() const override;
-    virtual void checkSelfSafety() const override;
-    virtual const bool isCompatible(const MultiGraph& graph) const override{
+    void checkSelfSafety() const override;
+    const bool isCompatible(const MultiGraph& graph) const override{
         if (not StochasticBlockModelFamily::isCompatible(graph)) return false;
         return graph.getDegrees() == getDegrees();
+    }
+    void computationFinished() const override{
+        m_isProcessed = false;
+        m_blockPriorPtr->computationFinished();
+        m_edgeMatrixPriorPtr->computationFinished();
+        m_degreePriorPtr->computationFinished();
     }
 
 };

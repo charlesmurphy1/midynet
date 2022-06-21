@@ -16,23 +16,34 @@ template<typename StateType, typename BaseClass = Prior<StateType>>
 class PyPrior: public PyNestedRandomVariable<BaseClass>{
 public:
     using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
+    using cdouble = const double;
     ~PyPrior() override = default;
     /* Pure abstract methods */
     void sampleState() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleState, ); }
     void samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePriors, ); }
-    const double getLogLikelihood() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, ); }
-    const double getLogPrior() const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPrior, ); }
+    void setState(const StateType& state) override { PYBIND11_OVERRIDE(void, BaseClass, setState, state); }
+    cdouble getLogLikelihood() const override  { PYBIND11_OVERRIDE_PURE(cdouble, BaseClass, getLogLikelihood, ); }
+    cdouble getLogPrior() const override { PYBIND11_OVERRIDE_PURE(cdouble, BaseClass, getLogPrior, ); }
 
     /* Abstract methods */
-    void setState(const StateType& state) override { PYBIND11_OVERRIDE(void, BaseClass, setState, state); }
 protected:
-    void onBlockCreation(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, onBlockCreation, move); }
-    void onBlockDeletion(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, onBlockDeletion, move); }
-    void _applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, _applyBlockMove, move); }
     void _applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, _applyGraphMove, move); }
-    const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, _getLogJointRatioFromGraphMove, move); }
-    const double _getLogJointRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, _getLogJointRatioFromBlockMove, move); }
+    cdouble _getLogJointRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(cdouble, BaseClass, _getLogJointRatioFromGraphMove, move); }
+};
 
+
+template<typename StateType, typename Label, typename BaseClass = VertexLabeledPrior<StateType, Label>>
+class PyVertexLabeledPrior: public PyPrior<StateType, BaseClass>{
+public:
+    using PyPrior<StateType, BaseClass>::PyPrior;
+    ~PyVertexLabeledPrior() override = default;
+
+    /* Pure abstract methods */
+protected:
+    void _applyLabelMove(const LabelMove<Label>& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, _applyLabelMove, move); }
+    const double _getLogJointRatioFromLabelMove(const LabelMove<Label>& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, _getLogJointRatioFromLabelMove, move); }
+
+    /* Abstract methods */
 };
 
 }

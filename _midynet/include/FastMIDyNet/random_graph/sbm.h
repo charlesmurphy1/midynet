@@ -15,13 +15,18 @@
 
 namespace FastMIDyNet{
 
-class StochasticBlockModelFamily: public VertexLabeledRandomGraph<BlockIndex>{
+class StochasticBlockModelFamily: public BlockLabeledRandomGraph{
 protected:
     BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
 
     virtual void _applyGraphMove (const GraphMove&) override;
     virtual void _applyLabelMove (const BlockMove&) override;
+    virtual const double getLogLikelihoodRatioEdgeTerm (const GraphMove&) const;
+    virtual const double getLogLikelihoodRatioAdjTerm (const GraphMove&) const;
+    void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BlockIndex, BlockIndex>>&) const;
+    void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>>&) const;
+    void getDiffEdgeMatMapFromBlockMove(const BlockMove&, IntMap<std::pair<BlockIndex, BlockIndex>>&) const;
 
 public:
     StochasticBlockModelFamily(size_t graphSize): VertexLabeledRandomGraph<BlockIndex>(graphSize) { }
@@ -63,19 +68,10 @@ public:
     const CounterMap<BlockIndex>& getLabelCounts() const override { return m_blockPriorPtr->getVertexCounts(); }
     const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return m_edgeMatrixPriorPtr->getEdgeCounts(); }
     const MultiGraph& getLabelGraph() const override { return m_edgeMatrixPriorPtr->getState(); }
-    const size_t& getEdgeCount() const { return m_edgeMatrixPriorPtr->getEdgeCount(); }
-
-    // virtual const std::vector<size_t>& getDegrees() const { return m_degrees; }
-
-    void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BlockIndex, BlockIndex>>&) const;
-    void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>>&) const;
-    void getDiffEdgeMatMapFromBlockMove(const BlockMove&, IntMap<std::pair<BlockIndex, BlockIndex>>&) const;
+    const size_t& getEdgeCount() const override { return m_edgeMatrixPriorPtr->getEdgeCount(); }
 
     virtual const double getLogLikelihood() const override;
     virtual const double getLogPrior() const override;
-
-    virtual const double getLogLikelihoodRatioEdgeTerm (const GraphMove&) const;
-    virtual const double getLogLikelihoodRatioAdjTerm (const GraphMove&) const;
 
     virtual const double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
     virtual const double getLogLikelihoodRatioFromLabelMove (const BlockMove&) const override;

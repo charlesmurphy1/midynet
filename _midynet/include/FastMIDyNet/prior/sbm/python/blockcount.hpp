@@ -14,9 +14,9 @@
 namespace FastMIDyNet{
 
 template <typename BaseClass = BlockCountPrior>
-class PyBlockCountPrior: public PyPrior<size_t, BaseClass> {
+class PyBlockCountPrior: public PyVertexLabeledPrior<size_t, BlockIndex, BaseClass> {
 public:
-    using PyPrior<size_t, BaseClass>::PyPrior;
+    using PyVertexLabeledPrior<size_t, BlockIndex, BaseClass>::PyVertexLabeledPrior;
     /* Pure abstract methods */
     const double getLogLikelihoodFromState(const size_t& state) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodFromState, state); }
 };

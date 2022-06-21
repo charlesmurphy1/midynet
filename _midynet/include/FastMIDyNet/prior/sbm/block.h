@@ -14,7 +14,7 @@
 
 namespace FastMIDyNet{
 
-class BlockPrior: public SBMPrior<BlockSequence>{
+class BlockPrior: public BlockLabeledPrior<BlockSequence>{
 private:
     void moveVertexCounts(const BlockMove& move);
 protected:

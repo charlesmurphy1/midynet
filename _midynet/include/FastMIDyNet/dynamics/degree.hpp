@@ -7,17 +7,17 @@
 
 namespace FastMIDyNet{
 
-template<typename RandomGraphType=RandomGraph>
-class DegreeDynamics: public BinaryDynamics<RandomGraphType> {
+template<typename GraphPriorType=RandomGraph>
+class DegreeDynamics: public BinaryDynamics<GraphPriorType> {
     double m_C;
 
     public:
-        using BaseClass = BinaryDynamics<RandomGraphType>;
+        using BaseClass = BinaryDynamics<GraphPriorType>;
 
         DegreeDynamics(size_t numSteps, double C):
                 BaseClass(numSteps, 0, 0, false, -1), m_C(C) {}
-        DegreeDynamics(RandomGraphType& random_graph, size_t numSteps, double C):
-                BaseClass(random_graph, numSteps, 0, 0, false, -1), m_C(C) { }
+        DegreeDynamics(GraphPriorType& graphPrior, size_t numSteps, double C):
+                BaseClass(graphPrior, numSteps, 0, 0, false, -1), m_C(C) { }
 
         const double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override {
             return (vertexNeighborState[0] + vertexNeighborState[1]) / m_C;

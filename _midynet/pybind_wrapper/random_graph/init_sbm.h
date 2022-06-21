@@ -6,7 +6,7 @@
 
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
-#include "FastMIDyNet/random_graph/random_graph.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/random_graph/python/sbm.hpp"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/random_graph/sbm.h"
@@ -15,11 +15,9 @@ namespace py = pybind11;
 namespace FastMIDyNet{
 
 void initStochasticBlockModelFamily(py::module& m){
-    py::class_<StochasticBlockModelFamily, RandomGraph, PyStochasticBlockModelFamily<>>(m, "StochasticBlockModelFamily")
+    py::class_<StochasticBlockModelFamily, BlockLabeledRandomGraph, PyStochasticBlockModelFamily<>>(m, "StochasticBlockModelFamily")
         .def(py::init<size_t>(), py::arg("size"))
         .def(py::init<size_t, BlockPrior&, EdgeMatrixPrior&>(), py::arg("size"), py::arg("blocks"), py::arg("edge_matrix"))
-        .def("get_block_of_idx", &StochasticBlockModelFamily::getBlockOfIdx,
-            py::arg("idx"))
         .def("get_block_prior", &StochasticBlockModelFamily::getBlockPrior)
         .def("set_block_prior", &StochasticBlockModelFamily::setBlockPrior)
         .def("get_edge_matrix_prior", &StochasticBlockModelFamily::getEdgeMatrixPrior)

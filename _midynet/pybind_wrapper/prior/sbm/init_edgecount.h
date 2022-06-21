@@ -12,7 +12,7 @@ namespace py = pybind11;
 namespace FastMIDyNet{
 
 void initEdgeCountPrior(py::module& m){
-    py::class_<EdgeCountPrior, Prior<size_t>, PyEdgeCountPrior<>>(m, "EdgeCountPrior");
+    py::class_<EdgeCountPrior, BlockLabeledPrior<size_t>, PyEdgeCountPrior<>>(m, "EdgeCountPrior");
 
     py::class_<EdgeCountDeltaPrior, EdgeCountPrior>(m, "EdgeCountDeltaPrior")
         .def(py::init<>())

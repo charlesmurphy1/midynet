@@ -13,7 +13,7 @@ namespace FastMIDyNet{
 
 
 void initBlockCountPrior(py::module& m){
-    py::class_<BlockCountPrior, Prior<size_t>, PyBlockCountPrior<>>(m, "BlockCountPrior");
+    py::class_<BlockCountPrior, BlockLabeledPrior<size_t>, PyBlockCountPrior<>>(m, "BlockCountPrior");
 
     py::class_<BlockCountDeltaPrior, BlockCountPrior>(m, "BlockCountDeltaPrior")
         .def(py::init<>())

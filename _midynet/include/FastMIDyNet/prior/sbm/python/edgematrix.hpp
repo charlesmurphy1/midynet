@@ -21,11 +21,11 @@ public:
     using PyPrior<MultiGraph, BaseClass>::PyPrior;
     /* Pure abstract methods */
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromGraphMove, move); }
-    const double getLogLikelihoodRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromBlockMove, move); }
+    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromLabelMove, move); }
 
     /* Overloaded abstract methods */
     const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromGraphMove, move); }
-    const double getLogPriorRatioFromBlockMove(const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromBlockMove, move); }
+    const double getLogPriorRatioFromLabelMove(const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, getLogPriorRatioFromLabelMove, move); }
 };
 
 }
