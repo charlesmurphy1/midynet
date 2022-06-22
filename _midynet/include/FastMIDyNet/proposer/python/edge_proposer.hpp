@@ -7,11 +7,11 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/proposer/python/proposer.hpp"
-#include "FastMIDyNet/proposer/edge_proposer/edge_proposer.h"
-#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
-#include "FastMIDyNet/proposer/edge_proposer/single_edge.h"
-#include "FastMIDyNet/proposer/edge_proposer/labeled_edge_proposer.h"
-#include "FastMIDyNet/proposer/edge_proposer/labeled_hinge_flip.h"
+#include "FastMIDyNet/proposer/edge/edge_proposer.h"
+#include "FastMIDyNet/proposer/edge/hinge_flip.h"
+#include "FastMIDyNet/proposer/edge/single_edge.h"
+// #include "FastMIDyNet/proposer/edge/labeled_edge_proposer.h"
+// #include "FastMIDyNet/proposer/edge/labeled_hinge_flip.h"
 
 // namespace py = pybind11;
 namespace FastMIDyNet{
@@ -27,10 +27,8 @@ public:
     const double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
 
     /* Abstract & overloaded methods */
-    void setUp(const RandomGraph& randomGraph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, randomGraph); }
-    void setUpFromGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUpFromGraph, graph); }
+    void setUp(const MultiGraph& graph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, graph); }
     void applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
-    void applyBlockMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyBlockMove, move); }
     void clear() override { PYBIND11_OVERRIDE(void, BaseClass, clear, ); }
 };
 
@@ -60,35 +58,35 @@ public:
 };
 
 
-template<typename BaseClass = LabeledEdgeProposer>
-class PyLabeledEdgeProposer: public PyEdgeProposer<BaseClass>{
-public:
-    using PyEdgeProposer<BaseClass>::PyEdgeProposer;
-    ~PyLabeledEdgeProposer() override = default;
-
-    /* Pure abstract methods */
-
-    /* Abstract & overloaded methods */
-    void setUp( const RandomGraph& randomGraph ) override { PYBIND11_OVERRIDE(void, BaseClass, setUp, randomGraph); }
-    void setUpFromGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setUpFromGraph, graph); }
-    void onLabelCreation(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, onLabelCreation, move); }
-    void onLabelDeletion(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, onLabelDeletion, move); }
-    void clear() override { PYBIND11_OVERRIDE(void, BaseClass, clear, ); }
-};
-
-
-
-template<typename BaseClass = LabeledHingeFlipProposer>
-class PyLabeledHingeFlipProposer: public PyEdgeProposer<BaseClass>{
-public:
-    using PyEdgeProposer<BaseClass>::PyEdgeProposer;
-    ~PyLabeledHingeFlipProposer() override = default;
-
-    /* Pure abstract methods */
-    VertexSampler* constructVertexSampler() const override { PYBIND11_OVERRIDE_PURE(VertexSampler*, BaseClass, constructVertexSampler, ); }
-
-    /* Abstract & overloaded methods */
-};
+// template<typename BaseClass = LabeledEdgeProposer>
+// class PyLabeledEdgeProposer: public PyEdgeProposer<BaseClass>{
+// public:
+//     using PyEdgeProposer<BaseClass>::PyEdgeProposer;
+//     ~PyLabeledEdgeProposer() override = default;
+//
+//     /* Pure abstract methods */
+//
+//     /* Abstract & overloaded methods */
+//     void setUp( const RandomGraph& randomGraph ) override { PYBIND11_OVERRIDE(void, BaseClass, setUp, randomGraph); }
+//     void setUpFromGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setUpFromGraph, graph); }
+//     void onLabelCreation(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, onLabelCreation, move); }
+//     void onLabelDeletion(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, onLabelDeletion, move); }
+//     void clear() override { PYBIND11_OVERRIDE(void, BaseClass, clear, ); }
+// };
+//
+//
+//
+// template<typename BaseClass = LabeledHingeFlipProposer>
+// class PyLabeledHingeFlipProposer: public PyEdgeProposer<BaseClass>{
+// public:
+//     using PyEdgeProposer<BaseClass>::PyEdgeProposer;
+//     ~PyLabeledHingeFlipProposer() override = default;
+//
+//     /* Pure abstract methods */
+//     VertexSampler* constructVertexSampler() const override { PYBIND11_OVERRIDE_PURE(VertexSampler*, BaseClass, constructVertexSampler, ); }
+//
+//     /* Abstract & overloaded methods */
+// };
 
 }
 

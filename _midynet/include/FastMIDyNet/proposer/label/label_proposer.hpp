@@ -14,7 +14,6 @@ namespace FastMIDyNet {
 template<typename Label>
 class LabelProposer: public Proposer<LabelMove<Label>> {
 protected:
-    using RandomGraphBaseClass = VertexLabeledRandomGraph<Label>;
     using MoveType = LabelMove<Label>;
     const std::vector<Label>* m_labelsPtr = nullptr;
     const CounterMap<Label>* m_labelCountsPtr = nullptr;
@@ -33,7 +32,7 @@ protected:
         return (int) creatingNewLabel(move) - (int) destroyingLabel(move);
     }
 public:
-    void setUp(const RandomGraphBaseClass& randomGraph) {
+    void setUp(const VertexLabeledRandomGraph<Label>& randomGraph) {
         m_labelsPtr = &randomGraph.getVertexLabels();
         m_labelCountsPtr = &randomGraph.getLabelCounts();
         m_edgeLabelCountsPtr = &randomGraph.getEdgeLabelCounts();

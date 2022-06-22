@@ -54,23 +54,23 @@ void initSampler(py::module& m){
         .def("clear", &EdgeSampler::clear)
         ;
 
-    py::class_<LabelPairSampler>(m, "LabelPairSampler")
-        .def(py::init<>())
-        .def("sample", &LabelPairSampler::sample)
-        .def("set_up", &LabelPairSampler::setUp, py::arg("random_graph"))
-        .def("on_edge_insertion", &LabelPairSampler::onEdgeInsertion, py::arg("edge"), py::arg("weight"))
-        .def("on_edge_erasure", &LabelPairSampler::onEdgeErasure, py::arg("edge"))
-        .def("on_edge_addition", &LabelPairSampler::onEdgeAddition, py::arg("edge"))
-        .def("on_edge_removal", &LabelPairSampler::onEdgeRemoval, py::arg("edge"))
-        // .def("get_label_of_index", py::overload_cast<const BaseGraph::VertexIndex&>(&LabelPairSampler::getLabelOfIdx), py::arg("vertex"))
-        // .def("get_label_of_index", py::overload_cast<const BaseGraph::Edge&>(&LabelPairSampler::getLabelOfIdx), py::arg("edge"))
-        .def("get_label_pair_weight", &LabelPairSampler::getLabelPairWeight, py::arg("label_pair"))
-        .def("get_vertex_total_weight", &LabelPairSampler::getVertexTotalWeight)
-        .def("get_edge_total_weight", &LabelPairSampler::getEdgeTotalWeight)
-        .def("get_total_weight", &LabelPairSampler::getTotalWeight)
-        .def("check_safety", &LabelPairSampler::checkSafety)
-        .def("clear", &LabelPairSampler::clear)
-        ;
+    // py::class_<LabelPairSampler>(m, "LabelPairSampler")
+    //     .def(py::init<>())
+    //     .def("sample", &LabelPairSampler::sample)
+    //     .def("set_up", &LabelPairSampler::setUp, py::arg("random_graph"))
+    //     .def("on_edge_insertion", &LabelPairSampler::onEdgeInsertion, py::arg("edge"), py::arg("weight"))
+    //     .def("on_edge_erasure", &LabelPairSampler::onEdgeErasure, py::arg("edge"))
+    //     .def("on_edge_addition", &LabelPairSampler::onEdgeAddition, py::arg("edge"))
+    //     .def("on_edge_removal", &LabelPairSampler::onEdgeRemoval, py::arg("edge"))
+    //     // .def("get_label_of_index", py::overload_cast<const BaseGraph::VertexIndex&>(&LabelPairSampler::getLabelOfIdx), py::arg("vertex"))
+    //     // .def("get_label_of_index", py::overload_cast<const BaseGraph::Edge&>(&LabelPairSampler::getLabelOfIdx), py::arg("edge"))
+    //     .def("get_label_pair_weight", &LabelPairSampler::getLabelPairWeight, py::arg("label_pair"))
+    //     .def("get_vertex_total_weight", &LabelPairSampler::getVertexTotalWeight)
+    //     .def("get_edge_total_weight", &LabelPairSampler::getEdgeTotalWeight)
+    //     .def("get_total_weight", &LabelPairSampler::getTotalWeight)
+    //     .def("check_safety", &LabelPairSampler::checkSafety)
+    //     .def("clear", &LabelPairSampler::clear)
+    //     ;
 }
 
 }

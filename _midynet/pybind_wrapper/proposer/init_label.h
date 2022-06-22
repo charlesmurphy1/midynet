@@ -4,35 +4,38 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "FastMIDyNet/proposer/python/block_proposer.hpp"
+#include "FastMIDyNet/proposer/python/label_proposer.hpp"
 
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/proposer/block_proposer/block_proposer.h"
-#include "FastMIDyNet/proposer/block_proposer/generic.h"
-#include "FastMIDyNet/proposer/block_proposer/uniform.h"
-#include "FastMIDyNet/proposer/block_proposer/peixoto.h"
+#include "FastMIDyNet/proposer/label/label_proposer.hpp"
+#include "FastMIDyNet/proposer/label/uniform.hpp"
+#include "FastMIDyNet/proposer/label/peixoto.hpp"
 
 
 namespace py = pybind11;
 namespace FastMIDyNet{
 
-void initBlockProposer(py::module& m){
-    py::class_<BlockProposer, Proposer<BlockMove>, PyBlockProposer<>>(m, "BlockProposer")
+template<typename Label>
+py::class_<LabelProposer<Label>, Proposer<LabelMove<Label>>, PyLabelProposer<Label>> declareLabelProposer(py::module&m, std::string pyName){
+    return py::class_<LabelProposer<Label>, Proposer<LabelMove<Label>>, PyLabelProposer<Label>>(m, pyName.c_str())
         .def(py::init<>())
-        .def("set_up", &BlockProposer::setUp, py::arg("random_graph"))
-        .def("get_log_proposal_prob_ratio", &BlockProposer::getLogProposalProbRatio, py::arg("move"))
-        .def("apply_graph_move", &BlockProposer::applyGraphMove, py::arg("move"))
-        .def("apply_block_move", &BlockProposer::applyBlockMove, py::arg("move"));
+        .def("set_up", &LabelProposer<Label>::setUp, py::arg("random_graph"))
+        .def("get_log_proposal_prob_ratio", &LabelProposer<Label>::getLogProposalProbRatio, py::arg("move"))
+        .def("apply_graph_move", &LabelProposer<Label>::applyGraphMove, py::arg("move"))
+        .def("apply_labe_move", &LabelProposer<Label>::applyLabelMove, py::arg("move"))
+        ;
+}
 
-    py::class_<BlockGenericProposer, BlockProposer>(m, "BlockGenericProposer")
-        .def(py::init<>());
+void initLabelProposer(py::module& m){
+    declareLabelProposer<BlockIndex>(m, "BlockProposer");
 
-    py::class_<BlockUniformProposer, BlockProposer>(m, "BlockUniformProposer")
-        .def(py::init<double>(), py::arg("create_new_block")=0.1) ;
+    py::class_<LabelUniformProposer<BlockIndex>, LabelProposer<BlockIndex>>(m, "BlockUniformProposer")
+        .def(py::init<double>(), py::arg("label_creation_prob")=0.1)
+        ;
 
-    py::class_<BlockPeixotoProposer, BlockProposer>(m, "BlockPeixotoProposer")
-        .def(py::init<double,double>(), py::arg("create_new_block")=0.1, py::arg("shift")=1) ;
-
+    py::class_<LabelPeixotoProposer<BlockIndex>, LabelProposer<BlockIndex>>(m, "BlockPeixotoProposer")
+        .def(py::init<double,double>(), py::arg("label_creation_prob")=0.1, py::arg("shift")=1)
+        ;
 }
 
 }

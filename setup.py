@@ -123,7 +123,6 @@ ext_modules = [
             "_midynet/src/proposer/edge/labeled_edge_proposer.cpp",
             "_midynet/src/proposer/edge/labeled_double_edge_swap.cpp",
             "_midynet/src/proposer/edge/labeled_hinge_flip.cpp",
-            "_midynet/src/proposer/label/generic.cpp",
             "_midynet/src/proposer/label/uniform.cpp",
             "_midynet/src/proposer/label/peixoto.cpp",
             "_midynet/src/mcmc/mcmc.cpp",

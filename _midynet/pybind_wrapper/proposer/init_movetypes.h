@@ -10,6 +10,17 @@
 namespace py = pybind11;
 namespace FastMIDyNet{
 
+template<typename Label>
+py::class_<LabelMove<Label>> declareLabelMove(py::module& m, std::string pyName){
+    return py::class_<LabelMove<Label>>(m, pyName.c_str())
+        .def(py::init<BaseGraph::VertexIndex, Label, Label>(),
+            py::arg("vertex_index"), py::arg("prev_label"), py::arg("next_label"))
+        .def_readonly("vertex_id", &BlockMove::vertexIndex)
+        .def_readonly("prev_label", &BlockMove::prevLabel)
+        .def_readonly("next_label", &BlockMove::nextLabel)
+        ;
+}
+
 void initMoveTypes(py::module& m){
     py::class_<GraphMove>(m, "GraphMove")
         .def(py::init<std::vector<BaseGraph::Edge>, std::vector<BaseGraph::Edge>>(),
@@ -17,13 +28,7 @@ void initMoveTypes(py::module& m){
         .def_readonly("removed_edges", &GraphMove::removedEdges)
         .def_readonly("added_edges", &GraphMove::addedEdges);
 
-    py::class_<BlockMove>(m, "BlockMove")
-        .def(py::init<BaseGraph::VertexIndex, BlockIndex, BlockIndex, int>(),
-            py::arg("vertex_id"), py::arg("prev_block_id"), py::arg("next_block_id"), py::arg("added_blocks")=0)
-        .def_readonly("vertex_id", &BlockMove::vertexIdx)
-        .def_readonly("prev_block_id", &BlockMove::prevBlockIdx)
-        .def_readonly("next_block_id", &BlockMove::nextBlockIdx)
-        .def_readonly("added_blocks", &BlockMove::addedBlocks);
+    declareLabelMove<BlockIndex>(m, "BlockMove");
 
 }
 

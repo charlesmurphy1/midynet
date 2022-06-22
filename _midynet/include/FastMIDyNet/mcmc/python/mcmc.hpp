@@ -15,12 +15,6 @@ class PyMCMC: public PyNestedRandomVariable<BaseClass>{
 public:
     using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
     /* Pure abstract methods */
-    const MultiGraph& getGraph() const override {
-        PYBIND11_OVERRIDE_PURE(const MultiGraph&, BaseClass, getGraph, );
-    }
-    const std::vector<BlockIndex>& getBlocks() const override {
-        PYBIND11_OVERRIDE_PURE(const std::vector<BlockIndex>&, BaseClass, getBlocks, );
-    }
     const double getLogLikelihood() const override {
         PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, );
     }
@@ -30,16 +24,23 @@ public:
     const double getLogJoint() const override {
         PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogJoint, );
     }
-    bool _doMetropolisHastingsStep() override {
-        PYBIND11_OVERRIDE_PURE(bool, BaseClass, _doMetropolisHastingsStep, );
+    bool doMetropolisHastingsStep() override {
+        PYBIND11_OVERRIDE_PURE(bool, BaseClass, doMetropolisHastingsStep, );
     }
 
     /* Abstract methods */
     void setUp() override { PYBIND11_OVERRIDE(void, BaseClass, setUp, ); }
     void tearDown() override { PYBIND11_OVERRIDE(void, BaseClass, tearDown, ); }
+    void removeCallBack(std::string key, bool force=false) override {
+        PYBIND11_OVERRIDE(void, BaseClass, removeCallBack, key, force);
+    }
+    void onStepBegin() override { PYBIND11_OVERRIDE(void, BaseClass, onStepBegin, ); }
+    void onStepEnd() override { PYBIND11_OVERRIDE(void, BaseClass, onStepEnd, ); }
+    void onSweepBegin() override { PYBIND11_OVERRIDE(void, BaseClass, onSweepBegin, ); }
+    void onSweepEnd() override { PYBIND11_OVERRIDE(void, BaseClass, onSweepEnd, ); }
+
 
 };
-
 
 
 

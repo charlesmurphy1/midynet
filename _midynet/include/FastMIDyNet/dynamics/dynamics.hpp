@@ -83,10 +83,10 @@ public:
         m_graphPriorPtr->isRoot(false);
     }
 
-    const int getSize() const { return m_graphPriorPtr->getSize(); }
-    const int getNumStates() const { return m_numStates; }
-    const int getNumSteps() const { return m_numSteps; }
-    void setNumSteps(int numSteps) { m_numSteps = numSteps; }
+    const size_t getSize() const { return m_graphPriorPtr->getSize(); }
+    const size_t getNumStates() const { return m_numStates; }
+    const size_t getNumSteps() const { return m_numSteps; }
+    void setNumSteps(size_t numSteps) { m_numSteps = numSteps; }
 
     const State& sample(const State& initialState, bool async=true){
         m_graphPriorPtr->sample();
@@ -102,7 +102,7 @@ public:
     const NeighborsStateSequence computeNeighborsStateSequence(const StateSequence& stateSequence) const;
 
     void syncUpdateState();
-    void asyncUpdateState(int num_updates);
+    void asyncUpdateState(size_t num_updates);
 
     const double getLogLikelihood() const;
     const double getLogPrior() const { return m_graphPriorPtr->getLogJoint(); }
@@ -210,7 +210,7 @@ template<typename GraphPriorType>
 const State Dynamics<GraphPriorType>::getRandomState() const{
     size_t N = m_graphPriorPtr->getSize();
     State rnd_state(N);
-    std::uniform_int_distribution<int> dist(0, m_numStates - 1);
+    std::uniform_int_distribution<size_t> dist(0, m_numStates - 1);
 
     for (size_t i = 0 ; i < N ; i ++)
         rnd_state[i] = dist(rng);
@@ -222,14 +222,10 @@ template<typename GraphPriorType>
 const NeighborsState Dynamics<GraphPriorType>::computeNeighborsState(const State& state) const {
     size_t N = m_graphPriorPtr->getSize();
     NeighborsState neighborsState(N);
-    int neighborIdx, edgeMultiplicity;
-
     for ( auto idx: getGraph() ){
         neighborsState[idx].resize(m_numStates);
         for ( auto neighbor: getGraph().getNeighboursOfIdx(idx) ){
-            neighborIdx = neighbor.vertexIndex;
-            edgeMultiplicity = neighbor.label;
-            neighborsState[ idx ][ state[neighborIdx] ] += edgeMultiplicity;
+            neighborsState[ idx ][ state[neighbor.vertexIndex] ] += neighbor.label;
         }
     }
     return neighborsState;
@@ -257,14 +253,11 @@ void Dynamics<GraphPriorType>::updateNeighborsStateInPlace(
     VertexState prevVertexState,
     VertexState newVertexState,
     NeighborsState& neighborsState) const {
-    int neighborIdx, edgeMultiplicity;
     if (prevVertexState == newVertexState)
         return;
     for ( auto neighbor: getGraph().getNeighboursOfIdx(vertexIdx) ){
-        neighborIdx = neighbor.vertexIndex;
-        edgeMultiplicity = neighbor.label;
-        neighborsState[neighborIdx][prevVertexState] -= edgeMultiplicity;
-        neighborsState[neighborIdx][newVertexState] += edgeMultiplicity;
+        neighborsState[neighbor.vertexIndex][prevVertexState] -= neighbor.label;
+        neighborsState[neighbor.vertexIndex][newVertexState] += neighbor.label;
     }
 };
 
@@ -283,7 +276,7 @@ void Dynamics<GraphPriorType>::syncUpdateState(){
 };
 
 template<typename GraphPriorType>
-void Dynamics<GraphPriorType>::asyncUpdateState(int numUpdates){
+void Dynamics<GraphPriorType>::asyncUpdateState(size_t numUpdates){
     size_t N = m_graphPriorPtr->getSize();
     VertexState newVertexState;
     State currentState(m_state);
@@ -304,7 +297,6 @@ template<typename GraphPriorType>
 const double Dynamics<GraphPriorType>::getLogLikelihood() const {
     double logLikelihood = 0;
     std::vector<int> neighborsState(getNumStates(), 0);
-    int neighborIdx, edgeMultiplicity;
     for (size_t t = 0; t < m_numSteps; t++){
         for (auto idx: getGraph()){
             logLikelihood += log(getTransitionProb(

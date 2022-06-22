@@ -6,6 +6,7 @@
 
 #include "init_mcmc.h"
 #include "init_callbacks.h"
+#include "FastMIDyNet/types.h"
 
 namespace py = pybind11;
 namespace FastMIDyNet{
@@ -13,7 +14,13 @@ namespace FastMIDyNet{
 void initMCMC(py::module& m){
     py::module callbacks = m.def_submodule("callbacks");
     initCallBacks(callbacks);
-    initMCMCBaseClass(m);
+
+    declareMCMCBaseClass(m);
+
+    declareVertexLabelMCMCClass<BlockIndex>(m, "BlockLabelMCMC");
+    declareGraphReconstructionClass<RandomGraph>(m, "GraphReconstructionMCMC");
+    declareGraphReconstructionClass<VertexLabeledRandomGraph<BlockIndex>>(m, "BaseBlockLabeledGraphReconstructionMCMC");
+    declareVertexLabeledGraphReconstructionClass<BlockIndex>(m, "BlockLabeledGraphReconstructionMCMC");
 }
 
 }

@@ -4,7 +4,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "FastMIDyNet/mcmc/callbacks/callback.h"
+#include "FastMIDyNet/mcmc/callbacks/callback.hpp"
 #include "FastMIDyNet/mcmc/callbacks/verbose.h"
 #include "FastMIDyNet/mcmc/python/callback.hpp"
 
@@ -13,7 +13,7 @@ namespace FastMIDyNet{
 
 void initVerbose(py::module& m){
     /* Verbose classes */
-    py::class_<Verbose, CallBack, PyVerbose<>>(m, "Verbose")
+    py::class_<Verbose, CallBack<MCMC>, PyVerbose<>>(m, "Verbose")
         .def(py::init<>())
         .def("get_name", &Verbose::getName)
         .def("get_message", &Verbose::getMessage);
@@ -51,7 +51,7 @@ void initVerbose(py::module& m){
         .def(py::init<>());
 
     /* VerboseDisplay classes */
-    py::class_<VerboseDisplay, CallBack, PyVerboseDisplay<>>(m, "VerboseDisplay")
+    py::class_<VerboseDisplay, CallBack<MCMC>, PyVerboseDisplay<>>(m, "VerboseDisplay")
         .def(py::init<>())
         .def(py::init<std::vector<Verbose*>>(), py::arg("verboses"))
         .def("get_message", &VerboseDisplay::getMessage)

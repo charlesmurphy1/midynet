@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "callback.hpp"
+#include "FastMIDyNet/mcmc/community.hpp"
 #include "FastMIDyNet/mcmc/reconstruction.hpp"
 #include "FastMIDyNet/utility/distance.h"
 #include "BaseGraph/fileio.h"
@@ -14,10 +15,13 @@ namespace FastMIDyNet{
 template<typename MCMCType>
 class Collector: public CallBack<MCMCType>{
 public:
-    virtual void onBegin() override { clear(); }
+    virtual void onBegin() override { CallBack<MCMCType>::clear(); }
     virtual void collect() = 0;
-    virtual void clear() = 0;
 };
+
+using BlockCollector = Collector<BlockLabelMCMC>;
+using GraphReconstructionCollector = Collector<GraphReconstructionMCMC<RandomGraph>>;
+using BlockLabeledGraphReconstructionCollector = Collector<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
 
 template<typename MCMCType>
 class SweepCollector: public Collector<MCMCType>{
@@ -25,11 +29,19 @@ public:
     void onSweepEnd() override { this->collect(); }
 };
 
+using BlockSweepCollector = SweepCollector<BlockLabelMCMC>;
+using GraphReconstructionSweepCollector = SweepCollector<GraphReconstructionMCMC<RandomGraph>>;
+using BlockLabeledGraphReconstructionSweepCollector = SweepCollector<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
+
 template<typename MCMCType>
 class StepCollector: public Collector<MCMCType>{
 public:
     void onStepEnd() override { this->collect(); }
 };
+
+using BlockStepCollector = StepCollector<BlockLabelMCMC>;
+using GraphReconstructionStepCollector = StepCollector<GraphReconstructionMCMC<RandomGraph>>;
+using BlockLabeledGraphReconstructionStepCollector = StepCollector<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
 
 template<typename GraphMCMC>
 class CollectGraphOnSweep: public SweepCollector<GraphMCMC>{
@@ -41,6 +53,8 @@ public:
     void clear() override { m_collectedGraphs.clear(); }
     const std::vector<MultiGraph>& getGraphs() const { return m_collectedGraphs; }
 };
+
+using CollectBlockLabeledGraphOnSweep = CollectGraphOnSweep<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
 
 template<typename GraphMCMC>
 class CollectEdgeMultiplicityOnSweep: public SweepCollector<GraphMCMC>{
@@ -65,6 +79,8 @@ public:
     const std::map<BaseGraph::Edge, std::vector<double>> getEdgeProbs() ;
 
 };
+
+using CollectBlockLabeledEdgeMultiplicityOnSweep = CollectEdgeMultiplicityOnSweep<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
 
 template<typename GraphMCMC>
 void CollectEdgeMultiplicityOnSweep<GraphMCMC>::collect(){
@@ -134,33 +150,36 @@ private:
     std::vector<std::vector<BlockIndex>> m_partitions;
 public:
     using BaseClass = SweepCollector<GraphMCMC>;
-    void collect() override { m_partitions.push_back(BaseClass::m_mcmcPtr->getVertexLabels()); }
+    void collect() override { m_partitions.push_back(BaseClass::m_mcmcPtr->getGraphPrior().getVertexLabels()); }
     void clear() override { m_partitions.clear(); }
     const std::vector<BlockSequence>& getPartitions() const { return m_partitions; }
 };
 
-template<typename GraphMCMC>
-class WriteGraphToFileOnSweep: public SweepCollector<GraphMCMC>{
-private:
-    std::string m_filename;
-    std::string m_ext;
-public:
-    WriteGraphToFileOnSweep(std::string filename, std::string ext=".b"):
-    m_filename(filename), m_ext(ext) {}
-    void collect() override ;
-    void clear() override { };
-};
+using CollectPartitionOnSweepForReconstruction = CollectPartitionOnSweep<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
+using CollectPartitionOnSweepForCommunity = CollectPartitionOnSweep<VertexLabelMCMC<BlockIndex>>;
 
-template<typename GraphMCMC>
-void WriteGraphToFileOnSweep<GraphMCMC>::collect(){
-    std::ofstream file;
-    file.open(m_filename + "_" + std::to_string(SweepCollector<GraphMCMC>::m_mcmcPtr->getNumSweeps()) + m_ext);
+// template<typename GraphMCMC>
+// class WriteGraphToFileOnSweep: public SweepCollector<GraphMCMC>{
+// private:
+//     std::string m_filename;
+//     std::string m_ext;
+// public:
+//     WriteGraphToFileOnSweep(std::string filename, std::string ext=".b"):
+//     m_filename(filename), m_ext(ext) {}
+//     void collect() override ;
+//     void clear() override { };
+// };
 
-    // BaseGraph::writeEdgeListIdxInBinaryFile(m_mcmcPtr->getGraph(), file);
-    // BaseGraph::writeEdgeListInBinaryFile(m_mcmcPtr->getGraph(), file);
-
-    file.close();
-}
+// template<typename GraphMCMC>
+// void WriteGraphToFileOnSweep<GraphMCMC>::collect(){
+//     std::ofstream file;
+//     file.open(m_filename + "_" + std::to_string(SweepCollector<GraphMCMC>::m_mcmcPtr->getNumSweeps()) + m_ext);
+//
+//     // BaseGraph::writeEdgeListIdxInBinaryFile(m_mcmcPtr->getGraph(), file);
+//     // BaseGraph::writeEdgeListInBinaryFile(m_mcmcPtr->getGraph(), file);
+//
+//     file.close();
+// }
 
 class CollectLikelihoodOnSweep: public SweepCollector<MCMC>{
 private:

@@ -5,23 +5,21 @@
 #include <pybind11/stl.h>
 
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/mcmc/mcmc.h"
-#include "FastMIDyNet/mcmc/dynamics_mcmc.h"
-#include "FastMIDyNet/mcmc/callbacks/callback.h"
+#include "FastMIDyNet/mcmc/callbacks/callback.hpp"
+#include "FastMIDyNet/mcmc/callbacks/collector.hpp"
 #include "FastMIDyNet/mcmc/callbacks/verbose.h"
-#include "FastMIDyNet/mcmc/callbacks/collector.h"
 
 namespace FastMIDyNet{
 
 /* CallBack  base class */
-template<typename BaseClass = CallBack>
+template<typename MCMCType, typename BaseClass = CallBack<MCMCType>>
 class PyCallBack: public BaseClass{
 public:
     using BaseClass::BaseClass;
     /* Pure abstract methods */
 
     /* Abstract methods */
-    void setUp(MCMC* mcmcPtr) override { PYBIND11_OVERRIDE(void, BaseClass, setUp, mcmcPtr); }
+    void setUp(MCMCType* mcmcPtr) override { PYBIND11_OVERRIDE(void, BaseClass, setUp, mcmcPtr); }
     void tearDown() override { PYBIND11_OVERRIDE(void, BaseClass, tearDown, ); }
     void onBegin() override { PYBIND11_OVERRIDE(void, BaseClass, onBegin, ); }
     void onEnd() override { PYBIND11_OVERRIDE(void, BaseClass, onEnd, ); }
@@ -29,13 +27,14 @@ public:
     void onStepEnd() override { PYBIND11_OVERRIDE(void, BaseClass, onStepEnd, ); }
     void onSweepBegin() override { PYBIND11_OVERRIDE(void, BaseClass, onSweepBegin, ); }
     void onSweepEnd() override { PYBIND11_OVERRIDE(void, BaseClass, onSweepEnd, ); }
+    void clear() override { PYBIND11_OVERRIDE(void, BaseClass, clear, ); }
 };
 
 /* Verbose classes */
 template<typename BaseClass = Verbose>
-class PyVerbose: public PyCallBack<BaseClass>{
+class PyVerbose: public PyCallBack<MCMC, BaseClass>{
 public:
-    using PyCallBack<BaseClass>::PyCallBack;
+    using PyCallBack<MCMC, BaseClass>::PyCallBack;
     /* Pure abstract methods */
     std::string getMessage() const override { PYBIND11_OVERRIDE_PURE(std::string, BaseClass, getMessage, ); }
 
@@ -44,9 +43,9 @@ public:
 };
 
 template<typename BaseClass = VerboseDisplay>
-class PyVerboseDisplay: public PyCallBack<BaseClass>{
+class PyVerboseDisplay: public PyCallBack<MCMC, BaseClass>{
 public:
-    using PyCallBack<BaseClass>::PyCallBack;
+    using PyCallBack<MCMC, BaseClass>::PyCallBack;
     /* Pure abstract methods */
     void writeMessage(std::string message) override {PYBIND11_OVERRIDE_PURE(void, BaseClass, writeMessage, message); }
 
@@ -69,10 +68,10 @@ public:
 };
 
 /* Collector classes */
-template<typename BaseClass = Collector>
-class PyCollector: public PyCallBack<BaseClass>{
+template<typename MCMCType, typename BaseClass = Collector<MCMCType>>
+class PyCollector: public PyCallBack<MCMCType, BaseClass>{
 public:
-    using PyCallBack<BaseClass>::PyCallBack;
+    using PyCallBack<MCMCType, BaseClass>::PyCallBack;
     /* Pure abstract methods */
     void collect() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, collect, ); }
     void clear() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, clear, ); }

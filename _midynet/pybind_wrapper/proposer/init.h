@@ -7,8 +7,8 @@
 #include "init_movetypes.h"
 #include "init_proposer.h"
 #include "init_sampler.h"
-#include "init_edgeproposer.h"
-#include "init_blockproposer.h"
+#include "init_edge.h"
+#include "init_label.h"
 
 namespace py = pybind11;
 namespace FastMIDyNet{
@@ -20,11 +20,11 @@ void initProposer(py::module& m){
     auto sampler = m.def_submodule("sampler");
     initSampler(sampler);
 
-    auto edge_proposer = m.def_submodule("edge_proposer");
+    auto edge_proposer = m.def_submodule("edge");
     initEdgeProposer(edge_proposer);
 
-    auto block_proposer = m.def_submodule("block_proposer");
-    initBlockProposer(block_proposer);
+    auto label_proposer = m.def_submodule("label");
+    initLabelProposer(label_proposer);
 }
 
 }

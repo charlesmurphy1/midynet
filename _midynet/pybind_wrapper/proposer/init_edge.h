@@ -8,13 +8,13 @@
 
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/proposer/proposer.hpp"
-#include "FastMIDyNet/proposer/edge_proposer/edge_proposer.h"
-#include "FastMIDyNet/proposer/edge_proposer/double_edge_swap.h"
-#include "FastMIDyNet/proposer/edge_proposer/hinge_flip.h"
-#include "FastMIDyNet/proposer/edge_proposer/single_edge.h"
-#include "FastMIDyNet/proposer/edge_proposer/labeled_edge_proposer.h"
-#include "FastMIDyNet/proposer/edge_proposer/labeled_double_edge_swap.h"
-#include "FastMIDyNet/proposer/edge_proposer/labeled_hinge_flip.h"
+#include "FastMIDyNet/proposer/edge/edge_proposer.h"
+#include "FastMIDyNet/proposer/edge/double_edge_swap.h"
+#include "FastMIDyNet/proposer/edge/hinge_flip.h"
+#include "FastMIDyNet/proposer/edge/single_edge.h"
+// #include "FastMIDyNet/proposer/edge/labeled_edge_proposer.h"
+// #include "FastMIDyNet/proposer/edge/labeled_double_edge_swap.h"
+// #include "FastMIDyNet/proposer/edge/labeled_hinge_flip.h"
 
 
 namespace py = pybind11;
@@ -23,13 +23,12 @@ namespace FastMIDyNet{
 void initEdgeProposer(py::module& m){
     py::class_<EdgeProposer, Proposer<GraphMove>, PyEdgeProposer<>>(m, "EdgeProposer")
         .def(py::init<bool, bool>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true)
-        .def("set_up", &EdgeProposer::setUp, py::arg("random_graph"))
-        .def("set_up_from_graph", &EdgeProposer::setUp, py::arg("graph"))
+        .def("set_up", &EdgeProposer::setUp, py::arg("graph"))
         .def("allow_self_loops", &EdgeProposer::allowSelfLoops)
         .def("allow_multiedges", &EdgeProposer::allowMultiEdges)
         .def("get_log_proposal_ratio", &EdgeProposer::getLogProposalProbRatio, py::arg("move"))
         .def("apply_graph_move", &EdgeProposer::applyGraphMove, py::arg("move"))
-        .def("apply_block_move", &EdgeProposer::applyBlockMove, py::arg("move"));
+        ;
 
     /* Double edge swap proposers */
     py::class_<DoubleEdgeSwapProposer, EdgeProposer>(m, "DoubleEdgeSwapProposer")
@@ -60,28 +59,28 @@ void initEdgeProposer(py::module& m){
     py::class_<SingleEdgeDegreeProposer, SingleEdgeProposer>(m, "SingleEdgeDegreeProposer")
         .def(py::init<bool, bool, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true, py::arg("shift")=1) ;
 
-    /* Labeled edge proposers */
-    py::class_<LabeledEdgeProposer, EdgeProposer, PyLabeledEdgeProposer<>>(m, "LabeledEdgeProposer")
-        .def(py::init<bool, bool, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,
-             py::arg("label_pair_shift")=1)
-        .def("on_label_creation", &LabeledEdgeProposer::onLabelCreation, py::arg("move"))
-        .def("on_label_deletion", &LabeledEdgeProposer::onLabelDeletion, py::arg("move"));
-
-    py::class_<LabeledDoubleEdgeSwapProposer, LabeledEdgeProposer>(m, "LabeledDoubleEdgeSwapProposer")
-        .def(py::init<bool, bool, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,
-             py::arg("label_pair_shift")=1);
-
-    py::class_<LabeledHingeFlipProposer, LabeledEdgeProposer, PyLabeledHingeFlipProposer<>>(m, "LabeledHingeFlipProposer")
-        .def(py::init<bool, bool, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,
-             py::arg("label_pair_shift")=1);
-
-    py::class_<LabeledHingeFlipUniformProposer, LabeledHingeFlipProposer>(m, "LabeledHingeFlipUniformProposer")
-        .def(py::init<bool, bool, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,
-             py::arg("label_pair_shift")=1);
-
-    py::class_<LabeledHingeFlipDegreeProposer, LabeledHingeFlipProposer>(m, "LabeledHingeFlipDegreeProposer")
-        .def(py::init<bool, bool, double, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,
-             py::arg("label_pair_shift")=1, py::arg("vertex_shift")=1);
+    // /* Labeled edge proposers */
+    // py::class_<LabeledEdgeProposer, EdgeProposer, PyLabeledEdgeProposer<>>(m, "LabeledEdgeProposer")
+    //     .def(py::init<bool, bool, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,
+    //          py::arg("label_pair_shift")=1)
+    //     .def("on_label_creation", &LabeledEdgeProposer::onLabelCreation, py::arg("move"))
+    //     .def("on_label_deletion", &LabeledEdgeProposer::onLabelDeletion, py::arg("move"));
+    //
+    // py::class_<LabeledDoubleEdgeSwapProposer, LabeledEdgeProposer>(m, "LabeledDoubleEdgeSwapProposer")
+    //     .def(py::init<bool, bool, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,
+    //          py::arg("label_pair_shift")=1);
+    //
+    // py::class_<LabeledHingeFlipProposer, LabeledEdgeProposer, PyLabeledHingeFlipProposer<>>(m, "LabeledHingeFlipProposer")
+    //     .def(py::init<bool, bool, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,
+    //          py::arg("label_pair_shift")=1);
+    //
+    // py::class_<LabeledHingeFlipUniformProposer, LabeledHingeFlipProposer>(m, "LabeledHingeFlipUniformProposer")
+    //     .def(py::init<bool, bool, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,
+    //          py::arg("label_pair_shift")=1);
+    //
+    // py::class_<LabeledHingeFlipDegreeProposer, LabeledHingeFlipProposer>(m, "LabeledHingeFlipDegreeProposer")
+    //     .def(py::init<bool, bool, double, double>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true,
+    //          py::arg("label_pair_shift")=1, py::arg("vertex_shift")=1);
 
 }
 

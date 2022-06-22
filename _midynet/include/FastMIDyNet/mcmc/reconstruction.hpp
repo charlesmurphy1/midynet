@@ -15,8 +15,11 @@ template<typename GraphPriorType=RandomGraph>
 class GraphReconstructionMCMC: public MCMC{
 protected:
     Dynamics<GraphPriorType>* m_dynamicsPtr = nullptr;
+    GraphPriorType* m_graphPriorPtr = nullptr;
     EdgeProposer* m_edgeProposerPtr = nullptr;
-    CallBackMap<GraphReconstructionMCMC<GraphPriorType>> m_reconCallBacks;
+    CallBackMap<GraphReconstructionMCMC<GraphPriorType>> m_graphCallBacks;
+
+    double _getLogAcceptanceProbFromGraphMove(const GraphMove& move) const;
 public:
     GraphReconstructionMCMC(
         Dynamics<GraphPriorType>& dynamics,
@@ -37,8 +40,10 @@ public:
     Dynamics<GraphPriorType>& getDynamicsRef() const { return *m_dynamicsPtr; }
     void setDynamics(Dynamics<GraphPriorType>& dynamics) {
         m_dynamicsPtr = &dynamics;
+        m_graphPriorPtr = &m_dynamicsPtr->getGraphPriorRef();
         m_dynamicsPtr->isRoot(false);
     }
+    const GraphPriorType& getGraphPrior() const { return *m_graphPriorPtr; }
 
     const EdgeProposer& getEdgeProposer() const { return *m_edgeProposerPtr; }
     EdgeProposer& getEdgeProposerRef() const { return *m_edgeProposerPtr; }
@@ -56,39 +61,35 @@ public:
     // Callbacks related
     virtual void setUp() override {
         MCMC::setUp();
-        m_reconCallBacks.setUp(this);
+        m_graphCallBacks.setUp(this);
         m_edgeProposerPtr->setUp(getGraph());
     }
     virtual void tearDown() override {
         MCMC::tearDown();
-        m_reconCallBacks.tearDown();
+        m_graphCallBacks.tearDown();
     }
 
     using MCMC::insertCallBack;
     void insertCallBack(std::pair<std::string, CallBack<GraphReconstructionMCMC<GraphPriorType>>*> pair) {
-        m_reconCallBacks.insert(pair);
+        m_graphCallBacks.insert(pair);
     }
     void insertCallBack(std::string key, CallBack<GraphReconstructionMCMC<GraphPriorType>>& callback) { insertCallBack({key, &callback}); }
     virtual void removeCallBack(std::string key, bool force=false) override {
         MCMC::removeCallBack(key, true);
-        if( m_reconCallBacks.contains(key) )
-            m_reconCallBacks.remove(key);
+        if( m_graphCallBacks.contains(key) )
+            m_graphCallBacks.remove(key);
         else if ( not force)
             throw std::logic_error("GraphReconstructionMCMC: callback of key `" + key + "` cannot be removed.");
     }
-    const CallBack<GraphReconstructionMCMC<GraphPriorType>>& getCallBack(std::string key){ return m_reconCallBacks.get(key); }
+    const CallBack<GraphReconstructionMCMC<GraphPriorType>>& getGraphCallBack(std::string key){ return m_graphCallBacks.get(key); }
 
-    virtual void onSweepBegin() override { MCMC::onSweepBegin(); m_reconCallBacks.onSweepBegin(); }
-    virtual void onSweepEnd() override { MCMC::onSweepEnd(); m_reconCallBacks.onSweepEnd(); }
-    virtual void onStepBegin() override { MCMC::onStepBegin(); m_reconCallBacks.onStepBegin(); }
-    virtual void onStepEnd() override { MCMC::onStepEnd(); m_reconCallBacks.onStepEnd(); }
+    virtual void onSweepBegin() override { MCMC::onSweepBegin(); m_graphCallBacks.onSweepBegin(); }
+    virtual void onSweepEnd() override { MCMC::onSweepEnd(); m_graphCallBacks.onSweepEnd(); }
+    virtual void onStepBegin() override { MCMC::onStepBegin(); m_graphCallBacks.onStepBegin(); }
+    virtual void onStepEnd() override { MCMC::onStepEnd(); m_graphCallBacks.onStepEnd(); }
 
 
     // Move related
-    double getLogProposalProbRatioFromGraphMove(const GraphMove& move) const {
-        return m_edgeProposerPtr->getLogProposalProbRatio(move);
-    }
-    double _getLogAcceptanceProbFromGraphMove(const GraphMove& move) const;
     double getLogAcceptanceProbFromGraphMove(const GraphMove& move) const {
         return processRecursiveFunction<double>([&](){
             return _getLogAcceptanceProbFromGraphMove(move);
@@ -138,6 +139,8 @@ public:
     }
 };
 
+using BaseBlockLabeledGraphReconstructionMCMC = GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>;
+
 template<typename GraphPriorType>
 double GraphReconstructionMCMC<GraphPriorType>::_getLogAcceptanceProbFromGraphMove(const GraphMove& move) const {
     double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_dynamicsPtr->getLogLikelihoodRatioFromGraphMove(move);
@@ -147,12 +150,11 @@ double GraphReconstructionMCMC<GraphPriorType>::_getLogAcceptanceProbFromGraphMo
         return -INFINITY;
     }
     m_lastLogJointRatio = logLikelihoodRatio + logPriorRatio;
-    return getLogProposalProbRatioFromGraphMove(move); + m_lastLogJointRatio;
+    return m_edgeProposerPtr->getLogProposalProbRatio(move) + m_lastLogJointRatio;
 }
 
 template<typename GraphPriorType>
 bool GraphReconstructionMCMC<GraphPriorType>::doMetropolisHastingsStep() {
-    onStepBegin();
     GraphMove move = m_edgeProposerPtr->proposeMove();
     m_lastLogAcceptance = getLogAcceptanceProbFromGraphMove(move);
     m_isLastAccepted = false;
@@ -160,7 +162,6 @@ bool GraphReconstructionMCMC<GraphPriorType>::doMetropolisHastingsStep() {
         m_isLastAccepted = true;
         applyGraphMove(move);
     }
-    onStepEnd();
     return m_isLastAccepted;
 }
 
@@ -171,6 +172,7 @@ protected:
     LabelProposer<Label>* m_labelProposerPtr = nullptr;
     double m_sampleLabelProb;
     bool m_lastMoveWasLabelMove;
+    // CallBackMap<VertexLabeledGraphReconstructionMCMC<Label>> m_labelCallBacks;
 public:
     using GraphPriorType = VertexLabeledRandomGraph<Label>;
     using BaseClass = GraphReconstructionMCMC<VertexLabeledRandomGraph<Label>>;
@@ -187,9 +189,11 @@ public:
             setLabelProposer(labelProposer);
         }
     VertexLabeledGraphReconstructionMCMC(
+        double sampleLabelProb=0.5,
         double betaLikelihood=1,
         double betaPrior=1):
-    BaseClass(betaLikelihood, betaPrior){ }
+    BaseClass(betaLikelihood, betaPrior),
+    m_sampleLabelProb(sampleLabelProb){ }
 
     const LabelProposer<Label>& getLabelProposer() const { return *m_labelProposerPtr; }
     LabelProposer<Label>& getLabelProposerRef() const { return *m_labelProposerPtr; }
@@ -206,16 +210,26 @@ public:
         BaseClass::setUp();
         m_labelProposerPtr->setUp(BaseClass::m_dynamicsPtr->getGraphPrior());
     }
+    // using GraphReconstructionMCMC<VertexLabeledRandomGraph<Label>>::insertCallBack;
+    // void insertCallBack(std::pair<std::string, CallBack<VertexLabeledGraphReconstructionMCMC<Label>>*> pair) {
+    //     m_labelCallBacks.insert(pair);
+    // }
+    // void insertCallBack(std::string key, CallBack<VertexLabeledGraphReconstructionMCMC<Label>>& callback) { insertCallBack({key, &callback}); }
+    // void removeCallBack(std::string key, bool force=false) override {
+    //     MCMC::removeCallBack(key, true);
+    //     if( m_labelCallBacks.contains(key) )
+    //         m_labelCallBacks.remove(key);
+    //     else if ( not force)
+    //         throw std::logic_error("VertexLabelMCMC: callback of key `" + key + "` cannot be removed.");
+    // }
+    // const CallBack<VertexLabeledGraphReconstructionMCMC<Label>>& getLabelCallBack(std::string key){ return m_labelCallBacks.get(key); }
 
 
-    void applyGraphMove(const GraphMove& move) {
+    void applyGraphMove(const GraphMove& move) override {
         BaseClass::applyGraphMove(move);
         m_labelProposerPtr->applyGraphMove(move);
     }
     double getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const;
-    double getLogProposalProbRatioFromLabelMove(const LabelMove<Label>& move) const {
-        return m_labelProposerPtr->getLogProposalProbRatio(move);
-    }
     void applyLabelMove(const LabelMove<Label>& move) {
         BaseClass::m_dynamicsPtr->getGraphPriorRef().applyLabelMove(move);
         m_labelProposerPtr->applyLabelMove(move);
@@ -247,6 +261,8 @@ public:
 
 };
 
+using BlockLabeledGraphReconstructionMCMC = VertexLabeledGraphReconstructionMCMC<BlockIndex>;
+
 template<typename Label>
 double VertexLabeledGraphReconstructionMCMC<Label>::getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const {
     double logLikelihoodRatio = (BaseClass::m_betaLikelihood == 0) ? 0 : BaseClass::m_betaLikelihood * BaseClass::m_dynamicsPtr->getGraphPrior().getLogLikelihoodRatioFromLabelMove(move);
@@ -257,10 +273,9 @@ double VertexLabeledGraphReconstructionMCMC<Label>::getLogAcceptanceProbFromLabe
 
 template<typename Label>
 bool VertexLabeledGraphReconstructionMCMC<Label>::doMetropolisHastingsStep() {
-    BaseClass::onStepBegin();
     m_lastMoveWasLabelMove = BaseClass::m_uniform(rng) < m_sampleLabelProb;
     if ( not m_lastMoveWasLabelMove)
-        BaseClass::doMetropolisHastingsStep();
+        return BaseClass::doMetropolisHastingsStep();
     LabelMove<Label> move = m_labelProposerPtr->proposeMove();
     BaseClass::m_lastLogAcceptance = getLogAcceptanceProbFromLabelMove(move);
     BaseClass::m_isLastAccepted = false;
@@ -268,7 +283,6 @@ bool VertexLabeledGraphReconstructionMCMC<Label>::doMetropolisHastingsStep() {
         BaseClass::m_isLastAccepted = true;
         applyLabelMove(move);
     }
-    BaseClass::onStepEnd();
     return BaseClass::m_isLastAccepted;
 }
 
