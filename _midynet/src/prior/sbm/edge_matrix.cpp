@@ -12,36 +12,42 @@
 namespace FastMIDyNet {
 
 /* DEFINITION OF EDGE MATRIX PRIOR BASE CLASS */
-
-void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
-    m_graphPtr = &graph;
-    const auto& blockSeq = m_blockPriorPtr->getState();
-    const auto& blockCount = m_blockPriorPtr->getBlockCount();
-
-    m_state = MultiGraph(blockCount);
-    m_edgeCounts.clear();
-    size_t edgeCount = 0;
-    for (auto vertex: graph) {
-        const BlockIndex& r(blockSeq[vertex]);
-        for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {
-            if (vertex > neighbor.vertexIndex)
-                continue;
-
-            const BlockIndex& s(blockSeq[neighbor.vertexIndex]);
-            m_edgeCounts.increment(r, neighbor.label);
-            m_edgeCounts.increment(s, neighbor.label);
-            m_state.addMultiedgeIdx(r, s, neighbor.label);
-        }
-    }
-    m_edgeCountPriorPtr->setState(m_state.getTotalEdgeNumber());
-}
-
-void EdgeMatrixPrior::setState(const MultiGraph& edgeMatrix) {
-    m_state = edgeMatrix;
+void EdgeMatrixPrior::recomputeConsistentState() {
     m_edgeCounts.clear();
     for (auto r : m_state)
         m_edgeCounts.set(r, m_state.getDegreeOfIdx(r));
-    m_edgeCountPriorPtr->setState(edgeMatrix.getTotalEdgeNumber());
+    m_edgeCountPriorPtr->setState(m_state.getTotalEdgeNumber());
+}
+void EdgeMatrixPrior::recomputeStateFromGraph() {
+    m_state = MultiGraph(m_blockPriorPtr->getMaxBlockCount());
+    m_edgeCounts.clear();
+    for (const auto& vertex: *m_graphPtr){
+        for (const auto& neighbor: m_graphPtr->getNeighboursOfIdx(vertex)){
+            if (vertex > neighbor.vertexIndex)
+                continue;
+
+            m_edgeCounts.increment(m_blockPriorPtr->getBlockOfIdx(vertex), neighbor.label);
+            m_edgeCounts.increment(m_blockPriorPtr->getBlockOfIdx(neighbor.vertexIndex), neighbor.label);
+            m_state.addMultiedgeIdx(
+                m_blockPriorPtr->getBlockOfIdx(vertex), m_blockPriorPtr->getBlockOfIdx(neighbor.vertexIndex), neighbor.label
+            );
+        }
+    }
+}
+void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
+    m_graphPtr = &graph;
+    recomputeStateFromGraph();
+}
+
+void EdgeMatrixPrior::setPartition(const std::vector<BlockIndex>& labels) {
+    m_blockPriorPtr->setState(labels);
+    recomputeConsistentState();
+}
+
+
+void EdgeMatrixPrior::setState(const MultiGraph& edgeMatrix) {
+    m_state = edgeMatrix;
+    recomputeConsistentState();
 }
 
 void EdgeMatrixPrior::applyLabelMoveToState(const BlockMove& move) {

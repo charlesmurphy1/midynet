@@ -1,6 +1,6 @@
 import numpy as np
 from collections import defaultdict
-from _midynet.mcmc import DynamicsMCMC
+from _midynet.mcmc import GraphReconstructionMCMC
 from _midynet.mcmc.callbacks import (
     CollectEdgeMultiplicityOnSweep,
     CollectLikelihoodOnSweep,
@@ -12,134 +12,134 @@ from midynet.util import enumerate_all_graphs, log_mean_exp, log_sum_exp
 __all__ = ("get_log_evidence", "get_log_posterior")
 
 
-def get_log_evidence_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
+def get_log_evidence_arithmetic(
+    mcmc: GraphReconstructionMCMC, config: Config, **kwargs
+):
     logp = []
-    g = dynamicsMCMC.get_graph()
+    g = mcmc.get_graph()
     for k in range(config.K):
         logp_k = []
         for m in range(config.num_sweeps):
-            dynamicsMCMC.get_dynamics().sample_graph()
-            logp_k.append(dynamicsMCMC.get_log_likelihood())
+            mcmc.get_dynamics().sample_graph()
+            logp_k.append(mcmc.get_log_likelihood())
         logp.append(log_mean_exp(logp_k))
-    dynamicsMCMC.set_graph(g)
+    mcmc.set_graph(g)
 
     return np.mean(logp)
 
 
 def get_log_evidence_harmonic(
-    dynamicsMCMC: DynamicsMCMC, config: Config, verbose: int = 0, **kwargs
+    mcmc: GraphReconstructionMCMC, config: Config, verbose: int = 0, **kwargs
 ):
     callback = CollectLikelihoodOnSweep()
-    dynamicsMCMC.insert_callback("collector", callback)
+    mcmc.insert_callback("collector", callback)
 
     verboseCallback = MCMCVerboseFactory.build_console()
     if verbose:
-        dynamicsMCMC.insert_callback("verbose", verboseCallback.get_wrap())
+        mcmc.insert_callback("verbose", verboseCallback.get_wrap())
 
-    g = dynamicsMCMC.get_graph()
-    dynamicsMCMC.set_up()
-    burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
-    s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
+    g = mcmc.get_graph()
+    mcmc.set_up()
+    burn = config.burn_per_vertex * mcmc.get_dynamics().get_size()
+    s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
     for i in range(config.num_sweeps):
-        s, f = dynamicsMCMC.do_MH_sweep(burn=burn)
+        s, f = mcmc.do_MH_sweep(burn=burn)
 
     logp = -np.array(callback.get_log_likelihoods())
 
-    dynamicsMCMC.tear_down()
-    dynamicsMCMC.remove_callback("collector")
+    mcmc.tear_down()
+    mcmc.remove_callback("collector")
     if verbose:
-        dynamicsMCMC.remove_callback("verbose")
-    dynamicsMCMC.set_graph(g)
+        mcmc.remove_callback("verbose")
+    mcmc.set_graph(g)
     return log_mean_exp(logp)
 
 
 def get_log_evidence_meanfield(
-    dynamicsMCMC: DynamicsMCMC, config: Config, verbose: int = 0, **kwargs
+    mcmc: GraphReconstructionMCMC, config: Config, verbose: int = 0, **kwargs
 ):
 
-    return dynamicsMCMC.get_log_joint() - get_log_posterior_meanfield(
-        dynamicsMCMC, config, verbose, **kwargs
+    return mcmc.get_log_joint() - get_log_posterior_meanfield(
+        mcmc, config, verbose, **kwargs
     )
 
 
 def get_log_evidence_annealed(
-    dynamicsMCMC: DynamicsMCMC, config: Config, verbose: int = 0, **kwargs
+    mcmc: GraphReconstructionMCMC, config: Config, verbose: int = 0, **kwargs
 ):
     callback = CollectLikelihoodOnSweep()
-    dynamicsMCMC.insert_callback("collector", callback)
+    mcmc.insert_callback("collector", callback)
     verboseCallback = MCMCVerboseFactory.build_console()
     if verbose:
-        dynamicsMCMC.insert_callback("verbose", verboseCallback.get_wrap())
+        mcmc.insert_callback("verbose", verboseCallback.get_wrap())
 
-    original_graph = dynamicsMCMC.get_graph()
-    dynamicsMCMC.set_up()
-    burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
+    original_graph = mcmc.get_graph()
+    mcmc.set_up()
+    burn = config.burn_per_vertex * mcmc.get_dynamics().get_size()
     logp = []
 
     beta_k = np.linspace(0, 1, config.num_betas + 1) ** (1 / config.exp_betas)
     for lb, ub in zip(beta_k[:-1], beta_k[1:]):
         if verbose:
             print(f"beta: {lb}")
-        dynamicsMCMC.set_beta_likelihood(lb)
+        mcmc.set_beta_likelihood(lb)
         if config.start_from_original:
-            dynamicsMCMC.set_graph(original_graph)
+            mcmc.set_graph(original_graph)
         else:
-            dynamicsMCMC.get_dynamics().sample_graph()
-        dynamicsMCMC.set_up()
+            mcmc.get_dynamics().sample_graph()
+        mcmc.set_up()
 
         # if config.start_from_original:
-        #     dynamicsMCMC.set_graph(original_graph)
+        #     mcmc.set_graph(original_graph)
         # else:
-        #     dynamicsMCMC.get_dynamics().sample_graph()
-        #     dynamicsMCMC.set_graph(dynamicsMCMC.get_graph())
-        s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
+        #     mcmc.get_dynamics().sample_graph()
+        #     mcmc.set_graph(mcmc.get_graph())
+        s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
         for i in range(config.num_sweeps):
-            dynamicsMCMC.do_MH_sweep(burn=burn)
-            dynamicsMCMC.check_consistency()
+            mcmc.do_MH_sweep(burn=burn)
+            mcmc.check_consistency()
         logp_k = (ub - lb) * np.array(callback.get_log_likelihoods())
         logp.append(log_mean_exp(logp_k))
         callback.clear()
-    dynamicsMCMC.tear_down()
-    dynamicsMCMC.remove_callback("collector")
+    mcmc.tear_down()
+    mcmc.remove_callback("collector")
     if verbose:
-        dynamicsMCMC.remove_callback("verbose")
-    dynamicsMCMC.set_graph(original_graph)
+        mcmc.remove_callback("verbose")
+    mcmc.set_graph(original_graph)
 
     return sum(logp)
 
 
-def get_log_evidence_exact(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
+def get_log_evidence_exact(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
     logevidence = []
-    original_graph = dynamicsMCMC.get_graph()
-    size = dynamicsMCMC.get_dynamics().get_size()
-    edge_proposer = dynamicsMCMC.get_random_graph_mcmc().get_edge_proposer()
-    graph = dynamicsMCMC.get_random_graph_mcmc().get_random_graph()
+    original_graph = mcmc.get_graph()
+    size = mcmc.get_dynamics().get_size()
+    edge_proposer = mcmc.get_edge_proposer()
+    graph = mcmc.get_graph_prior()
     edge_count = graph.get_edge_count()
     allow_self_loops = edge_proposer.allow_self_loops()
     allow_multiedges = edge_proposer.allow_multiedges()
 
-    dynamicsMCMC.set_up()
+    mcmc.set_up()
     counter = 0
     for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
         counter += 1
         if graph.is_compatible(g):
-            dynamicsMCMC.set_graph(g)
-            logevidence.append(dynamicsMCMC.get_log_joint())
-    dynamicsMCMC.tear_down()
+            mcmc.set_graph(g)
+            logevidence.append(mcmc.get_log_joint())
+    mcmc.tear_down()
 
-    dynamicsMCMC.set_graph(original_graph)
+    mcmc.set_graph(original_graph)
     return log_sum_exp(logevidence)
 
 
 def get_log_evidence_exact_meanfield(
-    dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs
+    mcmc: GraphReconstructionMCMC, config: Config, **kwargs
 ):
-    return dynamicsMCMC.get_log_joint() - get_log_posterior_exact_meanfield(
-        dynamicsMCMC, config
-    )
+    return mcmc.get_log_joint() - get_log_posterior_exact_meanfield(mcmc, config)
 
 
-def get_log_evidence(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
+def get_log_evidence(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
     method = config.get_value("method", "meanfield")
     functions = {
         "exact": get_log_evidence_exact,
@@ -151,7 +151,7 @@ def get_log_evidence(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
         "annealed": get_log_evidence_annealed,
     }
     if method in functions:
-        return functions[method](dynamicsMCMC, config, **kwargs)
+        return functions[method](mcmc, config, **kwargs)
     else:
         message = (
             f"Invalid method {method}, valid methods" + f"are {list(functions.keys())}."
@@ -159,90 +159,85 @@ def get_log_evidence(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
         raise ValueError(message)
 
 
-def get_log_posterior_arithmetic(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
-    return dynamicsMCMC.get_log_joint() - get_log_evidence_arithmetic(
-        dynamicsMCMC, config, **kwargs
-    )
+def get_log_posterior_arithmetic(
+    mcmc: GraphReconstructionMCMC, config: Config, **kwargs
+):
+    return mcmc.get_log_joint() - get_log_evidence_arithmetic(mcmc, config, **kwargs)
 
 
-def get_log_posterior_harmonic(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
-    return dynamicsMCMC.get_log_joint() - get_log_evidence_harmonic(
-        dynamicsMCMC, config, **kwargs
-    )
+def get_log_posterior_harmonic(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
+    return mcmc.get_log_joint() - get_log_evidence_harmonic(mcmc, config, **kwargs)
 
 
 def get_log_posterior_meanfield(
-    dynamicsMCMC: DynamicsMCMC, config: Config, verbose: int = 0, **kwargs
+    mcmc: GraphReconstructionMCMC, config: Config, verbose: int = 0, **kwargs
 ):
     graph_callback = CollectEdgeMultiplicityOnSweep()
-    dynamicsMCMC.insert_callback("collector", graph_callback)
+    mcmc.insert_callback("collector", graph_callback)
     if verbose:
         verboseCallback = MCMCVerboseFactory.build_console()
-        dynamicsMCMC.insert_callback("verbose", verboseCallback.get_wrap())
-    original_graph = dynamicsMCMC.get_graph()
+        mcmc.insert_callback("verbose", verboseCallback.get_wrap())
+    mcmc.set_up()
+    original_graph = mcmc.get_graph()
     graph_callback.collect()
     # if not config.start_from_original:
-    #     dynamicsMCMC.get_dynamics().sample_graph()
-    #     dynamicsMCMC.set_graph(dynamicsMCMC.get_graph())
+    #     mcmc.get_dynamics().sample_graph()
+    #     mcmc.set_graph(mcmc.get_graph())
     # if not config.start_from_original:
-    #     dynamicsMCMC.get_dynamics().sample_graph()
-    #     dynamicsMCMC.set_up()
-    burn = config.burn_per_vertex * dynamicsMCMC.get_dynamics().get_size()
-    s, f = dynamicsMCMC.do_MH_sweep(burn=config.initial_burn)
+    #     mcmc.get_dynamics().sample_graph()
+    #     mcmc.set_up()
+    burn = config.burn_per_vertex * mcmc.get_dynamics().get_size()
+    s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
 
     for i in range(config.num_sweeps):
-        _s, _f = dynamicsMCMC.do_MH_sweep(burn=burn)
+        _s, _f = mcmc.do_MH_sweep(burn=burn)
         s += _s
         f += _f
 
-    dynamicsMCMC.set_graph(original_graph)
+    mcmc.set_graph(original_graph)
     logp = graph_callback.get_log_posterior_estimate(original_graph)
 
-    dynamicsMCMC.tear_down()
-    dynamicsMCMC.remove_callback("collector")
+    mcmc.tear_down()
+    mcmc.remove_callback("collector")
     if verbose:
-        dynamicsMCMC.remove_callback("verbose")
+        mcmc.remove_callback("verbose")
     return logp
 
 
-def get_log_posterior_annealed(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
-    return dynamicsMCMC.get_log_joint() - get_log_evidence_annealed(
-        dynamicsMCMC, config, **kwargs
-    )
+def get_log_posterior_annealed(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
+    return mcmc.get_log_joint() - get_log_evidence_annealed(mcmc, config, **kwargs)
 
 
-def get_log_posterior_exact(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
-    return dynamicsMCMC.get_log_joint() - get_log_evidence_exact(
-        dynamicsMCMC, config, **kwargs
-    )
+def get_log_posterior_exact(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
+    return mcmc.get_log_joint() - get_log_evidence_exact(mcmc, config, **kwargs)
 
 
 def get_log_posterior_exact_meanfield(
-    dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs
+    mcmc: GraphReconstructionMCMC, config: Config, **kwargs
 ):
-    original_graph = dynamicsMCMC.get_graph()
-    size = dynamicsMCMC.get_dynamics().get_size()
-    edge_proposer = dynamicsMCMC.get_random_graph_mcmc().get_edge_proposer()
-    graph = dynamicsMCMC.get_random_graph_mcmc().get_random_graph()
+    original_graph = mcmc.get_graph()
+    size = mcmc.get_dynamics().get_size()
+    edge_proposer = mcmc.get_edge_proposer()
+    graph = mcmc.get_graph_prior()
     edge_count = graph.get_edge_count()
     allow_self_loops = edge_proposer.allow_self_loops()
     allow_multiedges = edge_proposer.allow_multiedges()
 
-    dynamicsMCMC.set_up()
+    mcmc.set_up()
     i = 0
     edge_weights = defaultdict(lambda: defaultdict(list))
     edge_total = defaultdict(list)
-    evidence = get_log_evidence_exact(dynamicsMCMC, config)
+    evidence = get_log_evidence_exact(mcmc, config)
     for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
         if graph.is_compatible(g):
             i += 1
-            dynamicsMCMC.get_dynamics().set_graph(g)
-            weight = dynamicsMCMC.get_log_joint() - evidence
+            mcmc.get_dynamics().set_graph(g)
+            weight = mcmc.get_log_joint() - evidence
             for e, w in get_weighted_edge_list(g).items():
                 edge_weights[e][w].append(weight)
                 edge_total[e].append(weight)
-    dynamicsMCMC.tear_down()
-    dynamicsMCMC.set_graph(original_graph)
+    mcmc.tear_down()
+    mcmc.set_graph(original_graph)
     log_posterior = 0
     for e, weights in edge_weights.items():
         probs = np.zeros(len(weights) + 1)
@@ -256,7 +251,7 @@ def get_log_posterior_exact_meanfield(
     return log_posterior
 
 
-def get_log_posterior(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
+def get_log_posterior(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
     method = config.get_value("method", "meanfield")
     functions = {
         "exact": get_log_posterior_exact,
@@ -268,7 +263,7 @@ def get_log_posterior(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
         "annealed": get_log_posterior_annealed,
     }
     if method in functions:
-        return functions[method](dynamicsMCMC, config, **kwargs)
+        return functions[method](mcmc, config, **kwargs)
     else:
         message = (
             f"Invalid method {method}, valid methods" + f"are {list(functions.keys())}."
@@ -277,17 +272,18 @@ def get_log_posterior(dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs):
 
 
 def get_log_prior_meanfield(
-    dynamicsMCMC: DynamicsMCMC, config: Config, **kwargs
+    mcmc: GraphReconstructionMCMC, config: Config, **kwargs
 ) -> float:
     callback = CollectEdgeMultiplicityOnSweep()
-    dynamicsMCMC.insert_callback("collector", callback)
-    randomGraph = dynamicsMCMC.get_random_graph_mcmc().get_random_graph()
-    original_graph = dynamicsMCMC.get_graph()
+    mcmc.insert_callback("edge", callback)
+    mcmc.set_up()
+    randomGraph = mcmc.get_graph_prior()
+    original_graph = mcmc.get_graph()
     callback.collect()
     for i in range(config.num_sweeps):
         randomGraph.sample()
         callback.collect()
     hg = callback.get_log_posterior_estimate(original_graph)
-    dynamicsMCMC.set_graph(original_graph)
-    dynamicsMCMC.remove_callback("collector")
+    mcmc.set_graph(original_graph)
+    mcmc.remove_callback("edge")
     return hg

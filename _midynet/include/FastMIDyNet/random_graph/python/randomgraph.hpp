@@ -45,6 +45,8 @@ public:
     using PyRandomGraph<BaseClass>::PyRandomGraph;
 
     /* Pure abstract methods */
+    void setLabels(const std::vector<BlockIndex>& labels) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setLabels, labels); }
+    void sampleLabels () override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleLabels,); }
     const double getLogLikelihoodRatioFromLabelMove (const LabelMove<Label>& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromLabelMove, move); }
     const double getLogPriorRatioFromLabelMove (const LabelMove<Label>& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPriorRatioFromLabelMove, move); }
 

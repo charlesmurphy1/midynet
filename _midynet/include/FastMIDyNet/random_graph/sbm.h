@@ -38,11 +38,18 @@ public:
         }
 
     void sample () override;
+    void sampleLabels() override {
+        m_blockPriorPtr->sample();
+        setLabels(m_blockPriorPtr->getState());
+    }
 
 
     void setGraph(const MultiGraph& graph) override{
         RandomGraph::setGraph(graph);
         m_edgeMatrixPriorPtr->setGraph(m_graph);
+    }
+    void setLabels(const std::vector<BlockIndex>& labels) override {
+        m_edgeMatrixPriorPtr->setPartition(labels);
     }
 
 

@@ -5,7 +5,7 @@
 
 namespace FastMIDyNet{
 
-typedef int VertexState;
+typedef size_t VertexState;
 typedef std::vector<VertexState> State;
 typedef std::vector<VertexState> VertexStateSequence;
 typedef std::vector<State> StateSequence;

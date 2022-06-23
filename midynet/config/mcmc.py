@@ -1,34 +1,56 @@
 from __future__ import annotations
 from typing import Any
-from _midynet.proposer.block_proposer import BlockGenericProposer
-from _midynet import mcmc
+
+from _midynet.mcmc import (
+    GraphReconstructionMCMC,
+    BlockLabeledGraphReconstructionMCMC,
+    BlockLabelMCMC,
+)
+from _midynet.mcmc import callbacks as cb
 from .config import Config
 from .factory import Factory, OptionError, MissingRequirementsError
 from .proposer import EdgeProposerFactory, BlockProposerFactory
+from .random_graph import RandomGraphFactory
+from .dynamics import DynamicsFactory
 from .wrapper import Wrapper
 
-__all__ = ("RandomGraphMCMCFactory", "MCMCVerboseFactory")
+__all__ = ("MCMCFactory", "MCMCVerboseFactory")
 
 
-class RandomGraphMCMCFactory(Factory):
-    @classmethod
-    def build(cls, config: Config, *args: Any, **kwargs: Any) -> Any:
-        if config.unmet_requirements():
-            raise MissingRequirementsError(config)
-        edge_proposer = EdgeProposerFactory.build(config.edge_proposer)
-        block_proposer = (
-            BlockProposerFactory.build(config.block_proposer)
-            if "block_proposer" in config
-            else BlockGenericProposer()
+class MCMCFactory(Factory):
+    @staticmethod
+    def build_reconstruction(config: ExperimentConfig):
+        graph = RandomGraphFactory.build(config.graph)
+        edge_proposer = EdgeProposerFactory.build(config.graph.edge_proposer)
+        if not config.graph.labeled:
+            dynamics = DynamicsFactory.build(config.dynamics)
+            dynamics.set_graph_prior(graph.wrap)
+            mcmc = GraphReconstructionMCMC(dynamics, edge_proposer)
+            return Wrapper(
+                mcmc, dynamics=dynamics, graph=graph, edge_proposer=edge_proposer
+            )
+        dynamics = DynamicsFactory.build_labeled(config.dynamics)
+        dynamics.set_graph_prior(graph.wrap)
+        block_proposer = BlockProposerFactory.build(config.graph.block_proposer)
+        mcmc = BlockLabeledGraphReconstructionMCMC(
+            dynamics, edge_proposer, block_proposer
         )
-        mcmc_model = mcmc.RandomGraphMCMC()
-        mcmc_model.set_edge_proposer(edge_proposer)
-        mcmc_model.set_block_proposer(block_proposer)
         return Wrapper(
-            mcmc_model,
+            mcmc,
+            dynamics=dynamics,
+            graph=graph,
             edge_proposer=edge_proposer,
             block_proposer=block_proposer,
         )
+
+    @staticmethod
+    def build_community(config: RandomGraphConfig):
+        graph = RandomGraphFactory.build(config)
+        if config.graph.labeled:
+            block_proposer = BlockProposerFactory.build(graph.block_proposer)
+            mcmc = BlockLabelMCMC(dynamics, block_proposer)
+            return Wrapper(mcmc, graph=graph, block_proposer=block_proposer)
+        return None
 
 
 class MCMCVerboseFactory(Factory):
@@ -45,13 +67,13 @@ class MCMCVerboseFactory(Factory):
     @classmethod
     def build_console(cls, types=None):
         callbacks = cls.collect_types(types)
-        return Wrapper(mcmc.callbacks.VerboseToConsole(callbacks), callbacks=callbacks)
+        return Wrapper(cb.VerboseToConsole(callbacks), callbacks=callbacks)
 
     @classmethod
     def build_file(cls, types=None, filename="./verbose.vb"):
         callbacks = cls.collect_types(types)
         return Wrapper(
-            mcmc.callbacks.VerboseToFile(filename, callbacks),
+            cb.VerboseToFile(filename, callbacks),
             callbacks=callbacks,
         )
 
@@ -74,27 +96,27 @@ class MCMCVerboseFactory(Factory):
 
     @staticmethod
     def build_failure_counter():
-        return mcmc.callbacks.FailureCounterVerbose()
+        return cb.FailureCounterVerbose()
 
     @staticmethod
     def build_success_counter():
-        return mcmc.callbacks.SuccessCounterVerbose()
+        return cb.SuccessCounterVerbose()
 
     @staticmethod
     def build_timer():
-        return mcmc.callbacks.TimerVerbose()
+        return cb.TimerVerbose()
 
     @staticmethod
     def build_mean_ratio():
-        return mcmc.callbacks.MeanLogJointRatioVerbose()
+        return cb.MeanLogJointRatioVerbose()
 
     @staticmethod
     def build_max_ratio():
-        return mcmc.callbacks.MaximumLogJointRatioVerbose()
+        return cb.MaximumLogJointRatioVerbose()
 
     @staticmethod
     def build_min_ratio():
-        return mcmc.callbacks.MinimumLogJointRatioVerbose()
+        return cb.MinimumLogJointRatioVerbose()
 
 
 if __name__ == "__main__":

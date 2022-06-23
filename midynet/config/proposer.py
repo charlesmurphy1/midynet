@@ -16,9 +16,7 @@ __all__ = (
 class EdgeProposerConfig(Config):
     @classmethod
     def single_uniform(cls):
-        return cls(
-            name="single_uniform", allow_self_loops=True, allow_multiedges=True
-        )
+        return cls(name="single_uniform", allow_self_loops=True, allow_multiedges=True)
 
     @classmethod
     def single_degree(cls):
@@ -48,27 +46,25 @@ class EdgeProposerConfig(Config):
 
     @classmethod
     def double_swap(cls):
-        return cls(
-            name="double_swap", allow_self_loops=True, allow_multiedges=True
-        )
+        return cls(name="double_swap", allow_self_loops=True, allow_multiedges=True)
 
 
 class BlockProposerConfig(Config):
     @classmethod
     def uniform(cls):
-        return cls(name="uniform", create_new_block=0.1)
+        return cls(name="uniform", label_creation_prob=0.1)
 
     @classmethod
     def peixoto(cls):
-        return cls(name="peixoto", create_new_block=0.1, shift=1)
+        return cls(name="peixoto", label_creation_prob=0.1, shift=1)
 
 
 class EdgeProposerFactory(Factory):
     @staticmethod
     def build_single_uniform(
         config: EdgeProposerConfig,
-    ) -> proposer.edge_proposer.SingleEdgeUniformProposer:
-        return proposer.edge_proposer.SingleEdgeUniformProposer(
+    ) -> proposer.edge.SingleEdgeUniformProposer:
+        return proposer.edge.SingleEdgeUniformProposer(
             allow_self_loops=config.allow_self_loops,
             allow_multiedges=config.allow_multiedges,
         )
@@ -76,8 +72,8 @@ class EdgeProposerFactory(Factory):
     @staticmethod
     def build_single_degree(
         config: EdgeProposerConfig,
-    ) -> proposer.edge_proposer.SingleEdgeDegreeProposer:
-        return proposer.edge_proposer.SingleEdgeDegreeProposer(
+    ) -> proposer.edge.SingleEdgeDegreeProposer:
+        return proposer.edge.SingleEdgeDegreeProposer(
             config.shift,
             allow_self_loops=config.allow_self_loops,
             allow_multiedges=config.allow_multiedges,
@@ -86,8 +82,8 @@ class EdgeProposerFactory(Factory):
     @staticmethod
     def build_hinge_flip_uniform(
         config: EdgeProposerConfig,
-    ) -> proposer.edge_proposer.HingeFlipUniformProposer:
-        return proposer.edge_proposer.HingeFlipUniformProposer(
+    ) -> proposer.edge.HingeFlipUniformProposer:
+        return proposer.edge.HingeFlipUniformProposer(
             allow_self_loops=config.allow_self_loops,
             allow_multiedges=config.allow_multiedges,
         )
@@ -95,8 +91,8 @@ class EdgeProposerFactory(Factory):
     @staticmethod
     def build_hinge_flip_degree(
         config: EdgeProposerConfig,
-    ) -> proposer.edge_proposer.HingeFlipDegreeProposer:
-        return proposer.edge_proposer.HingeFlipDegreeProposer(
+    ) -> proposer.edge.HingeFlipDegreeProposer:
+        return proposer.edge.HingeFlipDegreeProposer(
             config.shift,
             allow_self_loops=config.allow_self_loops,
             allow_multiedges=config.allow_multiedges,
@@ -105,8 +101,8 @@ class EdgeProposerFactory(Factory):
     @staticmethod
     def build_double_swap(
         config: EdgeProposerConfig,
-    ) -> proposer.edge_proposer.DoubleEdgeSwapProposer:
-        return proposer.edge_proposer.DoubleEdgeSwapProposer(
+    ) -> proposer.edge.DoubleEdgeSwapProposer:
+        return proposer.edge.DoubleEdgeSwapProposer(
             allow_self_loops=config.allow_self_loops,
             allow_multiedges=config.allow_multiedges,
         )
@@ -116,21 +112,13 @@ class BlockProposerFactory(Factory):
     @staticmethod
     def build_uniform(
         config: BlockProposerConfig,
-    ) -> proposer.block_proposer.BlockUniformProposer:
-        return proposer.block_proposer.BlockUniformProposer(
-            config.create_new_block
-        )
+    ) -> proposer.label.BlockUniformProposer:
+        return proposer.label.BlockUniformProposer(config.label_creation_prob)
 
     @staticmethod
     def build_peixoto(
         config: BlockProposerConfig,
-    ) -> proposer.block_proposer.BlockPeixotoProposer:
-        return proposer.block_proposer.BlockPeixotoProposer(
-            config.create_new_block, config.shift
+    ) -> proposer.label.BlockPeixotoProposer:
+        return proposer.label.BlockPeixotoProposer(
+            config.label_creation_prob, config.shift
         )
-
-    @staticmethod
-    def build_generic(
-        config: BlockProposerConfig,
-    ) -> proposer.block_proposer.BlockGenericProposer:
-        return proposer.block_proposer.BlockGenericProposer()

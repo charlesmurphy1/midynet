@@ -1,11 +1,9 @@
 import pytest
-from _midynet.mcmc import DynamicsMCMC
-
 import midynet
 from midynet.config import (
     DynamicsFactory,
     RandomGraphFactory,
-    RandomGraphMCMCFactory,
+    MCMCFactory,
     MetricsConfig,
     ExperimentConfig,
     Wrapper,
@@ -16,7 +14,7 @@ DISPLAY = False
 
 @pytest.fixture
 def config():
-    c = ExperimentConfig.default(name="test", dynamics="sis", graph="er")
+    c = ExperimentConfig.reconstruction(name="test", dynamics="sis", graph="er")
     c.dynamics.set_value("num_steps", 5)
     c.graph.set_value("size", 4)
     c.graph.edge_count.set_value("state", 2)
@@ -33,14 +31,10 @@ def metrics_config():
 
 @pytest.fixture
 def mcmc(config):
-    graph = RandomGraphFactory.build(config.graph)
-    dynamics = DynamicsFactory.build(config.dynamics)
-    dynamics.set_random_graph(graph.get_wrap())
-    graph_mcmc = RandomGraphMCMCFactory.build(config.graph)
-    mcmc = DynamicsMCMC(dynamics, graph_mcmc.get_wrap(), 1, 1, 0)
-    dynamics.sample()
+    mcmc = MCMCFactory.build_reconstruction(config)
+    mcmc.others["dynamics"].sample()
     mcmc.set_up()
-    return Wrapper(mcmc, dynamics=dynamics, graph=graph, graph_mcmc=graph_mcmc)
+    return mcmc
 
 
 def test_log_evidence_arithmetic(mcmc, metrics_config):

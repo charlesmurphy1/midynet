@@ -21,20 +21,16 @@ def test_access_wrapped_method(wrapper):
     wrapper.sample_priors()
 
 
-def test_get_wrap(wrapper):
-    assert isinstance(wrapper.get_wrap(), sbm.BlockUniformPrior)
+def test_wrap(wrapper):
+    assert isinstance(wrapper.wrap, sbm.BlockUniformPrior)
 
 
-def test_get_others(wrapper):
-    assert isinstance(
-        wrapper.get_other("block_count"), sbm.BlockCountUniformPrior
-    )
+def test_other(wrapper):
+    assert isinstance(wrapper.other("block_count"), sbm.BlockCountUniformPrior)
 
 
 def test_correct_setup(wrapper):
-    assert id(wrapper.get_block_count_prior()) == id(
-        wrapper.get_others()["block_count"]
-    )
+    assert id(wrapper.get_block_count_prior()) == id(wrapper.others["block_count"])
 
 
 if __name__ == "__main__":

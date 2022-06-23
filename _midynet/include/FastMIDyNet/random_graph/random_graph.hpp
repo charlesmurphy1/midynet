@@ -37,6 +37,7 @@ public:
     }
 
     virtual void sample() = 0;
+
     virtual const double getLogLikelihood() const = 0;
     virtual const double getLogPrior() const = 0;
     const double getLogJoint() const {
@@ -70,6 +71,9 @@ public:
     virtual const CounterMap<Label>& getEdgeLabelCounts() const = 0;
     virtual const MultiGraph& getLabelGraph() const = 0;
     const Label& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getVertexLabels()[vertexIdx]; }
+
+    virtual void setLabels(const std::vector<Label>&) = 0;
+    virtual void sampleLabels() = 0;
 
     virtual const double getLogLikelihoodRatioFromLabelMove (const LabelMove<Label>& move) const = 0;
     virtual const double getLogPriorRatioFromLabelMove (const LabelMove<Label>& move) const = 0;

@@ -12,7 +12,7 @@ namespace FastMIDyNet{
 const double INFECTION_PROB(0.7), RECOVERY_PROB(0.3), AUTO_ACTIVATION_PROB(1e-6), AUTO_DEACTIVATION_PROB(1e-6);
 const size_t NUM_INITIAL_ACTIVE(3);
 const bool NORMALIZE_COUPLING(false);
-const std::list<std::vector<int>> neighbor_states = {{1, 3}, {2, 2}, {3, 1}};
+const std::list<std::vector<VertexState>> neighbor_states = {{1, 3}, {2, 2}, {3, 1}};
 
 
 class TestSISDynamics: public::testing::Test{

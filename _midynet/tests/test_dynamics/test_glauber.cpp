@@ -9,7 +9,7 @@
 namespace FastMIDyNet{
 
 static const double COUPLING_CONSTANT = 2.;
-static const std::list<std::vector<int>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}};
+static const std::list<std::vector<VertexState>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}};
 
 class TestGlauberDynamics: public::testing::Test{
 public:

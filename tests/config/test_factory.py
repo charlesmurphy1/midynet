@@ -15,7 +15,7 @@ from midynet.config import (
     RandomGraphFactory,
     DynamicsConfig,
     DynamicsFactory,
-    RandomGraphMCMCFactory,
+    MCMCFactory,
     MetricsFactory,
     ExperimentConfig,
 )
@@ -82,7 +82,7 @@ def sample_edge_matrix(obj):
     c = BlockPriorConfig.uniform(10, 1, 10)
     c.block_count.max = 10
     b = BlockPriorFactory.build(BlockPriorConfig.uniform(10, 1, 10))
-    obj.set_block_prior(b.get_wrap())
+    obj.set_block_prior(b.wrap)
     obj.sample()
 
 
@@ -101,10 +101,10 @@ def sample_degrees(obj):
     b.set_size(100)
 
     e = EdgeMatrixPriorFactory.build(EdgeMatrixPriorConfig.uniform(250))
-    e.set_block_prior(b.get_wrap())
+    e.set_block_prior(b.wrap)
 
-    obj.set_block_prior(b.get_wrap())
-    obj.set_edge_matrix_prior(e.get_wrap())
+    obj.set_block_prior(b.wrap)
+    obj.set_edge_matrix_prior(e.wrap)
     obj.sample()
 
 
@@ -178,7 +178,7 @@ random_graph_setup = [
 def sample_dynamics(obj):
     c = RandomGraphConfig.er(10, 25)
     g = RandomGraphFactory.build(c)
-    obj.set_random_graph(g.get_wrap())
+    obj.set_graph_prior(g.wrap)
     obj.set_num_steps(10)
     obj.sample()
 
@@ -210,66 +210,68 @@ dynamics_setup = {
     ),
 }
 
-random_graph_mcmc_setup = [
-    pytest.param(
-        RandomGraphConfig.uniform_sbm(100, 250, 10),
-        RandomGraphMCMCFactory,
-        lambda obj: None,
-        id="mcmc.sbm.uniform",
-    ),
-    pytest.param(
-        RandomGraphConfig.hyperuniform_sbm(100, 250, 10),
-        RandomGraphMCMCFactory,
-        lambda obj: None,
-        id="mcmc.sbm.hyperuniform",
-    ),
-    pytest.param(
-        RandomGraphConfig.er(100, 250),
-        RandomGraphMCMCFactory,
-        lambda obj: None,
-        id="mcmc.er.delta",
-    ),
-    pytest.param(
-        RandomGraphConfig.ser(100, 250.0),
-        RandomGraphMCMCFactory,
-        lambda obj: None,
-        id="mcmc.er.poisson",
-    ),
-    pytest.param(
-        RandomGraphConfig.ser(100, 250),
-        RandomGraphMCMCFactory,
-        lambda obj: None,
-        id="mcmc.ser",
-    ),
-    pytest.param(
-        RandomGraphConfig.uniform_dcsbm(100, 250, 10),
-        RandomGraphMCMCFactory,
-        lambda obj: None,
-        id="mcmc.dcsbm.uniform",
-    ),
-    pytest.param(
-        RandomGraphConfig.uniform_cm(100, 250),
-        RandomGraphMCMCFactory,
-        lambda obj: None,
-        id="mcmc.cm.uniform",
-    ),
-    pytest.param(
-        RandomGraphConfig.poisson_cm(100, 250),
-        RandomGraphMCMCFactory,
-        lambda obj: None,
-        id="mcmc.cm.poisson",
-    ),
-    pytest.param(
-        RandomGraphConfig.nbinom_cm(100, 250, 0.2),
-        RandomGraphMCMCFactory,
-        lambda obj: None,
-        id="mcmc.cm.nbinom",
-    ),
-]
+# mcmc_setup = [
+#     pytest.param(
+#         ExperimentConfig.reconstruction("sis", "er"),
+#         MCMCFactory,
+#         lambda obj: None,
+#         id="mcmc.sis.er.uniform",
+#     ),
+#     pytest.param(
+#         RandomGraphConfig.hyperuniform_sbm(100, 250, 10),
+#         RandomGraphMCMCFactory,
+#         lambda obj: None,
+#         id="mcmc.sbm.hyperuniform",
+#     ),
+#     pytest.param(
+#         RandomGraphConfig.er(100, 250),
+#         RandomGraphMCMCFactory,
+#         lambda obj: None,
+#         id="mcmc.er.delta",
+#     ),
+#     pytest.param(
+#         RandomGraphConfig.ser(100, 250.0),
+#         RandomGraphMCMCFactory,
+#         lambda obj: None,
+#         id="mcmc.er.poisson",
+#     ),
+#     pytest.param(
+#         RandomGraphConfig.ser(100, 250),
+#         RandomGraphMCMCFactory,
+#         lambda obj: None,
+#         id="mcmc.ser",
+#     ),
+#     pytest.param(
+#         RandomGraphConfig.uniform_dcsbm(100, 250, 10),
+#         RandomGraphMCMCFactory,
+#         lambda obj: None,
+#         id="mcmc.dcsbm.uniform",
+#     ),
+#     pytest.param(
+#         RandomGraphConfig.uniform_cm(100, 250),
+#         RandomGraphMCMCFactory,
+#         lambda obj: None,
+#         id="mcmc.cm.uniform",
+#     ),
+#     pytest.param(
+#         RandomGraphConfig.poisson_cm(100, 250),
+#         RandomGraphMCMCFactory,
+#         lambda obj: None,
+#         id="mcmc.cm.poisson",
+#     ),
+#     pytest.param(
+#         RandomGraphConfig.nbinom_cm(100, 250, 0.2),
+#         RandomGraphMCMCFactory,
+#         lambda obj: None,
+#         id="mcmc.cm.nbinom",
+#     ),
+# ]
 
 metrics_setup = [
     pytest.param(
-        ExperimentConfig.default("test", "glauber", "er", metrics=["dynamics_entropy"]),
+        ExperimentConfig.reconstruction(
+            "test", "glauber", "er", metrics=["dynamics_entropy"]
+        ),
         MetricsFactory,
         lambda obj: None,
         id="metrics",
@@ -287,7 +289,7 @@ metrics_setup = [
         *degrees_setup,
         *random_graph_setup,
         *dynamics_setup,
-        *random_graph_mcmc_setup,
+        # *random_graph_mcmc_setup,
         *metrics_setup,
     ],
 )
@@ -305,7 +307,7 @@ def test_build_from_config(config, factory, run):
         *degrees_setup,
         *random_graph_setup,
         *dynamics_setup,
-        *random_graph_mcmc_setup,
+        # *random_graph_mcmc_setup,
         *metrics_setup,
     ],
 )

@@ -34,8 +34,10 @@ py::class_<MCMC, NestedRandomVariable, PyMCMC<>> declareMCMCBaseClass(py::module
         .def("insert_callback", [](MCMC& self, std::string key, CallBack<MCMC>& callback){
             self.insertCallBack(key, callback);
         }, py::arg("key"), py::arg("callback"))
-        .def("remove_callback", &MCMC::removeCallBack, py::arg("key"), py::arg("force")=false)
+        .def("remove_callback", &MCMC::removeCallBack, py::arg("key"))
         .def("get_mcmc_callback", &MCMC::getMCMCCallBack, py::arg("key"))
+        .def("sample", &MCMC::sample)
+        .def("samplePrior", &MCMC::samplePrior)
         .def("set_up", &MCMC::setUp)
         .def("tear_down", &MCMC::tearDown)
         .def("on_step_begin", &MCMC::onStepBegin)
@@ -80,6 +82,7 @@ py::class_<GraphReconstructionMCMC<GraphPrior>, MCMC> declareGraphReconstruction
         .def("set_edge_proposer", &GraphReconstructionMCMC<GraphPrior>::setEdgeProposer, py::arg("edge_proposer"))
         .def("get_edge_proposer", &GraphReconstructionMCMC<GraphPrior>::getEdgeProposer)
         .def("get_graph", &GraphReconstructionMCMC<GraphPrior>::getGraph)
+        .def("set_graph", &GraphReconstructionMCMC<GraphPrior>::setGraph)
         .def("insert_callback", [](GraphReconstructionMCMC<GraphPrior>& self, std::string key, CallBack<MCMC>& callback){
             self.insertCallBack(key, callback);
         }, py::arg("key"), py::arg("callback"))

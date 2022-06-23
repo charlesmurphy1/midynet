@@ -41,6 +41,8 @@ class EdgeMatrixPrior: public BlockLabeledPrior< MultiGraph >{
 
         void applyGraphMoveToState(const GraphMove&);
         void applyLabelMoveToState(const BlockMove&);
+        void recomputeConsistentState() ;
+        void recomputeStateFromGraph() ;
     public:
         EdgeMatrixPrior() {}
         EdgeMatrixPrior(EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior){
@@ -70,6 +72,7 @@ class EdgeMatrixPrior: public BlockLabeledPrior< MultiGraph >{
         void setGraph(const MultiGraph& graph);
         const MultiGraph& getGraph() { return *m_graphPtr; }
         void setState(const MultiGraph&) override;
+        void setPartition(const std::vector<BlockIndex>&) ;
 
         const size_t& getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }
         const CounterMap<size_t>& getEdgeCounts() const { return m_edgeCounts; }
@@ -135,6 +138,10 @@ public:
     void setState(const MultiGraph& edgeMatrix) {
         m_edgeMatrix = edgeMatrix;
         m_state = edgeMatrix;
+        m_edgeCounts.clear();
+        for (const auto r : m_edgeMatrix)
+            m_edgeCounts.set(r, m_edgeMatrix.getDegreeOfIdx(r));
+        // recomputeState();
     }
     void sampleState() override { };
     void samplePriors() override { };

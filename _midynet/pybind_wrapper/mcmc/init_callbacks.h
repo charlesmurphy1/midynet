@@ -23,6 +23,7 @@ py::class_<CallBack<MCMCType>, PyCallBack<MCMCType>> declareCallBack(py::module&
         .def("on_step_end", &CallBack<MCMCType>::onStepEnd)
         .def("on_sweep_begin", &CallBack<MCMCType>::onSweepBegin)
         .def("on_sweep_end", &CallBack<MCMCType>::onSweepEnd)
+        .def("clear", &CallBack<MCMCType>::clear)
         ;
 }
 
@@ -52,11 +53,10 @@ py::class_<CallBackMap<MCMCType>> declareCallBackMap(py::module& m, std::string 
 }
 
 void initCallBacks(py::module& m){
-    declareCallBack<MCMC>(m, "MCMCCallBack");
+    declareCallBack<MCMC>(m, "CallBack");
     declareCallBack<VertexLabelMCMC<BlockIndex>>(m, "BlockCallBack");
     declareCallBack<GraphReconstructionMCMC<RandomGraph>>(m, "GraphReconstructionCallBack");
-    declareCallBack<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>(m, "_BlockGraphReconstructionCallBack");
-    declareCallBack<VertexLabeledGraphReconstructionMCMC<BlockIndex>>(m, "BlockGraphReconstructionCallBack");
+    declareCallBack<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>(m, "BlockGraphReconstructionCallBack");
     initVerbose(m);
     initCollectors(m);
 }

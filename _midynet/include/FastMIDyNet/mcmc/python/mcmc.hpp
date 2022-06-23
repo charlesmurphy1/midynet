@@ -15,6 +15,8 @@ class PyMCMC: public PyNestedRandomVariable<BaseClass>{
 public:
     using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
     /* Pure abstract methods */
+    void sample() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sample, ); }
+    void samplePrior() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePrior, ); }
     const double getLogLikelihood() const override {
         PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, );
     }
@@ -31,8 +33,8 @@ public:
     /* Abstract methods */
     void setUp() override { PYBIND11_OVERRIDE(void, BaseClass, setUp, ); }
     void tearDown() override { PYBIND11_OVERRIDE(void, BaseClass, tearDown, ); }
-    void removeCallBack(std::string key, bool force=false) override {
-        PYBIND11_OVERRIDE(void, BaseClass, removeCallBack, key, force);
+    void removeCallBack(std::string key) override {
+        PYBIND11_OVERRIDE(void, BaseClass, removeCallBack, key);
     }
     void onStepBegin() override { PYBIND11_OVERRIDE(void, BaseClass, onStepBegin, ); }
     void onStepEnd() override { PYBIND11_OVERRIDE(void, BaseClass, onStepEnd, ); }

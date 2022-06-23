@@ -77,6 +77,8 @@ public:
         return m_isLastAccepted;
 
     }
+    void sample() override { }
+    void samplePrior() override { }
     const double getLogLikelihood() const override { return 1; }
     const double getLogPrior() const override { return 2; }
     const double getLogJoint() const override { return getLogLikelihood() + getLogPrior(); }

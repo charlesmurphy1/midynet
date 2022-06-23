@@ -26,7 +26,7 @@ class ExperimentConfig(Config):
     }
 
     @classmethod
-    def default(
+    def reconstruction(
         cls,
         name: str,
         dynamics: str,
@@ -42,9 +42,7 @@ class ExperimentConfig(Config):
         obj.insert("graph", RandomGraphConfig.auto(graph))
         obj.insert(
             "metrics",
-            MetricsCollectionConfig.auto(
-                metrics if metrics is not None else []
-            ),
+            MetricsCollectionConfig.auto(metrics if metrics is not None else []),
         )
         for m in obj.metrics.metrics_names:
             ns = obj.metrics.get_value(m).num_samples
@@ -57,9 +55,7 @@ class ExperimentConfig(Config):
             force_non_sequence=True,
             unique=True,
         )
-        obj.insert(
-            "num_procs", num_procs, force_non_sequence=True, unique=True
-        )
+        obj.insert("num_procs", num_procs, force_non_sequence=True, unique=True)
         obj.insert(
             "num_async_process",
             num_async_process,

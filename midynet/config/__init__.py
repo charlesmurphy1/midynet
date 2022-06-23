@@ -27,7 +27,7 @@ from .proposer import (
 )
 from .random_graph import RandomGraphConfig, RandomGraphFactory
 from .dynamics import DynamicsConfig, DynamicsFactory
-from .mcmc import RandomGraphMCMCFactory, MCMCVerboseFactory
+from .mcmc import MCMCFactory, MCMCVerboseFactory
 from .metrics import MetricsConfig, MetricsCollectionConfig, MetricsFactory
 from .experiment import ExperimentConfig
 
@@ -40,7 +40,7 @@ __all__ = (
     "MissingRequirementsError",
     "OptionError",
     "UnavailableOption",
-    "RandomGraphMCMCFactory",
+    "MCMCFactory",
     "MCMCVerboseFactory",
     "MetricsConfig",
     "MetricsCollectionConfig",

@@ -16,7 +16,7 @@ protected:
     BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
     DegreeCountsMap m_degreeCounts;
-    const MultiGraph* m_graph;
+    // const MultiGraph* m_graphPtr;
 
     void _applyGraphMove(const GraphMove& move) override;
     void _applyLabelMove(const BlockMove& move) override;
@@ -33,6 +33,7 @@ protected:
     void applyGraphMoveToState(const GraphMove&);
     void applyGraphMoveToDegreeCounts(const GraphMove&);
     void applyLabelMoveToDegreeCounts(const BlockMove&);
+    void recomputeConsistentState() ;
 public:
     using BlockLabeledPrior<DegreeSequence>::BlockLabeledPrior;
     /* Constructors */
@@ -52,9 +53,11 @@ public:
         return *this;
     }
 
-    void setGraph(const MultiGraph&);
-    const MultiGraph& getGraph() const { return *m_graph; }
+    // void setGraph(const MultiGraph&);
+    // const MultiGraph& getGraph() const { return *m_graphPtr; }
     virtual void setState(const DegreeSequence&) override;
+    void setPartition(const std::vector<BlockIndex>&) ;
+    static const DegreeCountsMap computeDegreeCounts(const std::vector<size_t>&,  const std::vector<BlockIndex>);
 
     const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }
     BlockPrior& getBlockPriorRef() const { return *m_blockPriorPtr; }
@@ -67,9 +70,7 @@ public:
     }
 
     const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
-    static DegreeCountsMap computeDegreeCounts(const DegreeSequence& degreeSeq, const BlockSequence& blockSeq);
     virtual const DegreeCountsMap& getDegreeCounts() const { return m_degreeCounts; }
-
 
     void samplePriors() override { m_blockPriorPtr->sample(); m_edgeMatrixPriorPtr->sample(); }
 

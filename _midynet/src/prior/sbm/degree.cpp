@@ -14,36 +14,37 @@ using namespace std;
 
 namespace FastMIDyNet{
 
-void DegreePrior::setGraph(const MultiGraph& graph) {
-    m_graph = &graph;
-    m_edgeMatrixPriorPtr->setGraph(graph);
-    const auto& blockSeq = m_blockPriorPtr->getState();
-    const auto& blockCount = m_blockPriorPtr->getBlockCount();
-
-    m_state = graph.getDegrees();
-    m_degreeCounts.clear();
-
-    for (auto vertex: graph){
-        m_degreeCounts.increment({blockSeq[vertex], m_state[vertex]});
-    }
-}
-
-
-void DegreePrior::setState(const DegreeSequence& degreeSeq) {
-    m_degreeCounts = computeDegreeCounts(degreeSeq, m_blockPriorPtr->getState());
-    m_state = degreeSeq;
-}
-
-CounterMap<std::pair<BlockIndex, size_t>> DegreePrior::computeDegreeCounts(const DegreeSequence& degreeSeq, const BlockSequence& blockSeq){
-    if (blockSeq.size() != degreeSeq.size()) throw invalid_argument("blockSeq and degreeSeq have different sizes.");
-    size_t numBlocks = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
-    size_t maxDegree = *max_element(degreeSeq.begin(), degreeSeq.end()) + 1;
+const DegreeCountsMap DegreePrior::computeDegreeCounts(const std::vector<size_t>& degrees,  const std::vector<BlockIndex> blocks){
     DegreeCountsMap degreeCounts;
-    for (size_t i = 0; i < blockSeq.size(); i++) {
-        degreeCounts.increment({blockSeq[i], degreeSeq[i]});
+    for (size_t vertex=0; vertex<degrees.size(); ++vertex){
+        degreeCounts.increment({blocks[vertex], degrees[vertex]});
     }
     return degreeCounts;
 }
+
+void DegreePrior::recomputeConsistentState() {
+    m_degreeCounts = computeDegreeCounts(m_state, m_edgeMatrixPriorPtr->getBlockPrior().getState());
+}
+
+void DegreePrior::setState(const DegreeSequence& state) {
+    m_state = state;
+    recomputeConsistentState();
+}
+
+// void DegreePrior::setGraph(const MultiGraph& graph) {
+//     std::cout << "HERE" << std::endl;
+//     m_graphPtr = &graph;
+//     m_edgeMatrixPriorPtr->setGraph(graph);
+//     m_state = graph.getDegrees();
+//     recomputeState();
+// }
+
+void DegreePrior::setPartition(const std::vector<BlockIndex>& labels){
+    m_edgeMatrixPriorPtr->setPartition(labels);
+    recomputeConsistentState();
+}
+
+
 
 void DegreePrior::applyGraphMoveToState(const GraphMove& move){
     for (auto edge : move.addedEdges){

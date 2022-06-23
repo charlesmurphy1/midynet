@@ -54,6 +54,7 @@ class TestDegreePrior: public ::testing::Test {
         EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(POISSON_MEAN);
         EdgeMatrixUniformPrior edgeMatrixPrior = EdgeMatrixUniformPrior(edgeCountPrior, blockPrior);
         DummyDegreePrior prior = DummyDegreePrior(blockPrior, edgeMatrixPrior);
+        MultiGraph graph = getUndirectedHouseMultiGraph();
 
         bool expectConsistencyError = false;
         void SetUp() {
@@ -66,14 +67,14 @@ class TestDegreePrior: public ::testing::Test {
         }
 };
 
-TEST_F(TestDegreePrior, setGraph_forHouseGraph_applyChangesToDegreeSequence){
-    prior.setGraph(getUndirectedHouseMultiGraph());
-    DegreeSequence expectedDegreeSeq = {4, 3, 5, 5, 2, 3, 0};
-    DegreeSequence actualDegreeSeq = prior.getState();
-    for (size_t i=0; i < 7; ++i){
-        EXPECT_EQ(expectedDegreeSeq[i], actualDegreeSeq[i]);
-    }
-}
+// TEST_F(TestDegreePrior, setGraph_forHouseGraph_applyChangesToDegreeSequence){
+//     prior.setGraph(graph);
+//     DegreeSequence expectedDegreeSeq = {4, 3, 5, 5, 2, 3, 0};
+//     DegreeSequence actualDegreeSeq = prior.getState();
+//     for (size_t i=0; i < 7; ++i){
+//         EXPECT_EQ(expectedDegreeSeq[i], actualDegreeSeq[i]);
+//     }
+// }
 
 // TEST_F(TestDegreePrior, computeDegreeCounts_forLocalDegreeSeqNBlockSeq_returnCorrectDegreeCounts){
 //     blockPrior.setState({0,0,0,0,1,1,1});
@@ -239,7 +240,7 @@ TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMo
     BaseGraph::VertexIndex idx = 0;
     while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
     auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
-    prior.setGraph(g);
+    edgeMatrixPrior.setGraph(g);
     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
     BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
     if (nextBlockIdx == prior.getBlockPrior().getBlockCount())
@@ -294,7 +295,7 @@ TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forSomeLa
     BaseGraph::VertexIndex idx = 0;
     while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
     auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
-    prior.setGraph(g);
+    edgeMatrixPrior.setGraph(g);
     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
     BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
     if (nextBlockIdx == prior.getBlockPrior().getBlockCount())
@@ -311,7 +312,6 @@ TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forSomeLa
 TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forLabelMoveAddingNewBlock_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
     auto g = generateDCSBM(blockPrior.getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
-    prior.setGraph(g);
     BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getVertexCounts().size()};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
 

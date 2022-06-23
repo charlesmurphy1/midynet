@@ -53,10 +53,6 @@ def test_basemetrics_compute(base_metrics):
     base_metrics.compute()
     for name, data in base_metrics.data.items():
         for key, value in data.items():
-            # if name == "test.glauber":
-            #     assert value.shape == (len(self.coupling), len(self.N))
-            # elif name == "test.sis":
-            #     assert value.shape == (len(self.infection_prob), len(self.N))
             assert np.all(value == np.pi)
 
 
@@ -98,7 +94,7 @@ metrics_dict = {
 
 @pytest.fixture(params=[k for k in metrics_dict.keys()])
 def args(request):
-    c = ExperimentConfig.default(
+    c = ExperimentConfig.reconstruction(
         "test",
         "sis",
         "er",

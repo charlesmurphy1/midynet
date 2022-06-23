@@ -1,15 +1,21 @@
 from __future__ import annotations
 from typing import Set
 from _midynet.dynamics import (
-    SISDynamics,
-    GlauberDynamics,
+    Dynamics,
     CowanDynamics,
     DegreeDynamics,
+    SISDynamics,
+    GlauberDynamics,
+    BlockLabeledDynamics,
+    BlockLabeledCowanDynamics,
+    BlockLabeledDegreeDynamics,
+    BlockLabeledSISDynamics,
+    BlockLabeledGlauberDynamics,
 )
 from .config import Config
 from .factory import Factory
 
-__all__ = ("DynamicsConfig", "DynamicsFactory")
+__all__ = ("DynamicsConfig", "DynamicsFactory", "BlockLabeledDynamicsFactory")
 
 
 class DynamicsConfig(Config):
@@ -51,7 +57,7 @@ class DynamicsConfig(Config):
         auto_activation_prob=0,
         auto_deactivation_prob=0,
         normalize: bool = True,
-        num_active: int = 2**31-1,
+        num_active: int = 2**31 - 1,
     ) -> DynamicsConfig:
         return cls(
             name="glauber",
@@ -126,7 +132,7 @@ class DynamicsConfig(Config):
     @classmethod
     def cowan_backward(cls, **kwargs):
         cfg = cls.cowan(**kwargs)
-        cfg.set_value("num_active", 2**31-1)
+        cfg.set_value("num_active", 2**31 - 1)
         return cfg
 
     @classmethod
@@ -137,7 +143,7 @@ class DynamicsConfig(Config):
         auto_activation_prob=0,
         auto_deactivation_prob=0,
         normalize: bool = True,
-        num_active: int = 2**31-1,
+        num_active: int = 2**31 - 1,
     ) -> DynamicsConfig:
         return cls(
             name="degree",
@@ -151,9 +157,42 @@ class DynamicsConfig(Config):
 
 
 class DynamicsFactory(Factory):
+    dynamics: Dict[str, Dynamics] = {
+        "cowan": CowanDynamics,
+        "degree": DegreeDynamics,
+        "glauber": GlauberDynamics,
+        "sis": SISDynamics,
+    }
+    labeled_dynamics: Dict[str, BlockLabeledDynamics] = {
+        "cowan": BlockLabeledCowanDynamics,
+        "degree": BlockLabeledDegreeDynamics,
+        "glauber": BlockLabeledGlauberDynamics,
+        "sis": BlockLabeledSISDynamics,
+    }
+
+    @classmethod
+    def build(cls, config: Config, constructors=None) -> Any:
+        constructors = (
+            DynamicsFactory.dynamics if constructors is None else constructors
+        )
+        if config.unmet_requirements():
+            raise MissingRequirementsError(config)
+        options = {
+            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
+        }
+        name = config.name
+        if name in options:
+            return options[name](config, constructors[name])
+        else:
+            raise OptionError(actual=name, expected=list(options.keys()))
+
+    @classmethod
+    def build_labeled(cls, config: Config):
+        return build(config, DynamicsFactory.labeled_dynamics)
+
     @staticmethod
-    def build_glauber(config: DynamicsConfig) -> GlauberDynamics:
-        return GlauberDynamics(
+    def build_glauber(config: DynamicsConfig, constructor=GlauberDynamics):
+        return constructor(
             config.num_steps,
             config.coupling,
             config.auto_activation_prob,
@@ -163,12 +202,8 @@ class DynamicsFactory(Factory):
         )
 
     @staticmethod
-    def build_ising(config: DynamicsConfig) -> GlauberDynamics:
-        return DynamicsFactory.build_glauber(config)
-
-    @staticmethod
-    def build_sis(config: DynamicsConfig) -> SISDynamics:
-        return SISDynamics(
+    def build_sis(config: DynamicsConfig, constructor=SISDynamics):
+        return constructor(
             config.num_steps,
             config.infection_prob,
             config.recovery_prob,
@@ -179,8 +214,8 @@ class DynamicsFactory(Factory):
         )
 
     @staticmethod
-    def build_cowan(config: DynamicsConfig) -> CowanDynamics:
-        return CowanDynamics(
+    def build_cowan(config: DynamicsConfig, constructor=CowanDynamics):
+        return constructor(
             config.num_steps,
             config.nu,
             config.a,
@@ -193,5 +228,5 @@ class DynamicsFactory(Factory):
         )
 
     @staticmethod
-    def build_degree(config: DynamicsConfig) -> DegreeDynamics:
-        return DegreeDynamics(config.num_steps, config.C)
+    def build_degree(config: DynamicsConfig, constructor=CowanDynamics):
+        return constructor(config.num_steps, config.C)

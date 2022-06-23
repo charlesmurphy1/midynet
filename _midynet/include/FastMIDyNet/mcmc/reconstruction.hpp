@@ -52,8 +52,11 @@ public:
         m_edgeProposerPtr->isRoot(false);
     }
 
-
     const MultiGraph& getGraph() const { return m_dynamicsPtr->getGraph(); }
+    void setGraph(const MultiGraph& graph) const { m_dynamicsPtr->setGraph(graph); m_edgeProposerPtr->setUp(graph); }
+
+    void sample() override { m_dynamicsPtr->sample(); setUp(); }
+    void samplePrior() override { m_dynamicsPtr->sampleGraph(); setUp(); }
     const double getLogLikelihood() const override { return m_dynamicsPtr->getLogLikelihood(); }
     const double getLogPrior() const override { return m_dynamicsPtr->getLogPrior(); }
     const double getLogJoint() const override { return m_dynamicsPtr->getLogJoint(); }
@@ -74,11 +77,12 @@ public:
         m_graphCallBacks.insert(pair);
     }
     void insertCallBack(std::string key, CallBack<GraphReconstructionMCMC<GraphPriorType>>& callback) { insertCallBack({key, &callback}); }
-    virtual void removeCallBack(std::string key, bool force=false) override {
-        MCMC::removeCallBack(key, true);
-        if( m_graphCallBacks.contains(key) )
+    virtual void removeCallBack(std::string key) override {
+        if (m_mcmcCallBacks.contains(key))
             m_graphCallBacks.remove(key);
-        else if ( not force)
+        else if( m_graphCallBacks.contains(key) )
+            m_graphCallBacks.remove(key);
+        else
             throw std::logic_error("GraphReconstructionMCMC: callback of key `" + key + "` cannot be removed.");
     }
     const CallBack<GraphReconstructionMCMC<GraphPriorType>>& getGraphCallBack(std::string key){ return m_graphCallBacks.get(key); }

@@ -41,6 +41,8 @@ public:
     double getBetaLikelihood() const { return m_betaLikelihood; }
     void setBetaLikelihood(double betaLikelihood) { m_betaLikelihood = betaLikelihood; }
 
+    virtual void sample() = 0;
+    virtual void samplePrior() = 0;
     virtual const double getLogLikelihood() const = 0 ;
     virtual const double getLogPrior() const = 0 ;
     virtual const double getLogJoint() const = 0 ;
@@ -49,10 +51,10 @@ public:
         pair.second->setUp(this); m_mcmcCallBacks.insert(pair);
     }
     void insertCallBack(std::string key, CallBack<MCMC>& callback) { insertCallBack({key, &callback}); }
-    virtual void removeCallBack(std::string key, bool force=false) {
+    virtual void removeCallBack(std::string key) {
         if ( m_mcmcCallBacks.contains(key) )
             m_mcmcCallBacks.remove(key);
-        else if ( not force)
+        else
             throw std::logic_error("MCMC: callback of key `" + key + "` cannot be removed.");
     }
     const CallBack<MCMC>& getMCMCCallBack(std::string key){ return m_mcmcCallBacks.get(key); }

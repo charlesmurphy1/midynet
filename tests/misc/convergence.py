@@ -1,11 +1,10 @@
 import pytest
 
 from netrd.distance import Frobenius
-from _midynet.mcmc import DynamicsMCMC
 from midynet.config import (
     DynamicsFactory,
     RandomGraphFactory,
-    RandomGraphMCMCFactory,
+    MCMCFactory,
     ExperimentConfig,
     Wrapper,
 )
@@ -28,25 +27,19 @@ def config():
     return c
 
 
-def mcmc_analysis(c, callbacks=None):
-    g = RandomGraphFactory.build(c.graph)
-    d = DynamicsFactory.build(c.dynamics)
-    d.set_random_graph(g.get_wrap())
-    g_mcmc = RandomGraphMCMCFactory.build(c.graph)
-    mcmc = DynamicsMCMC(
-        d, g_mcmc.get_wrap(), 1, 1, c.graph.sample_graph_prior_prob
-    )
-    d.sample()
-    mcmc.set_up()
-    measure = Frobenius().dist
-    return Wrapper(
-        MCMCConvergenceAnalysis(mcmc, measure, callbacks=callbacks),
-        D_MCMC=mcmc,
-        distance=measure,
-        g_mcmc=g_mcmc,
-        d=d,
-        g=g,
-    )
+# def mcmc_analysis(c, callbacks=None):
+#     mcmc = MCMCFactory.build_reconstruction(c)
+#     mcmc.others["dynamics"].sample()
+#     mcmc.set_up()
+#     measure = Frobenius().dist
+#     return Wrapper(
+#         MCMCConvergenceAnalysis(mcmc, measure, callbacks=callbacks),
+#         D_MCMC=mcmc,
+#         distance=measure,
+#         g_mcmc=g_mcmc,
+#         d=d,
+#         g=g,
+#     )
 
 
 if __name__ == "__main__":

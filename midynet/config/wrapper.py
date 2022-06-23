@@ -8,20 +8,30 @@ class Wrapper:
         if setup_func is not None:
             setup_func(self.__wrapped__, self.__others__)
 
-    def get_wrap(self):
+    @property
+    def wrap(self):
         return self.__wrapped__
 
-    def get_others(self):
+    @property
+    def others(self):
         return self.__others__
 
-    def get_other(self, key):
+    def other(self, key):
         return self.__others__[key]
 
     def __repr__(self):
-        return f"Wrapper({repr(self.__wrapped__)})"
+        return f"Wrapper({repr(self.wrap)})"
 
     def __getattr__(self, key):
         if key in self.__dict__:
             return getattr(self, key)
         else:
-            return getattr(self.__wrapped__, key)
+            return getattr(self.wrap, key)
+        # GET BACK HERE!
+        # if key in self.__dict__:
+        #     return getattr(self, key)
+        # elif key in self.__wrapped__:
+        #     return getattr(self.wrap, key)
+        # elif key in self.__others__:
+        #     return getattr(self.others, key)
+        # raise ValueError(f"Key {key} not found.")

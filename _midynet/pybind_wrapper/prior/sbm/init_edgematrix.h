@@ -21,6 +21,7 @@ void initEdgeMatrixPrior(py::module& m){
         .def("get_edge_count", &EdgeMatrixPrior::getEdgeCount)
         .def("get_edge_counts", &EdgeMatrixPrior::getEdgeCounts)
         .def("get_graph", &EdgeMatrixPrior::getGraph)
+        .def("set_partition", &EdgeMatrixPrior::setPartition)
         .def("get_edge_count_prior", &EdgeMatrixPrior::getEdgeCountPrior)
         .def("set_edge_count_prior", &EdgeMatrixPrior::setEdgeCountPrior)
         .def("get_block_prior", &EdgeMatrixPrior::getBlockPrior)

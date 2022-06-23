@@ -65,12 +65,10 @@ private:
     size_t m_totalCount;
 public:
     using BaseClass = SweepCollector<GraphMCMC>;
-    void setUp(GraphMCMC* mcmcPtr) {
-        BaseClass::setUp(mcmcPtr);
-    }
     void collect() override ;
     void clear() override { m_observedEdges.clear(); m_observedEdgesCount.clear(); m_observedEdgesMaxCount.clear();}
     const double getMarginalEntropy() ;
+    const MultiGraph& getCurrentGraph() { return BaseClass::m_mcmcPtr->getGraph(); }
     const double getLogPosteriorEstimate(const MultiGraph&) ;
     const double getLogPosteriorEstimate() { return getLogPosteriorEstimate(BaseClass::m_mcmcPtr->getGraph()); }
     size_t getTotalCount() const { return m_totalCount; }
@@ -85,7 +83,7 @@ using CollectBlockLabeledEdgeMultiplicityOnSweep = CollectEdgeMultiplicityOnSwee
 template<typename GraphMCMC>
 void CollectEdgeMultiplicityOnSweep<GraphMCMC>::collect(){
     ++m_totalCount;
-    const MultiGraph& graph = BaseClass::m_mcmcPtr->getGraph();
+    const MultiGraph& graph = getCurrentGraph();
 
     for ( auto vertex : graph){
         for (auto neighbor : graph.getNeighboursOfIdx(vertex)){

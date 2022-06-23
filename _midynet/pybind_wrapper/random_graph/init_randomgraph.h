@@ -15,6 +15,8 @@ template<typename Label>
 py::class_<VertexLabeledRandomGraph<Label>, RandomGraph, PyVertexLabeledRandomGraph<Label>> declareVertexLabeledRandomGraph(py::module& m, std::string pyName){
     return py::class_<VertexLabeledRandomGraph<Label>, RandomGraph, PyVertexLabeledRandomGraph<Label>>(m, pyName.c_str())
         .def(py::init<size_t>(), py::arg("size")=0)
+        .def("sample_labels", &VertexLabeledRandomGraph<Label>::sampleLabels)
+        .def("set_labels", &VertexLabeledRandomGraph<Label>::setLabels, py::arg("labels"))
         .def("get_vertex_labels", &VertexLabeledRandomGraph<Label>::getVertexLabels)
         .def("get_label_counts", &VertexLabeledRandomGraph<Label>::getLabelCounts)
         .def("get_edge_label_counts", &VertexLabeledRandomGraph<Label>::getEdgeLabelCounts)

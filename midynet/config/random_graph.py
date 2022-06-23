@@ -30,7 +30,7 @@ __all__ = ("RandomGraphConfig", "RandomGraphFactory")
 
 
 class RandomGraphConfig(Config):
-    requirements: set[str] = {"size"}
+    requirements: set[str] = {"size", "labeled"}
 
     @classmethod
     def custom_sbm(
@@ -40,7 +40,7 @@ class RandomGraphConfig(Config):
         blocks: BlockPriorConfig,
         edge_matrix: EdgeMatrixPriorConfig,
     ):
-        obj = cls(name=name, size=size)
+        obj = cls(name=name, size=size, labeled=True)
         obj.insert("blocks", BlockPriorConfig.auto(blocks))
         obj.insert("edge_matrix", EdgeMatrixPriorConfig.auto(edge_matrix))
         if obj.edge_matrix.edge_count.name == "delta":
@@ -80,6 +80,7 @@ class RandomGraphConfig(Config):
         obj = cls(
             "planted_partition",
             size=size,
+            labeled=True,
             edge_count=edge_count,
             block_count=block_count,
             assortativity=assortativity,
@@ -92,7 +93,7 @@ class RandomGraphConfig(Config):
 
     @classmethod
     def custom_er(cls, name: str, size: int, edge_count: EdgeCountPriorConfig):
-        obj = cls(name=name, size=size)
+        obj = cls(name=name, size=size, labeled=False)
         obj.insert("edge_count", EdgeCountPriorConfig.auto(edge_count))
 
         if obj.edge_count.name == "delta":
@@ -125,7 +126,7 @@ class RandomGraphConfig(Config):
         edge_matrix: EdgeMatrixPriorConfig,
         degrees: DegreePriorConfig,
     ):
-        obj = cls(name=name, size=size)
+        obj = cls(name=name, size=size, labeled=True)
         obj.insert("blocks", BlockPriorConfig.auto(blocks))
         obj.insert("edge_matrix", EdgeMatrixPriorConfig.auto(edge_matrix))
         obj.insert("degrees", DegreePriorConfig.auto(degrees))
@@ -176,7 +177,7 @@ class RandomGraphConfig(Config):
         edge_count: EdgeCountPriorConfig,
         degrees: DegreePriorConfig,
     ):
-        obj = cls(name=name, size=size)
+        obj = cls(name=name, size=size, labeled=False)
         obj.insert("edge_count", EdgeCountPriorConfig.auto(edge_count))
         obj.insert("degrees", DegreePriorConfig.auto(degrees))
         if obj.degrees.name == "delta":
@@ -193,6 +194,7 @@ class RandomGraphConfig(Config):
         obj = cls(
             "poisson_cm",
             size=size,
+            labeled=False,
             edge_count=EdgeCountPriorConfig.auto(edge_count),
         )
         obj.insert("edge_proposer", EdgeProposerConfig.double_swap())
@@ -210,6 +212,7 @@ class RandomGraphConfig(Config):
         obj = cls(
             "nbinom_cm",
             size=size,
+            labeled=False,
             edge_count=EdgeCountPriorConfig.auto(edge_count),
             heterogeneity=heterogeneity,
         )
@@ -272,8 +275,8 @@ class RandomGraphFactory(Factory):
             g,
             setup_func=lambda wrap, others: RandomGraphFactory.setUpSBM(
                 wrap,
-                others["blocks"].get_wrap(),
-                others["edge_matrix"].get_wrap(),
+                others["blocks"].wrap,
+                others["edge_matrix"].wrap,
             ),
             blocks=block_wrapper,
             edge_matrix=edge_matrix_wrapper,
@@ -358,8 +361,8 @@ class RandomGraphFactory(Factory):
             g,
             setup_func=lambda wrap, others: RandomGraphFactory.setUpDCSBM(
                 wrap,
-                others["blocks"].get_wrap(),
-                others["edge_matrix"].get_wrap(),
+                others["blocks"].wrap,
+                others["edge_matrix"].wrap,
                 others["degrees"],
             ),
             blocks=block_wrapper,

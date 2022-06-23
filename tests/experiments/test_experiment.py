@@ -10,7 +10,7 @@ DISPLAY = False
 
 @pytest.fixture
 def experiment():
-    config = ExperimentConfig.default(
+    config = ExperimentConfig.reconstruction(
         "test",
         "sis",
         "er",

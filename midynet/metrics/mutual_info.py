@@ -3,14 +3,8 @@ import numpy as np
 
 from dataclasses import dataclass, field
 from collections import defaultdict
-from _midynet.mcmc import DynamicsMCMC
 from _midynet import utility
-from midynet.config import (
-    Config,
-    DynamicsFactory,
-    RandomGraphFactory,
-    RandomGraphMCMCFactory,
-)
+from midynet.config import Config, MCMCFactory
 from .metrics import Metrics
 from .multiprocess import Expectation
 from .statistics import Statistics
@@ -25,33 +19,15 @@ class MutualInformation(Expectation):
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-        graph = RandomGraphFactory.build(self.config.graph)
-        dynamics = DynamicsFactory.build(self.config.dynamics)
-        dynamics.set_random_graph(graph.get_wrap())
-        random_graph_mcmc = RandomGraphMCMCFactory.build(self.config.graph)
-        dynamics.sample()
-        mcmc = DynamicsMCMC()
-        mcmc.set_dynamics(dynamics)
-        mcmc.set_random_graph_mcmc(random_graph_mcmc.get_wrap())
-        mcmc.set_sample_graph_prior_prob(self.config.graph.sample_graph_prior_prob)
+        mcmc = MCMCFactory.build_reconstruction(self.config)
+        mcmc.sample()
         mcmc.set_up()
-        hxg = -dynamics.get_log_likelihood() / np.log(2)
-        if self.config.metrics.mutualinfo.method == "full-meanfield":
-            hg = -get_log_prior_meanfield(
-                mcmc, self.config.metrics.mutualinfo
-            ) / np.log(2)
-
-            hgx = -get_log_posterior(
-                mcmc, self.config.metrics.mutualinfo, verbose=0
-            ) / np.log(2)
-            hx = hg + hxg - hgx
-        else:
-            hg = -dynamics.get_log_prior() / np.log(2)
-            hx = -get_log_evidence(
-                mcmc, self.config.metrics.mutualinfo, verbose=0
-            ) / np.log(2)
-            hxg = -dynamics.get_log_likelihood() / np.log(2)
-            hgx = hg + hxg - hx
+        hxg = -mcmc.get_log_likelihood() / np.log(2)
+        hg = -mcmc.get_log_prior() / np.log(2)
+        hx = -get_log_evidence(
+            mcmc, self.config.metrics.mutualinfo, verbose=0
+        ) / np.log(2)
+        hgx = hg + hxg - hx
         mi = hg - hgx
         out = {"hx": hx, "hg": hg, "hxg": hxg, "hgx": hgx, "mi": mi}
         return out

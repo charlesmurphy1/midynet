@@ -69,7 +69,7 @@ public:
     }
 
     /* Accessors & mutators of attributes */
-    const size_t& getSize() const { return m_size; }
+    const size_t getSize() const { return m_size; }
     void setSize(size_t size) { m_size = size; }
 
     /* Accessors & mutators of accessory states */
@@ -80,10 +80,11 @@ public:
         m_blockCountPriorPtr->isRoot(false);
     }
 
-    const size_t& getBlockCount() const { return m_blockCountPriorPtr->getState(); }
+    const size_t getBlockCount() const { return m_blockCountPriorPtr->getState(); }
+    const size_t getMaxBlockCount() const { return *max_element(m_state.begin(), m_state.end()) + 1; }
     const size_t getEffectiveBlockCount() const { return m_vertexCounts.size(); }
     const CounterMap<size_t>& getVertexCounts() const { return m_vertexCounts; };
-    const BlockIndex& getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
+    const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
     static CounterMap<size_t> computeVertexCounts(const BlockSequence&);
 
 

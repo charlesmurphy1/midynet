@@ -30,11 +30,10 @@ namespace FastMIDyNet{
         callback.onSweepEnd();\
     }\
 
-#define COLLECTOR_TESTS(CALLBACK_TESTSUITE, GETTER)\
+#define COLLECTOR_TESTS(CALLBACK_TESTSUITE)\
     CALLBACK_TESTS(CALLBACK_TESTSUITE);\
-    TEST_F(CALLBACK_TESTSUITE, onSweepEnd_collect_expectVectorNotEmpty){\
-        callback.onSweepEnd();\
-        EXPECT_EQ(callback.GETTER().size(), 1);\
+    TEST_F(CALLBACK_TESTSUITE, collect){\
+        callback.collect();\
     }\
 
 
@@ -65,7 +64,7 @@ public:
         mcmc.setUp();
     }
 };
-COLLECTOR_TESTS(TestCollectGraphOnSweep, getGraphs);
+COLLECTOR_TESTS(TestCollectGraphOnSweep);
 
 class TestCollectEdgeMultiplicityOnSweep: public::testing::Test{
 public:
@@ -81,7 +80,7 @@ public:
         mcmc.setUp();
     }
 };
-CALLBACK_TESTS(TestCollectEdgeMultiplicityOnSweep);
+COLLECTOR_TESTS(TestCollectEdgeMultiplicityOnSweep);
 
 class TestCollectLikelihoodOnSweep: public::testing::Test{
 public:
@@ -97,7 +96,7 @@ public:
         mcmc.setUp();
     }
 };
-COLLECTOR_TESTS(TestCollectLikelihoodOnSweep, getLogLikelihoods);
+COLLECTOR_TESTS(TestCollectLikelihoodOnSweep);
 
 class TestCollectPriorOnSweep: public::testing::Test{
 public:
@@ -113,7 +112,7 @@ public:
         mcmc.setUp();
     }
 };
-COLLECTOR_TESTS(TestCollectPriorOnSweep, getLogPriors);
+COLLECTOR_TESTS(TestCollectPriorOnSweep);
 
 class TestCollectJointOnSweep: public::testing::Test{
 public:
@@ -129,7 +128,7 @@ public:
         mcmc.setUp();
     }
 };
-COLLECTOR_TESTS(TestCollectJointOnSweep, getLogJoints);
+COLLECTOR_TESTS(TestCollectJointOnSweep);
 
 class TestTimerVerbose: public::testing::Test{
 public:

@@ -41,6 +41,9 @@ public:
     LabelProposer<Label>& getLabelProposerRef(){ return *m_labelProposerPtr; }
 
     const std::vector<Label>& getVertexLabels() const { return m_graphPriorPtr->getVertexLabels(); }
+
+    void sample() override { m_graphPriorPtr->sample(); }
+    void samplePrior() override { m_graphPriorPtr->sampleLabels(); }
     const double getLogLikelihood() const override { return m_graphPriorPtr->getLogLikelihood(); }
     const double getLogPrior() const override { return m_graphPriorPtr->getLogPrior(); }
     const double getLogJoint() const override { return m_graphPriorPtr->getLogJoint(); }
@@ -61,11 +64,12 @@ public:
         m_labelCallBacks.insert(pair);
     }
     void insertCallBack(std::string key, CallBack<VertexLabelMCMC<Label>>& callback) { insertCallBack({key, &callback}); }
-    void removeCallBack(std::string key, bool force=false) override {
-        MCMC::removeCallBack(key, true);
+    void removeCallBack(std::string key) override {
+        if ( m_mcmcCallBacks.contains(key) )
+            m_mcmcCallBacks.remove(key);
         if( m_labelCallBacks.contains(key) )
             m_labelCallBacks.remove(key);
-        else if ( not force)
+        else
             throw std::logic_error("VertexLabelMCMC: callback of key `" + key + "` cannot be removed.");
     }
     const CallBack<VertexLabelMCMC<Label>>& getLabelCallBack(std::string key){ return m_labelCallBacks.get(key); }
