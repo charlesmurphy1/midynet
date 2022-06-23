@@ -45,10 +45,10 @@ class MCMCFactory(Factory):
 
     @staticmethod
     def build_community(config: RandomGraphConfig):
-        graph = RandomGraphFactory.build(config)
+        graph = RandomGraphFactory.build(config.graph)
         if config.graph.labeled:
-            block_proposer = BlockProposerFactory.build(graph.block_proposer)
-            mcmc = BlockLabelMCMC(dynamics, block_proposer)
+            block_proposer = BlockProposerFactory.build(config.graph.block_proposer)
+            mcmc = BlockLabelMCMC(graph.wrap, block_proposer)
             return Wrapper(mcmc, graph=graph, block_proposer=block_proposer)
         return None
 
