@@ -33,11 +33,12 @@ struct GraphMove{
 
 template <typename Label>
 struct LabelMove{
-    LabelMove(BaseGraph::VertexIndex vertexIndex, Label prevLabel, Label nextLabel):
-        vertexIndex(vertexIndex), prevLabel(prevLabel), nextLabel(nextLabel){ }
+    LabelMove(BaseGraph::VertexIndex vertexIndex, Label prevLabel, Label nextLabel, int addedBlocks=0):
+        vertexIndex(vertexIndex), prevLabel(prevLabel), nextLabel(nextLabel), addedBlocks(addedBlocks){ }
     BaseGraph::VertexIndex vertexIndex;
     Label prevLabel;
     Label nextLabel;
+    int addedBlocks;
 
     void display()const{
         std::cout << "vertex " << vertexIndex << ": " << prevLabel << " -> " << nextLabel;

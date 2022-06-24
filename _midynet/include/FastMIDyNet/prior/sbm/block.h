@@ -21,6 +21,7 @@ protected:
     size_t m_size;
     BlockCountPrior* m_blockCountPriorPtr = nullptr;
     CounterMap<size_t> m_vertexCounts;
+    bool m_allowEmptyBlocks = false;
 
     void _applyGraphMove(const GraphMove&) override { };
     void _applyLabelMove(const BlockMove& move) override {
@@ -86,8 +87,6 @@ public:
     const CounterMap<size_t>& getVertexCounts() const { return m_vertexCounts; };
     const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
     static CounterMap<size_t> computeVertexCounts(const BlockSequence&);
-
-
 
     /* sampling methods */
     void samplePriors() override {

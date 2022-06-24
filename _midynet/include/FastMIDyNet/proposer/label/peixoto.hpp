@@ -15,14 +15,11 @@ namespace FastMIDyNet {
 template<typename Label>
 class LabelPeixotoProposer: public LabelProposer<Label> {
 private:
-    const double m_labelCreationProb;
     const double m_shift;
     mutable std::uniform_real_distribution<double> m_uniform01 = std::uniform_real_distribution<double>(0., 1.);
-    mutable std::bernoulli_distribution m_createNewLabelDistribution;
 public:
     LabelPeixotoProposer(double labelCreationProb=0.1, double shift=1):
-        m_createNewLabelDistribution(labelCreationProb),
-        m_labelCreationProb(labelCreationProb),
+        LabelProposer<Label>(labelCreationProb),
         m_shift(shift) {
         assertValidProbability(labelCreationProb);
     }
@@ -32,7 +29,6 @@ public:
     const double getLogProposalProbRatio(const LabelMove<Label>& move) const override{
         return getReverseLogProposalProb(move) - getLogProposalProb(move);
     }
-    const double getNewLabelProb() const { return m_labelCreationProb; }
     const double getShift() const { return m_shift; }
 protected:
     IntMap<std::pair<Label, Label>> getEdgeMatrixDiff(const LabelMove<Label>& move) const ;
@@ -54,7 +50,7 @@ const LabelMove<Label> LabelPeixotoProposer<Label>::proposeMove(const BaseGraph:
 
     Label prevLabel = labels[movedVertex], nextLabel;
     size_t B = this->m_labelCountsPtr->size();
-    if (m_createNewLabelDistribution(rng) == 1)
+    if (LabelProposer<Label>::m_createNewLabelDistribution(rng) == 1)
         return {movedVertex, prevLabel, B};
     if ( graph.getDegreeOfIdx(movedVertex) == 0 ){
         std::uniform_int_distribution<size_t> dist(0, B-1);
@@ -96,7 +92,7 @@ const double LabelPeixotoProposer<Label>::getLogProposalProb(const LabelMove<Lab
 
     size_t B = this->m_labelCountsPtr->size();
     if ( this->creatingNewLabel(move) )
-         return log(m_labelCreationProb);
+         return log(LabelProposer<Label>::m_labelCreationProb);
     double weight = 0, degree = 0;
     for (auto neighbor : graph.getNeighboursOfIdx(move.vertexIndex)){
         if (move.vertexIndex == neighbor.vertexIndex)
@@ -110,8 +106,8 @@ const double LabelPeixotoProposer<Label>::getLogProposalProb(const LabelMove<Lab
     }
 
     if (degree == 0)
-       return log(1 - m_labelCreationProb) - log(B);
-    double logProposal = log(1 - m_labelCreationProb) + log(weight) - log(degree);
+       return log(1 - LabelProposer<Label>::m_labelCreationProb) - log(B);
+    double logProposal = log(1 - LabelProposer<Label>::m_labelCreationProb) + log(weight) - log(degree);
     return logProposal;
 }
 
@@ -156,7 +152,7 @@ const double LabelPeixotoProposer<Label>::getReverseLogProposalProb(const LabelM
     int addedBlocks = this->getAddedLabels(move) ;
     size_t B = this->m_labelCountsPtr->size() + addedBlocks;
     if ( this->destroyingLabel(move) )
-         return log(m_labelCreationProb);
+         return log(LabelProposer<Label>::m_labelCreationProb);
 
     auto edgeMatDiff = getEdgeMatrixDiff(move);
     auto edgeCountsDiff = getEdgeCountsDiff(move);
@@ -174,8 +170,8 @@ const double LabelPeixotoProposer<Label>::getReverseLogProposalProb(const LabelM
     }
 
     if (degree == 0)
-       return log(1 - m_labelCreationProb) - log(B);
-    double logReverseProposal = log(1 - m_labelCreationProb) + log ( weight ) - log( degree );
+       return log(1 - LabelProposer<Label>::m_labelCreationProb) - log(B);
+    double logReverseProposal = log(1 - LabelProposer<Label>::m_labelCreationProb) + log ( weight ) - log( degree );
     return logReverseProposal;
 }
 
