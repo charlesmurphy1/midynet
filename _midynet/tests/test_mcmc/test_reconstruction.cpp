@@ -48,7 +48,7 @@ class TestVertexLabeledGraphReconstructionMCMC: public::testing::Test{
 public:
     DummySBM randomGraph = DummySBM();
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    BlockUniformProposer blockProposer = BlockUniformProposer();
+    GibbsUniformLabelProposer<BlockIndex> blockProposer = GibbsUniformLabelProposer<BlockIndex>();
     DummyLabeledDynamics dynamics = DummyLabeledDynamics(randomGraph);
     VertexLabeledGraphReconstructionMCMC<BlockIndex> mcmc = VertexLabeledGraphReconstructionMCMC<BlockIndex>(dynamics, edgeProposer, blockProposer);
     bool expectConsistencyError = false;

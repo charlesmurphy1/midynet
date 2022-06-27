@@ -11,52 +11,229 @@
 
 namespace FastMIDyNet{
 
-const double NEW_BLOCK_PROBABILITY = .1;
-const size_t BLOCK_COUNT = 2;
-const size_t GRAPH_SIZE = 5, EDGE_COUNT=6;
-const FastMIDyNet::BlockSequence BLOCK_SEQUENCE = {0, 0, 1, 0, 0};
-
-class TestBlockUniformProposer: public::testing::Test {
-    public:
-        BlockCountPoissonPrior blockCountPrior = {BLOCK_COUNT};
-        BlockUniformPrior blockPrior = {GRAPH_SIZE, blockCountPrior};
-        EdgeCountPoissonPrior edgeCountPrior = {EDGE_COUNT};
-        EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
-        StochasticBlockModelFamily randomGraph = {GRAPH_SIZE, blockPrior, edgeMatrixPrior};
-
-        BlockUniformProposer proposer = FastMIDyNet::BlockUniformProposer(NEW_BLOCK_PROBABILITY);
-
-        void SetUp() {
-            blockCountPrior.setState(BLOCK_COUNT);
-            blockPrior.setState(BLOCK_SEQUENCE);
-            proposer.setUp(randomGraph);
-            proposer.checkSafety();
-        }
-        void TearDown() {
-            proposer.checkConsistency();
-        }
+class TestGibbsUniformBlockProposer: public::testing::Test {
+public:
+    double SAMPLE_LABEL_PROB=0.1, LABEL_CREATION_PROB=0.5;
+    size_t numSamples = 1000;
+    DummySBMGraph graphPrior;
+    GibbsUniformBlockProposer proposer = GibbsUniformBlockProposer(SAMPLE_LABEL_PROB, LABEL_CREATION_PROB);
+    void SetUp(){
+        seedWithTime();
+        graphPrior.sample();
+        proposer.setUp(graphPrior);
+        proposer.checkSafety();
+    }
+    void TearDown(){
+        proposer.checkConsistency();
+    }
 };
 
-TEST_F(TestBlockUniformProposer, getLogProposalProbRatio_sameBlockmove_return0) {
-    FastMIDyNet::BlockMove move = {0, 0, 0};
-    EXPECT_EQ(proposer.getLogProposalProbRatio(move), 0);
+TEST_F(TestGibbsUniformBlockProposer, proposeLabelMove_returnValidMove){
+    std::vector<double> counts(3, 0);
+    for (size_t i = 0; i < numSamples; i++) {
+        auto move = proposer.proposeLabelMove(0);
+        ++counts[move.nextLabel];
+        EXPECT_EQ(move.prevLabel, graphPrior.getLabelOfIdx(0));
+        EXPECT_TRUE(move.addedLabels == 0);
+    }
+    for (auto c : counts)
+        EXPECT_NEAR(c / numSamples, 1./graphPrior.getLabelCount(), 1e-1);
 }
 
-TEST_F(TestBlockUniformProposer, getLogProposalProbRatio_moveBetweenExistingAndNonEmptyBlocks_return0) {
-    FastMIDyNet::BlockMove move = {0, 0, 1};
-    EXPECT_EQ(proposer.getLogProposalProbRatio(move), 0);
+TEST_F(TestGibbsUniformBlockProposer, proposeNewLabelMove_returnValidMove){
+    for (size_t i = 0; i < numSamples; i++) {
+        auto move = proposer.proposeNewLabelMove(0);
+        EXPECT_EQ(move.prevLabel, graphPrior.getLabelOfIdx(0));
+        EXPECT_EQ(move.nextLabel, graphPrior.getLabelOfIdx(0));
+        EXPECT_TRUE(move.addedLabels != 0);
+    }
 }
 
-TEST_F(TestBlockUniformProposer, getLogProposalProbRatio_createNewBlock_returnCorrectRatio) {
-    FastMIDyNet::BlockMove move = {0, 0, 2};
-    EXPECT_EQ(proposer.getLogProposalProbRatio(move),
-            -log(NEW_BLOCK_PROBABILITY)+log(1-NEW_BLOCK_PROBABILITY)-log(BLOCK_COUNT));
+TEST_F(TestGibbsUniformBlockProposer, getLogProposalProb_forStandardBlockMove_returnCorrectProb){
+    for (size_t i = 0; i < numSamples; i++) {
+        auto move = proposer.proposeLabelMove(0);
+        double logProb = proposer.getLogProposalProb(move, false);
+        EXPECT_EQ(logProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getLabelCount())) ;
+    }
 }
 
-TEST_F(TestBlockUniformProposer, getLogProposalProbRatio_destroyBlock_returnCorrectRatio) {
-    FastMIDyNet::BlockMove move = {2, 1, 0};
-    EXPECT_EQ(proposer.getLogProposalProbRatio(move),
-            log(BLOCK_COUNT-1)-log(1-NEW_BLOCK_PROBABILITY)+log(NEW_BLOCK_PROBABILITY));
+TEST_F(TestGibbsUniformBlockProposer, getLogReverseProposalProb_forStandardBlockMove_returnCorrectProb){
+    for (size_t i = 0; i < numSamples; i++) {
+        auto move = proposer.proposeLabelMove(0);
+        double logProb = proposer.getLogProposalProb(move, true);
+        EXPECT_EQ(logProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getLabelCount()) + move.addedLabels) ;
+    }
+}
+
+TEST_F(TestGibbsUniformBlockProposer, applyLabelMove_forStandardBlockMove_doNothing){
+    auto move = proposer.proposeLabelMove(0);
+    proposer.applyLabelMove(move);
+}
+
+TEST_F(TestGibbsUniformBlockProposer, getLogProposalProb_forBlockMoveChangingBlockCount_returnCorrectProb){
+    for (size_t i = 0; i < numSamples; i++) {
+        auto move = proposer.proposeNewLabelMove(0);
+        double logProb = proposer.getLogProposalProb(move, false);
+        EXPECT_EQ(logProb, log(SAMPLE_LABEL_PROB)) ;
+    }
+}
+
+TEST_F(TestGibbsUniformBlockProposer, getLogReverseProposalProb_forBlockMoveChangingBlockCount_returnCorrectProb){
+    for (size_t i = 0; i < numSamples; i++) {
+        auto move = proposer.proposeNewLabelMove(0);
+        double logProb = proposer.getLogProposalProb(move, true);
+        EXPECT_EQ(logProb, log(SAMPLE_LABEL_PROB)) ;
+    }
+}
+
+TEST_F(TestGibbsUniformBlockProposer, applyLabelMove_forBlockMoveChangingBlockCount_doNothing){
+    auto move = proposer.proposeNewLabelMove(0);
+    proposer.applyLabelMove(move);
+}
+
+
+class DummyRestrictedUniformBlockProposer: public RestrictedUniformBlockProposer{
+public:
+    using RestrictedUniformBlockProposer::RestrictedUniformBlockProposer;
+    const std::set<BlockIndex>& getEmptylabels() { return m_emptyLabels; }
+    const std::set<BlockIndex>& getAvailableLabels() { return m_availableLabels; }
+};
+
+class TestRestrictedUniformBlockProposer: public::testing::Test {
+public:
+    double SAMPLE_LABEL_PROB=0.1;
+    size_t numSamples = 1000;
+    DummyRestrictedSBMGraph graphPrior;
+    DummyRestrictedSBMGraph smallGraphPrior = DummyRestrictedSBMGraph(5);
+    DummyRestrictedUniformBlockProposer proposer = DummyRestrictedUniformBlockProposer(SAMPLE_LABEL_PROB);
+    void SetUp(){
+        seedWithTime();
+        graphPrior.sample();
+        smallGraphPrior.sample();
+        proposer.setUp(graphPrior);
+        proposer.checkSafety();
+    }
+    void TearDown(){
+        proposer.checkConsistency();
+    }
+};
+
+TEST_F(TestRestrictedUniformBlockProposer, proposeLabelMove_returnValidMove){
+    std::vector<double> counts(3, 0);
+    for (size_t i = 0; i < numSamples; i++) {
+        auto move = proposer.proposeLabelMove(0);
+        ++counts[move.nextLabel];
+        EXPECT_EQ(move.prevLabel, graphPrior.getLabelOfIdx(0));
+        EXPECT_TRUE(move.addedLabels == 0);
+    }
+    for (auto c : counts)
+        EXPECT_NEAR(c / numSamples, 1./graphPrior.getLabelCount(), 1e-1);
+}
+
+TEST_F(TestRestrictedUniformBlockProposer, proposeNewLabelMove_returnValidMove){
+    auto move = proposer.proposeNewLabelMove(0);
+    EXPECT_EQ(move.prevLabel, graphPrior.getLabelOfIdx(0));
+    EXPECT_EQ(move.nextLabel, graphPrior.getLabelCount());
+    EXPECT_TRUE(move.addedLabels == 1);
+}
+
+TEST_F(TestRestrictedUniformBlockProposer, proposeLabelMove_forMoveDestroyingLabel_returnValidMove){
+    proposer.setUp(smallGraphPrior);
+    auto move = proposer.proposeLabelMove(0);
+    while(smallGraphPrior.getLabelCounts().get(move.prevLabel) != 1){
+        smallGraphPrior.sample();
+        proposer.setUp(smallGraphPrior);
+        move = proposer.proposeLabelMove(0);
+    }
+    EXPECT_EQ(move.prevLabel, smallGraphPrior.getLabelOfIdx(0));
+    EXPECT_EQ(move.addedLabels, (move.prevLabel != move.nextLabel) ? -1 : 0);
+}
+
+TEST_F(TestRestrictedUniformBlockProposer, getLogProposalProb_forStandardBlockMove_returnCorrectProb){
+    for (size_t i = 0; i < numSamples; i++) {
+        auto move = proposer.proposeLabelMove(0);
+        double logProb = proposer.getLogProposalProb(move, false);
+        EXPECT_EQ(logProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getLabelCount())) ;
+    }
+}
+
+TEST_F(TestRestrictedUniformBlockProposer, getLogProposalProb_forBlockMoveAddingLabel_returnCorrectProb){
+    for (size_t i = 0; i < numSamples; i++) {
+        auto move = proposer.proposeNewLabelMove(0);
+        double logProb = proposer.getLogProposalProb(move, false);
+        EXPECT_EQ(logProb, log(SAMPLE_LABEL_PROB)) ;
+    }
+}
+
+TEST_F(TestRestrictedUniformBlockProposer, getLogProposalProb_forBlockMoveDestroyingLabel_returnCorrectProb){
+    proposer.setUp(smallGraphPrior);
+    auto move = proposer.proposeLabelMove(0);
+    while(smallGraphPrior.getLabelCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
+        smallGraphPrior.sample();
+        proposer.setUp(smallGraphPrior);
+        move = proposer.proposeLabelMove(0);
+    }
+    double logProb = proposer.getLogProposalProb(move, false);
+    EXPECT_EQ(logProb, log(1 - SAMPLE_LABEL_PROB) - log(proposer.getAvailableLabels().size())) ;
+}
+
+TEST_F(TestRestrictedUniformBlockProposer, getLogReverseProposalProb_forStandardBlockMove_returnCorrectProb){
+    for (size_t i = 0; i < numSamples; i++) {
+        auto move = proposer.proposeLabelMove(0);
+        double logProb = proposer.getLogProposalProb(move, true);
+        EXPECT_EQ(logProb, log(1 - SAMPLE_LABEL_PROB) - log(proposer.getAvailableLabels().size())) ;
+    }
+}
+
+TEST_F(TestRestrictedUniformBlockProposer, getLogReverseProposalProb_forBlockMoveAddingLabel_returnCorrectProb){
+    for (size_t i = 0; i < numSamples; i++) {
+        auto move = proposer.proposeNewLabelMove(0);
+        double logProb = proposer.getLogProposalProb(move, true);
+        EXPECT_EQ(logProb, log(1 - SAMPLE_LABEL_PROB) - log(proposer.getAvailableLabels().size() + move.addedLabels)) ;
+    }
+}
+
+TEST_F(TestRestrictedUniformBlockProposer, getLogReverseProposalProb_forBlockMoveDestroyingLabel_returnCorrectProb){
+    proposer.setUp(smallGraphPrior);
+    auto move = proposer.proposeLabelMove(0);
+    while(smallGraphPrior.getLabelCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
+        smallGraphPrior.sample();
+        proposer.setUp(smallGraphPrior);
+        move = proposer.proposeLabelMove(0);
+    }
+    double logProb = proposer.getLogProposalProb(move, true);
+    EXPECT_EQ(logProb, log(SAMPLE_LABEL_PROB)) ;
+}
+
+TEST_F(TestRestrictedUniformBlockProposer, applyLabelMove_forStandardBlockMove_doNothing){
+    const auto empties = proposer.getEmptylabels(), avails = proposer.getAvailableLabels();
+    auto move = proposer.proposeLabelMove(0);
+    proposer.applyLabelMove(move);
+    EXPECT_EQ(empties, proposer.getEmptylabels());
+    EXPECT_EQ(avails, proposer.getAvailableLabels());
+}
+
+TEST_F(TestRestrictedUniformBlockProposer, applyLabelMove_forBlockMoveAddingLabel){
+    const auto empties = proposer.getEmptylabels(), avails = proposer.getAvailableLabels();
+    auto move = proposer.proposeNewLabelMove(0);
+    proposer.applyLabelMove(move);
+    if (empties.size() > 1) EXPECT_NE(empties, proposer.getEmptylabels()); else EXPECT_EQ(empties, proposer.getEmptylabels());
+    EXPECT_NE(avails, proposer.getAvailableLabels());
+}
+
+TEST_F(TestRestrictedUniformBlockProposer, applyLabelMove_forBlockMoveDestroyingLabel){
+    proposer.setUp(smallGraphPrior);
+    auto empties = proposer.getEmptylabels(), avails = proposer.getAvailableLabels();
+    auto move = proposer.proposeLabelMove(0);
+    while(smallGraphPrior.getLabelCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
+        smallGraphPrior.sample();
+        proposer.setUp(smallGraphPrior);
+        empties = proposer.getEmptylabels(), avails = proposer.getAvailableLabels();
+        move = proposer.proposeLabelMove(0);
+    }
+    proposer.applyLabelMove(move);
+    EXPECT_NE(empties, proposer.getEmptylabels());
+    EXPECT_EQ(avails, proposer.getAvailableLabels());
 }
 
 }

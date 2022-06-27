@@ -67,6 +67,7 @@ protected:
 public:
     using RandomGraph::RandomGraph;
     virtual const std::vector<Label>& getVertexLabels() const = 0;
+    virtual const size_t getLabelCount() const = 0;
     virtual const CounterMap<Label>& getLabelCounts() const = 0;
     virtual const CounterMap<Label>& getEdgeLabelCounts() const = 0;
     virtual const MultiGraph& getLabelGraph() const = 0;

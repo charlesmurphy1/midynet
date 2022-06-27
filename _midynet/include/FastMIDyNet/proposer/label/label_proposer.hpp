@@ -14,33 +14,29 @@ namespace FastMIDyNet {
 template<typename Label>
 class LabelProposer: public Proposer<LabelMove<Label>> {
 protected:
-    using MoveType = LabelMove<Label>;
     const VertexLabeledRandomGraph<Label>* m_graphPriorPtr = nullptr;
     mutable std::uniform_int_distribution<BaseGraph::VertexIndex> m_vertexDistribution;
-    const double m_sampleLabelCountProb;
     mutable std::uniform_real_distribution<double> m_uniform01 = std::uniform_real_distribution<double>(0, 1);
-    Label m_nextNewLabel;
+    const double m_sampleLabelCountProb;
 
-    virtual void initNewLabel() = 0;
 public:
     LabelProposer(double sampleLabelCountProb=0.1):
         m_sampleLabelCountProb(sampleLabelCountProb) { }
-    void setUp(const VertexLabeledRandomGraph<Label>& randomGraph) {
-        m_graphPriorPtr = &randomGraph;
-        m_vertexDistribution = std::uniform_int_distribution<BaseGraph::VertexIndex>(0, randomGraph.getSize() - 1);
-        initNewLabel();
+    virtual void setUp(const VertexLabeledRandomGraph<Label>& graphPrior) {
+        m_graphPriorPtr = &graphPrior;
+        m_vertexDistribution = std::uniform_int_distribution<BaseGraph::VertexIndex>(0, graphPrior.getSize() - 1);
     }
-    virtual const double getLogProposalProbRatio(const MoveType& move) const = 0;
-    virtual void applyGraphMove(const GraphMove& move) {};
-    virtual void applyLabelMove(const MoveType& move) = 0;
+    const double getLogProposalProbRatio(const LabelMove<Label>& move) const {
+        return getLogProposalProb(move, true) - getLogProposalProb(move);
+    }
+    virtual const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const = 0;
     const double getSampleLabelCountProb() const { return m_sampleLabelCountProb; }
-    virtual const MoveType proposeLabelMove(const BaseGraph::VertexIndex&) const = 0;
+    virtual void applyLabelMove(const LabelMove<Label>& move) { };
+    virtual const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex&) const = 0;
+    virtual const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex&) const = 0;
 
-    const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const {
-        return {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), m_nextNewLabel, 1};
-    }
 
-    const MoveType proposeMove() const {
+    const LabelMove<Label> proposeMove() const {
         BaseGraph::VertexIndex vertex = m_vertexDistribution(rng);
         if (m_uniform01(rng) < m_sampleLabelCountProb)
             return proposeNewLabelMove(vertex);
@@ -53,50 +49,84 @@ public:
 };
 
 template<typename Label>
-class UnrestrictedLabelProposer: public LabelProposer<Label>{
+class GibbsLabelProposer: public LabelProposer<Label>{
 protected:
     double m_labelCreationProb;
     using BaseClass = LabelProposer<Label>;
-    using BaseClass::m_nextNewLabel;
     using BaseClass::m_graphPriorPtr;
-    void initNewLabel() override { m_nextNewLabel = m_graphPriorPtr->getLabelCount();}
+    using BaseClass::m_uniform01;
+    using BaseClass::m_vertexDistribution;
+    using BaseClass::m_sampleLabelCountProb;
+    virtual const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const = 0;
+    virtual const double getLogProposalProbForMove(const LabelMove<Label>& move) const = 0;
+
 public:
-    UnrestrictedLabelProposer(double labelCreationProb=0.5, double sampleLabelCountProb=0.1):
+    GibbsLabelProposer(double sampleLabelCountProb=0.1, double labelCreationProb=0.5):
         LabelProposer<Label>(sampleLabelCountProb), m_labelCreationProb(labelCreationProb) {}
-    virtual void applyLabelMove(const LabelMove<Label>& move) override { initNewLabel(); }
+    const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
+        int addedLabels = ( m_uniform01(rng) < m_labelCreationProb ) ? 1 : -1;
+        return {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), m_graphPriorPtr->getLabelOfIdx(vertex), addedLabels};
+    }
+
+    const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const override {
+        if ( move.addedLabels != 0 )
+            return log(m_sampleLabelCountProb);
+        return log(1 - m_sampleLabelCountProb) + ((reverse) ? getLogProposalProbForReverseMove(move) :  getLogProposalProbForMove(move));
+    }
 };
 
 template<typename Label>
 class RestrictedLabelProposer: public LabelProposer<Label>{
 protected:
     std::set<Label> m_emptyLabels, m_availableLabels;
-    void initNewLabel() override { m_nextNewLabel = m_labelCountsPtr->getSize();}
     bool creatingNewLabel(const LabelMove<Label>& move) const {
-        return m_labelCountsPtr->get(move.nextLabel) == 0;
+        return m_graphPriorPtr->getLabelCounts().get(move.nextLabel) == 0;
     };
     bool destroyingLabel(const LabelMove<Label>& move) const {
-        return move.prevLabel != move.nextLabel and m_labelCountsPtr->get(move.prevLabel) == 1 ;
+        return move.prevLabel != move.nextLabel and m_graphPriorPtr->getLabelCounts().get(move.prevLabel) == 1 ;
     }
-    const int getAddedLabels(const LabelMove<Label>& move) const {
+    int getAddedLabels(const LabelMove<Label>& move) const {
         return (int) creatingNewLabel(move) - (int) destroyingLabel(move);
     }
     using BaseClass = LabelProposer<Label>;
-    using BaseClass::m_labelsPtr;
-    using BaseClass::m_labelCountsPtr;
-    using BaseClass::m_nextNewLabel;
+    using BaseClass::m_graphPriorPtr;
+    using BaseClass::m_uniform01;
+    using BaseClass::m_vertexDistribution;
+    using BaseClass::m_sampleLabelCountProb;
+    virtual const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const = 0;
+    virtual const double getLogProposalProbForMove(const LabelMove<Label>& move) const = 0;
+
 public:
     using LabelProposer<Label>::LabelProposer;
+    const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
+        Label nextLabel = *sampleUniformlyFrom(m_emptyLabels.begin(), m_emptyLabels.end());
+        LabelMove<Label> move = {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), nextLabel};
+        move.addedLabels = getAddedLabels(move);
+        return move;
+    }
+    void setUp(const VertexLabeledRandomGraph<Label>& graphPrior) override {
+        BaseClass::setUp(graphPrior);
+        m_emptyLabels.clear();
+        m_emptyLabels.insert(m_graphPriorPtr->getLabelCount());
+        for (const auto& nr: graphPrior.getLabelCounts())
+            m_availableLabels.insert(nr.first);
+    }
+
+    const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const override {
+        if ( move.addedLabels == ((reverse) ? -1 : 1 ))
+            return log(m_sampleLabelCountProb);
+        return log(1 - m_sampleLabelCountProb) + ((reverse) ? getLogProposalProbForReverseMove(move) :  getLogProposalProbForMove(move));
+    }
 
     virtual void applyLabelMove(const LabelMove<Label>& move) override {
-        if ( destroyingLabel(move) )
+        if ( move.addedLabels == -1 )
             m_emptyLabels.insert(move.prevLabel);
-        if ( creatingNewLabel(move) ){
+        if ( move.addedLabels == 1 ){
             m_availableLabels.insert(move.nextLabel);
-            if (m_emptyLabels.size() == 0)
-                ++m_nextNewLabel;
-            else
-                m_nextNewLabel = sampleUniformlyFrom(m_emptyLabels.begin(), m_emptyLabels.end());
+            m_emptyLabels.erase(move.nextLabel);
         }
+        if (m_emptyLabels.size() == 0)
+            m_emptyLabels.insert(m_graphPriorPtr->getLabelCount());
     }
 
 

@@ -72,6 +72,7 @@ public:
     }
 
     const BlockSequence& getVertexLabels() const override { return m_blockPriorPtr->getState(); }
+    const size_t getLabelCount() const override { return m_blockPriorPtr->getBlockCount(); }
     const CounterMap<BlockIndex>& getLabelCounts() const override { return m_blockPriorPtr->getVertexCounts(); }
     const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return m_edgeMatrixPriorPtr->getEdgeCounts(); }
     const MultiGraph& getLabelGraph() const override { return m_edgeMatrixPriorPtr->getState(); }

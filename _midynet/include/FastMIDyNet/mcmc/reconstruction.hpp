@@ -101,7 +101,7 @@ public:
     }
     virtual bool doMetropolisHastingsStep() override ;
 
-    virtual void applyGraphMove(const GraphMove& move){
+    void applyGraphMove(const GraphMove& move){
         processRecursiveFunction([&](){
             m_dynamicsPtr->applyGraphMove(move);
             m_edgeProposerPtr->applyGraphMove(move);
@@ -229,10 +229,6 @@ public:
     // const CallBack<VertexLabeledGraphReconstructionMCMC<Label>>& getLabelCallBack(std::string key){ return m_labelCallBacks.get(key); }
 
 
-    void applyGraphMove(const GraphMove& move) override {
-        BaseClass::applyGraphMove(move);
-        m_labelProposerPtr->applyGraphMove(move);
-    }
     double getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const;
     void applyLabelMove(const LabelMove<Label>& move) {
         BaseClass::m_dynamicsPtr->getGraphPriorRef().applyLabelMove(move);

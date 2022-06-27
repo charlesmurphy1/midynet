@@ -14,7 +14,7 @@ class TestVertexLabelMCMC: public::testing::Test{
     size_t numSteps=10;
 public:
     DummySBM randomGraph = DummySBM();
-    BlockUniformProposer proposer = BlockUniformProposer();
+    GibbsUniformLabelProposer<BlockIndex> proposer = GibbsUniformLabelProposer<BlockIndex>();
     VertexLabelMCMC<BlockIndex> mcmc = VertexLabelMCMC<BlockIndex>(randomGraph, proposer);
     bool expectConsistencyError = false;
     void SetUp(){

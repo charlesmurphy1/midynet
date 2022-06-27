@@ -35,13 +35,27 @@ static MultiGraph getUndirectedHouseMultiGraph(){
 
 class DummySBMGraph: public StochasticBlockModelFamily{
 private:
-    size_t size = 100;
+    size_t size;
+    BlockCountDeltaPrior blockCount = {3};
+    BlockUniformPrior blocks = {size, blockCount};
+    EdgeCountDeltaPrior edgeCount = {250};
+    EdgeMatrixUniformPrior edgeMatrix = {edgeCount, blocks};
+public:
+    DummySBMGraph(size_t size=100):StochasticBlockModelFamily(size){
+        setBlockPrior(blocks);
+        setEdgeMatrixPrior(edgeMatrix);
+    }
+};
+
+class DummyRestrictedSBMGraph: public StochasticBlockModelFamily{
+private:
+    size_t size;
     BlockCountDeltaPrior blockCount = {3};
     BlockUniformHyperPrior blocks = {size, blockCount};
     EdgeCountDeltaPrior edgeCount = {250};
     EdgeMatrixUniformPrior edgeMatrix = {edgeCount, blocks};
 public:
-    DummySBMGraph():StochasticBlockModelFamily(100){
+    DummyRestrictedSBMGraph(size_t size=100):StochasticBlockModelFamily(size){
         setBlockPrior(blocks);
         setEdgeMatrixPrior(edgeMatrix);
     }
