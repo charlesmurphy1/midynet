@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/types.h"
 
@@ -40,10 +41,12 @@ struct LabelMove{
     Label nextLabel;
     int addedLabels;
 
-    void display()const{
-        std::cout << "vertex " << vertexIndex << ": " << prevLabel << " -> " << nextLabel;
-        std::cout  << std::endl;
-        }
+    std::string display()const{
+        std::stringstream ss;
+        ss << "vertex " << vertexIndex << ": " << prevLabel << " -> " << nextLabel;
+        ss << " (" << addedLabels << " labels added)";
+        return ss.str();
+    }
 };
 
 using BlockMove = LabelMove<BlockIndex>;

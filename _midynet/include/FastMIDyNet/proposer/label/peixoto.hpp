@@ -16,17 +16,18 @@ template<typename Label>
 class MixedSampler{
 protected:
     double m_shift;
-    const VertexLabeledRandomGraph<Label>* m_graphPriorPtr;
+    const VertexLabeledRandomGraph<Label>** m_graphPriorPtrPtr = nullptr;
     mutable std::uniform_real_distribution<double> m_uniform01 = std::uniform_real_distribution<double>(0, 1);
 
     Label sampleNeighborLabel(BaseGraph::VertexIndex vertex) const {
-        size_t counter = std::uniform_int_distribution<size_t>(0, m_graphPriorPtr->getGraph().getDegreeOfIdx());
-        for (const auto& neighbor : m_graphPriorPtr->getGraph().getNeighboursOfIdx(vertex)){
+        size_t degree = (*m_graphPriorPtrPtr)->getGraph().getDegreeOfIdx(vertex);
+        size_t counter = std::uniform_int_distribution<size_t>(0, degree-1)(rng);
+        for (const auto& neighbor : (*m_graphPriorPtrPtr)->getGraph().getNeighboursOfIdx(vertex)){
             counter -= neighbor.label;
             if (counter < 0)
-                return m_graphPriorPtr->getLabelOfIdx(neighbor.vertexIndex);
+                return (*m_graphPriorPtrPtr)->getLabelOfIdx(neighbor.vertexIndex);
         }
-        return  m_graphPriorPtr->getLabelOfIdx(vertex);
+        return  (*m_graphPriorPtrPtr)->getLabelOfIdx(vertex);
     }
 
     virtual const Label sampleLabelUniformly() const = 0;
@@ -39,17 +40,16 @@ protected:
     IntMap<Label> getEdgeCountsDiff(const LabelMove<Label>& move) const ;
     virtual size_t getAvailableLabelCount() const = 0;
  public:
-     MixedSampler(const VertexLabeledRandomGraph<Label>* graphPriorPtr, double shift=1):
-        m_shift(shift), m_graphPriorPtr(graphPriorPtr) {}
+     MixedSampler(double shift=1): m_shift(shift) {}
 
     const double getShift() const { return m_shift; }
 };
 
 template<typename Label>
 const Label MixedSampler<Label>::sampleLabelPreferentially(const Label neighborLabel) const {
-    std::uniform_int_distribution<int> dist(0, m_graphPriorPtr->getEdgeLabelCounts().get(neighborLabel) - 1);
+    std::uniform_int_distribution<int> dist(0, (*m_graphPriorPtrPtr)->getEdgeLabelCounts().get(neighborLabel) - 1);
     int mult = dist(rng);
-    for (auto s : m_graphPriorPtr->getLabelGraph().getNeighboursOfIdx(neighborLabel)){
+    for (auto s : (*m_graphPriorPtrPtr)->getLabelGraph().getNeighboursOfIdx(neighborLabel)){
         mult -= ((neighborLabel == s.vertexIndex) ? 2 : 1) * s.label;
         if (mult < 0)
             return s.vertexIndex;
@@ -59,18 +59,20 @@ const Label MixedSampler<Label>::sampleLabelPreferentially(const Label neighborL
 
 template<typename Label>
 const LabelMove<Label> MixedSampler<Label>::_proposeLabelMove(const BaseGraph::VertexIndex&vertex) const {
-    const auto& edgeCounts = m_graphPriorPtr->getEdgeLabelCounts();
+    const auto& edgeCounts = (*m_graphPriorPtrPtr)->getEdgeLabelCounts();
+    const auto& B = getAvailableLabelCount();
     Label neighborLabel = MixedSampler<Label>::sampleNeighborLabel(vertex);
-    double probUniformSampling = m_shift * getAvailableLabelCount() / (edgeCounts.get(neighborLabel) + m_shift * getAvailableLabelCount());
-    return (m_uniform01(rng) < probUniformSampling) ? sampleLabelUniformly() : sampleLabelPreferentially(neighborLabel);
+    double probUniformSampling = m_shift * B / (edgeCounts.get(neighborLabel) + m_shift * B);
+    Label nextLabel = (m_uniform01(rng) < probUniformSampling) ? sampleLabelUniformly() : sampleLabelPreferentially(neighborLabel);
+    return {vertex, (*m_graphPriorPtrPtr)->getLabelOfIdx(vertex), nextLabel};
 }
 
 template<typename Label>
 const double MixedSampler<Label>::_getLogProposalProbForMove(const LabelMove<Label>& move) const {
-    const auto & labels = m_graphPriorPtr->getVertexLabels();
-    const auto & edgeCounts = m_graphPriorPtr->getEdgeLabelCounts();
-    const auto & graph = m_graphPriorPtr->getGraph();
-    const auto &labelGraph = m_graphPriorPtr->getLabelGraph();
+    const auto & labels = (*m_graphPriorPtrPtr)->getVertexLabels();
+    const auto & edgeCounts = (*m_graphPriorPtrPtr)->getEdgeLabelCounts();
+    const auto & graph = (*m_graphPriorPtrPtr)->getGraph();
+    const auto &labelGraph = (*m_graphPriorPtrPtr)->getLabelGraph();
 
     double weight = 0, degree = 0;
     for (auto neighbor : graph.getNeighboursOfIdx(move.vertexIndex)){
@@ -92,21 +94,20 @@ const double MixedSampler<Label>::_getLogProposalProbForMove(const LabelMove<Lab
 
 template<typename Label>
 const double MixedSampler<Label>::_getLogProposalProbForReverseMove(const LabelMove<Label>& move) const {
-    const auto & labels = m_graphPriorPtr->getVertexLabels();
-    const auto & edgeCounts = m_graphPriorPtr->getEdgeLabelCounts();
-    const auto & graph = m_graphPriorPtr->getGraph();
-    const auto &labelGraph = m_graphPriorPtr->getLabelGraph();
+    const auto & labels = (*m_graphPriorPtrPtr)->getVertexLabels();
+    const auto & edgeCounts = (*m_graphPriorPtrPtr)->getEdgeLabelCounts();
+    const auto & graph = (*m_graphPriorPtrPtr)->getGraph();
+    const auto &labelGraph = (*m_graphPriorPtrPtr)->getLabelGraph();
 
     auto edgeMatDiff = getEdgeMatrixDiff(move);
     auto edgeCountsDiff = getEdgeCountsDiff(move);
-
 
     double weight = 0, degree = 0;
     for (auto neighbor : graph.getNeighboursOfIdx(move.vertexIndex)){
         if (move.vertexIndex == neighbor.vertexIndex)
             continue;
         auto t = labels[ neighbor.vertexIndex ];
-        size_t Ert = ((t == move.prevLabel) ? 2 : 1) * (labelGraph.getEdgeMultiplicityIdx(t, move.prevLabel) + edgeMatDiff.get({t, move.prevLabel}));
+        size_t Ert = ((t == move.prevLabel) ? 2 : 1) * ((labelGraph.getEdgeMultiplicityIdx(t, move.prevLabel) + edgeMatDiff.get(getOrderedEdge({t, move.prevLabel}))));
         size_t Et = edgeCounts.get(t) + edgeCountsDiff.get(t);
         degree += neighbor.label;
         weight += neighbor.label * ( Ert + m_shift ) / (Et + m_shift * getAvailableLabelCount()) ;
@@ -121,8 +122,8 @@ const double MixedSampler<Label>::_getLogProposalProbForReverseMove(const LabelM
 template<typename Label>
 IntMap<std::pair<Label, Label>> MixedSampler<Label>::getEdgeMatrixDiff(const LabelMove<Label>& move) const {
 
-    const auto & labels = m_graphPriorPtr->getVertexLabels();
-    const auto & graph = m_graphPriorPtr->getGraph();
+    const auto & labels = (*m_graphPriorPtrPtr)->getVertexLabels();
+    const auto & graph = (*m_graphPriorPtrPtr)->getGraph();
 
     IntMap<std::pair<Label, Label>> edgeMatDiff;
     Label r = move.prevLabel, s = move.nextLabel;
@@ -141,8 +142,7 @@ IntMap<std::pair<Label, Label>> MixedSampler<Label>::getEdgeMatrixDiff(const Lab
 template<typename Label>
 IntMap<Label> MixedSampler<Label>::getEdgeCountsDiff(const LabelMove<Label>& move) const {
     IntMap<Label> edgeCountsDiff;
-
-    size_t degree = m_graphPriorPtr->getGraph().getDegreeOfIdx(move.vertexIndex);
+    size_t degree = (*m_graphPriorPtrPtr)->getGraph().getDegreeOfIdx(move.vertexIndex);
     edgeCountsDiff.decrement(move.prevLabel, degree);
     edgeCountsDiff.increment(move.nextLabel, degree);
      return edgeCountsDiff;
@@ -151,7 +151,7 @@ IntMap<Label> MixedSampler<Label>::getEdgeCountsDiff(const LabelMove<Label>& mov
 template<typename Label>
 class GibbsMixedLabelProposer: public GibbsLabelProposer<Label>, public MixedSampler<Label>{
 protected:
-    const Label sampleLabelUniformly() const override { return std::uniform_int_distribution<size_t>(0, getAvailableLabelCount() - 1); }
+    const Label sampleLabelUniformly() const override { return std::uniform_int_distribution<size_t>(0, getAvailableLabelCount() - 1)(rng); }
     size_t getAvailableLabelCount() const override { return GibbsLabelProposer<Label>::m_graphPriorPtr->getLabelCount(); }
     const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override {
         return MixedSampler<Label>::_getLogProposalProbForReverseMove(move);
@@ -160,9 +160,9 @@ protected:
         return MixedSampler<Label>::_getLogProposalProbForMove(move);
     }
 public:
-    GibbsMixedLabelProposer(double labelCreationProb=0.5, double sampleLabelCountProb=0.1, double shift=1):
-        GibbsLabelProposer<Label>(labelCreationProb, sampleLabelCountProb),
-        MixedSampler<Label>(GibbsLabelProposer<Label>::m_graphPriorPtr, shift) {}
+    GibbsMixedLabelProposer(double sampleLabelCountProb=0.5, double labelCreationProb=0.1, double shift=1):
+        GibbsLabelProposer<Label>(sampleLabelCountProb, labelCreationProb),
+        MixedSampler<Label>(shift) { this->m_graphPriorPtrPtr = &this->m_graphPriorPtr; }
 
     const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex&vertex) const override {
         return MixedSampler<Label>::_proposeLabelMove(vertex);
@@ -174,7 +174,7 @@ using GibbsMixedBlockProposer = GibbsMixedLabelProposer<BlockIndex>;
 template<typename Label>
 class RestrictedMixedLabelProposer: public RestrictedLabelProposer<Label>, public MixedSampler<Label>{
 protected:
-    const Label sampleLabelUniformly() const override { return sampleUniformlyFrom(m_emptyLabels.begin(), m_emptyLabels.end()); }
+    const Label sampleLabelUniformly() const override { return *sampleUniformlyFrom(m_emptyLabels.begin(), m_emptyLabels.end()); }
     size_t getAvailableLabelCount() const override { return m_emptyLabels.size(); }
     const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override {
         return MixedSampler<Label>::_getLogProposalProbForReverseMove(move);
@@ -187,7 +187,7 @@ protected:
 public:
     RestrictedMixedLabelProposer(double sampleLabelCountProb=0.5, double shift=1):
         RestrictedLabelProposer<Label>(sampleLabelCountProb),
-        MixedSampler<Label>(RestrictedLabelProposer<Label>::m_graphPriorPtr, shift) {}
+        MixedSampler<Label>(shift) { this->m_graphPriorPtrPtr = &this->m_graphPriorPtr; }
 
     const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex&vertex) const override {
         return MixedSampler<Label>::_proposeLabelMove(vertex);
