@@ -128,6 +128,7 @@ ext_modules = [
             "_midynet/src/mcmc/mcmc.cpp",
             "_midynet/src/mcmc/callbacks/callback.cpp",
             "_midynet/src/mcmc/callbacks/verbose.cpp",
+            "_midynet/src/mcmc/callbacks/action.cpp",
             "_midynet/src/mcmc/callbacks/collector.cpp",
             "_midynet/src/mcmc/community.cpp",
             "_midynet/src/mcmc/reconstruction.cpp",

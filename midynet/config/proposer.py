@@ -51,12 +51,27 @@ class EdgeProposerConfig(Config):
 
 class BlockProposerConfig(Config):
     @classmethod
-    def uniform(cls):
-        return cls(name="uniform", label_creation_prob=0.1)
+    def gibbs_uniform(cls):
+        return cls(
+            name="gibbs_uniform", sample_label_count_prob=0.1, label_creation_prob=0.5
+        )
 
     @classmethod
-    def peixoto(cls):
-        return cls(name="peixoto", label_creation_prob=0.1, shift=1)
+    def gibbs_mixed(cls):
+        return cls(
+            name="gibbs_mixed",
+            sample_label_count_prob=0.1,
+            label_creation_prob=0.5,
+            shift=1,
+        )
+
+    @classmethod
+    def restricted_uniform(cls):
+        return cls(name="restricted_uniform", sample_label_count_prob=0.1)
+
+    @classmethod
+    def restricted_mixed(cls):
+        return cls(name="gibbs_mixed", sample_label_count_prob=0.1, shift=1)
 
 
 class EdgeProposerFactory(Factory):
@@ -110,15 +125,33 @@ class EdgeProposerFactory(Factory):
 
 class BlockProposerFactory(Factory):
     @staticmethod
-    def build_uniform(
+    def build_gibbs_uniform(
         config: BlockProposerConfig,
-    ) -> proposer.label.BlockUniformProposer:
-        return proposer.label.BlockUniformProposer(config.label_creation_prob)
+    ) -> proposer.label.GibbsUniformBlockProposer:
+        return proposer.label.GibbsUniformBlockProposer(
+            config.sample_label_count_prob, config.label_creation_prob
+        )
 
     @staticmethod
-    def build_peixoto(
+    def build_gibbs_mixed(
         config: BlockProposerConfig,
-    ) -> proposer.label.BlockPeixotoProposer:
-        return proposer.label.BlockPeixotoProposer(
-            config.label_creation_prob, config.shift
+    ) -> proposer.label.GibbsMixedBlockProposer:
+        return proposer.label.GibbsMixedBlockProposer(
+            config.sample_label_count_prob, config.label_creation_prob, config.shift
+        )
+
+    @staticmethod
+    def build_restricted_uniform(
+        config: BlockProposerConfig,
+    ) -> proposer.label.RestrictedUniformBlockProposer:
+        return proposer.label.RestrictedUniformBlockProposer(
+            config.sample_label_count_prob
+        )
+
+    @staticmethod
+    def build_restricted_mixed(
+        config: BlockProposerConfig,
+    ) -> proposer.label.RestrictedMixedBlockProposer:
+        return proposer.label.RestrictedMixedBlockProposer(
+            config.sample_label_count_prob, config.shift
         )

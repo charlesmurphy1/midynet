@@ -47,7 +47,10 @@ class RandomGraphConfig(Config):
             obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
-        obj.insert("block_proposer", BlockProposerConfig.peixoto())
+        if obj.blocks.name == "uniform":
+            obj.insert("block_proposer", BlockProposerConfig.gibbs_mixed())
+        else:
+            obj.insert("block_proposer", BlockProposerConfig.restricted_mixed())
         obj.insert("sample_graph_prior_prob", 0.5)
 
         return obj
@@ -136,7 +139,11 @@ class RandomGraphConfig(Config):
             obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
-        obj.insert("block_proposer", BlockProposerConfig.peixoto())
+
+        if obj.blocks.name == "uniform":
+            obj.insert("block_proposer", BlockProposerConfig.gibbs_mixed())
+        else:
+            obj.insert("block_proposer", BlockProposerConfig.restricted_mixed())
         obj.insert("sample_graph_prior_prob", 0.5)
         return obj
 

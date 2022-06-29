@@ -3,6 +3,7 @@
 #include "fixtures.hpp"
 #include "FastMIDyNet/proposer/label/uniform.hpp"
 #include "FastMIDyNet/mcmc/community.hpp"
+#include "FastMIDyNet/mcmc/callbacks/action.h"
 #include "FastMIDyNet/rng.h"
 
 using namespace std;
@@ -16,10 +17,12 @@ public:
     DummySBM randomGraph = DummySBM();
     GibbsUniformLabelProposer<BlockIndex> proposer = GibbsUniformLabelProposer<BlockIndex>();
     VertexLabelMCMC<BlockIndex> mcmc = VertexLabelMCMC<BlockIndex>(randomGraph, proposer);
+    CheckConsistencyOnSweep callback;
     bool expectConsistencyError = false;
     void SetUp(){
         seed(1);
         randomGraph.sample();
+        mcmc.insertCallBack("check_consistency", callback);
         mcmc.setUp();
         mcmc.checkSafety();
     }
