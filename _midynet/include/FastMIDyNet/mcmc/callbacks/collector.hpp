@@ -181,7 +181,6 @@ public:
     void collect() override { m_collectedJoints.push_back( m_mcmcPtr->getLogJoint() ); }
     void clear() override { m_collectedJoints.clear(); }
     const std::vector<double>& getLogJoints() const { return m_collectedJoints; }
-
 };
 
 
