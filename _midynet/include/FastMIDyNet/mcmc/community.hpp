@@ -40,7 +40,7 @@ public:
     const LabelProposer<Label>& getLabelProposer(){ return *m_labelProposerPtr; }
     LabelProposer<Label>& getLabelProposerRef(){ return *m_labelProposerPtr; }
 
-    const std::vector<Label>& getVertexLabels() const { return m_graphPriorPtr->getVertexLabels(); }
+    const std::vector<Label>& getLabels() const { return m_graphPriorPtr->getLabels(); }
 
     void sample() override { m_graphPriorPtr->sample(); }
     void samplePrior() override { m_graphPriorPtr->sampleLabels(); }

@@ -124,7 +124,7 @@ ext_modules = [
             "_midynet/src/proposer/edge/labeled_double_edge_swap.cpp",
             "_midynet/src/proposer/edge/labeled_hinge_flip.cpp",
             "_midynet/src/proposer/label/uniform.cpp",
-            "_midynet/src/proposer/label/peixoto.cpp",
+            "_midynet/src/proposer/label/mixed.cpp",
             "_midynet/src/mcmc/mcmc.cpp",
             "_midynet/src/mcmc/callbacks/callback.cpp",
             "_midynet/src/mcmc/callbacks/verbose.cpp",

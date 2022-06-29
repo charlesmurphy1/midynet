@@ -59,7 +59,7 @@ py::class_<VertexLabelMCMC<Label>, MCMC> declareVertexLabelMCMCClass(py::module&
         .def("get_graph_prior", &VertexLabelMCMC<Label>::getGraphPrior)
         .def("set_label_proposer", &VertexLabelMCMC<Label>::setLabelProposer, py::arg("label_proposer"))
         .def("get_label_proposer", &VertexLabelMCMC<Label>::getLabelProposer)
-        .def("get_vertex_labels", &VertexLabelMCMC<Label>::getVertexLabels)
+        .def("get_labels", &VertexLabelMCMC<Label>::getLabels)
         .def("insert_callback", [](VertexLabelMCMC<Label>& self, std::string key, CallBack<MCMC>& callback){
             self.insertCallBack(key, callback); }, py::arg("key"), py::arg("callback"))
         .def("insert_callback", [](VertexLabelMCMC<Label>& self, std::string key, CallBack<VertexLabelMCMC<Label>>& callback){
@@ -102,7 +102,7 @@ py::class_<VertexLabeledGraphReconstructionMCMC<Label>, GraphReconstructionMCMC<
         .def(py::init<double, double, double>(), py::arg("sample_label_prob")=0.5, py::arg("beta_prior")=1, py::arg("beta_likelihood")=1)
         .def("set_label_proposer", &VertexLabeledGraphReconstructionMCMC<Label>::setLabelProposer, py::arg("label_proposer"))
         .def("get_label_proposer", &VertexLabeledGraphReconstructionMCMC<Label>::getLabelProposer)
-        .def("get_vertex_labels", &VertexLabeledGraphReconstructionMCMC<Label>::getVertexLabels)
+        .def("get_labels", &VertexLabeledGraphReconstructionMCMC<Label>::getLabels)
         .def("get_log_acceptance_prob_from_label_move", &VertexLabeledGraphReconstructionMCMC<Label>::getLogAcceptanceProbFromLabelMove, py::arg("move"))
         .def("apply_label_move", &VertexLabeledGraphReconstructionMCMC<Label>::applyLabelMove, py::arg("move"))
         ;

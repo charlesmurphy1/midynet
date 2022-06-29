@@ -29,46 +29,4 @@ void RandomGraph::_applyGraphMove(const GraphMove& move){
 
 }
 
-// const size_t RandomGraph::computeBlockCount() const {
-//     auto blocks = getBlocks();
-//     return *max_element(blocks.begin(), blocks.end()) + 1;
-// }
-
-// const CounterMap<size_t> RandomGraph::computeVertexCountsInBlocks() const {
-//     auto blocks = getBlocks();
-//     CounterMap<size_t> vertexCounts;
-//     for (auto idx : blocks){
-//         vertexCounts.increment(idx);
-//     }
-//     return vertexCounts;
-// }
-//
-// const Matrix<size_t> RandomGraph::computeEdgeMatrix() const {
-//     auto blocks = getBlocks();
-//     auto blockCount = getBlockCount();
-//     Matrix<size_t> edgeMatrix(blockCount, {blockCount, 0});
-//     for (auto idx: m_graph){
-//         for(auto neighbor : m_graph.getNeighboursOfIdx(idx)){
-//             size_t edgeMult = neighbor.label;
-//             if (idx == neighbor.vertexIndex)
-//                 edgeMult *= 2;
-//             edgeMatrix[blocks[idx]][blocks[neighbor.vertexIndex]] += neighbor.label;
-//         }
-//     }
-//     return edgeMatrix;
-// }
-
-// const DegreeCountsMap RandomGraph::computeDegreeCountsInBlocks() const {
-//     auto blockCount = getBlockCount();
-//     auto blocks = getBlocks();
-//     auto edgeMatrix = getEdgeMatrix();
-//     DegreeCountsMap degreeCounts;
-//
-//     for(size_t idx: m_graph)
-//         degreeCounts.increment({blocks[idx], m_graph.getDegreeOfIdx(idx)});
-//
-//     return degreeCounts;
-//
-// }
-
 }

@@ -17,7 +17,7 @@ py::class_<VertexLabeledRandomGraph<Label>, RandomGraph, PyVertexLabeledRandomGr
         .def(py::init<size_t>(), py::arg("size")=0)
         .def("sample_labels", &VertexLabeledRandomGraph<Label>::sampleLabels)
         .def("set_labels", &VertexLabeledRandomGraph<Label>::setLabels, py::arg("labels"))
-        .def("get_vertex_labels", &VertexLabeledRandomGraph<Label>::getVertexLabels)
+        .def("get_labels", &VertexLabeledRandomGraph<Label>::getLabels)
         .def("get_label_counts", &VertexLabeledRandomGraph<Label>::getLabelCounts)
         .def("get_edge_label_counts", &VertexLabeledRandomGraph<Label>::getEdgeLabelCounts)
         .def("get_label_graph", &VertexLabeledRandomGraph<Label>::getLabelGraph)

@@ -148,36 +148,13 @@ private:
     std::vector<std::vector<BlockIndex>> m_partitions;
 public:
     using BaseClass = SweepCollector<GraphMCMC>;
-    void collect() override { m_partitions.push_back(BaseClass::m_mcmcPtr->getGraphPrior().getVertexLabels()); }
+    void collect() override { m_partitions.push_back(BaseClass::m_mcmcPtr->getGraphPrior().getLabels()); }
     void clear() override { m_partitions.clear(); }
     const std::vector<BlockSequence>& getPartitions() const { return m_partitions; }
 };
 
 using CollectPartitionOnSweepForReconstruction = CollectPartitionOnSweep<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
 using CollectPartitionOnSweepForCommunity = CollectPartitionOnSweep<VertexLabelMCMC<BlockIndex>>;
-
-// template<typename GraphMCMC>
-// class WriteGraphToFileOnSweep: public SweepCollector<GraphMCMC>{
-// private:
-//     std::string m_filename;
-//     std::string m_ext;
-// public:
-//     WriteGraphToFileOnSweep(std::string filename, std::string ext=".b"):
-//     m_filename(filename), m_ext(ext) {}
-//     void collect() override ;
-//     void clear() override { };
-// };
-
-// template<typename GraphMCMC>
-// void WriteGraphToFileOnSweep<GraphMCMC>::collect(){
-//     std::ofstream file;
-//     file.open(m_filename + "_" + std::to_string(SweepCollector<GraphMCMC>::m_mcmcPtr->getNumSweeps()) + m_ext);
-//
-//     // BaseGraph::writeEdgeListIdxInBinaryFile(m_mcmcPtr->getGraph(), file);
-//     // BaseGraph::writeEdgeListInBinaryFile(m_mcmcPtr->getGraph(), file);
-//
-//     file.close();
-// }
 
 class CollectLikelihoodOnSweep: public SweepCollector<MCMC>{
 private:
@@ -207,23 +184,6 @@ public:
 
 };
 
-// class CollectGraphDistance: public Collector<GraphMCMC>{
-// private:
-//     MultiGraph m_originalGraph;
-//     const GraphDistance& m_distance;
-//     std::vector<double> m_collectedDistances;
-// public:
-//     CollectGraphDistance(const GraphDistance& distance): m_distance(distance){}
-//     const std::vector<double>& getCollectedDistances() { return m_collectedDistances; }
-//     void onSweepBegin() { m_originalGraph = m_mcmcPtr->getGraph(); }
-//     void collect() {
-//         m_collectedDistances.push_back(
-//             m_distance.compute( m_originalGraph, m_mcmcPtr->getGraph() )
-//         );
-//     }
-//     void clear() { m_collectedDistances.clear(); };
-//     void onStepEnd() { collect(); }
-// };
 
 }
 

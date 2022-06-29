@@ -66,12 +66,12 @@ protected:
     virtual void _applyLabelMove(const LabelMove<Label>&) { };
 public:
     using RandomGraph::RandomGraph;
-    virtual const std::vector<Label>& getVertexLabels() const = 0;
+    virtual const std::vector<Label>& getLabels() const = 0;
     virtual const size_t getLabelCount() const = 0;
     virtual const CounterMap<Label>& getLabelCounts() const = 0;
     virtual const CounterMap<Label>& getEdgeLabelCounts() const = 0;
     virtual const MultiGraph& getLabelGraph() const = 0;
-    const Label& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getVertexLabels()[vertexIdx]; }
+    const Label& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getLabels()[vertexIdx]; }
 
     virtual void setLabels(const std::vector<Label>&) = 0;
     virtual void sampleLabels() = 0;

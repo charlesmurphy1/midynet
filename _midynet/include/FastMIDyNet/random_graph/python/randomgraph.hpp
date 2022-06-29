@@ -50,8 +50,11 @@ public:
     const double getLogLikelihoodRatioFromLabelMove (const LabelMove<Label>& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromLabelMove, move); }
     const double getLogPriorRatioFromLabelMove (const LabelMove<Label>& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogPriorRatioFromLabelMove, move); }
 
-    const std::vector<Label>& getVertexLabels() const override  {
-        PYBIND11_OVERRIDE_PURE(const std::vector<Label>&, BaseClass, getVertexLabels, );
+    const std::vector<Label>& getLabels() const override  {
+        PYBIND11_OVERRIDE_PURE(const std::vector<Label>&, BaseClass, getLabels, );
+    }
+    const size_t getLabelCount() const override  {
+        PYBIND11_OVERRIDE_PURE(const size_t&, BaseClass, getLabelCount, );
     }
     const CounterMap<Label>& getLabelCounts() const override  {
         PYBIND11_OVERRIDE_PURE(const CounterMap<Label>&, BaseClass, getLabelCounts, );

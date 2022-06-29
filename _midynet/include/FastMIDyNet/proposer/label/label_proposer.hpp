@@ -32,8 +32,6 @@ public:
     virtual const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const = 0;
     const double getSampleLabelCountProb() const { return m_sampleLabelCountProb; }
     virtual void applyLabelMove(const LabelMove<Label>& move) { };
-    virtual const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex&) const = 0;
-    virtual const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex&) const = 0;
 
 
     const LabelMove<Label> proposeMove() const {
@@ -42,6 +40,8 @@ public:
             return proposeNewLabelMove(vertex);
         return proposeLabelMove(vertex);
     }
+    virtual const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex&) const = 0;
+    virtual const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex&) const = 0;
     void checkSelfSafety() const override{
         if (m_graphPriorPtr == nullptr)
             throw SafetyError("LabelProposer: unsafe proposer since `m_graphPriorPtr` is NULL.");
@@ -118,7 +118,7 @@ public:
         return log(1 - m_sampleLabelCountProb) + ((reverse) ? getLogProposalProbForReverseMove(move) :  getLogProposalProbForMove(move));
     }
 
-    virtual void applyLabelMove(const LabelMove<Label>& move) override {
+    void applyLabelMove(const LabelMove<Label>& move) override {
         if ( move.addedLabels == -1 )
             m_emptyLabels.insert(move.prevLabel);
         if ( move.addedLabels == 1 ){

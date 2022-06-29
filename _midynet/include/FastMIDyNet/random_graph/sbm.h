@@ -71,7 +71,7 @@ public:
         m_edgeMatrixPriorPtr->setBlockPrior(*m_blockPriorPtr);
     }
 
-    const BlockSequence& getVertexLabels() const override { return m_blockPriorPtr->getState(); }
+    const BlockSequence& getLabels() const override { return m_blockPriorPtr->getState(); }
     const size_t getLabelCount() const override { return m_blockPriorPtr->getBlockCount(); }
     const CounterMap<BlockIndex>& getLabelCounts() const override { return m_blockPriorPtr->getVertexCounts(); }
     const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return m_edgeMatrixPriorPtr->getEdgeCounts(); }
@@ -96,7 +96,7 @@ public:
     virtual void checkSelfSafety() const override;
     virtual const bool isCompatible(const MultiGraph& graph) const override{
         if (not VertexLabeledRandomGraph<BlockIndex>::isCompatible(graph)) return false;
-        auto edgeMatrix = getEdgeMatrixFromGraph(graph, getVertexLabels());
+        auto edgeMatrix = getEdgeMatrixFromGraph(graph, getLabels());
         return edgeMatrix.getAdjacencyMatrix() == m_edgeMatrixPriorPtr->getState().getAdjacencyMatrix();
     };
     virtual void computationFinished() const override {

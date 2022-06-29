@@ -28,7 +28,7 @@ class TestConfigurationModelFamily: public::testing::Test{
 };
 
 TEST_F(TestConfigurationModelFamily, randomGraph_hasCorrectBlockSequence){
-    auto blocks = randomGraph.getVertexLabels();
+    auto blocks = randomGraph.getLabels();
     for (auto b : blocks) EXPECT_EQ(b, 0);
 }
 

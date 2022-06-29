@@ -69,7 +69,7 @@ const LabelMove<Label> MixedSampler<Label>::_proposeLabelMove(const BaseGraph::V
 
 template<typename Label>
 const double MixedSampler<Label>::_getLogProposalProbForMove(const LabelMove<Label>& move) const {
-    const auto & labels = (*m_graphPriorPtrPtr)->getVertexLabels();
+    const auto & labels = (*m_graphPriorPtrPtr)->getLabels();
     const auto & edgeCounts = (*m_graphPriorPtrPtr)->getEdgeLabelCounts();
     const auto & graph = (*m_graphPriorPtrPtr)->getGraph();
     const auto &labelGraph = (*m_graphPriorPtrPtr)->getLabelGraph();
@@ -94,7 +94,7 @@ const double MixedSampler<Label>::_getLogProposalProbForMove(const LabelMove<Lab
 
 template<typename Label>
 const double MixedSampler<Label>::_getLogProposalProbForReverseMove(const LabelMove<Label>& move) const {
-    const auto & labels = (*m_graphPriorPtrPtr)->getVertexLabels();
+    const auto & labels = (*m_graphPriorPtrPtr)->getLabels();
     const auto & edgeCounts = (*m_graphPriorPtrPtr)->getEdgeLabelCounts();
     const auto & graph = (*m_graphPriorPtrPtr)->getGraph();
     const auto &labelGraph = (*m_graphPriorPtrPtr)->getLabelGraph();
@@ -122,7 +122,7 @@ const double MixedSampler<Label>::_getLogProposalProbForReverseMove(const LabelM
 template<typename Label>
 IntMap<std::pair<Label, Label>> MixedSampler<Label>::getEdgeMatrixDiff(const LabelMove<Label>& move) const {
 
-    const auto & labels = (*m_graphPriorPtrPtr)->getVertexLabels();
+    const auto & labels = (*m_graphPriorPtrPtr)->getLabels();
     const auto & graph = (*m_graphPriorPtrPtr)->getGraph();
 
     IntMap<std::pair<Label, Label>> edgeMatDiff;

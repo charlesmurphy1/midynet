@@ -56,7 +56,7 @@ const double StochasticBlockModelFamily::getLogPrior() const {
 };
 
 void StochasticBlockModelFamily::getDiffEdgeMatMapFromEdgeMove( const Edge& edge, int counter, IntMap<pair<BlockIndex, BlockIndex>>& diffEdgeMatMap ) const{
-    const BlockSequence& blockSeq = getVertexLabels();
+    const BlockSequence& blockSeq = getLabels();
     diffEdgeMatMap.increment(
         getOrderedPair<BlockIndex>({blockSeq[edge.first], blockSeq[edge.second]}),
         counter
@@ -64,7 +64,7 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromEdgeMove( const Edge& edge
 };
 
 const double StochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const {
-    const BlockSequence& blockSeq = getVertexLabels();
+    const BlockSequence& blockSeq = getLabels();
     const MultiGraph& edgeMat = m_edgeMatrixPriorPtr->getState();
     const CounterMap<size_t>& edgeCounts = getEdgeLabelCounts();
     const CounterMap<size_t>& vertexCounts = getLabelCounts();
@@ -125,7 +125,7 @@ const double StochasticBlockModelFamily::getLogLikelihoodRatioFromGraphMove (con
 void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove(
     const BlockMove& move, IntMap<pair<BlockIndex, BlockIndex>>& diffEdgeMatMap
 ) const {
-    const BlockSequence& blockSeq = getVertexLabels();
+    const BlockSequence& blockSeq = getLabels();
     for (auto neighbor : m_graph.getNeighboursOfIdx(move.vertexIndex)){
         BlockIndex blockIdx = blockSeq[neighbor.vertexIndex];
         size_t edgeMult = neighbor.label;
@@ -141,7 +141,7 @@ void StochasticBlockModelFamily::getDiffEdgeMatMapFromBlockMove(
 };
 
 const double StochasticBlockModelFamily::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
-    const BlockSequence& blockSeq = getVertexLabels();
+    const BlockSequence& blockSeq = getLabels();
     const MultiGraph& edgeMat = m_edgeMatrixPriorPtr->getState();
     const CounterMap<size_t>& edgeCounts = getEdgeLabelCounts();
     const CounterMap<size_t>& vertexCounts = getLabelCounts();
@@ -226,7 +226,7 @@ void StochasticBlockModelFamily::checkSelfConsistency() const{
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeMatrixPriorPtr->checkSelfConsistency();
 
-    checkGraphConsistencyWithEdgeMatrix(m_graph, getVertexLabels(), m_edgeMatrixPriorPtr->getState());
+    checkGraphConsistencyWithEdgeMatrix(m_graph, getLabels(), m_edgeMatrixPriorPtr->getState());
 }
 
 void StochasticBlockModelFamily::checkSelfSafety()const{

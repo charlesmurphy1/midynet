@@ -20,10 +20,10 @@ void DegreeCorrectedStochasticBlockModelFamily::sample(){
     m_blockPriorPtr->sample();
     m_edgeMatrixPriorPtr->sample();
     m_degreePriorPtr->sample();
-    const BlockSequence& blockSeq = getVertexLabels();
+    const BlockSequence& blockSeq = getLabels();
     const MultiGraph& edgeMat = m_edgeMatrixPriorPtr->getState();
     const DegreeSequence& degreeSeq = getDegrees();
-    setGraph( generateDCSBM(getVertexLabels(), m_edgeMatrixPriorPtr->getState().getAdjacencyMatrix(), getDegrees()) );
+    setGraph( generateDCSBM(getLabels(), m_edgeMatrixPriorPtr->getState().getAdjacencyMatrix(), getDegrees()) );
     computationFinished();
 }
 
@@ -60,7 +60,7 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogPrior() const {
 };
 
 const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const {
-    const BlockSequence& blockSeq = getVertexLabels();
+    const BlockSequence& blockSeq = getLabels();
     const MultiGraph& edgeMat = m_edgeMatrixPriorPtr->getState();
     const CounterMap<size_t>& edgeCountsInBlocks = getEdgeLabelCounts();
     const CounterMap<size_t>& vertexCountsInBlocks = getLabelCounts();
@@ -129,7 +129,7 @@ const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioFro
 }
 
 const double DegreeCorrectedStochasticBlockModelFamily::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
-    const BlockSequence& blockSeq = getVertexLabels();
+    const BlockSequence& blockSeq = getLabels();
     const MultiGraph& edgeMat = m_edgeMatrixPriorPtr->getState();
     const CounterMap<size_t>& edgesInBlock = getEdgeLabelCounts();
     double logLikelihoodRatio = 0;
@@ -202,7 +202,7 @@ void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency() const{
     m_edgeMatrixPriorPtr->checkSelfConsistency();
     m_degreePriorPtr->checkSelfConsistency();
 
-    checkGraphConsistencyWithEdgeMatrix(m_graph, getVertexLabels(), m_edgeMatrixPriorPtr->getState());
+    checkGraphConsistencyWithEdgeMatrix(m_graph, getLabels(), m_edgeMatrixPriorPtr->getState());
     checkGraphConsistencyWithDegreeSequence(m_graph, getDegrees());
 }
 

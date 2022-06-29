@@ -206,8 +206,8 @@ public:
         m_labelProposerPtr->isRoot(false);
     }
 
-    const std::vector<Label>& getVertexLabels() const {
-        return BaseClass::m_dynamicsPtr->getGraphPrior().getVertexLabels();
+    const std::vector<Label>& getLabels() const {
+        return BaseClass::m_dynamicsPtr->getGraphPrior().getLabels();
     }
 
     void setUp() override {
