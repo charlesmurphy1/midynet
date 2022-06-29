@@ -52,7 +52,7 @@ template<typename Label, typename BaseClass = MixedSampler<Label>>
 class PyMixedSampler: public BaseClass{
 protected:
     const Label sampleLabelUniformly() const override { PYBIND11_OVERRIDE_PURE(const Label, BaseClass, sampleLabelUniformly, ); }
-    size_t getAvailableLabelCount() const override { PYBIND11_OVERRIDE_PURE(size_t, BaseClass, getAvailableLabelCount, ); }
+    const size_t getAvailableLabelCount() const override { PYBIND11_OVERRIDE_PURE(const size_t, BaseClass, getAvailableLabelCount, ); }
 public:
     using BaseClass::BaseClass;
 };

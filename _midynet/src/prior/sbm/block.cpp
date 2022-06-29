@@ -56,7 +56,7 @@ const double BlockUniformPrior::getLogLikelihood() const {
 
 const double BlockUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
     size_t prevNumBlocks = m_blockCountPriorPtr->getState();
-    size_t newNumBlocks = prevNumBlocks + getAddedBlocks(move);
+    size_t newNumBlocks = prevNumBlocks + move.addedLabels;
     double logLikelihoodRatio = 0;
     logLikelihoodRatio += -logMultisetCoefficient(getSize(), newNumBlocks);
     logLikelihoodRatio -= -logMultisetCoefficient(getSize(), prevNumBlocks);
@@ -82,10 +82,12 @@ const double BlockUniformHyperPrior::getLogLikelihood() const {
 }
 
 const double BlockUniformHyperPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+    if (m_vertexCounts.size() + getAddedBlocks(move) != getBlockCount() + move.addedLabels)
+        return -INFINITY;
     double logLikelihoodRatio = 0;
     logLikelihoodRatio += logFactorial(m_vertexCounts[move.prevLabel] - 1) - logFactorial(m_vertexCounts[move.prevLabel]);
     logLikelihoodRatio += logFactorial(m_vertexCounts[move.nextLabel] + 1) - logFactorial(m_vertexCounts[move.nextLabel]);
-    logLikelihoodRatio -= logBinomialCoefficient(getSize() - 1, getBlockCount() - 1 + getAddedBlocks(move)) - logBinomialCoefficient(getSize() - 1, getBlockCount() - 1);
+    logLikelihoodRatio -= logBinomialCoefficient(getSize() - 1, getBlockCount() + move.addedLabels - 1) - logBinomialCoefficient(getSize() - 1, getBlockCount() - 1);
     return logLikelihoodRatio;
 }
 

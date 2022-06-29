@@ -23,7 +23,7 @@ class DummySBM: public StochasticBlockModelFamily{
     size_t edgeCount = 25;
     size_t blockCount = 3;
 
-    BlockCountPoissonPrior blockCountPrior;
+    BlockCountDeltaPrior blockCountPrior;
     BlockUniformPrior blockPrior;
     EdgeCountDeltaPrior edgeCountPrior;
     EdgeMatrixUniformPrior edgeMatrixPrior;

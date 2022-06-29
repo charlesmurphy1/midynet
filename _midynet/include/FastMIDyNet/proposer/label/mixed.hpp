@@ -38,7 +38,7 @@ protected:
     const LabelMove<Label> _proposeLabelMove(const BaseGraph::VertexIndex&) const ;
     IntMap<std::pair<Label, Label>> getEdgeMatrixDiff(const LabelMove<Label>& move) const ;
     IntMap<Label> getEdgeCountsDiff(const LabelMove<Label>& move) const ;
-    virtual size_t getAvailableLabelCount() const = 0;
+    virtual const size_t getAvailableLabelCount() const = 0;
  public:
      MixedSampler(double shift=1): m_shift(shift) {}
 
@@ -152,7 +152,7 @@ template<typename Label>
 class GibbsMixedLabelProposer: public GibbsLabelProposer<Label>, public MixedSampler<Label>{
 protected:
     const Label sampleLabelUniformly() const override { return std::uniform_int_distribution<size_t>(0, getAvailableLabelCount() - 1)(rng); }
-    size_t getAvailableLabelCount() const override { return GibbsLabelProposer<Label>::m_graphPriorPtr->getLabelCount(); }
+    const size_t getAvailableLabelCount() const override { return GibbsLabelProposer<Label>::m_graphPriorPtr->getLabelCount(); }
     const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override {
         return MixedSampler<Label>::_getLogProposalProbForReverseMove(move);
     }
@@ -174,8 +174,8 @@ using GibbsMixedBlockProposer = GibbsMixedLabelProposer<BlockIndex>;
 template<typename Label>
 class RestrictedMixedLabelProposer: public RestrictedLabelProposer<Label>, public MixedSampler<Label>{
 protected:
-    const Label sampleLabelUniformly() const override { return *sampleUniformlyFrom(m_emptyLabels.begin(), m_emptyLabels.end()); }
-    size_t getAvailableLabelCount() const override { return m_emptyLabels.size(); }
+    const Label sampleLabelUniformly() const override { return *sampleUniformlyFrom(m_availableLabels.begin(), m_availableLabels.end()); }
+    const size_t getAvailableLabelCount() const override { return m_availableLabels.size(); }
     const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override {
         return MixedSampler<Label>::_getLogProposalProbForReverseMove(move);
     }
@@ -183,6 +183,7 @@ protected:
         return MixedSampler<Label>::_getLogProposalProbForMove(move);
     }
 
+    using RestrictedLabelProposer<Label>::m_availableLabels;
     using RestrictedLabelProposer<Label>::m_emptyLabels;
 public:
     RestrictedMixedLabelProposer(double sampleLabelCountProb=0.5, double shift=1):

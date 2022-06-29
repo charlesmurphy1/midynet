@@ -20,13 +20,12 @@ private:
 protected:
     size_t m_size;
     BlockCountPrior* m_blockCountPriorPtr = nullptr;
-    CounterMap<size_t> m_vertexCounts;
+    CounterMap<BlockIndex> m_vertexCounts;
     bool m_allowEmptyBlocks = false;
 
     void _applyGraphMove(const GraphMove&) override { };
     void _applyLabelMove(const BlockMove& move) override {
-        // moveCopy.addedBlocks = getAddedBlocks(move);
-        m_blockCountPriorPtr->setState(m_blockCountPriorPtr->getState() + getAddedBlocks(move));
+        m_blockCountPriorPtr->setState(m_blockCountPriorPtr->getState() + move.addedLabels);
         m_vertexCounts.decrement(move.prevLabel);
         m_vertexCounts.increment(move.nextLabel);
         m_state[move.vertexIndex] = move.nextLabel;
@@ -34,6 +33,8 @@ protected:
 
     const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; };
     const double _getLogJointRatioFromLabelMove(const BlockMove& move) const override {
+        if ( m_vertexCounts.size() > m_blockCountPriorPtr->getState() + move.addedLabels )
+            return -INFINITY;
         return getLogLikelihoodRatioFromLabelMove(move) + getLogPriorRatioFromLabelMove(move);
     };
 

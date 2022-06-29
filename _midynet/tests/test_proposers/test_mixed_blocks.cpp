@@ -20,7 +20,6 @@ public:
     GibbsMixedBlockProposer proposer = GibbsMixedBlockProposer(SAMPLE_LABEL_PROB, LABEL_CREATION_PROB, SHIFT);
 
     void SetUp(){
-        // seed(1);
         seedWithTime();
         graphPrior.sample();
         proposer.setUp(graphPrior);
@@ -109,10 +108,12 @@ TEST_F(TestRestrictedMixedBlockProposer, proposeNewLabelMove_returnValidMove){
 }
 
 TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forSomeLabelMove_returnCorrectProb){
+    displayVector(graphPrior.getLabels());
     for(size_t i=0; i<10; ++i){
         auto move = proposer.proposeLabelMove(0);
         while (move.prevLabel == move.nextLabel)
             move = proposer.proposeLabelMove(0);
+        std::cout << move.display() << std::endl;
         LabelMove<BlockIndex> reverseMove = {move.vertexIndex, move.nextLabel, move.prevLabel};
         double logProb = proposer.getLogProposalProb(move, false);
         proposer.applyLabelMove(move);
@@ -124,6 +125,7 @@ TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forSomeLabelMove_ret
 
 TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forLabelMoveAddingNewLabel_returnCorrectProb){
     auto move = proposer.proposeNewLabelMove(0);
+    std::cout << move.display() << std::endl;
     LabelMove<BlockIndex> reverseMove = {move.vertexIndex, move.nextLabel, move.prevLabel, -move.addedLabels};
     double logProb = proposer.getLogProposalProb(move, false);
     proposer.applyLabelMove(move);

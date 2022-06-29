@@ -9,9 +9,11 @@
 namespace FastMIDyNet {
 
 extern RNG rng;
+extern size_t SEED;
 
 void seed(size_t n);
 void seedWithTime();
+const size_t& getSeed();
 
 } // namespace FastMIDyNet
 
