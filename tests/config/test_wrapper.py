@@ -8,7 +8,7 @@ from midynet.config import Wrapper
 def wrapper():
     size = 100
     max_block_count = 10
-    block_count = sbm.BlockCountUniformPrior(max_block_count)
+    block_count = sbm.BlockCountUniformPrior(1, max_block_count)
     blocks = sbm.BlockUniformPrior(size, block_count)
     return Wrapper(
         blocks,

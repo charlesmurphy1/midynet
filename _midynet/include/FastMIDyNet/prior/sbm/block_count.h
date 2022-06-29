@@ -83,7 +83,6 @@ class BlockCountUniformPrior: public BlockCountPrior{
 
     public:
         BlockCountUniformPrior() {}
-        BlockCountUniformPrior(size_t min) { setMin(min); }
         BlockCountUniformPrior(size_t min, size_t max) { setMinMax(min, max); }
         BlockCountUniformPrior(const BlockCountUniformPrior& other) { setMinMax(other.m_min, other.m_max); setState(other.m_state); }
         virtual ~BlockCountUniformPrior() {};

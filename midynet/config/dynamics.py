@@ -188,7 +188,7 @@ class DynamicsFactory(Factory):
 
     @classmethod
     def build_labeled(cls, config: Config):
-        return build(config, DynamicsFactory.labeled_dynamics)
+        return cls.build(config, DynamicsFactory.labeled_dynamics)
 
     @staticmethod
     def build_glauber(config: DynamicsConfig, constructor=GlauberDynamics):

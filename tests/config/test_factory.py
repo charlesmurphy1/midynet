@@ -1,4 +1,5 @@
 import pytest
+from itertools import product
 
 from midynet.config import (
     EdgeCountPriorConfig,
@@ -183,7 +184,7 @@ def sample_dynamics(obj):
     obj.sample()
 
 
-dynamics_setup = {
+dynamics_setup = [
     pytest.param(
         DynamicsConfig.glauber(),
         DynamicsFactory,
@@ -208,64 +209,7 @@ dynamics_setup = {
         sample_dynamics,
         id="degree",
     ),
-}
-
-# mcmc_setup = [
-#     pytest.param(
-#         ExperimentConfig.reconstruction("sis", "er"),
-#         MCMCFactory,
-#         lambda obj: None,
-#         id="mcmc.sis.er.uniform",
-#     ),
-#     pytest.param(
-#         RandomGraphConfig.hyperuniform_sbm(100, 250, 10),
-#         RandomGraphMCMCFactory,
-#         lambda obj: None,
-#         id="mcmc.sbm.hyperuniform",
-#     ),
-#     pytest.param(
-#         RandomGraphConfig.er(100, 250),
-#         RandomGraphMCMCFactory,
-#         lambda obj: None,
-#         id="mcmc.er.delta",
-#     ),
-#     pytest.param(
-#         RandomGraphConfig.ser(100, 250.0),
-#         RandomGraphMCMCFactory,
-#         lambda obj: None,
-#         id="mcmc.er.poisson",
-#     ),
-#     pytest.param(
-#         RandomGraphConfig.ser(100, 250),
-#         RandomGraphMCMCFactory,
-#         lambda obj: None,
-#         id="mcmc.ser",
-#     ),
-#     pytest.param(
-#         RandomGraphConfig.uniform_dcsbm(100, 250, 10),
-#         RandomGraphMCMCFactory,
-#         lambda obj: None,
-#         id="mcmc.dcsbm.uniform",
-#     ),
-#     pytest.param(
-#         RandomGraphConfig.uniform_cm(100, 250),
-#         RandomGraphMCMCFactory,
-#         lambda obj: None,
-#         id="mcmc.cm.uniform",
-#     ),
-#     pytest.param(
-#         RandomGraphConfig.poisson_cm(100, 250),
-#         RandomGraphMCMCFactory,
-#         lambda obj: None,
-#         id="mcmc.cm.poisson",
-#     ),
-#     pytest.param(
-#         RandomGraphConfig.nbinom_cm(100, 250, 0.2),
-#         RandomGraphMCMCFactory,
-#         lambda obj: None,
-#         id="mcmc.cm.nbinom",
-#     ),
-# ]
+]
 
 metrics_setup = [
     pytest.param(
@@ -289,7 +233,6 @@ metrics_setup = [
         *degrees_setup,
         *random_graph_setup,
         *dynamics_setup,
-        # *random_graph_mcmc_setup,
         *metrics_setup,
     ],
 )
@@ -307,13 +250,47 @@ def test_build_from_config(config, factory, run):
         *degrees_setup,
         *random_graph_setup,
         *dynamics_setup,
-        # *random_graph_mcmc_setup,
         *metrics_setup,
     ],
 )
 def test_run_after_creation(config, factory, run):
     obj = factory.build(config)
     run(obj)
+
+
+mcmc_setup = [
+    pytest.param(
+        ExperimentConfig.reconstruction("test", d, g),
+        MCMCFactory,
+        id=f"mcmc.{d}.{g}",
+    )
+    for d, g in product(
+        ["glauber", "sis", "cowan"],
+        [
+            "er",
+            "nbinom_cm",
+            "uniform_cm",
+            "hyperuniform_cm",
+            "uniform_sbm",
+            "hyperuniform_sbm",
+            "uniform_dcsbm",
+            "hyperuniform_dcsbm",
+        ],
+    )
+]
+
+
+@pytest.mark.parametrize("config, factory", [*mcmc_setup])
+def test_build_reconstruction_from_exp_config(config, factory):
+    factory.build_reconstruction(config)
+
+
+@pytest.mark.parametrize("config, factory", [*mcmc_setup])
+def test_run_reconstruction_after_creation(config, factory):
+    obj = factory.build_reconstruction(config)
+    obj.others["dynamics"].sample()
+    obj.set_up()
+    obj.do_metropolis_hastings_step()
 
 
 if __name__ == "__main__":

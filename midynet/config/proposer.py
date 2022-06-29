@@ -71,7 +71,7 @@ class BlockProposerConfig(Config):
 
     @classmethod
     def restricted_mixed(cls):
-        return cls(name="gibbs_mixed", sample_label_count_prob=0.1, shift=1)
+        return cls(name="restricted_mixed", sample_label_count_prob=0.1, shift=1)
 
 
 class EdgeProposerFactory(Factory):

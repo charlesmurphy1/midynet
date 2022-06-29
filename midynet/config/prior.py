@@ -193,9 +193,10 @@ class BlockPriorFactory(Factory):
 
     @staticmethod
     def build_uniform(config: BlockPriorConfig) -> sbm.BlockUniformPrior:
+        if config.block_count.get_value("max") is None:
+            config.block_count.set_value("max", config.get_value("size"))
         B = BlockCountPriorFactory.build(config.get_value("block_count"))
         b = sbm.BlockUniformPrior(config.get_value("size"), B)
-
         return Wrapper(
             b,
             setup_func=lambda wrap, others: wrap.set_block_count_prior(
@@ -208,6 +209,8 @@ class BlockPriorFactory(Factory):
     def build_hyperuniform(
         config: BlockPriorConfig,
     ) -> sbm.BlockUniformHyperPrior:
+        if config.block_count.get_value("max") is None:
+            config.block_count.set_value("max", config.get_value("size"))
         B = BlockCountPriorFactory.build(config.get_value("block_count"))
         b = sbm.BlockUniformHyperPrior(config.get_value("size"), B)
 
