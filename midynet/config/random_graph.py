@@ -1,3 +1,4 @@
+import numpy as np
 from typing import Union, Optional
 
 from _midynet.prior import sbm
@@ -14,12 +15,14 @@ from midynet.util.degree_sequences import poisson_degreeseq, nbinom_degreeseq
 from .config import Config
 from .factory import Factory, UnavailableOption
 from .prior import (
-    EdgeCountPriorConfig,
+    BlockCountPriorConfig,
     BlockPriorConfig,
+    EdgeCountPriorConfig,
     EdgeMatrixPriorConfig,
     DegreePriorConfig,
-    EdgeCountPriorFactory,
+    BlockCountPriorFactory,
     BlockPriorFactory,
+    EdgeCountPriorFactory,
     EdgeMatrixPriorFactory,
     DegreePriorFactory,
 )
@@ -43,7 +46,10 @@ class RandomGraphConfig(Config):
         obj = cls(name=name, size=size, labeled=True)
         obj.insert("blocks", BlockPriorConfig.auto(blocks))
         obj.insert("edge_matrix", EdgeMatrixPriorConfig.auto(edge_matrix))
-        if obj.edge_matrix.edge_count.name == "delta":
+        if (
+            "edge_count" not in obj.edge_matrix
+            or obj.edge_matrix.edge_count.name == "delta"
+        ):
             obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
@@ -77,21 +83,27 @@ class RandomGraphConfig(Config):
         edge_matrix = EdgeMatrixPriorConfig.uniform(edge_count)
         return cls.custom_sbm("hyperuniform_sbm", size, blocks, edge_matrix)
 
+    @classmethod
     def planted_partition(
-        cls, size: int, edge_count: int, block_count: int, assortativity: float
+        cls,
+        size: int = 100,
+        edge_count: int = 250,
+        block_count: int = 2,
+        assortativity: float = 0.5,
     ):
-        obj = cls(
-            "planted_partition",
-            size=size,
-            labeled=True,
-            edge_count=edge_count,
-            block_count=block_count,
-            assortativity=assortativity,
-        )
-        obj.insert("blocks", BlockPriorConfig.delta(block_count))
-        obj.insert("edge_matrix", EdgeMatrixPriorConfig.uniform(edge_count))
-        obj.insert("edge_proposer", EdgeProposerConfig.hinge_flip_uniform())
-        obj.insert("sample_graph_prior_prob", 0.0)
+        a = (assortativity + 1.0) / 2.0
+        E, B = edge_count, block_count
+        e_in = 2 * E / B * a
+        e_out = 2 * E / (B * (B - 1)) * (1 - a)
+        block_count = BlockCountPriorConfig.delta(block_count)
+        blocks = BlockPriorConfig.custom("uniform", size, block_count)
+        edge_count = EdgeCountPriorConfig.delta(edge_count)
+        edge_matrix = (
+            np.eye(B) * e_in + np.ones((B, B)) * e_out - np.eye(B) * e_out
+        ).astype("int")
+        edge_matrix = EdgeMatrixPriorConfig.delta(edge_matrix)
+
+        obj = cls.custom_sbm("planted_partition", size, blocks, edge_matrix)
         return obj
 
     @classmethod
@@ -321,7 +333,7 @@ class RandomGraphFactory(Factory):
     def build_planted_partition(
         config: RandomGraphConfig,
     ) -> StochasticBlockModelFamily:
-        UnavailableOption(config.name)
+        return RandomGraphFactory.build_custom_sbm(config)
 
     @staticmethod
     def build_custom_er(config: RandomGraphConfig) -> ErdosRenyiFamily:

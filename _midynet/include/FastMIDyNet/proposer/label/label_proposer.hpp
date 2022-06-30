@@ -64,8 +64,10 @@ public:
     GibbsLabelProposer(double sampleLabelCountProb=0.1, double labelCreationProb=0.5):
         LabelProposer<Label>(sampleLabelCountProb), m_labelCreationProb(labelCreationProb) {}
     const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
-        int addedLabels = ( m_uniform01(rng) < m_labelCreationProb ) ? 1 : -1;
-        return {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), m_graphPriorPtr->getLabelOfIdx(vertex), addedLabels};
+        if ( m_uniform01(rng) < m_labelCreationProb )
+            return {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), m_graphPriorPtr->getLabelCount(), 1};
+        else
+            return {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), m_graphPriorPtr->getLabelOfIdx(vertex), -1};
     }
 
     const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const override {

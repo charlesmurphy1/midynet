@@ -1,3 +1,6 @@
+import numpy as np
+from basegraph.core import UndirectedMultigraph
+from itertools import combinations_with_replacement
 from _midynet.prior import sbm
 
 from .config import Config
@@ -121,11 +124,19 @@ class BlockPriorConfig(Config):
             block_count=BlockCountPriorConfig.uniform(bmin, bmax),
         )
 
+    @classmethod
+    def custom(cls, name: str, size: int, block_count: BlockCountPriorConfig):
+        return cls(name=name, size=size, block_count=block_count)
+
 
 class EdgeMatrixPriorConfig(Config):
     @classmethod
-    def uniform(cls, edge_count):
+    def uniform(cls, edge_count: EdgeCountPriorConfig):
         return cls(name="uniform", edge_count=EdgeCountPriorConfig.auto(edge_count))
+
+    @classmethod
+    def delta(cls, edge_matrix: np.array):
+        return cls(name="delta", state=edge_matrix)
 
 
 class DegreePriorConfig(Config):
@@ -159,9 +170,7 @@ class EdgeCountPriorFactory(Factory):
         return sbm.EdgeCountDeltaPrior(config.get_value("state"))
 
     @staticmethod
-    def build_poisson(
-        config: EdgeCountPriorConfig,
-    ) -> sbm.EdgeCountPoissonPrior:
+    def build_poisson(config: EdgeCountPriorConfig) -> sbm.EdgeCountPoissonPrior:
         return sbm.EdgeCountPoissonPrior(config.get_value("mean"))
 
 
@@ -236,6 +245,14 @@ class EdgeMatrixPriorFactory(Factory):
             ),
             edge_count=E,
         )
+
+    @staticmethod
+    def build_delta(config) -> sbm.EdgeMatrixDeltaPrior:
+        B = config.state.shape[0]
+        e = UndirectedMultigraph(B)
+        for r, s in combinations_with_replacement(range(B), r=2):
+            e.set_edge_multiplicity_idx(r, s, config.state[r, s])
+        return Wrapper(sbm.EdgeMatrixDeltaPrior(e), label_graph=e)
 
 
 class DegreePriorFactory(Factory):
