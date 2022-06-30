@@ -41,4 +41,16 @@ TEST_F(TestVertexLabelMCMC, doMHSweep){
     mcmc.doMHSweep(1000);
 }
 
+TEST_F(TestVertexLabelMCMC, setLabels_noThrow){
+    size_t N = randomGraph.getSize();
+    size_t B = randomGraph.getLabelCount();
+    std::vector<BlockIndex> newLabels(N);
+    std::uniform_int_distribution<BlockIndex> dist(0, B-1);
+    for (size_t v=0; v<N; ++v)
+        newLabels[v] = dist(rng);
+    mcmc.setLabels(newLabels);
+    EXPECT_EQ(mcmc.getLabels(), newLabels);
+    EXPECT_NO_THROW(mcmc.checkConsistency());
+}
+
 }

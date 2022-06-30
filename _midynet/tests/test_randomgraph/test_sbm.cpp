@@ -8,6 +8,7 @@
 #include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"
+#include "FastMIDyNet/rng.h"
 #include "BaseGraph/types.h"
 #include "fixtures.hpp"
 
@@ -289,4 +290,17 @@ TEST_F(TestStochasticBlockModelFamily, isCompatible_forGraphWithOneEdgeMissing_r
         }
     }
     EXPECT_FALSE(randomGraph.isCompatible(g));
+}
+
+
+TEST_F(TestStochasticBlockModelFamily, setLabels_forSomeRandomLabels_returnConsistentState){
+    size_t N = randomGraph.getSize();
+    size_t B = randomGraph.getLabelCount();
+    std::vector<BlockIndex> newLabels(N);
+    std::uniform_int_distribution<BlockIndex> dist(0, B-1);
+    for (size_t v=0; v<N; ++v)
+        newLabels[v] = dist(rng);
+    randomGraph.setLabels(newLabels);
+    EXPECT_EQ(randomGraph.getLabels(), newLabels);
+    EXPECT_NO_THROW(randomGraph.checkConsistency());
 }

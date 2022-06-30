@@ -41,7 +41,7 @@ void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
 
 void EdgeMatrixPrior::setPartition(const std::vector<BlockIndex>& labels) {
     m_blockPriorPtr->setState(labels);
-    recomputeConsistentState();
+    recomputeStateFromGraph();
 }
 
 
