@@ -40,7 +40,13 @@ public:
     const LabelProposer<Label>& getLabelProposer(){ return *m_labelProposerPtr; }
     LabelProposer<Label>& getLabelProposerRef(){ return *m_labelProposerPtr; }
 
+
+    const MultiGraph& getGraph() const { return m_graphPriorPtr->getGraph(); }
+    void setGraph(const MultiGraph& graph) {m_graphPriorPtr->setGraph(graph); }
+
     const std::vector<Label>& getLabels() const { return m_graphPriorPtr->getLabels(); }
+    void setLabels(const std::vector<Label>& labels) { m_graphPriorPtr->setLabels(labels); }
+
 
     void sample() override { m_graphPriorPtr->sample(); }
     void samplePrior() override { m_graphPriorPtr->sampleLabels(); }

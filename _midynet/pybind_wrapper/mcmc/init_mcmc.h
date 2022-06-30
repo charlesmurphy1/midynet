@@ -59,7 +59,10 @@ py::class_<VertexLabelMCMC<Label>, MCMC> declareVertexLabelMCMCClass(py::module&
         .def("get_graph_prior", &VertexLabelMCMC<Label>::getGraphPrior)
         .def("set_label_proposer", &VertexLabelMCMC<Label>::setLabelProposer, py::arg("label_proposer"))
         .def("get_label_proposer", &VertexLabelMCMC<Label>::getLabelProposer)
+        .def("get_graph", &VertexLabelMCMC<Label>::getGraph)
+        .def("set_graph", &VertexLabelMCMC<Label>::setGraph, py::arg("graph"))
         .def("get_labels", &VertexLabelMCMC<Label>::getLabels)
+        .def("set_labels", &VertexLabelMCMC<Label>::setLabels, py::arg("labels"))
         .def("insert_callback", [](VertexLabelMCMC<Label>& self, std::string key, CallBack<MCMC>& callback){
             self.insertCallBack(key, callback); }, py::arg("key"), py::arg("callback"))
         .def("insert_callback", [](VertexLabelMCMC<Label>& self, std::string key, CallBack<VertexLabelMCMC<Label>>& callback){
@@ -82,7 +85,7 @@ py::class_<GraphReconstructionMCMC<GraphPrior>, MCMC> declareGraphReconstruction
         .def("set_edge_proposer", &GraphReconstructionMCMC<GraphPrior>::setEdgeProposer, py::arg("edge_proposer"))
         .def("get_edge_proposer", &GraphReconstructionMCMC<GraphPrior>::getEdgeProposer)
         .def("get_graph", &GraphReconstructionMCMC<GraphPrior>::getGraph)
-        .def("set_graph", &GraphReconstructionMCMC<GraphPrior>::setGraph)
+        .def("set_graph", &GraphReconstructionMCMC<GraphPrior>::setGraph, py::arg("graph"))
         .def("insert_callback", [](GraphReconstructionMCMC<GraphPrior>& self, std::string key, CallBack<MCMC>& callback){
             self.insertCallBack(key, callback);
         }, py::arg("key"), py::arg("callback"))
@@ -103,6 +106,7 @@ py::class_<VertexLabeledGraphReconstructionMCMC<Label>, GraphReconstructionMCMC<
         .def("set_label_proposer", &VertexLabeledGraphReconstructionMCMC<Label>::setLabelProposer, py::arg("label_proposer"))
         .def("get_label_proposer", &VertexLabeledGraphReconstructionMCMC<Label>::getLabelProposer)
         .def("get_labels", &VertexLabeledGraphReconstructionMCMC<Label>::getLabels)
+        .def("set_labels", &VertexLabeledGraphReconstructionMCMC<Label>::setLabels, py::arg("labels"))
         .def("get_log_acceptance_prob_from_label_move", &VertexLabeledGraphReconstructionMCMC<Label>::getLogAcceptanceProbFromLabelMove, py::arg("move"))
         .def("apply_label_move", &VertexLabeledGraphReconstructionMCMC<Label>::applyLabelMove, py::arg("move"))
         ;

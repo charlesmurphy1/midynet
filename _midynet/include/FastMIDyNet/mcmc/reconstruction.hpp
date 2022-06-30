@@ -53,7 +53,7 @@ public:
     }
 
     const MultiGraph& getGraph() const { return m_dynamicsPtr->getGraph(); }
-    void setGraph(const MultiGraph& graph) const { m_dynamicsPtr->setGraph(graph); m_edgeProposerPtr->setUp(graph); }
+    void setGraph(const MultiGraph& graph) { m_dynamicsPtr->setGraph(graph); m_edgeProposerPtr->setUp(graph); }
 
     void sample() override {
         m_dynamicsPtr->sample();
@@ -216,6 +216,10 @@ public:
 
     const std::vector<Label>& getLabels() const {
         return BaseClass::m_dynamicsPtr->getGraphPrior().getLabels();
+    }
+    void setLabels(const std::vector<Label>&labels) {
+        BaseClass::m_dynamicsPtr->getGraphPriorRef().setLabels(labels);
+        setUp();
     }
 
     void setUp() override {

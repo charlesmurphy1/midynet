@@ -39,6 +39,13 @@ protected:
     IntMap<std::pair<Label, Label>> getEdgeMatrixDiff(const LabelMove<Label>& move) const ;
     IntMap<Label> getEdgeCountsDiff(const LabelMove<Label>& move) const ;
     virtual const size_t getAvailableLabelCount() const = 0;
+
+    bool creatingNewLabel(const LabelMove<Label>& move) const {
+        return (*m_graphPriorPtrPtr)->getLabelCounts().get(move.nextLabel) == 0;
+    };
+    bool destroyingLabel(const LabelMove<Label>& move) const {
+        return move.prevLabel != move.nextLabel and (*m_graphPriorPtrPtr)->getLabelCounts().get(move.prevLabel) == 1 ;
+    }
  public:
      MixedSampler(double shift=1): m_shift(shift) {}
 
@@ -79,7 +86,8 @@ const double MixedSampler<Label>::_getLogProposalProbForMove(const LabelMove<Lab
         if (move.vertexIndex == neighbor.vertexIndex)
             continue;
         auto t = labels[ neighbor.vertexIndex ];
-        size_t Est = ((t == move.nextLabel) ? 2 : 1) * labelGraph.getEdgeMultiplicityIdx(t, move.nextLabel);
+        size_t m = (move.nextLabel < labelGraph.getSize()) ? labelGraph.getEdgeMultiplicityIdx(t, move.nextLabel) : 0;
+        size_t Est = ((t == move.nextLabel) ? 2 : 1) * m;
         size_t Et = edgeCounts.get(t);
 
         degree += neighbor.label;
@@ -107,7 +115,8 @@ const double MixedSampler<Label>::_getLogProposalProbForReverseMove(const LabelM
         if (move.vertexIndex == neighbor.vertexIndex)
             continue;
         auto t = labels[ neighbor.vertexIndex ];
-        size_t Ert = ((t == move.prevLabel) ? 2 : 1) * ((labelGraph.getEdgeMultiplicityIdx(t, move.prevLabel) + edgeMatDiff.get(getOrderedEdge({t, move.prevLabel}))));
+        size_t m = (move.prevLabel < labelGraph.getSize()) ? labelGraph.getEdgeMultiplicityIdx(t, move.prevLabel) : 0;
+        size_t Ert = ((t == move.prevLabel) ? 2 : 1) * ((m + edgeMatDiff.get(getOrderedEdge({t, move.prevLabel}))));
         size_t Et = edgeCounts.get(t) + edgeCountsDiff.get(t);
         degree += neighbor.label;
         weight += neighbor.label * ( Ert + m_shift ) / (Et + m_shift * getAvailableLabelCount()) ;
@@ -151,7 +160,9 @@ IntMap<Label> MixedSampler<Label>::getEdgeCountsDiff(const LabelMove<Label>& mov
 template<typename Label>
 class GibbsMixedLabelProposer: public GibbsLabelProposer<Label>, public MixedSampler<Label>{
 protected:
-    const Label sampleLabelUniformly() const override { return std::uniform_int_distribution<size_t>(0, getAvailableLabelCount() - 1)(rng); }
+    const Label sampleLabelUniformly() const override {
+        return std::uniform_int_distribution<size_t>(0, getAvailableLabelCount() - 2)(rng);
+    }
     const size_t getAvailableLabelCount() const override { return GibbsLabelProposer<Label>::m_graphPriorPtr->getLabelCount(); }
     const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override {
         return MixedSampler<Label>::_getLogProposalProbForReverseMove(move);

@@ -290,7 +290,7 @@ def test_run_reconstruction_after_creation(config, factory):
     obj = factory.build_reconstruction(config)
     obj.others["dynamics"].sample()
     obj.set_up()
-    obj.do_MH_sweep(100)
+    obj.do_MH_sweep(1000)
 
 
 if __name__ == "__main__":
