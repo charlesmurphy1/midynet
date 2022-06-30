@@ -69,9 +69,9 @@ void initCollectors(py::module& m){
 
     /* Graph collector classes */
     declareCollectorSubClass<CollectGraphOnSweep<GraphReconstructionMCMC<>>, SweepCollector<GraphReconstructionMCMC<>>>(m, "CollectGraphOnSweep")
-        .def("get_graphs", &CollectGraphOnSweep<GraphReconstructionMCMC<>>::getGraphs);
+        .def("get_data", &CollectGraphOnSweep<GraphReconstructionMCMC<>>::getData);
     declareCollectorSubClass<CollectBlockLabeledGraphOnSweep, BlockLabeledGraphReconstructionSweepCollector>(m, "CollectBlockLabeledGraphOnSweep")
-        .def("get_graphs", &CollectBlockLabeledGraphOnSweep::getGraphs);
+        .def("get_data", &CollectBlockLabeledGraphOnSweep::getData);
 
     /* Edge multiplicity collector classes */
     declareEdgeMultiplicityCollector<GraphReconstructionMCMC<>>(m, "CollectEdgeMultiplicityOnSweep");
@@ -79,20 +79,20 @@ void initCollectors(py::module& m){
 
     /* Partition collector classes */
     declareCollectorSubClass<CollectPartitionOnSweepForCommunity, BlockSweepCollector>(m, "CollectPartitionOnSweepForCommunity")
-        .def("get_partitions", &CollectPartitionOnSweepForCommunity::getPartitions);
+        .def("get_data", &CollectPartitionOnSweepForCommunity::getData);
     declareCollectorSubClass<CollectPartitionOnSweepForReconstruction, BlockLabeledGraphReconstructionSweepCollector>(m, "CollectPartitionOnSweepForReconstruction")
-        .def("get_partitions", &CollectPartitionOnSweepForReconstruction::getPartitions);
+        .def("get_data", &CollectPartitionOnSweepForReconstruction::getData);
 
 
     /* MCMC metrics collector classes */
     declareCollectorSubClass<CollectLikelihoodOnSweep, SweepCollector<MCMC>>(m, "CollectLikelihoodOnSweep")
-        .def("get_log_likelihoods", &CollectLikelihoodOnSweep::getLogLikelihoods);
+        .def("get_data", &CollectLikelihoodOnSweep::getData);
 
     declareCollectorSubClass<CollectPriorOnSweep, SweepCollector<MCMC>>(m, "CollectPriorOnSweep")
-        .def("get_log_priors", &CollectPriorOnSweep::getLogPriors);
+        .def("get_data", &CollectPriorOnSweep::getData);
 
     declareCollectorSubClass<CollectJointOnSweep, SweepCollector<MCMC>>(m, "CollectJointOnSweep")
-        .def("get_log_joints", &CollectJointOnSweep::getLogJoints);
+        .def("get_data", &CollectJointOnSweep::getData);
 
     // py::class_<WriteGraphToFileOnSweep, SweepCollector>(m, "WriteGraphToFileOnSweep")
     //     .def(py::init<std::string, std::string>(), py::arg("filename"), py::arg("ext")=".b");

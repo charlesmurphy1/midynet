@@ -1,13 +1,13 @@
-#ifndef FAST_MIDYNET_PYWRAPPER_INIT_COLLECTORS_H
-#define FAST_MIDYNET_PYWRAPPER_INIT_COLLECTORS_H
+#ifndef FAST_MIDYNET_PYWRAPPER_INIT_ACTIONS_H
+#define FAST_MIDYNET_PYWRAPPER_INIT_ACTIONS_H
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.hpp"
+#include "FastMIDyNet/mcmc/callbacks/action.h"
 #include "FastMIDyNet/mcmc/mcmc.h"
-#include "FastMIDyNet/mcmc/python/action.hpp"
 // #include "FastMIDyNet/utility/distance.h"
 
 namespace py = pybind11;
@@ -24,3 +24,4 @@ void initActions(py::module&m){
 }
 
 }
+#endif

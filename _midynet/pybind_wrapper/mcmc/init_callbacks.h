@@ -5,6 +5,7 @@
 #include <pybind11/stl.h>
 
 #include "init_verbose.h"
+#include "init_actions.h"
 #include "init_collectors.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.hpp"
 
@@ -58,6 +59,7 @@ void initCallBacks(py::module& m){
     declareCallBack<GraphReconstructionMCMC<RandomGraph>>(m, "GraphReconstructionCallBack");
     declareCallBack<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>(m, "BlockGraphReconstructionCallBack");
     initVerbose(m);
+    initActions(m);
     initCollectors(m);
 }
 

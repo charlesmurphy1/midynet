@@ -51,7 +51,7 @@ public:
     using BaseClass = SweepCollector<GraphMCMC>;
     void collect() override { m_collectedGraphs.push_back( BaseClass::m_mcmcPtr->getGraph() ); }
     void clear() override { m_collectedGraphs.clear(); }
-    const std::vector<MultiGraph>& getGraphs() const { return m_collectedGraphs; }
+    const std::vector<MultiGraph>& getData() const { return m_collectedGraphs; }
 };
 
 using CollectBlockLabeledGraphOnSweep = CollectGraphOnSweep<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
@@ -150,7 +150,7 @@ public:
     using BaseClass = SweepCollector<GraphMCMC>;
     void collect() override { m_partitions.push_back(BaseClass::m_mcmcPtr->getGraphPrior().getLabels()); }
     void clear() override { m_partitions.clear(); }
-    const std::vector<BlockSequence>& getPartitions() const { return m_partitions; }
+    const std::vector<BlockSequence>& getData() const { return m_partitions; }
 };
 
 using CollectPartitionOnSweepForReconstruction = CollectPartitionOnSweep<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
@@ -162,7 +162,7 @@ private:
 public:
     void collect() override { m_collectedLikelihoods.push_back( m_mcmcPtr->getLogLikelihood() ); }
     void clear() override { m_collectedLikelihoods.clear(); }
-    const std::vector<double>& getLogLikelihoods() const { return m_collectedLikelihoods; }
+    const std::vector<double>& getData() const { return m_collectedLikelihoods; }
 };
 
 class CollectPriorOnSweep: public SweepCollector<MCMC>{
@@ -171,7 +171,7 @@ private:
 public:
     void collect() override { m_collectedPriors.push_back( m_mcmcPtr->getLogPrior() ); }
     void clear() override { m_collectedPriors.clear(); }
-    const std::vector<double>& getLogPriors() const { return m_collectedPriors; }
+    const std::vector<double>& getData() const { return m_collectedPriors; }
 };
 
 class CollectJointOnSweep: public SweepCollector<MCMC>{
@@ -180,7 +180,7 @@ private:
 public:
     void collect() override { m_collectedJoints.push_back( m_mcmcPtr->getLogJoint() ); }
     void clear() override { m_collectedJoints.clear(); }
-    const std::vector<double>& getLogJoints() const { return m_collectedJoints; }
+    const std::vector<double>& getData() const { return m_collectedJoints; }
 };
 
 

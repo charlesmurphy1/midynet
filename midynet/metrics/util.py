@@ -45,7 +45,7 @@ def get_log_evidence_harmonic(
     for i in range(config.num_sweeps):
         s, f = mcmc.do_MH_sweep(burn=burn)
 
-    logp = -np.array(callback.get_log_likelihoods())
+    logp = -np.array(callback.get_data())
 
     mcmc.tear_down()
     mcmc.remove_callback("collector")
@@ -98,7 +98,7 @@ def get_log_evidence_annealed(
         for i in range(config.num_sweeps):
             mcmc.do_MH_sweep(burn=burn)
             mcmc.check_consistency()
-        logp_k = (ub - lb) * np.array(callback.get_log_likelihoods())
+        logp_k = (ub - lb) * np.array(callback.get_data())
         logp.append(log_mean_exp(logp_k))
         callback.clear()
     mcmc.tear_down()
