@@ -8,6 +8,7 @@
 #include "FastMIDyNet/rv.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/prior/prior.hpp"
+#include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/utility/maps.hpp"
 
 

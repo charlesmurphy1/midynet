@@ -40,16 +40,16 @@ TEST_F(TestGraphReconstructionMCMC, doMetropolisHastingsStep){
 }
 
 TEST_F(TestGraphReconstructionMCMC, doMHSweep){
-    mcmc.doMHSweep(1000);
+    mcmc.doMHSweep(10);
 }
 
 class TestVertexLabeledGraphReconstructionMCMC: public::testing::Test{
     size_t numSteps=10;
 public:
-    DummySBM randomGraph = DummySBM();
+    DummySBM graphPrior = DummySBM();
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
     GibbsUniformLabelProposer<BlockIndex> blockProposer = GibbsUniformLabelProposer<BlockIndex>();
-    DummyLabeledDynamics dynamics = DummyLabeledDynamics(randomGraph);
+    DummyLabeledDynamics dynamics = DummyLabeledDynamics(graphPrior);
     VertexLabeledGraphReconstructionMCMC<BlockIndex> mcmc = VertexLabeledGraphReconstructionMCMC<BlockIndex>(dynamics, edgeProposer, blockProposer);
     bool expectConsistencyError = false;
     void SetUp(){
@@ -70,7 +70,7 @@ TEST_F(TestVertexLabeledGraphReconstructionMCMC, doMetropolisHastingsStep){
 }
 
 TEST_F(TestVertexLabeledGraphReconstructionMCMC, doMHSweep){
-    mcmc.doMHSweep(1000);
+    mcmc.doMHSweep(10);
 }
 
 

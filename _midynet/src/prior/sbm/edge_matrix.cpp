@@ -54,7 +54,7 @@ void EdgeMatrixPrior::applyLabelMoveToState(const BlockMove& move) {
     if (move.prevLabel == move.nextLabel)
         return;
 
-    if (m_state.getSize() == move.nextLabel)
+    if (m_state.getSize() <= move.nextLabel)
         m_state.resize(move.nextLabel + 1);
     const auto& blockSeq = m_blockPriorPtr->getState();
     const auto& degree = m_graphPtr->getDegreeOfIdx(move.vertexIndex);

@@ -19,17 +19,17 @@ using namespace std;
 namespace FastMIDyNet{
 
 class DummySBM: public StochasticBlockModelFamily{
-    size_t size = 10;
-    size_t edgeCount = 25;
-    size_t blockCount = 3;
+    size_t size;
+    size_t edgeCount;
+    size_t blockCount;
 
-    BlockCountDeltaPrior blockCountPrior;
+    BlockCountPoissonPrior blockCountPrior;
     BlockUniformPrior blockPrior;
     EdgeCountDeltaPrior edgeCountPrior;
     EdgeMatrixUniformPrior edgeMatrixPrior;
 
 public:
-    DummySBM(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
+    DummySBM(size_t size=10, size_t edgeCount=25, size_t blockCount=5):
     StochasticBlockModelFamily(size),
     blockCountPrior(blockCount),
     blockPrior(size, blockCountPrior),

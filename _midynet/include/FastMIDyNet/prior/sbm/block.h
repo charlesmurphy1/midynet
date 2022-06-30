@@ -33,7 +33,7 @@ protected:
 
     const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; };
     const double _getLogJointRatioFromLabelMove(const BlockMove& move) const override {
-        if ( m_vertexCounts.size() > m_blockCountPriorPtr->getState() + move.addedLabels )
+        if (m_vertexCounts.size() + getAddedBlocks(move) > m_blockCountPriorPtr->getState() + move.addedLabels)
             return -INFINITY;
         return getLogLikelihoodRatioFromLabelMove(move) + getLogPriorRatioFromLabelMove(move);
     };
@@ -99,10 +99,8 @@ public:
 
     virtual const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const = 0;
     const double getLogPriorRatioFromLabelMove(const BlockMove& move) const {
-        // return m_blockCountPriorPtr->getLogJointRatioFromLabelMove(move);
-        int addedBlocks = getAddedBlocks(move);
         size_t B = m_blockCountPriorPtr->getState();
-        return m_blockCountPriorPtr->getLogLikelihoodFromState(B + addedBlocks) - m_blockCountPriorPtr->getLogLikelihoodFromState(B);
+        return m_blockCountPriorPtr->getLogLikelihoodFromState(B + move.addedLabels) - m_blockCountPriorPtr->getLogLikelihoodFromState(B);
     }
     bool creatingNewBlock(const BlockMove& move) const {
         return m_vertexCounts.get(move.nextLabel) == 0;

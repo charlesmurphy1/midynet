@@ -91,12 +91,17 @@ public:
     const State& sample(const State& initialState, bool async=true){
         m_graphPriorPtr->sample();
         sampleState(initialState, async);
+        computationFinished();
         return getCurrentState();
     }
     const State& sample(bool async=true){ return sample(getRandomState(), async); }
     void sampleState(const State& initialState, bool async=true);
     void sampleState(bool async=true){ sampleState(getRandomState(), async); }
-    void sampleGraph() { m_graphPriorPtr->sample(); setGraph(m_graphPriorPtr->getGraph()); }
+    void sampleGraph() {
+        m_graphPriorPtr->sample();
+        setGraph(m_graphPriorPtr->getGraph());
+        computationFinished();
+    }
     virtual const State getRandomState() const;
     const NeighborsState computeNeighborsState(const State& state) const;
     const NeighborsStateSequence computeNeighborsStateSequence(const StateSequence& stateSequence) const;
@@ -105,7 +110,11 @@ public:
     void asyncUpdateState(size_t num_updates);
 
     const double getLogLikelihood() const;
-    const double getLogPrior() const { return m_graphPriorPtr->getLogJoint(); }
+    const double getLogPrior() const {
+        return NestedRandomVariable::processRecursiveFunction<double>([&](){
+            return m_graphPriorPtr->getLogJoint();
+        }, 0);
+    }
     const double getLogJoint() const { return getLogPrior() + getLogLikelihood(); }
     virtual const double getTransitionProb(
         VertexState prevVertexState,
@@ -119,16 +128,16 @@ public:
 
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const;
     const double getLogPriorRatioFromGraphMove(const GraphMove& move) const {
-        return m_graphPriorPtr->getLogJointRatioFromGraphMove(move);
+        return NestedRandomVariable::processRecursiveConstFunction<double>([&](){
+            return m_graphPriorPtr->getLogJointRatioFromGraphMove(move);
+        }, 0);
     }
     const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
-        return processRecursiveConstFunction<double>([&](){
-            return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
-        }, 0);
+        return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
     }
     void applyGraphMoveToSelf(const GraphMove& move);
     void applyGraphMove(const GraphMove& move) {
-        processRecursiveFunction([&](){
+        NestedRandomVariable::processRecursiveFunction([&](){
             applyGraphMoveToSelf(move);
             m_graphPriorPtr->applyGraphMove(move);
         });

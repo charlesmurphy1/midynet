@@ -99,9 +99,12 @@ protected:
 public:
     using LabelProposer<Label>::LabelProposer;
     const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
+        Label prevLabel = m_graphPriorPtr->getLabelOfIdx(vertex);
         Label nextLabel = *sampleUniformlyFrom(m_emptyLabels.begin(), m_emptyLabels.end());
-        LabelMove<Label> move = {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), nextLabel};
-        move.addedLabels = getAddedLabels(move);
+        LabelMove<Label> move = {vertex, prevLabel, nextLabel};
+        if ( destroyingLabel(move) )
+            return {vertex, prevLabel, prevLabel};
+        move.addedLabels = 1;
         return move;
     }
     void setUp(const VertexLabeledRandomGraph<Label>& graphPrior) override {
@@ -119,9 +122,9 @@ public:
     }
 
     void applyLabelMove(const LabelMove<Label>& move) override {
-        if ( move.addedLabels == -1 )
+        if ( destroyingLabel(move) and move.prevLabel != move.nextLabel )
             m_emptyLabels.insert(move.prevLabel);
-        if ( move.addedLabels == 1 ){
+        if ( creatingNewLabel(move) ){
             m_availableLabels.insert(move.nextLabel);
             m_emptyLabels.erase(move.nextLabel);
         }
