@@ -25,8 +25,13 @@ class Wrapper:
     def __getattr__(self, key):
         if key in self.__dict__:
             return getattr(self, key)
-        else:
-            return getattr(self.wrap, key)
+        elif hasattr(self.__wrapped__, key):
+            return getattr(self.__wrapped__, key)
+        elif key in self.__others__:
+            return self.__others__[key]
+        raise AttributeError(
+            f"`{self.__class__.__name__}` object wrapping `{self.wrap}` has no attribute `{key}`."
+        )
         # GET BACK HERE!
         # if key in self.__dict__:
         #     return getattr(self, key)

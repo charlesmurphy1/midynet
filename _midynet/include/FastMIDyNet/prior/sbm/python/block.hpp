@@ -16,6 +16,8 @@ namespace FastMIDyNet{
 
 template <typename BaseClass = BlockPrior>
 class PyBlockPrior: public PyVertexLabeledPrior<std::vector<size_t>, BlockIndex, BaseClass> {
+protected:
+    void setBlockCountFromPartition(const BlockSequence& blocks) override { PYBIND11_OVERRIDE(void, BaseClass, setBlockCountFromPartition, blocks); }
 public:
     using PyVertexLabeledPrior<std::vector<size_t>, BlockIndex, BaseClass>::PyVertexLabeledPrior;
     /* Pure abstract methods */

@@ -45,6 +45,7 @@ protected:
         }
         setState(newBlocks);
     }
+    virtual void setBlockCountFromPartition(const BlockSequence& blocks) { m_blockCountPriorPtr->setState(getMaxBlockCountFromPartition(blocks)); }
 
 public:
     /* Constructors */
@@ -83,8 +84,10 @@ public:
     }
 
     const size_t getBlockCount() const { return m_blockCountPriorPtr->getState(); }
-    const size_t getMaxBlockCount() const { return *max_element(m_state.begin(), m_state.end()) + 1; }
+    const size_t getMaxBlockCount() const { return getMaxBlockCountFromPartition(m_state); }
+    const size_t getMaxBlockCountFromPartition(const BlockSequence& blocks) const { return *max_element(blocks.begin(), blocks.end()) + 1; }
     const size_t getEffectiveBlockCount() const { return m_vertexCounts.size(); }
+    const size_t getEffectiveBlockCountFromPartition(const BlockSequence& blocks) const { return computeVertexCounts(blocks).size(); }
     const CounterMap<size_t>& getVertexCounts() const { return m_vertexCounts; };
     const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
     static CounterMap<size_t> computeVertexCounts(const BlockSequence&);
@@ -174,6 +177,8 @@ public:
 };
 
 class BlockUniformHyperPrior: public BlockPrior{
+protected:
+    void setBlockCountFromPartition(const BlockSequence& blocks){ m_blockCountPriorPtr->setState(getEffectiveBlockCountFromPartition(blocks)); }
 public:
     using BlockPrior::BlockPrior;
     void sampleState() override ;

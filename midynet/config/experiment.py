@@ -36,10 +36,14 @@ class ExperimentConfig(Config):
         num_procs: int = 1,
         num_async_process: int = 1,
         seed: Optional[int] = None,
+        dynamics_params=None,
+        graph_params=None,
     ) -> ExperimentConfig:
+        dynamics_params = {} if dynamics_params is None else dynamics_params
+        graph_params = {} if graph_params is None else graph_params
         obj = cls(name=name)
-        obj.insert("dynamics", DynamicsConfig.auto(dynamics))
-        obj.insert("graph", RandomGraphConfig.auto(graph))
+        obj.insert("dynamics", DynamicsConfig.auto(dynamics, **dynamics_params))
+        obj.insert("graph", RandomGraphConfig.auto(graph, **graph_params))
         obj.insert(
             "metrics",
             MetricsCollectionConfig.auto(metrics if metrics is not None else []),
@@ -81,9 +85,11 @@ class ExperimentConfig(Config):
         num_procs: int = 1,
         num_async_process: int = 1,
         seed: Optional[int] = None,
+        graph_params=None,
     ) -> ExperimentConfig:
+        graph_params = {} if graph_params is None else graph_params
         obj = cls(name=name)
-        obj.insert("graph", RandomGraphConfig.auto(graph))
+        obj.insert("graph", RandomGraphConfig.auto(graph, **graph_params))
         obj.insert(
             "metrics",
             MetricsCollectionConfig.auto(metrics if metrics is not None else []),

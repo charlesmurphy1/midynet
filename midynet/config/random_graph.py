@@ -54,9 +54,9 @@ class RandomGraphConfig(Config):
         else:
             obj.insert("edge_proposer", EdgeProposerConfig.single_uniform())
         if obj.blocks.name == "uniform":
-            obj.insert("block_proposer", BlockProposerConfig.gibbs_mixed())
+            obj.insert("block_proposer", BlockProposerConfig.gibbs_uniform())
         else:
-            obj.insert("block_proposer", BlockProposerConfig.restricted_mixed())
+            obj.insert("block_proposer", BlockProposerConfig.restricted_uniform())
         obj.insert("sample_graph_prior_prob", 0.5)
 
         return obj

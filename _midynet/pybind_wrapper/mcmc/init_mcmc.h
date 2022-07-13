@@ -37,7 +37,7 @@ py::class_<MCMC, NestedRandomVariable, PyMCMC<>> declareMCMCBaseClass(py::module
         .def("remove_callback", &MCMC::removeCallBack, py::arg("key"))
         .def("get_mcmc_callback", &MCMC::getMCMCCallBack, py::arg("key"))
         .def("sample", &MCMC::sample)
-        .def("samplePrior", &MCMC::samplePrior)
+        .def("sample_prior", &MCMC::samplePrior)
         .def("set_up", &MCMC::setUp)
         .def("tear_down", &MCMC::tearDown)
         .def("on_step_begin", &MCMC::onStepBegin)

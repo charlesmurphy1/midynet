@@ -1,10 +1,13 @@
 import os
 import pathlib
-
 import matplotlib.pyplot as plt
+import networkx as nx
+
 from typing import Optional, Union
 from cycler import cycler
 from palettable.palette import Palette
+
+from .convert import get_edgelist, get_networkx_graph_from_basegraph
 
 __all__ = (
     "fontsizes",
@@ -23,9 +26,7 @@ fontsizes = {"small": 6, "medium": 8, "large": 10}
 def hex_to_rgb(value):
     value = value.lstrip("#")
     lv = len(value)
-    return tuple(
-        int(value[i: i + lv // 3], 16) for i in range(0, lv, lv // 3)
-    )
+    return tuple(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
 
 
 def rgb_to_hex(rgb):
@@ -69,6 +70,11 @@ rgb_colors = {k: list(map(hex_to_rgb, v)) for k, v in hex_colors.items()}
 light_colors = {k: v[0] for k, v in hex_colors.items()}
 med_colors = {k: v[1] for k, v in hex_colors.items()}
 dark_colors = {k: v[2] for k, v in hex_colors.items()}
+all_color_sequence = (
+    [c for c in light_colors.values()]
+    + [c for c in med_colors.values()]
+    + [c for c in dark_colors.values()]
+)
 
 palettes = {}
 
@@ -76,9 +82,7 @@ for k in hex_colors.keys():
     cm = [rgb_colors["white"][0], *rgb_colors[k], rgb_colors["black"][0]]
     if k != "black" and k != "white":
         palettes[k + "s"] = Palette(k + "s", "sequential", cm)
-        palettes["inv_" + k + "s"] = Palette(
-            "inv_" + k + "s", "sequential", cm[::-1]
-        )
+        palettes["inv_" + k + "s"] = Palette("inv_" + k + "s", "sequential", cm[::-1])
 
 for i, k in enumerate(["light", "med", "dark"]):
     cm = [
@@ -163,9 +167,7 @@ class Label:
         elif isinstance(loc, str):
             h, v, va, ha = cls.locations[loc]
 
-        box = (
-            dict(boxstyle="round", color="white", alpha=0.75) if box else None
-        )
+        box = dict(boxstyle="round", color="white", alpha=0.75) if box else None
 
         ax.text(
             h,
@@ -179,6 +181,68 @@ class Label:
             bbox=box,
         )
         return ax
+
+
+def drawPieMarker(xs, ys, ratios, colors, size=60, ax=None):
+    assert sum(ratios) <= 1, "sum of ratios needs to be < 1"
+
+    markers = []
+    previous = 0
+    # calculate the points of the pie pieces
+    for color, ratio in zip(colors, ratios):
+        this = 2 * np.pi * ratio + previous
+        x = [0] + np.cos(np.linspace(previous, this, 10)).tolist() + [0]
+        y = [0] + np.sin(np.linspace(previous, this, 10)).tolist() + [0]
+        xy = np.column_stack([x, y])
+        previous = this
+        markers.append(
+            {
+                "marker": xy,
+                "s": np.abs(xy).max() ** 2 * np.array(size),
+                "facecolor": color,
+            }
+        )
+
+    # scatter each of the pie pieces to create pies
+    for marker in markers:
+        ax.scatter(xs, ys, zorder=10, **marker)
+
+
+def draw_graph(graph, labels=None, ax=None, pos=None, marginals=None):
+    ax = plt.gca() if ax is None else ax
+    labels = [0] * graph.get_size() if labels is None else labels
+    el = []
+    colors = (
+        [c for c in light_colors.values()]
+        + [c for c in med_colors.values()]
+        + [c for c in dark_colors.values()]
+    )
+    nx_graph = get_networkx_graph_from_basegraph(graph)
+    if pos is None:
+        pos = nx.spring_layout(nx_graph)
+
+    # for i, j in get_edgelist(graph):
+    #     pos_i, pos_j = pos[i], pos[j]
+    #     ax.plot(
+    #         [pos_i[0], pos_j[0]],
+    #         [pos_i[1], pos_j[1]],
+    #         linestyle="-",
+    #         marker="None",
+    #         color=med_colors["grey"],
+    #         linewidth=graph.get_edge_multiplicity_idx(i, j),
+    #     )
+    nx.draw_networkx_edges(
+        nx_graph,
+        pos=pos,
+        edgelist=get_edgelist(graph),
+        width=[graph.get_edge_multiplicity_idx(*e) for e in get_edgelist(graph)],
+    )
+
+    for i, p in pos.items():
+        if marginals is None:
+            ax.plot([p[0]], [p[1]], color=colors[labels[i]], marker="o")
+        else:
+            drawPieMarker([p[0]], [p[1]], marginals[i], colors=colors, ax=ax)
 
 
 def main():

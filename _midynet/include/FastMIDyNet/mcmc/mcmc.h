@@ -40,6 +40,9 @@ public:
     void setBetaPrior(double betaPrior) { m_betaPrior = betaPrior; }
     double getBetaLikelihood() const { return m_betaLikelihood; }
     void setBetaLikelihood(double betaLikelihood) { m_betaLikelihood = betaLikelihood; }
+    void setBeta(double beta){
+        m_betaLikelihood = m_betaPrior = beta;
+    }
 
     virtual void sample() = 0;
     virtual void samplePrior() = 0;
