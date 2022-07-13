@@ -44,7 +44,6 @@ TEST_F(TestGibbsUniformBlockProposer, proposeNewLabelMove_returnValidMove){
     for (size_t i = 0; i < numSamples; i++) {
         auto move = proposer.proposeNewLabelMove(0);
         EXPECT_EQ(move.prevLabel, graphPrior.getLabelOfIdx(0));
-        EXPECT_EQ(move.nextLabel, graphPrior.getLabelOfIdx(0));
         EXPECT_TRUE(move.addedLabels != 0);
     }
 }

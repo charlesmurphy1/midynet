@@ -43,7 +43,6 @@ TEST_F(TestGibbsMixedBlockProposer, proposeNewLabelMove_returnValidMove){
     for(size_t i=0; i<numSamples; ++i){
         auto move = proposer.proposeNewLabelMove(0);
         EXPECT_EQ(move.prevLabel, graphPrior.getLabelOfIdx(0));
-        EXPECT_EQ(move.nextLabel, graphPrior.getLabelOfIdx(0));
         EXPECT_NE(move.addedLabels, 0);
     }
 }

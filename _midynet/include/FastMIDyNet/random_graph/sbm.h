@@ -9,29 +9,43 @@
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
+#include "FastMIDyNet/random_graph/likelihood.h"
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 
 namespace FastMIDyNet{
 
-class StochasticBlockModelFamily: public BlockLabeledRandomGraph{
+class StochasticBlockModelFamily: public BlockLabeledRandomGraph, public StochasticBlockModelLikelihood{
 protected:
     BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
 
-    virtual void _applyGraphMove (const GraphMove&) override;
-    virtual void _applyLabelMove (const BlockMove&) override;
-    virtual const double getLogLikelihoodRatioEdgeTerm (const GraphMove&) const;
-    virtual const double getLogLikelihoodRatioAdjTerm (const GraphMove&) const;
-    void getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BlockIndex, BlockIndex>>&) const;
-    void getDiffAdjMatMapFromEdgeMove(const BaseGraph::Edge&, int, IntMap<std::pair<BaseGraph::VertexIndex, BaseGraph::VertexIndex>>&) const;
-    void getDiffEdgeMatMapFromBlockMove(const BlockMove&, IntMap<std::pair<BlockIndex, BlockIndex>>&) const;
+    virtual void _applyGraphMove (const GraphMove& move) override {
+        m_blockPriorPtr->applyGraphMove(move);
+        m_edgeMatrixPriorPtr->applyGraphMove(move);
+        RandomGraph::_applyGraphMove(move);
+    }
+    virtual void _applyLabelMove (const BlockMove& move) override{
+        m_blockPriorPtr->applyLabelMove(move);
+        m_edgeMatrixPriorPtr->applyLabelMove(move);
+    }
 
 public:
-    StochasticBlockModelFamily(size_t graphSize): VertexLabeledRandomGraph<BlockIndex>(graphSize) { }
+    StochasticBlockModelFamily(size_t graphSize):
+        VertexLabeledRandomGraph<BlockIndex>(graphSize), StochasticBlockModelLikelihood() {
+            m_sizePtr = &m_size;
+            m_graphPtr = &m_graph;
+            m_blockPriorPtrPtr = &m_blockPriorPtr;
+            m_edgeMatrixPriorPtrPtr = &m_edgeMatrixPriorPtr;
+    }
     StochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
         VertexLabeledRandomGraph<BlockIndex>(graphSize){
+            m_sizePtr = &m_size;
+            m_graphPtr = &m_graph;
+            m_blockPriorPtrPtr = &m_blockPriorPtr;
+            m_edgeMatrixPriorPtrPtr = &m_edgeMatrixPriorPtr;
+
             setBlockPrior(blockPrior);
             m_blockPriorPtr->setSize(graphSize);
             setEdgeMatrixPrior(edgeMatrixPrior);
@@ -43,11 +57,11 @@ public:
         setLabels(m_blockPriorPtr->getState());
     }
 
-
     void setGraph(const MultiGraph& graph) override{
         RandomGraph::setGraph(graph);
         m_edgeMatrixPriorPtr->setGraph(m_graph);
     }
+    
     void setLabels(const std::vector<BlockIndex>& labels) override {
         m_edgeMatrixPriorPtr->setPartition(labels);
     }
@@ -78,14 +92,30 @@ public:
     const MultiGraph& getLabelGraph() const override { return m_edgeMatrixPriorPtr->getState(); }
     const size_t& getEdgeCount() const override { return m_edgeMatrixPriorPtr->getEdgeCount(); }
 
-    virtual const double getLogLikelihood() const override;
-    virtual const double getLogPrior() const override;
+    virtual const double getLogLikelihood() const override { return StochasticBlockModelLikelihood::getLogLikelihood(); }
+    virtual const double getLogPrior() const override {
+        return processRecursiveConstFunction<double>([&](){
+            return m_blockPriorPtr->getLogJoint() + m_edgeMatrixPriorPtr->getLogJoint();
+        }, 0);
+    }
 
-    virtual const double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
-    virtual const double getLogLikelihoodRatioFromLabelMove (const BlockMove&) const override;
+    virtual const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override {
+        return StochasticBlockModelLikelihood::getLogLikelihoodRatioFromGraphMove(move);
+    }
+    virtual const double getLogLikelihoodRatioFromLabelMove (const BlockMove& move) const override {
+        return StochasticBlockModelLikelihood::getLogLikelihoodRatioFromLabelMove(move);
+    }
 
-    virtual const double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
-    virtual const double getLogPriorRatioFromLabelMove (const BlockMove&) const override;
+    virtual const double getLogPriorRatioFromGraphMove (const GraphMove& move) const override {
+        return processRecursiveConstFunction<double>([&](){
+            return m_blockPriorPtr->getLogJointRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move);
+        }, 0);
+    }
+    virtual const double getLogPriorRatioFromLabelMove (const BlockMove& move) const override {
+        return processRecursiveConstFunction<double>([&](){
+            return m_blockPriorPtr->getLogJointRatioFromLabelMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromLabelMove(move);
+        }, 0);
+    }
 
 
     virtual bool isSafe() const override { return m_blockPriorPtr != nullptr and m_edgeMatrixPriorPtr != nullptr; }

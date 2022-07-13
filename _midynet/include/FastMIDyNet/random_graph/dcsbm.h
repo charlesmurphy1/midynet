@@ -32,9 +32,6 @@ public:
 
     void sample () override;
 
-    // void setGraph(const MultiGraph& graph) override {
-    //     StochasticBlockModelFamily::setGraph(graph);
-    // }
 
     const DegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
     DegreePrior& getDegreePriorRef() const { return *m_degreePriorPtr; }
