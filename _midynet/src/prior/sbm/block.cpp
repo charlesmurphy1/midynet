@@ -55,6 +55,8 @@ const double BlockUniformPrior::getLogLikelihood() const {
 }
 
 const double BlockUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+    if (m_vertexCounts.size() + getAddedBlocks(move) > m_blockCountPriorPtr->getState() + move.addedLabels)
+        return -INFINITY;
     size_t prevNumBlocks = m_blockCountPriorPtr->getState();
     size_t newNumBlocks = prevNumBlocks + move.addedLabels;
     double logLikelihoodRatio = 0;

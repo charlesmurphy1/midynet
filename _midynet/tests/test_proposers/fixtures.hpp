@@ -1,6 +1,6 @@
 #include "FastMIDyNet/types.h"
 
-#include "FastMIDyNet/prior/sbm/edge_count.h"
+#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
@@ -34,31 +34,49 @@ static MultiGraph getUndirectedHouseMultiGraph(){
 }
 
 class DummySBMGraph: public StochasticBlockModelFamily{
-private:
     size_t size;
-    BlockCountDeltaPrior blockCount = {3};
-    BlockUniformPrior blocks = {size, blockCount};
-    EdgeCountDeltaPrior edgeCount = {250};
-    EdgeMatrixUniformPrior edgeMatrix = {edgeCount, blocks};
+    size_t edgeCount;
+    size_t blockCount;
+
+    BlockCountDeltaPrior blockCountPrior;
+    BlockUniformPrior blockPrior;
+    EdgeCountDeltaPrior edgeCountPrior;
+    EdgeMatrixUniformPrior edgeMatrixPrior;
+
 public:
-    DummySBMGraph(size_t size=100):StochasticBlockModelFamily(size){
-        setBlockPrior(blocks);
-        setEdgeMatrixPrior(edgeMatrix);
+    DummySBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
+    StochasticBlockModelFamily(size),
+    blockCountPrior(blockCount),
+    blockPrior(size, blockCountPrior),
+    edgeCountPrior(edgeCount),
+    edgeMatrixPrior(edgeCountPrior, blockPrior)
+     {
+        setEdgeMatrixPrior(edgeMatrixPrior);
     }
+    using StochasticBlockModelFamily::sample;
 };
 
 class DummyRestrictedSBMGraph: public StochasticBlockModelFamily{
-private:
     size_t size;
-    BlockCountDeltaPrior blockCount = {3};
-    BlockUniformHyperPrior blocks = {size, blockCount};
-    EdgeCountDeltaPrior edgeCount = {250};
-    EdgeMatrixUniformPrior edgeMatrix = {edgeCount, blocks};
+    size_t edgeCount;
+    size_t blockCount;
+
+    BlockCountDeltaPrior blockCountPrior;
+    BlockUniformHyperPrior blockPrior;
+    EdgeCountDeltaPrior edgeCountPrior;
+    EdgeMatrixUniformPrior edgeMatrixPrior;
+
 public:
-    DummyRestrictedSBMGraph(size_t size=100):StochasticBlockModelFamily(size){
-        setBlockPrior(blocks);
-        setEdgeMatrixPrior(edgeMatrix);
+    DummyRestrictedSBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
+    StochasticBlockModelFamily(size),
+    blockCountPrior(blockCount),
+    blockPrior(size, blockCountPrior),
+    edgeCountPrior(edgeCount),
+    edgeMatrixPrior(edgeCountPrior, blockPrior)
+     {
+        setEdgeMatrixPrior(edgeMatrixPrior);
     }
+    using StochasticBlockModelFamily::sample;
 };
 
 }

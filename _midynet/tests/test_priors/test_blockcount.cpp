@@ -16,7 +16,6 @@ class DummyBlockCountPrior: public BlockCountPrior {
 public:
     void sampleState() {}
     const double getLogLikelihoodFromState(const size_t& state) const { return state; }
-    const double getLogPrior() { return 0; }
 
     void checkSelfConsistency() const {}
 };

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
+#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
-#include "FastMIDyNet/prior/sbm/edge_count.h"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/proposer/label/mixed.hpp"
@@ -16,7 +16,7 @@ class TestGibbsMixedBlockProposer: public::testing::Test{
 public:
     double SAMPLE_LABEL_PROB=0.1, LABEL_CREATION_PROB=0.5, SHIFT=1;
     size_t numSamples = 100;
-    DummySBMGraph graphPrior = DummySBMGraph(100);
+    DummySBMGraph graphPrior = DummySBMGraph(100, 250, 3);
     GibbsMixedBlockProposer proposer = GibbsMixedBlockProposer(SAMPLE_LABEL_PROB, LABEL_CREATION_PROB, SHIFT);
 
     void SetUp(){
@@ -75,7 +75,7 @@ class TestRestrictedMixedBlockProposer: public::testing::Test{
 public:
     double SAMPLE_LABEL_PROB=0.1, LABEL_CREATION_PROB=0.5, SHIFT=1;
     size_t numSamples = 100;
-    DummySBMGraph graphPrior = DummySBMGraph(100);
+    DummySBMGraph graphPrior = DummySBMGraph(100, 250, 3);
     RestrictedMixedBlockProposer proposer = RestrictedMixedBlockProposer(SAMPLE_LABEL_PROB, SHIFT);
 
     void SetUp(){
@@ -107,12 +107,10 @@ TEST_F(TestRestrictedMixedBlockProposer, proposeNewLabelMove_returnValidMove){
 }
 
 TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forSomeLabelMove_returnCorrectProb){
-    displayVector(graphPrior.getLabels());
     for(size_t i=0; i<10; ++i){
         auto move = proposer.proposeLabelMove(0);
         while (move.prevLabel == move.nextLabel)
             move = proposer.proposeLabelMove(0);
-        std::cout << move.display() << std::endl;
         LabelMove<BlockIndex> reverseMove = {move.vertexIndex, move.nextLabel, move.prevLabel};
         double logProb = proposer.getLogProposalProb(move, false);
         proposer.applyLabelMove(move);
@@ -124,7 +122,6 @@ TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forSomeLabelMove_ret
 
 TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forLabelMoveAddingNewLabel_returnCorrectProb){
     auto move = proposer.proposeNewLabelMove(0);
-    std::cout << move.display() << std::endl;
     LabelMove<BlockIndex> reverseMove = {move.vertexIndex, move.nextLabel, move.prevLabel, -move.addedLabels};
     double logProb = proposer.getLogProposalProb(move, false);
     proposer.applyLabelMove(move);

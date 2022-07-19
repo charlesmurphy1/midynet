@@ -23,6 +23,9 @@ protected:
     CounterMap<BlockIndex> m_vertexCounts;
     bool m_allowEmptyBlocks = false;
 
+    const double _getLogPrior() const override { return m_blockCountPriorPtr->getLogJoint(); };
+    void _samplePriors() override { m_blockCountPriorPtr->sample(); }
+
     void _applyGraphMove(const GraphMove&) override { };
     void _applyLabelMove(const BlockMove& move) override {
         m_blockCountPriorPtr->setState(m_blockCountPriorPtr->getState() + move.addedLabels);
@@ -31,12 +34,12 @@ protected:
         m_state[move.vertexIndex] = move.nextLabel;
     }
 
-    const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override { return 0; };
-    const double _getLogJointRatioFromLabelMove(const BlockMove& move) const override {
-        if (m_vertexCounts.size() + getAddedBlocks(move) > m_blockCountPriorPtr->getState() + move.addedLabels)
-            return -INFINITY;
-        return getLogLikelihoodRatioFromLabelMove(move) + getLogPriorRatioFromLabelMove(move);
-    };
+
+    const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0; };
+    const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override {
+        size_t B = m_blockCountPriorPtr->getState();
+        return m_blockCountPriorPtr->getLogLikelihoodFromState(B + move.addedLabels) - m_blockCountPriorPtr->getLogLikelihoodFromState(B);
+    }
 
     void remapBlockIndex(const std::map<size_t, size_t> indexMap){
         auto newBlocks = m_state;
@@ -50,10 +53,11 @@ protected:
 public:
     /* Constructors */
 
+    BlockPrior() {}
     BlockPrior(size_t size, BlockCountPrior& blockCountPrior):
         m_size(size) {  setBlockCountPrior(blockCountPrior); }
-    BlockPrior(): m_size(0){}
     BlockPrior(const BlockPrior& other) {
+        setSize(other.m_size);
         setState(other.m_state);
         this->setBlockCountPrior(*other.m_blockCountPriorPtr);
     }
@@ -65,10 +69,10 @@ public:
     }
 
     virtual void setState(const BlockSequence& blocks) override{
-        m_size = blocks.size();
         m_vertexCounts = computeVertexCounts(blocks);
         m_blockCountPriorPtr->setStateFromPartition(blocks);
         m_state = blocks;
+        m_size = blocks.size();
     }
 
     /* Accessors & mutators of attributes */
@@ -93,18 +97,12 @@ public:
     static CounterMap<size_t> computeVertexCounts(const BlockSequence&);
 
     /* sampling methods */
-    void samplePriors() override {
-        m_blockCountPriorPtr->sample();
-    }
 
     /* MCMC methods */
-    const double getLogPrior() const override { return m_blockCountPriorPtr->getLogJoint(); };
 
+
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override { return 0; }
     virtual const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const = 0;
-    const double getLogPriorRatioFromLabelMove(const BlockMove& move) const {
-        size_t B = m_blockCountPriorPtr->getState();
-        return m_blockCountPriorPtr->getLogLikelihoodFromState(B + move.addedLabels) - m_blockCountPriorPtr->getLogLikelihoodFromState(B);
-    }
     bool creatingNewBlock(const BlockMove& move) const {
         return m_vertexCounts.get(move.nextLabel) == 0;
     };
@@ -134,11 +132,11 @@ public:
     }
 
     bool isSafe() const override {
-        return (m_size >= 0) and (m_blockCountPriorPtr != nullptr) and (m_blockCountPriorPtr->isSafe());
+        return (m_size != 0) and (m_blockCountPriorPtr != nullptr) and (m_blockCountPriorPtr->isSafe());
     }
     void checkSelfSafety() const override {
-        if (m_size < 0)
-            throw SafetyError("BlockPrior: unsafe prior since `size` < 0: " + std::to_string(m_size) + ".");
+        if (m_size == 0)
+            throw SafetyError("BlockPrior: unsafe prior since `m_size` is zero.");
         if (m_blockCountPriorPtr == nullptr)
             throw SafetyError("BlockPrior: unsafe prior since `m_blockCountPriorPtr` is empty.");
         m_blockCountPriorPtr->checkSafety();

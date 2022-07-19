@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <vector>
 
-#include "FastMIDyNet/prior/sbm/edge_count.h"
+#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/exceptions.h"
@@ -13,10 +13,9 @@ const std::vector<size_t> TESTED_INTEGERS={0,5,10};
 
 class DummyEdgeCountPrior: public FastMIDyNet::EdgeCountPrior {
     public:
-        void sampleState() {}
-        const double getLogLikelihoodFromState(const size_t& state) const { return state; }
-        const double getLogPrior() { return 0; }
-        void checkSelfConsistency() const { }
+        void sampleState() override {}
+        const double getLogLikelihoodFromState(const size_t& state) const override { return state; }
+        void checkSelfConsistency() const override { }
 };
 
 class TestEdgeCountPrior: public ::testing::Test {
@@ -71,14 +70,6 @@ TEST_F(TestEdgeCountPrior, getLogJointRatio_graphMove_returnLogLikelihoodRatio) 
     FastMIDyNet::GraphMove move = {edgeMove, {}};
 
     EXPECT_EQ(prior.getLogJointRatioFromGraphMove(move), prior.getLogLikelihoodRatioFromGraphMove(move));
-}
-
-TEST_F(TestEdgeCountPrior, getLogJointRatio_blockMove_return0) {
-    prior.setState(5);
-    std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
-    FastMIDyNet::BlockMove move = {0, 0, 0};
-
-    EXPECT_EQ(prior.getLogJointRatioFromLabelMove(move), 0);
 }
 
 TEST_F(TestEdgeCountPrior, applyGraphMove_addEdges_edgeNumberIncrements) {

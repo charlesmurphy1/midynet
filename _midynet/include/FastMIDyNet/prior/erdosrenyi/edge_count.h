@@ -9,32 +9,26 @@
 
 namespace FastMIDyNet{
 
-class EdgeCountPrior: public BlockLabeledPrior<size_t> {
+class EdgeCountPrior: public Prior<size_t> {
 protected:
-    void _applyGraphMove(const GraphMove& move) override {
-        setState(getStateAfterGraphMove(move));
-    }
-    void _applyLabelMove(const BlockMove& move) override { }
+    void _samplePriors() override {}
+    const double _getLogPrior() const override { return 0; }
+    void _applyGraphMove(const GraphMove& move) override { setState(getStateAfterGraphMove(move)); }
 
-    const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override {
-        return getLogLikelihoodRatioFromGraphMove(move);
+    const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override {
+        return 0;
     }
-    const double _getLogJointRatioFromLabelMove(const BlockMove& move) const override { return 0; }
 
 public:
-    using BlockLabeledPrior<size_t>::BlockLabeledPrior;
-    void samplePriors() override {}
+    using Prior<size_t>::Prior;
     virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
     const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
-    const double getLogPrior() const override { return 0; }
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
          return getLogLikelihoodFromState(getStateAfterGraphMove(move)) - getLogLikelihood();
     }
-    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const { return 0; }
 
 
     const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
-    const double getLogPriorRatioFromLabelMove(const BlockMove& move) const { return 0; }
 
 
     size_t getStateAfterGraphMove(const GraphMove& move) const;

@@ -3,9 +3,9 @@
 #include <random>
 #include <time.h>
 
+#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
 #include "FastMIDyNet/prior/sbm/block_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
-#include "FastMIDyNet/prior/sbm/edge_count.h"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
@@ -36,7 +36,6 @@ public:
     edgeCountPrior(edgeCount),
     edgeMatrixPrior(edgeCountPrior, blockPrior)
      {
-        setBlockPrior(blockPrior);
         setEdgeMatrixPrior(edgeMatrixPrior);
     }
     using StochasticBlockModelFamily::sample;

@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "FastMIDyNet/prior/sbm/edge_count.h"
+#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/proposer/edge/single_edge.h"
 #include "FastMIDyNet/proposer/movetypes.h"

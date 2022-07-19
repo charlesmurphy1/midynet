@@ -22,6 +22,7 @@ public:
     void SetUp(){
         seed(1);
         randomGraph.sample();
+
         mcmc.insertCallBack("check_consistency", callback);
         mcmc.setUp();
         mcmc.checkSafety();

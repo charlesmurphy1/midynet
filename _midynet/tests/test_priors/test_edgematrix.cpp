@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include <vector>
 
+#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
 #include "FastMIDyNet/prior/sbm/edge_matrix.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/utility/functions.h"
@@ -13,15 +14,15 @@ const BlockSequence BLOCK_SEQUENCE = {0, 0, 1, 0, 0, 1, 1};
 
 
 class DummyEdgeMatrixPrior: public EdgeMatrixPrior {
+    void _applyGraphMove(const GraphMove&) override { };
+    void _applyLabelMove(const BlockMove&) override { };
     public:
         using EdgeMatrixPrior::EdgeMatrixPrior;
         void sampleState() {}
-        const double getLogLikelihood() const { return 0.; }
-        const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const { return 0; }
-        const double getLogLikelihoodRatioFromLabelMove(const BlockMove&) const { return 0; }
+        const double getLogLikelihood() const override { return 0.; }
+        const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override { return 0; }
+        const double getLogLikelihoodRatioFromLabelMove(const BlockMove&) const override { return 0; }
 
-        void applyGraphMove(const GraphMove&) { };
-        void applyLabelMove(const BlockMove&) { };
         void applyLabelMoveToState(const BlockMove& move) { EdgeMatrixPrior::applyLabelMoveToState(move); }
 };
 

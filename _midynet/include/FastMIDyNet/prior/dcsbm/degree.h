@@ -11,22 +11,21 @@
 
 namespace FastMIDyNet{
 
-class DegreePrior: public BlockLabeledPrior< DegreeSequence >{
+class VertexLabeledDegreePrior: public BlockLabeledPrior< DegreeSequence >{
 protected:
-    BlockPrior* m_blockPriorPtr = nullptr;
     EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
-    DegreeCountsMap m_degreeCounts;
-    // const MultiGraph* m_graphPtr;
+    VertexLabeledDegreeCountsMap m_degreeCounts;
+
+    void _samplePriors() override { m_edgeMatrixPriorPtr->sample(); }
 
     void _applyGraphMove(const GraphMove& move) override;
     void _applyLabelMove(const BlockMove& move) override;
 
-    const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override{
-        return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
+    const double _getLogPrior() const override {
+        return m_edgeMatrixPriorPtr->getLogJoint();
     }
-    const double _getLogJointRatioFromLabelMove(const BlockMove& move) const override {
-        return getLogLikelihoodRatioFromLabelMove(move) + getLogPriorRatioFromLabelMove(move);
-    }
+    const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move); }
+    const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const { return m_edgeMatrixPriorPtr->getLogJointRatioFromLabelMove(move); }
 
     // void onBlockCreation(const BlockMove&) override;
 
@@ -37,70 +36,58 @@ protected:
 public:
     using BlockLabeledPrior<DegreeSequence>::BlockLabeledPrior;
     /* Constructors */
-    DegreePrior(){}
-    DegreePrior(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior){
-            setBlockPrior(blockPrior);
+    VertexLabeledDegreePrior(){}
+    VertexLabeledDegreePrior(EdgeMatrixPrior& edgeMatrixPrior){
             setEdgeMatrixPrior(edgeMatrixPrior);
         }
-    DegreePrior(const DegreePrior& other){
-        setBlockPrior(*other.m_blockPriorPtr);
+    VertexLabeledDegreePrior(const VertexLabeledDegreePrior& other){
         setEdgeMatrixPrior(*other.m_edgeMatrixPriorPtr);
     }
-    virtual ~DegreePrior(){}
-    const DegreePrior& operator=(const DegreePrior& other){
-        setBlockPrior(*other.m_blockPriorPtr);
+    virtual ~VertexLabeledDegreePrior(){}
+    const VertexLabeledDegreePrior& operator=(const VertexLabeledDegreePrior& other){
         setEdgeMatrixPrior(*other.m_edgeMatrixPriorPtr);
         return *this;
     }
 
-    // void setGraph(const MultiGraph&);
+    void samplePartition() { m_edgeMatrixPriorPtr->samplePartition(); recomputeConsistentState();}
+    void setGraph(const MultiGraph&);
     // const MultiGraph& getGraph() const { return *m_graphPtr; }
     virtual void setState(const DegreeSequence&) override;
     void setPartition(const std::vector<BlockIndex>&) ;
-    static const DegreeCountsMap computeDegreeCounts(const std::vector<size_t>&,  const std::vector<BlockIndex>);
+    static const VertexLabeledDegreeCountsMap computeDegreeCounts(const std::vector<size_t>&,  const std::vector<BlockIndex>);
 
-    const BlockPrior& getBlockPrior() const { return *m_blockPriorPtr; }
-    BlockPrior& getBlockPriorRef() const { return *m_blockPriorPtr; }
-    void setBlockPrior(BlockPrior& blockPrior) { m_blockPriorPtr = &blockPrior; m_blockPriorPtr->isRoot(false);}
+    const BlockPrior& getBlockPrior() const { return m_edgeMatrixPriorPtr->getBlockPrior(); }
+    BlockPrior& getBlockPriorRef() const { return m_edgeMatrixPriorPtr->getBlockPriorRef(); }
+    void setBlockPrior(BlockPrior& prior) const { m_edgeMatrixPriorPtr->setBlockPrior(prior); }
 
     const EdgeMatrixPrior& getEdgeMatrixPrior() const { return *m_edgeMatrixPriorPtr; }
     EdgeMatrixPrior& getEdgeMatrixPriorRef() const { return *m_edgeMatrixPriorPtr; }
     void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) {
-        m_edgeMatrixPriorPtr = &edgeMatrixPrior; m_edgeMatrixPriorPtr->isRoot(false);
+        m_edgeMatrixPriorPtr = &edgeMatrixPrior;
+        m_edgeMatrixPriorPtr->isRoot(false);
     }
 
     const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
-    virtual const DegreeCountsMap& getDegreeCounts() const { return m_degreeCounts; }
+    virtual const VertexLabeledDegreeCountsMap& getDegreeCounts() const { return m_degreeCounts; }
 
-    void samplePriors() override { m_blockPriorPtr->sample(); m_edgeMatrixPriorPtr->sample(); }
-
-    const double getLogPrior() const override { return m_blockPriorPtr->getLogJoint() + m_edgeMatrixPriorPtr->getLogJoint(); }
 
     virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
     virtual const double getLogLikelihoodRatioFromLabelMove(const BlockMove&) const = 0;
-    virtual const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_blockPriorPtr->getLogJointRatioFromGraphMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move); }
-    virtual const double getLogPriorRatioFromLabelMove(const BlockMove& move) const { return m_blockPriorPtr->getLogJointRatioFromLabelMove(move) + m_edgeMatrixPriorPtr->getLogJointRatioFromLabelMove(move); }
 
     virtual void computationFinished() const override {
         m_isProcessed = false;
-        m_blockPriorPtr->computationFinished();
         m_edgeMatrixPriorPtr->computationFinished();
     }
     static void checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence&, size_t);
-    static void checkDegreeSequenceConsistencyWithDegreeCounts(const DegreeSequence&, const BlockSequence&, const DegreeCountsMap&);
+    static void checkDegreeSequenceConsistencyWithDegreeCounts(const DegreeSequence&, const BlockSequence&, const VertexLabeledDegreeCountsMap&);
 
     bool isSafe() const override {
-        return (m_blockPriorPtr != nullptr) and (m_blockPriorPtr->isSafe())
-           and (m_edgeMatrixPriorPtr != nullptr) and (m_edgeMatrixPriorPtr->isSafe());
+        return (m_edgeMatrixPriorPtr != nullptr) and (m_edgeMatrixPriorPtr->isSafe());
     }
     void checkSelfConsistency() const override;
     virtual void checkSelfSafety() const override{
-        if (m_blockPriorPtr == nullptr)
-            throw SafetyError("DegreePrior: unsafe prior since `m_blockPriorPtr` is empty.");
-
         if (m_edgeMatrixPriorPtr == nullptr)
-            throw SafetyError("DegreePrior: unsafe prior since `m_edgeMatrixPriorPtr` is empty.");
-        m_blockPriorPtr->checkSafety();
+            throw SafetyError("VertexLabeledDegreePrior: unsafe prior since `m_edgeMatrixPriorPtr` is empty.");
         m_edgeMatrixPriorPtr->checkSafety();
     }
 
@@ -108,20 +95,20 @@ public:
 };
 
 
-class DegreeDeltaPrior: public DegreePrior{
+class VertexLabeledDegreeDeltaPrior: public VertexLabeledDegreePrior{
     DegreeSequence m_degreeSeq;
 
 public:
-    DegreeDeltaPrior(){}
-    DegreeDeltaPrior(const DegreeSequence& degreeSeq):
-        DegreePrior(){ setState(degreeSeq); }
+    VertexLabeledDegreeDeltaPrior(){}
+    VertexLabeledDegreeDeltaPrior(const DegreeSequence& degreeSeq):
+        VertexLabeledDegreePrior(){ setState(degreeSeq); }
 
-    DegreeDeltaPrior(const DegreeDeltaPrior& degreeDeltaPrior):
-        DegreePrior() {
+    VertexLabeledDegreeDeltaPrior(const VertexLabeledDegreeDeltaPrior& degreeDeltaPrior):
+        VertexLabeledDegreePrior() {
             setState(degreeDeltaPrior.getState());
         }
-    virtual ~DegreeDeltaPrior(){}
-    const DegreeDeltaPrior& operator=(const DegreeDeltaPrior& other){
+    virtual ~VertexLabeledDegreeDeltaPrior(){}
+    const VertexLabeledDegreeDeltaPrior& operator=(const VertexLabeledDegreeDeltaPrior& other){
         this->setState(other.getState());
         return *this;
     }
@@ -132,18 +119,13 @@ public:
         m_state = degrees;
     }
     void sampleState() override { };
-    void samplePriors() override { };
 
     const double getLogLikelihood() const override { return 0.; }
-    const double getLogPrior() const override { return 0.; };
 
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override;
     const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const override{
         return (move.prevLabel != move.nextLabel) ? -INFINITY : 0.;
     }
-    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0.; }
-    const double getLogPriorRatioFromLabelMove(const BlockMove& move) const override{ return 0.; }
-
     void checkSelfConsistency() const override { };
     void checkSelfSafety() const override {
         if (m_degreeSeq.size() == 0)
@@ -154,9 +136,9 @@ public:
 
 };
 
-class DegreeUniformPrior: public DegreePrior{
+class VertexLabeledDegreeUniformPrior: public VertexLabeledDegreePrior{
 public:
-    using DegreePrior::DegreePrior;
+    using VertexLabeledDegreePrior::VertexLabeledDegreePrior;
     void sampleState() override;
 
     const double getLogLikelihood() const override;
@@ -164,10 +146,10 @@ public:
     const double getLogLikelihoodRatioFromLabelMove(const BlockMove&) const;
 };
 
-class DegreeUniformHyperPrior: public DegreePrior{
+class VertexLabeledDegreeUniformHyperPrior: public VertexLabeledDegreePrior{
 public:
 
-    using DegreePrior::DegreePrior;
+    using VertexLabeledDegreePrior::VertexLabeledDegreePrior;
     void sampleState() override;
 
     const double getLogLikelihood() const override;

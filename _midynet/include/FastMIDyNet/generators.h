@@ -38,11 +38,13 @@ Iterator sampleUniformlyFrom(Iterator start, Iterator end) {
 
 BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks,
         const EdgeMatrix& blockEdgeMatrix, const DegreeSequence& degrees);
-BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& vertexBlocks,
-        const EdgeMatrix& blockEdgeMatrix);
+BaseGraph::UndirectedMultigraph generateStubLabeledSBM(const BlockSequence& vertexBlocks, const EdgeMatrix& blockEdgeMatrix, bool withSelfLoops=true);
+BaseGraph::UndirectedMultigraph generateMultiGraphSBM(const BlockSequence& vertexBlocks, const EdgeMatrix& blockEdgeMatrix, bool withSelfLoops=true);
 MultiGraph generateCM(const DegreeSequence& degrees);
 
-MultiGraph generateSER(size_t size, size_t edgeCount);
+MultiGraph generateErdosRenyi(size_t size, size_t edgeCount, bool withSelfLoops=true);
+MultiGraph generateStubLabeledErdosRenyi(size_t size, size_t edgeCount, bool withSelfLoops=true);
+MultiGraph generateMultiGraphErdosRenyi(size_t size, size_t edgeCount, bool withSelfLoops=true);
 
 template<typename T>
 T pickElementUniformly(const std::vector<T>& sequence) {

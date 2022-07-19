@@ -20,6 +20,8 @@ const BlockSequence BLOCK_SEQ={0,0,0,0,0,1,1,1,1,1};
 class DummyBlockPrior: public BlockPrior {
     private:
         BlockCountDeltaPrior m_blockCountDeltaPrior = BlockCountDeltaPrior();
+        void _samplePriors() override {};
+        const double _getLogPrior() const override { return 0.1; }
     public:
         DummyBlockPrior(size_t size, size_t blockCount):
             BlockPrior() {
@@ -32,9 +34,7 @@ class DummyBlockPrior: public BlockPrior {
             blockSeq[BLOCK_COUNT - 1] = 1;
             setState( blockSeq );
         }
-        void samplePriors() override {};
         const double getLogLikelihood() const override { return 0.5; }
-        const double getLogPrior() const override { return 0.1; }
         void _applyLabelMove(const BlockMove& move) override {
             m_state[move.vertexIndex] = move.nextLabel;
         }

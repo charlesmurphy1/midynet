@@ -39,7 +39,9 @@ protected:
 public:
     using RestrictedLabelProposer<Label>::RestrictedLabelProposer;
     const double getLogProposalProbForMove(const LabelMove<Label>& move) const override { return -log(m_availableLabels.size()); }
-    const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override { return -log(m_availableLabels.size() + move.addedLabels); }
+    const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override {
+        return -log(m_availableLabels.size() + move.addedLabels);
+    }
     const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex& vertex) const override {
         Label nextLabel = *sampleUniformlyFrom(m_availableLabels.begin(), m_availableLabels.end());
         LabelMove<Label> move = {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), nextLabel};

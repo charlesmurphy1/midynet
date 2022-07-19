@@ -60,7 +60,7 @@ TEST(TestDCSBMGenerator, generateDCSBM_givenEdgeMatrixAndDegrees_generatedGraphs
 
 TEST(TestSBMGenerator, generate_SBM_givenEdgeMatrix_generatedGraphsRespectEdgeMatrix) {
     for (size_t i=0; i<numberOfGeneratedGraphs; i++) {
-        auto randomGraph = FastMIDyNet::generateSBM(VERTEX_BLOCKS, EDGE_MATRIX);
+        auto randomGraph = FastMIDyNet::generateStubLabeledSBM(VERTEX_BLOCKS, EDGE_MATRIX);
         EXPECT_EQ(EDGE_MATRIX, getEdgeMatrix(randomGraph, VERTEX_BLOCKS));
     }
 }

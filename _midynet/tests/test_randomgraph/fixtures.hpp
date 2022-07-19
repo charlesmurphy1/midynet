@@ -41,25 +41,30 @@ static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
 
 }
 
+class DummyGraphLikelihood: public GraphLikelihoodModel{
+public:
+    const double getLogLikelihood() const { return 0; }
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const { return 0; }
+};
+
 class DummyRandomGraph: public RandomGraph{
     size_t m_edgeCount;
+    DummyGraphLikelihood likelihood;
+    void setUpLikelihood() override { };
 public:
     using RandomGraph::RandomGraph;
-    DummyRandomGraph(size_t size): RandomGraph(size) {}
+    DummyRandomGraph(size_t size): RandomGraph(size, likelihood) { }
 
-    void setGraph(const MultiGraph& graph) override{
+    void setGraph(const MultiGraph graph) override{
         RandomGraph::setGraph(graph);
         m_edgeCount = graph.getTotalEdgeNumber();
     }
 
     const size_t& getEdgeCount() const override { return m_edgeCount; }
 
-    void sample() override { };
-    const double getLogLikelihood() const override { return 0; }
-    const double getLogPrior() const override { return 0; }
-    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override{ return 0; }
-    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0; }
+    void sampleState() override { };
 };
+
 
 
 } // namespace FastMIDyNet

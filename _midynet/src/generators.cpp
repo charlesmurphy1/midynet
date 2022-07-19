@@ -10,6 +10,7 @@
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/types.h"
+#include "FastMIDyNet/proposer/edge/hinge_flip.h"
 
 
 namespace FastMIDyNet {
@@ -19,6 +20,7 @@ namespace FastMIDyNet {
 //     std::discrete_distribution<int> dist(probs.begin(), probs.end());
 //     return dist(rng);
 // }
+
 
 
 std::vector<size_t> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k) {
@@ -172,7 +174,7 @@ BaseGraph::UndirectedMultigraph generateDCSBM(
         std::random_shuffle(stubsOfBlock[block].begin(), stubsOfBlock[block].end());
     }
 
-    FastMIDyNet::MultiGraph multigraph(vertexNumber);
+    MultiGraph multigraph(vertexNumber);
 
     size_t edgeNumberBetweenBlocks;
     size_t vertex1, vertex2;
@@ -195,11 +197,41 @@ BaseGraph::UndirectedMultigraph generateDCSBM(
     return multigraph;
 }
 
-BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq,
-        const EdgeMatrix& edgeMat) {
+BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq, const EdgeMatrix& edgeMat, bool withSelfLoops) {
 
     if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= edgeMat.size())
         throw std::logic_error("generateSBM: Vertex is out of range of edgeMat.");
+
+    size_t size = blockSeq.size();
+    size_t blockCount = edgeMat.size();
+
+    std::map<std::pair<BlockIndex, BlockIndex>, std::vector<BaseGraph::Edge>> allLabeledEdges;
+
+    for (size_t i=0; i<size; ++i){
+        for (size_t j=0; j<size; ++j){
+            if (i > j or (i == j and !withSelfLoops))
+                continue;
+            auto rs = getOrderedPair<BlockIndex>({blockSeq[i],blockSeq[j]});
+            allLabeledEdges[rs].push_back({i, j});
+        }
+    }
+
+    MultiGraph graph(size);
+    for(const auto& labeledEdges : allLabeledEdges){
+        BlockIndex r = labeledEdges.first.first, s = labeledEdges.first.second;
+        size_t ers = edgeMat[r][s];
+        auto indices = sampleUniformlySequenceWithoutReplacement(labeledEdges.second.size(), ers);
+        for (const auto& i: indices)
+            graph.addEdgeIdx(labeledEdges.second[i].first, labeledEdges.second[i].second);
+    }
+
+    return graph;
+}
+
+BaseGraph::UndirectedMultigraph generateStubLabeledSBM(const BlockSequence& blockSeq, const EdgeMatrix& edgeMat, bool withSelfLoops) {
+
+    if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= edgeMat.size())
+        throw std::logic_error("generateStubLabeledSBM: Vertex is out of range of edgeMat.");
 
     size_t vertexNumber = blockSeq.size();
     size_t blockNumber = edgeMat.size();
@@ -208,7 +240,7 @@ BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq,
     for (size_t vertex=0; vertex<vertexNumber; vertex++)
         verticesInBlock[blockSeq[vertex]].push_back(vertex);
 
-    FastMIDyNet::MultiGraph multigraph(vertexNumber);
+    MultiGraph multigraph(vertexNumber);
 
     size_t edgeNumberBetweenBlocks;
     size_t vertex1, vertex2;
@@ -220,8 +252,14 @@ BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq,
             if (inBlock==outBlock)
                 edgeNumberBetweenBlocks /= 2;
             for (size_t edge=0; edge<edgeNumberBetweenBlocks; edge++) {
-                vertex1 = pickElementUniformly<size_t>(verticesInBlock[outBlock]);
-                vertex2 = pickElementUniformly<size_t>(verticesInBlock[inBlock]);
+                if (withSelfLoops or inBlock != outBlock){
+                    vertex1 = pickElementUniformly<size_t>(verticesInBlock[outBlock]);
+                    vertex2 = pickElementUniformly<size_t>(verticesInBlock[inBlock]);
+                } else {
+                    auto p = sampleUniformlySequenceWithoutReplacement(verticesInBlock[inBlock].size(), 2);
+                    vertex1 = p[0];
+                    vertex2 = p[1];
+                }
                 multigraph.addEdgeIdx(vertex1, vertex2);
             }
         }
@@ -229,9 +267,44 @@ BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq,
     return multigraph;
 }
 
-FastMIDyNet::MultiGraph generateCM(const DegreeSequence& degrees) {
+BaseGraph::UndirectedMultigraph generateMultiGraphSBM(const BlockSequence& blockSeq, const EdgeMatrix& edgeMat, bool withSelfLoops) {
+
+    if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= edgeMat.size())
+        throw std::logic_error("generateSBM: Vertex is out of range of edgeMat.");
+
+    size_t size = blockSeq.size();
+    size_t blockCount = edgeMat.size();
+
+    std::map<std::pair<BlockIndex, BlockIndex>, std::vector<BaseGraph::Edge>> allLabeledEdges;
+
+    for (size_t i=0; i<size; ++i){
+        for (size_t j=0; j<size; ++j){
+            if (i > j)
+                continue;
+            auto rs = getOrderedPair<BlockIndex>({blockSeq[i],blockSeq[j]});
+            allLabeledEdges[rs].push_back({i, j});
+        }
+    }
+
+    MultiGraph graph(size);
+    for(const auto& labeledEdges : allLabeledEdges){
+        BlockIndex r = labeledEdges.first.first, s = labeledEdges.first.second;
+        size_t ers = edgeMat[r][s];
+        auto flatMultiplicity = sampleRandomWeakComposition(ers, labeledEdges.second.size());
+        size_t counter = 0;
+        for (const auto& m: flatMultiplicity){
+            if (m != 0)
+                graph.addMultiedgeIdx(labeledEdges.second[counter].first, labeledEdges.second[counter].second, m);
+            ++counter;
+        }
+    }
+
+    return graph;
+}
+
+MultiGraph generateCM(const DegreeSequence& degrees) {
     size_t n = degrees.size();
-    FastMIDyNet::MultiGraph randomGraph(n);
+    MultiGraph randomGraph(n);
 
     std::vector<size_t> stubs;
 
@@ -254,14 +327,53 @@ FastMIDyNet::MultiGraph generateCM(const DegreeSequence& degrees) {
     return randomGraph;
 }
 
-MultiGraph generateSER(size_t size, size_t edgeCount){
-    auto graph = BaseGraph::generateErdosRenyiRandomGraph(size, edgeCount);
-    MultiGraph multigraph(size);
-    for (auto vertexIdx : graph)
-        for (auto neighbor: graph.getNeighboursOfIdx(vertexIdx))
-            if (vertexIdx < neighbor)
-                multigraph.addEdgeIdx(vertexIdx, neighbor);
-    return multigraph;
+MultiGraph generateErdosRenyi(size_t size, size_t edgeCount, bool withSelfLoops){
+    std::vector<BaseGraph::Edge> allEdges;
+    for (size_t i=0; i < size; ++i )
+        for (size_t j=i; j < size; ++j )
+            if (withSelfLoops or j != i)
+                allEdges.push_back({i, j});
+    auto indices = sampleUniformlySequenceWithoutReplacement(allEdges.size(), edgeCount);
+
+    MultiGraph graph(size);
+    for (auto i : indices)
+        graph.addEdgeIdx(allEdges[i]);
+    return graph;
+}
+
+MultiGraph generateStubLabeledErdosRenyi(size_t size, size_t edgeCount, bool withSelfLoops){
+    MultiGraph graph(size);
+    std::uniform_int_distribution<size_t> dist(0, size-1);
+    for (size_t e=0; e<edgeCount; ++e){
+        BaseGraph::VertexIndex i, j;
+        if (withSelfLoops){
+            i = dist(rng);
+            j = dist(rng);
+        }else{
+            auto edge = sampleUniformlySequenceWithoutReplacement(size, 2);
+            i = edge[0], j = edge[1];
+        }
+        graph.addMultiedgeIdx(i, j, 1);
+    }
+    return graph;
+}
+
+MultiGraph generateMultiGraphErdosRenyi(size_t size, size_t edgeCount, bool withSelfLoops){
+    std::vector<BaseGraph::Edge> allEdges;
+    for (size_t i=0; i < size; ++i )
+        for (size_t j=i; j < size; ++j )
+            if (withSelfLoops or j != i)
+                allEdges.push_back({i, j});
+    auto flatMultiplicity = sampleRandomWeakComposition(edgeCount, allEdges.size());
+    MultiGraph graph(size);
+    size_t counter = 0;
+    for (auto m: flatMultiplicity){
+        if (m != 0)
+            graph.addMultiedgeIdx(allEdges[counter].first, allEdges[counter].second, m);
+        ++counter;
+    }
+
+    return graph;
 }
 
 } // namespace FastMIDyNet

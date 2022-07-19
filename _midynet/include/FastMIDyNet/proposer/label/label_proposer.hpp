@@ -124,8 +124,10 @@ public:
     }
 
     void applyLabelMove(const LabelMove<Label>& move) override {
-        if ( destroyingLabel(move) and move.prevLabel != move.nextLabel )
+        if ( destroyingLabel(move) and move.prevLabel != move.nextLabel ){
             m_emptyLabels.insert(move.prevLabel);
+            m_availableLabels.erase(move.prevLabel);
+        }
         if ( creatingNewLabel(move) ){
             m_availableLabels.insert(move.nextLabel);
             m_emptyLabels.erase(move.nextLabel);

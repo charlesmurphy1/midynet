@@ -2,7 +2,7 @@
 #define FAST_MIDYNET_EDGE_MATRIX_H
 
 #include "FastMIDyNet/prior/prior.hpp"
-#include "FastMIDyNet/prior/sbm/edge_count.h"
+#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
 #include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
@@ -20,23 +20,24 @@ class EdgeMatrixPrior: public BlockLabeledPrior< MultiGraph >{
         CounterMap<size_t> m_edgeCounts;
         const MultiGraph* m_graphPtr;
 
+        void _samplePriors() override { m_edgeCountPriorPtr->sample(); m_blockPriorPtr->sample(); }
+        const double _getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint() + m_blockPriorPtr->getLogJoint(); }
+
         void _applyGraphMove(const GraphMove& move) override {
             m_edgeCountPriorPtr->applyGraphMove(move);
             m_blockPriorPtr->applyGraphMove(move);
             applyGraphMoveToState(move);
         }
         void _applyLabelMove(const BlockMove& move) override {
-            m_edgeCountPriorPtr->applyLabelMove(move);
             m_blockPriorPtr->applyLabelMove(move);
             applyLabelMoveToState(move);
         }
 
-        const double _getLogJointRatioFromGraphMove(const GraphMove& move) const override {
-            return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
+        const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override {
+            return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move);
         }
-
-        const double _getLogJointRatioFromLabelMove(const BlockMove& move) const override{
-            return getLogLikelihoodRatioFromLabelMove(move) + getLogPriorRatioFromLabelMove(move);
+        const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override {
+            return m_blockPriorPtr->getLogJointRatioFromLabelMove(move);
         }
 
         void applyGraphMoveToState(const GraphMove&);
@@ -73,20 +74,17 @@ class EdgeMatrixPrior: public BlockLabeledPrior< MultiGraph >{
         const MultiGraph& getGraph() { return *m_graphPtr; }
         void setState(const MultiGraph&) override;
         void setPartition(const std::vector<BlockIndex>&) ;
+        void samplePartition() {
+            m_blockPriorPtr->sampleState();
+            recomputeConsistentState();
+        }
 
         const size_t& getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }
         const CounterMap<size_t>& getEdgeCounts() const { return m_edgeCounts; }
 
 
-        void samplePriors() override { m_edgeCountPriorPtr->sample(); m_blockPriorPtr->sample(); }
-
-        const double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint() + m_blockPriorPtr->getLogJoint(); }
-
         virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
         virtual const double getLogLikelihoodRatioFromLabelMove(const BlockMove&) const = 0;
-
-        virtual const double getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move); }
-        virtual const double getLogPriorRatioFromLabelMove(const BlockMove& move) const { return m_edgeCountPriorPtr->getLogJointRatioFromLabelMove(move) + m_blockPriorPtr->getLogJointRatioFromLabelMove(move); }
 
 
         bool isSafe() const override {
@@ -144,15 +142,11 @@ public:
         // recomputeState();
     }
     void sampleState() override { };
-    void samplePriors() override { };
 
     const double getLogLikelihood() const override { return 0.; }
-    const double getLogPrior() const override { return 0.; };
 
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override ;
     const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const override ;
-    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0.; };
-    const double getLogPriorRatioFromLabelMove(const BlockMove& move) const override{ return 0.; }
 
     void checkSelfConsistency() const override { };
     void checkSelfSafety() const override {

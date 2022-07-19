@@ -13,8 +13,10 @@ namespace FastMIDyNet{
 template <typename StateType>
 class Prior: public NestedRandomVariable{
 protected:
+    virtual void _samplePriors() = 0;
     virtual void _applyGraphMove(const GraphMove&) = 0;
-    virtual const double _getLogJointRatioFromGraphMove(const GraphMove&) const = 0;
+    virtual const double _getLogPrior() const = 0;
+    virtual const double _getLogPriorRatioFromGraphMove(const GraphMove&) const = 0;
     StateType m_state;
 public:
     Prior<StateType>(){}
@@ -31,16 +33,18 @@ public:
     virtual void setState(const StateType& state) { m_state = state; }
 
     virtual void sampleState() = 0;
-    virtual void samplePriors() = 0;
+    void samplePriors() {
+        NestedRandomVariable::processRecursiveFunction([&]() { _samplePriors(); });
+    };
     const StateType& sample() {
-        NestedRandomVariable::processRecursiveFunction([&]() {
-            samplePriors();
-            sampleState();
-        });
+        samplePriors();
+        sampleState();
         return getState();
     }
     virtual const double getLogLikelihood() const = 0;
-    virtual const double getLogPrior() const = 0;
+    const double getLogPrior() const {
+        return processRecursiveConstFunction<double>([&]() { return _getLogPrior(); }, 0);
+    }
 
     void applyGraphMove(const GraphMove& move) {
         NestedRandomVariable::processRecursiveFunction([&](){_applyGraphMove(move);});
@@ -48,14 +52,20 @@ public:
         checkConsistency();
         #endif
     }
+
+    virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const = 0;
+    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const {
+        return processRecursiveConstFunction<double>([&]() {
+            return _getLogPriorRatioFromGraphMove(move);
+        }, 0);
+    }
+
     const double getLogJointRatioFromGraphMove(const GraphMove& move) const {
-        return NestedRandomVariable::processRecursiveConstFunction<double>([&](){ return _getLogJointRatioFromGraphMove(move);}, 0);
+        return getLogLikelihoodRatioFromGraphMove(move) + getLogPriorRatioFromGraphMove(move);
     }
 
     const double getLogJoint() const {
-        auto _func = [&]() { return getLogPrior() + getLogLikelihood(); };
-        double logJoint = processRecursiveConstFunction<double>(_func , 0);
-        return logJoint;
+        return getLogPrior() + getLogLikelihood();
     }
 };
 
@@ -63,7 +73,7 @@ template <typename StateType, typename Label>
 class VertexLabeledPrior: public Prior<StateType>{
 protected:
     virtual void _applyLabelMove(const LabelMove<Label>&) = 0;
-    virtual const double _getLogJointRatioFromLabelMove(const LabelMove<Label>&) const = 0;
+    virtual const double _getLogPriorRatioFromLabelMove(const LabelMove<Label>&) const = 0;
 public:
     using Prior<StateType>::Prior;
 
@@ -73,8 +83,14 @@ public:
         checkConsistency();
         #endif
     }
+    virtual const double getLogLikelihoodRatioFromLabelMove(const LabelMove<Label>& move) const = 0;
+    const double getLogPriorRatioFromLabelMove(const LabelMove<Label>& move) const {
+        return NestedRandomVariable::processRecursiveConstFunction<double>([&](){
+            return _getLogPriorRatioFromLabelMove(move);
+        }, 0.);
+    }
     const double getLogJointRatioFromLabelMove(const LabelMove<Label>& move) const {
-        return NestedRandomVariable::processRecursiveConstFunction<double>([&](){ return _getLogJointRatioFromLabelMove(move);}, 0.);
+        return getLogLikelihoodRatioFromLabelMove(move) + getLogPriorRatioFromLabelMove(move);
     }
 };
 

@@ -51,7 +51,6 @@ class TestStochasticBlockModelFamily: public::testing::Test{
 
         StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(NUM_VERTICES);
         void SetUp() {
-            randomGraph.setBlockPrior(blockPrior);
             randomGraph.setEdgeMatrixPrior(edgeMatrixPrior);
             randomGraph.sample();
             while (randomGraph.getLabelCounts().size() == 1) randomGraph.sample();
