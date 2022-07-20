@@ -6,7 +6,7 @@
 #include "FastMIDyNet/mcmc/mcmc.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.hpp"
 #include "FastMIDyNet/proposer/edge/edge_proposer.h"
-#include "FastMIDyNet/proposer/label/label_proposer.hpp"
+#include "FastMIDyNet/proposer/label/base.hpp"
 #include "FastMIDyNet/utility/maps.hpp"
 
 namespace FastMIDyNet{

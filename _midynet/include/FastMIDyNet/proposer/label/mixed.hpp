@@ -1,5 +1,5 @@
-#ifndef FAST_MIDYNET_PEIXOTO_PROPOSER_H
-#define FAST_MIDYNET_PEIXOTO_PROPOSER_H
+#ifndef FAST_MIDYNET_MIXED_PROPOSER_H
+#define FAST_MIDYNET_MIXED_PROPOSER_H
 
 
 #include "SamplableSet.hpp"
@@ -7,7 +7,7 @@
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/proposer/label/label_proposer.hpp"
+#include "FastMIDyNet/proposer/label/base.hpp"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 
 namespace FastMIDyNet {

@@ -34,16 +34,17 @@ struct GraphMove{
 
 template <typename Label>
 struct LabelMove{
-    LabelMove(BaseGraph::VertexIndex vertexIndex, Label prevLabel, Label nextLabel, int addedLabels=0):
+    LabelMove(BaseGraph::VertexIndex vertexIndex, Label prevLabel, Label nextLabel, int addedLabels=0, size_t level=0):
         vertexIndex(vertexIndex), prevLabel(prevLabel), nextLabel(nextLabel), addedLabels(addedLabels){ }
     BaseGraph::VertexIndex vertexIndex;
     Label prevLabel;
     Label nextLabel;
     int addedLabels;
+    size_t level;
 
     std::string display()const{
         std::stringstream ss;
-        ss << "vertex " << vertexIndex << ": " << prevLabel << " -> " << nextLabel;
+        ss << "vertex " << vertexIndex << " at level " << level << ": " << prevLabel << " -> " << nextLabel;
         ss << " (" << addedLabels << " labels added)";
         return ss.str();
     }

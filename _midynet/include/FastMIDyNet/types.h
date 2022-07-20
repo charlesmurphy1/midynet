@@ -28,6 +28,7 @@ typedef std::vector<BlockIndex> BlockSequence;
 typedef Matrix<size_t> EdgeMatrix;
 typedef CounterMap<std::pair<BlockIndex, size_t>> VertexLabeledDegreeCountsMap;
 typedef CounterMap<size_t> DegreeCountsMap;
+typedef size_t Level;
 
 } // namespace FastMIDyNet
 

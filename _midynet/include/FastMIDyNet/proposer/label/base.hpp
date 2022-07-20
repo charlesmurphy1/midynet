@@ -1,5 +1,5 @@
-#ifndef FAST_MIDYNET_BLOCKPROPOSER_H
-#define FAST_MIDYNET_BLOCKPROPOSER_H
+#ifndef FAST_MIDYNET_LABELPROPOSER_H
+#define FAST_MIDYNET_LABELPROPOSER_H
 
 
 #include "FastMIDyNet/proposer/movetypes.h"
@@ -71,7 +71,7 @@ public:
     }
 
     const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const override {
-        if ( move.addedLabels != 0 )
+        if ( move.addedLabels != 0)
             return log(m_sampleLabelCountProb);
         return log(1 - m_sampleLabelCountProb) + ((reverse) ? getLogProposalProbForReverseMove(move) :  getLogProposalProbForMove(move));
     }
@@ -112,6 +112,7 @@ public:
     void setUp(const VertexLabeledRandomGraph<Label>& graphPrior) override {
         BaseClass::setUp(graphPrior);
         m_emptyLabels.clear();
+        m_availableLabels.clear();
         m_emptyLabels.insert(m_graphPriorPtr->getLabelCount());
         for (const auto& nr: graphPrior.getLabelCounts())
             m_availableLabels.insert(nr.first);

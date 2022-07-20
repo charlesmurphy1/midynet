@@ -2,7 +2,7 @@
 #define FAST_MIDYNET_COMMUNITY_H
 
 #include "FastMIDyNet/random_graph/random_graph.hpp"
-#include "FastMIDyNet/proposer/label/label_proposer.hpp"
+#include "FastMIDyNet/proposer/label/base.hpp"
 #include "FastMIDyNet/mcmc/callbacks/callback.hpp"
 #include "mcmc.h"
 
