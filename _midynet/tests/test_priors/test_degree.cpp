@@ -3,7 +3,6 @@
 #include <iostream>
 
 
-#include "fixtures.hpp"
 #include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/random_graph/prior/degree.h"
 #include "FastMIDyNet/proposer/movetypes.h"
@@ -11,6 +10,7 @@
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/exceptions.h"
+#include "../fixtures.hpp"
 
 using namespace FastMIDyNet;
 

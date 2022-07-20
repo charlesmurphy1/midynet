@@ -9,6 +9,7 @@
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/utility/maps.hpp"
+#include "FastMIDyNet/generators.h"
 
 
 namespace FastMIDyNet{
@@ -157,10 +158,12 @@ public:
     virtual void computationFinished() const override { m_isProcessed = false; }
 };
 
-class LabelGraphUniformPrior: public LabelGraphPrior {
+class LabelGraphErdosRenyiPrior: public LabelGraphPrior {
 public:
     using LabelGraphPrior::LabelGraphPrior;
-    void sampleState() override;
+    void sampleState() override {
+        setState(generateMultiGraphErdosRenyi(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState()));
+    }
     const double getLogLikelihood() const override {
         return getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState());
     }

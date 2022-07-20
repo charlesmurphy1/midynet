@@ -9,7 +9,6 @@
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "BaseGraph/types.h"
-#include "fixtures.hpp"
 
 using namespace std;
 using namespace FastMIDyNet;
@@ -19,7 +18,6 @@ class TestConfigurationModelFamily: public::testing::Test{
     public:
         double AVG_NUM_EDGES = 100;
         size_t NUM_VERTICES = 50;
-        BlockCountDeltaPrior blockCountPrior = {1};
         EdgeCountPoissonPrior edgeCountPrior = {AVG_NUM_EDGES};
         DegreeUniformPrior degreePrior = {NUM_VERTICES, edgeCountPrior};
         ConfigurationModelFamily randomGraph = ConfigurationModelFamily(NUM_VERTICES, edgeCountPrior, degreePrior);

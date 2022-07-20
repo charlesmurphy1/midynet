@@ -7,25 +7,26 @@
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "BaseGraph/types.h"
-#include "fixtures.hpp"
+#include "../fixtures.hpp"
 
 using namespace std;
 using namespace FastMIDyNet;
 
 namespace FastMIDyNet {
 
-const int NUM_VERTICES = 7;
-const int NUM_STATES = 3;
-const vector<int> ALL_VERTEX_STATES = {0, 1, 2};
-const State STATE = {0, 0, 0, 1, 1, 2, 0};
-const NeighborsState NEIGHBORS_STATE = {
-    {3, 1, 0}, {1, 2, 0}, {4, 1, 0}, {3, 1, 1}, {1, 1, 0}, {0, 1, 0}, {0, 0, 0}
-};
-const GraphMove GRAPH_MOVE = {{{0, 2}}, {{0, 5}}};
-MultiGraph GRAPH = getUndirectedHouseMultiGraph();
 
 class TestDynamicsBaseClass: public::testing::Test{
     public:
+        const int NUM_VERTICES = 7;
+        const int NUM_STEPS = 20;
+        const int NUM_STATES = 3;
+        const vector<int> ALL_VERTEX_STATES = {0, 1, 2};
+        const State STATE = {0, 0, 0, 1, 1, 2, 0};
+        const NeighborsState NEIGHBORS_STATE = {
+            {3, 1, 0}, {1, 2, 0}, {4, 1, 0}, {3, 1, 1}, {1, 1, 0}, {0, 1, 0}, {0, 0, 0}
+        };
+        const GraphMove GRAPH_MOVE = {{{0, 2}}, {{0, 5}}};
+        MultiGraph GRAPH = getUndirectedHouseMultiGraph();
         DummyRandomGraph randomGraph = DummyRandomGraph(NUM_VERTICES);
         DummyDynamics dynamics = DummyDynamics(randomGraph, NUM_STATES, NUM_STEPS);
         MultiGraph graph = GRAPH;

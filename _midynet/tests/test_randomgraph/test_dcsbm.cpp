@@ -10,7 +10,6 @@
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "BaseGraph/types.h"
-#include "fixtures.hpp"
 
 using namespace std;
 using namespace FastMIDyNet;
@@ -24,7 +23,7 @@ class TestDegreeCorrectedStochasticBlockModelFamily: public::testing::Test{
         BlockCountPoissonPrior blockCountPrior = {AVG_NUM_BLOCKS};
         BlockUniformPrior blockPrior = {NUM_VERTICES, blockCountPrior};
         EdgeCountPoissonPrior edgeCountPrior = {AVG_NUM_EDGES};
-        LabelGraphUniformPrior labelGraphPrior = {edgeCountPrior, blockPrior};
+        LabelGraphErdosRenyiPrior labelGraphPrior = {edgeCountPrior, blockPrior};
         VertexLabeledDegreeUniformPrior degreePrior = {labelGraphPrior};
 
         BaseGraph::VertexIndex vertexIdx = 4;

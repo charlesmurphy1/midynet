@@ -10,7 +10,6 @@
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/rng.h"
 #include "BaseGraph/types.h"
-#include "fixtures.hpp"
 
 using namespace std;
 using namespace FastMIDyNet;
@@ -24,7 +23,7 @@ class TestStochasticBlockModelFamily: public::testing::Test{
         BlockCountPoissonPrior blockCountPrior = {NUM_BLOCKS};
         BlockUniformPrior blockPrior = {NUM_VERTICES, blockCountPrior};
         EdgeCountPoissonPrior edgeCountPrior = {NUM_EDGES};
-        LabelGraphUniformPrior labelGraphPrior = {edgeCountPrior, blockPrior};
+        LabelGraphErdosRenyiPrior labelGraphPrior = {edgeCountPrior, blockPrior};
 
         BaseGraph::Edge findEdge(){
             const auto& graph = randomGraph.getGraph();

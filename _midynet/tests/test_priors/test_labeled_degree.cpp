@@ -3,7 +3,6 @@
 #include <iostream>
 
 
-#include "fixtures.hpp"
 #include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/random_graph/prior/block_count.h"
 #include "FastMIDyNet/random_graph/prior/block.h"
@@ -14,6 +13,7 @@
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/exceptions.h"
+#include "../fixtures.hpp"
 
 using namespace FastMIDyNet;
 
@@ -52,7 +52,7 @@ class TestVertexLabeledDegreePrior: public ::testing::Test {
         BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
         BlockUniformPrior blockPrior = BlockUniformPrior(GRAPH_SIZE, blockCountPrior);
         EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(POISSON_MEAN);
-        LabelGraphUniformPrior labelGraphPrior = LabelGraphUniformPrior(edgeCountPrior, blockPrior);
+        LabelGraphErdosRenyiPrior labelGraphPrior = LabelGraphErdosRenyiPrior(edgeCountPrior, blockPrior);
         DummyVertexLabeledDegreePrior prior = DummyVertexLabeledDegreePrior(labelGraphPrior);
         MultiGraph graph = getUndirectedHouseMultiGraph();
 
@@ -205,7 +205,7 @@ class TestVertexLabeledDegreeUniformPrior: public ::testing::Test {
         BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
         BlockUniformPrior blockPrior = BlockUniformPrior(100, blockCountPrior);
         EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(200);
-        LabelGraphUniformPrior labelGraphPrior = LabelGraphUniformPrior(edgeCountPrior, blockPrior);
+        LabelGraphErdosRenyiPrior labelGraphPrior = LabelGraphErdosRenyiPrior(edgeCountPrior, blockPrior);
         VertexLabeledDegreeUniformPrior prior = VertexLabeledDegreeUniformPrior(labelGraphPrior);
         void SetUp() {
             prior.sample();
@@ -261,7 +261,7 @@ class TestVertexLabeledDegreeUniformHyperPrior: public ::testing::Test {
         BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
         BlockUniformPrior blockPrior = BlockUniformPrior(100, blockCountPrior);
         EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(200);
-        LabelGraphUniformPrior labelGraphPrior = LabelGraphUniformPrior(edgeCountPrior, blockPrior);
+        LabelGraphErdosRenyiPrior labelGraphPrior = LabelGraphErdosRenyiPrior(edgeCountPrior, blockPrior);
         VertexLabeledDegreeUniformHyperPrior prior = VertexLabeledDegreeUniformHyperPrior(labelGraphPrior);
         void SetUp() {
             prior.sample();

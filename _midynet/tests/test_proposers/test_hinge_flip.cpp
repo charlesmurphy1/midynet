@@ -7,7 +7,6 @@
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/rng.h"
-#include "fixtures.hpp"
 
 namespace FastMIDyNet{
 

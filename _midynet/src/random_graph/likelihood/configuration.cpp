@@ -5,7 +5,6 @@ namespace FastMIDyNet{
 const double ConfigurationModelLikelihood::getLogLikelihood() const{
     const size_t& E = (*m_degreePriorPtrPtr)->getEdgeCount();
     const auto& degrees =  (*m_degreePriorPtrPtr)->getState();
-    std::cout << "Edge Count=" << E << std::endl;
     double logLikelihood = logDoubleFactorial(2 * E) - logFactorial(2 * E);
 
     for (auto vertex : *m_graphPtr){

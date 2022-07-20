@@ -1,7 +1,6 @@
 #include "gtest/gtest.h"
 #include "FastMIDyNet/proposer/nested_label/uniform.hpp"
 #include "FastMIDyNet/types.h"
-#include "fixtures.hpp"
 
 
 namespace FastMIDyNet{

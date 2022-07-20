@@ -3,9 +3,9 @@
 #include <random>
 #include <time.h>
 
-#include "fixtures.hpp"
 #include "FastMIDyNet/mcmc/mcmc.h"
 #include "FastMIDyNet/rng.h"
+#include "../fixtures.hpp"
 
 
 namespace FastMIDyNet{

@@ -4,16 +4,16 @@
 #include "FastMIDyNet/dynamics/degree.hpp"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
-#include "fixtures.hpp"
 
 namespace FastMIDyNet{
 
-const double C = 10.;
-const std::list<std::vector<VertexState>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}, {2, 0}};
 
 
 class TestDegreeDynamics: public::testing::Test{
 public:
+    const double C = 10.;
+    const std::list<std::vector<VertexState>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}, {2, 0}};
+    const size_t NUM_STEPS=20;
     EdgeCountDeltaPrior edgeCountPrior = {10};
     ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();

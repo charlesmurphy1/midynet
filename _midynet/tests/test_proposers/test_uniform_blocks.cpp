@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "FastMIDyNet/proposer/label/uniform.hpp"
 #include "FastMIDyNet/types.h"
-#include "fixtures.hpp"
+#include "../fixtures.hpp"
 
 
 namespace FastMIDyNet{

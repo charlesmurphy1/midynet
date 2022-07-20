@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 
-#include "fixtures.hpp"
 #include "FastMIDyNet/dynamics/sis.hpp"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/proposer/label/uniform.hpp"
@@ -8,6 +7,9 @@
 #include "FastMIDyNet/mcmc/callbacks/callback.hpp"
 #include "FastMIDyNet/mcmc/callbacks/collector.hpp"
 #include "FastMIDyNet/mcmc/callbacks/verbose.h"
+#include "../fixtures.hpp"
+
+
 namespace FastMIDyNet{
 
 #define CALLBACK_TESTS(CALLBACK_TESTSUITE)\
@@ -53,7 +55,7 @@ CALLBACK_TESTS(TestCallBackBaseClass);
 class TestCollectGraphOnSweep: public::testing::Test{
 public:
     CollectGraphOnSweep<GraphReconstructionMCMC<RandomGraph>> callback ;
-    DummyGraphPrior randomGraph = DummyGraphPrior();
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
     SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
@@ -69,7 +71,7 @@ COLLECTOR_TESTS(TestCollectGraphOnSweep);
 class TestCollectEdgeMultiplicityOnSweep: public::testing::Test{
 public:
     CollectEdgeMultiplicityOnSweep<GraphReconstructionMCMC<RandomGraph>> callback ;
-    DummyGraphPrior randomGraph = DummyGraphPrior();
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
     SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
@@ -85,7 +87,7 @@ COLLECTOR_TESTS(TestCollectEdgeMultiplicityOnSweep);
 class TestCollectLikelihoodOnSweep: public::testing::Test{
 public:
     CollectLikelihoodOnSweep callback ;
-    DummyGraphPrior randomGraph = DummyGraphPrior();
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
     SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
@@ -101,7 +103,7 @@ COLLECTOR_TESTS(TestCollectLikelihoodOnSweep);
 class TestCollectPriorOnSweep: public::testing::Test{
 public:
     CollectPriorOnSweep callback ;
-    DummyGraphPrior randomGraph = DummyGraphPrior();
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
     SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
@@ -117,7 +119,7 @@ COLLECTOR_TESTS(TestCollectPriorOnSweep);
 class TestCollectJointOnSweep: public::testing::Test{
 public:
     CollectJointOnSweep callback ;
-    DummyGraphPrior randomGraph = DummyGraphPrior();
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
     SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
@@ -133,7 +135,7 @@ COLLECTOR_TESTS(TestCollectJointOnSweep);
 class TestTimerVerbose: public::testing::Test{
 public:
     TimerVerbose callback ;
-    DummyGraphPrior randomGraph = DummyGraphPrior();
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
     SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
@@ -149,7 +151,7 @@ CALLBACK_TESTS(TestTimerVerbose);
 class TestSuccessCounterVerbose: public::testing::Test{
 public:
     SuccessCounterVerbose callback ;
-    DummyGraphPrior randomGraph = DummyGraphPrior();
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
     SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
@@ -165,7 +167,7 @@ CALLBACK_TESTS(TestSuccessCounterVerbose);
 class TestFailureCounterVerbose: public::testing::Test{
 public:
     FailureCounterVerbose callback ;
-    DummyGraphPrior randomGraph = DummyGraphPrior();
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
     SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
@@ -182,7 +184,7 @@ CALLBACK_TESTS(TestFailureCounterVerbose);
 class TestMeanLogJointRatioVerbose: public::testing::Test{
 public:
     MeanLogJointRatioVerbose callback ;
-    DummyGraphPrior randomGraph = DummyGraphPrior();
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
     SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
@@ -199,7 +201,7 @@ CALLBACK_TESTS(TestMeanLogJointRatioVerbose);
 class TestMaximumLogJointRatioVerbose: public::testing::Test{
 public:
     MaximumLogJointRatioVerbose callback ;
-    DummyGraphPrior randomGraph = DummyGraphPrior();
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
     SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
@@ -216,7 +218,7 @@ CALLBACK_TESTS(TestMaximumLogJointRatioVerbose);
 class TestMinimumLogJointRatioVerbose: public::testing::Test{
 public:
     MinimumLogJointRatioVerbose callback ;
-    DummyGraphPrior randomGraph = DummyGraphPrior();
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
     SISDynamics<RandomGraph> dynamics = SISDynamics<RandomGraph>(randomGraph, 10, 0.1);
     HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
     GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);

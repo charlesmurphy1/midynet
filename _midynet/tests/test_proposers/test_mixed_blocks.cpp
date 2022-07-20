@@ -2,7 +2,8 @@
 #include "FastMIDyNet/proposer/label/mixed.hpp"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/rng.h"
-#include "fixtures.hpp"
+#include "../fixtures.hpp"
+
 
 
 namespace FastMIDyNet{

@@ -5,12 +5,39 @@
 #include "FastMIDyNet/random_graph/prior/label_graph.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/utility/functions.h"
-#include "fixtures.hpp"
+// #include "../fixtures.hpp"
 
 
 namespace FastMIDyNet{
 
-const BlockSequence BLOCK_SEQUENCE = {0, 0, 1, 0, 0, 1, 1};
+
+static FastMIDyNet::MultiGraph getUndirectedHouseMultiGraph(){
+    //     /*
+    //      * (0)     (1)
+    //      * |||\   / | \
+    //      * ||| \ /  |  \
+    //      * |||  X   |  (4)
+    //      * ||| / \  |  /
+    //      * |||/   \ | /
+    //      * (2)-----(3)-----(5)--
+    //      *                   \__|
+    //      *      (6)
+    //      */
+    // k = {4, 3, 5, 5, 2, 3, 0}
+    FastMIDyNet::MultiGraph graph(7);
+    graph.addMultiedgeIdx(0, 2, 3);
+    graph.addEdgeIdx(0, 3);
+    graph.addEdgeIdx(1, 2);
+    graph.addEdgeIdx(1, 3);
+    graph.addEdgeIdx(1, 4);
+    graph.addEdgeIdx(2, 3);
+    graph.addEdgeIdx(3, 4);
+    graph.addEdgeIdx(3, 5);
+    graph.addEdgeIdx(5, 5);
+
+    return graph;
+
+}
 
 
 class DummyLabelGraphPrior: public LabelGraphPrior {
@@ -28,6 +55,7 @@ class DummyLabelGraphPrior: public LabelGraphPrior {
 
 class TestLabelGraphPrior: public ::testing::Test {
     public:
+        const BlockSequence BLOCK_SEQUENCE = {0, 0, 1, 0, 0, 1, 1};
         MultiGraph graph = getUndirectedHouseMultiGraph();
         EdgeCountPoissonPrior edgeCountPrior = {2};
         BlockCountPoissonPrior blockCountPrior = {2};
@@ -124,6 +152,7 @@ TEST_F(TestLabelGraphPrior, checkSelfConsistency_validData_noThrow) {
 
 class TestLabelGraphDeltaPrior: public ::testing::Test {
     public:
+        const BlockSequence BLOCK_SEQUENCE = {0, 0, 1, 0, 0, 1, 1};
         MultiGraph graph = getUndirectedHouseMultiGraph();
         MultiGraph labelGraph = MultiGraph(2); // = {{10, 2}, {2, 10}};
         EdgeCountDeltaPrior edgeCountPrior = {7};
@@ -175,13 +204,14 @@ TEST_F(TestLabelGraphDeltaPrior, getLogLikelihoodRatioFromLabelMove_forLabelMove
     EXPECT_EQ(prior.getLogLikelihoodRatioFromLabelMove(move), -INFINITY);
 }
 
-class TestLabelGraphUniformPrior: public ::testing::Test {
+class TestLabelGraphErdosRenyiPrior: public ::testing::Test {
     public:
+        const BlockSequence BLOCK_SEQUENCE = {0, 0, 1, 0, 0, 1, 1};
         MultiGraph graph = getUndirectedHouseMultiGraph();
         EdgeCountDeltaPrior edgeCountPrior = {10};
         BlockCountDeltaPrior blockCountPrior = {3};
         BlockUniformPrior blockPrior = {graph.getSize(), blockCountPrior};
-        LabelGraphUniformPrior prior = {edgeCountPrior, blockPrior};
+        LabelGraphErdosRenyiPrior prior = {edgeCountPrior, blockPrior};
 
         void SetUp() {
             seedWithTime();
@@ -195,13 +225,13 @@ class TestLabelGraphUniformPrior: public ::testing::Test {
         }
 };
 
-TEST_F(TestLabelGraphUniformPrior, sample_returnLabelGraphWithCorrectShape){
+TEST_F(TestLabelGraphErdosRenyiPrior, sample_returnLabelGraphWithCorrectShape){
     prior.sample();
     EXPECT_EQ(prior.getState().getSize(), prior.getBlockPrior().getBlockCount());
     EXPECT_EQ(prior.getState().getTotalEdgeNumber(), prior.getEdgeCount());
 }
 
-TEST_F(TestLabelGraphUniformPrior, getLogLikelihood_forSomeSampledMatrix_returnCorrectLogLikelihood){
+TEST_F(TestLabelGraphErdosRenyiPrior, getLogLikelihood_forSomeSampledMatrix_returnCorrectLogLikelihood){
     prior.sample();
     auto E = prior.getEdgeCount(), B = prior.getBlockPrior().getEffectiveBlockCount();
     double actualLogLikelihood = prior.getLogLikelihood();
@@ -209,13 +239,13 @@ TEST_F(TestLabelGraphUniformPrior, getLogLikelihood_forSomeSampledMatrix_returnC
     EXPECT_EQ(actualLogLikelihood, expectedLogLikelihood);
 }
 
-TEST_F(TestLabelGraphUniformPrior, applyMove_forSomeGraphMove_changeLabelGraph){
+TEST_F(TestLabelGraphErdosRenyiPrior, applyMove_forSomeGraphMove_changeLabelGraph){
     GraphMove move = {{{0, 0}}, {{0, 2}}};
     prior.applyGraphMove(move);
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
-TEST_F(TestLabelGraphUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveContainingASelfLoop_returnCorrectLogLikelihoodRatio){
+TEST_F(TestLabelGraphErdosRenyiPrior, getLogLikelihoodRatio_forSomeGraphMoveContainingASelfLoop_returnCorrectLogLikelihoodRatio){
     GraphMove move = {{{0, 0}}, {{0, 2}}};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
@@ -226,7 +256,7 @@ TEST_F(TestLabelGraphUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveContain
     EXPECT_EQ(actualLogLikelihoodRatio, expectedLogLikelihood);
 }
 
-TEST_F(TestLabelGraphUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveChangingTheEdgeCount_returnCorrectLogLikelihoodRatio){
+TEST_F(TestLabelGraphErdosRenyiPrior, getLogLikelihoodRatio_forSomeGraphMoveChangingTheEdgeCount_returnCorrectLogLikelihoodRatio){
     GraphMove move = {{}, {{0, 2}}};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
@@ -237,12 +267,12 @@ TEST_F(TestLabelGraphUniformPrior, getLogLikelihoodRatio_forSomeGraphMoveChangin
     EXPECT_EQ(actualLogLikelihoodRatio, expectedLogLikelihood);
 }
 
-TEST_F(TestLabelGraphUniformPrior, applyMove_forSomeLabelMove_changeLabelGraph){
+TEST_F(TestLabelGraphErdosRenyiPrior, applyMove_forSomeLabelMove_changeLabelGraph){
     BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockOfIdx(0) + 1};
     prior.applyLabelMove(move);
 }
 
-TEST_F(TestLabelGraphUniformPrior, getLogLikelihoodRatio_forSomeLabelMove_returnCorrectLogLikelihoodRatio){
+TEST_F(TestLabelGraphErdosRenyiPrior, getLogLikelihoodRatio_forSomeLabelMove_returnCorrectLogLikelihoodRatio){
     BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockOfIdx(0) + 1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
@@ -254,18 +284,18 @@ TEST_F(TestLabelGraphUniformPrior, getLogLikelihoodRatio_forSomeLabelMove_return
 
 }
 
-TEST_F(TestLabelGraphUniformPrior, checkSelfConsistency_noError_noThrow){
+TEST_F(TestLabelGraphErdosRenyiPrior, checkSelfConsistency_noError_noThrow){
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
-// TEST_F(TestLabelGraphUniformPrior, checkSelfConsistency_inconsistenBlockCount_throwConsistencyError){
+// TEST_F(TestLabelGraphErdosRenyiPrior, checkSelfConsistency_inconsistenBlockCount_throwConsistencyError){
 //     size_t originalBlockCount = blockCountPrior.getState();
 //     blockCountPrior.setState(10);
 //     EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
 //     blockCountPrior.setState(originalBlockCount);
 // }
 
-TEST_F(TestLabelGraphUniformPrior, checkSelfConsistency_inconsistentEdgeCount_throwConsistencyError){
+TEST_F(TestLabelGraphErdosRenyiPrior, checkSelfConsistency_inconsistentEdgeCount_throwConsistencyError){
     size_t originalEdgeCount = edgeCountPrior.getState();
     edgeCountPrior.setState(50);
     EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);

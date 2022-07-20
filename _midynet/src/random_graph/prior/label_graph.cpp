@@ -143,39 +143,13 @@ const double LabelGraphDeltaPrior::getLogLikelihoodRatioFromLabelMove(const Bloc
 
 /* DEFINITION OF EDGE MATRIX UNIFORM PRIOR */
 
-void LabelGraphUniformPrior::sampleState() {
-    const auto& blockCount = m_blockPriorPtr->getEffectiveBlockCount();
-    const auto& blocks = m_blockPriorPtr->getState();
-    auto flattenedLabelGraph = sampleRandomWeakComposition(
-                m_edgeCountPriorPtr->getState(),
-                blockCount*(blockCount+1)/2
-            );
-    MultiGraph labelGraph = MultiGraph(m_blockPriorPtr->getBlockCount());
-    std::pair<BlockIndex, BlockIndex> rs;
-    m_edgeCounts.clear();
-    size_t index = 0;
-
-    const auto& vertexCounts = m_blockPriorPtr->getVertexCounts();
-    for (const auto ers: flattenedLabelGraph){
-
-        rs = getUndirectedPairFromIndex(index, m_state.getSize());
-        while (vertexCounts[rs.first] == 0 or vertexCounts[rs.second] == 0){
-            ++index;
-            rs = getUndirectedPairFromIndex(index, m_state.getSize());
-        }
-        labelGraph.addMultiedgeIdx(rs.first, rs.second, ers);
-        ++index;
-    }
-    setState(labelGraph);
-}
-
-const double LabelGraphUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+const double LabelGraphErdosRenyiPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
     double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState());
     double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState() + move.addedEdges.size() - move.removedEdges.size());
     return newLogLikelihood - currentLogLikelihood;
 }
 
-const double LabelGraphUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+const double LabelGraphErdosRenyiPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
     double currentLogLikelihood =  getLogLikelihood(
         m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState()
     );
