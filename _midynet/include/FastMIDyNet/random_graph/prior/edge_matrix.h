@@ -1,9 +1,9 @@
 #ifndef FAST_MIDYNET_EDGE_MATRIX_H
 #define FAST_MIDYNET_EDGE_MATRIX_H
 
-#include "FastMIDyNet/prior/prior.hpp"
-#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
-#include "FastMIDyNet/prior/sbm/block.h"
+#include "prior.hpp"
+#include "edge_count.h"
+#include "block.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/exceptions.h"

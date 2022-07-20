@@ -5,8 +5,8 @@
 #include <iostream>
 #include <memory>
 
-#include "FastMIDyNet/prior/prior.hpp"
-#include "FastMIDyNet/prior/sbm/block_count.h"
+#include "prior.hpp"
+#include "block_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/maps.hpp"

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <string>
 
-#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
+#include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"

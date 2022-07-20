@@ -6,9 +6,8 @@
 
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/rv.hpp"
+#include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/prior/prior.hpp"
-#include "FastMIDyNet/prior/sbm/block.h"
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/random_graph/likelihood/likelihood.hpp"
 

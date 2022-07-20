@@ -6,9 +6,9 @@
 #include <vector>
 
 #include "BaseGraph/types.h"
-#include "FastMIDyNet/prior/sbm/edge_matrix.h"
-#include "FastMIDyNet/prior/sbm/block.h"
-#include "FastMIDyNet/prior/dcsbm/degree.h"
+#include "prior/edge_matrix.h"
+#include "prior/block.h"
+#include "prior/labeled_degree.h"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/random_graph/util.h"
 #include "FastMIDyNet/random_graph/likelihood/dcsbm.h"

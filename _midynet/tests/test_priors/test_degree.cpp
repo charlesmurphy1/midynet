@@ -4,8 +4,8 @@
 
 
 #include "fixtures.hpp"
-#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
-#include "FastMIDyNet/prior/configuration/degree.h"
+#include "FastMIDyNet/random_graph/prior/edge_count.h"
+#include "FastMIDyNet/random_graph/prior/degree.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/generators.h"

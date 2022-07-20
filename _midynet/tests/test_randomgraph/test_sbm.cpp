@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <string>
 
-#include "FastMIDyNet/prior/sbm/block.h"
-#include "FastMIDyNet/prior/sbm/edge_matrix.h"
+#include "FastMIDyNet/random_graph/prior/block.h"
+#include "FastMIDyNet/random_graph/prior/edge_matrix.h"
 #include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"

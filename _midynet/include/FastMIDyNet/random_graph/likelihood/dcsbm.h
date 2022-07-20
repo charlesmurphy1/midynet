@@ -2,9 +2,9 @@
 #define FAST_MIDYNET_LIKELIHOOD_DCSBM_H
 
 #include "BaseGraph/types.h"
-#include "FastMIDyNet/prior/sbm/block.h"
-#include "FastMIDyNet/prior/sbm/edge_matrix.h"
-#include "FastMIDyNet/prior/dcsbm/degree.h"
+#include "FastMIDyNet/random_graph/prior/block.h"
+#include "FastMIDyNet/random_graph/prior/edge_matrix.h"
+#include "FastMIDyNet/random_graph/prior/labeled_degree.h"
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/random_graph/likelihood/likelihood.hpp"
 #include "FastMIDyNet/types.h"

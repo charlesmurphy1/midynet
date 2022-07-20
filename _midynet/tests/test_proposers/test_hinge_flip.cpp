@@ -2,7 +2,7 @@
 
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
-#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
+#include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "FastMIDyNet/proposer/movetypes.h"

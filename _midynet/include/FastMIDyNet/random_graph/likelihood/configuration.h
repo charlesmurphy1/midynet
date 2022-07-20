@@ -3,7 +3,7 @@
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/random_graph/likelihood/likelihood.hpp"
-#include "FastMIDyNet/prior/configuration/degree.h"
+#include "FastMIDyNet/random_graph/prior/degree.h"
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/types.h"
 

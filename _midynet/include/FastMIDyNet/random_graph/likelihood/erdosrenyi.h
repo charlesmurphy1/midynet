@@ -3,7 +3,7 @@
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/random_graph/likelihood/likelihood.hpp"
-#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
+#include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/types.h"
 

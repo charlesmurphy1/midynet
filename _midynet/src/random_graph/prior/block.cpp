@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "FastMIDyNet/prior/sbm/block.h"
+#include "FastMIDyNet/random_graph/prior/block.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"

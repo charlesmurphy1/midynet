@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <string>
 
-#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
-#include "FastMIDyNet/prior/configuration/degree.h"
+#include "FastMIDyNet/random_graph/prior/edge_count.h"
+#include "FastMIDyNet/random_graph/prior/degree.h"
 #include "FastMIDyNet/random_graph/configuration.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"

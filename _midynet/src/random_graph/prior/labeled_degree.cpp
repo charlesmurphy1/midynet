@@ -4,7 +4,7 @@
 #include <tuple>
 #include <vector>
 
-#include "FastMIDyNet/prior/dcsbm/degree.h"
+#include "FastMIDyNet/random_graph/prior/labeled_degree.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/utility/integer_partition.h"

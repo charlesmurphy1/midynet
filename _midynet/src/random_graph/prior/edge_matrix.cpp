@@ -2,7 +2,7 @@
 #include <vector>
 
 
-#include "FastMIDyNet/prior/sbm/edge_matrix.h"
+#include "FastMIDyNet/random_graph/prior/edge_matrix.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/utility/maps.hpp"

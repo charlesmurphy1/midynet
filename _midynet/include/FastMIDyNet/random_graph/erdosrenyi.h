@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "BaseGraph/types.h"
-#include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/random_graph/likelihood/erdosrenyi.h"
 #include "FastMIDyNet/generators.h"

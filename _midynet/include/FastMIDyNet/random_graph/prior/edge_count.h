@@ -4,7 +4,7 @@
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/utility/functions.h"
-#include "FastMIDyNet/prior/prior.hpp"
+#include "prior.hpp"
 
 
 namespace FastMIDyNet{

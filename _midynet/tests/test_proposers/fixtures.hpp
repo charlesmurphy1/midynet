@@ -1,9 +1,9 @@
 #include "FastMIDyNet/types.h"
 
-#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
-#include "FastMIDyNet/prior/sbm/block_count.h"
-#include "FastMIDyNet/prior/sbm/block.h"
-#include "FastMIDyNet/prior/sbm/edge_matrix.h"
+#include "FastMIDyNet/random_graph/prior/edge_count.h"
+#include "FastMIDyNet/random_graph/prior/block_count.h"
+#include "FastMIDyNet/random_graph/prior/block.h"
+#include "FastMIDyNet/random_graph/prior/edge_matrix.h"
 #include "FastMIDyNet/random_graph/sbm.h"
 
 namespace FastMIDyNet{

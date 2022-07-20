@@ -3,8 +3,8 @@
 
 #include <map>
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/prior/prior.hpp"
-#include "FastMIDyNet/prior/erdosrenyi/edge_count.h"
+#include "prior.hpp"
+#include "edge_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/maps.hpp"
 
