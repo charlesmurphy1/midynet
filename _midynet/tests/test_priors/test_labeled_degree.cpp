@@ -7,7 +7,7 @@
 #include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/random_graph/prior/block_count.h"
 #include "FastMIDyNet/random_graph/prior/block.h"
-#include "FastMIDyNet/random_graph/prior/edge_matrix.h"
+#include "FastMIDyNet/random_graph/prior/label_graph.h"
 #include "FastMIDyNet/random_graph/prior/labeled_degree.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
@@ -27,13 +27,13 @@ namespace FastMIDyNet{
 
 class DummyVertexLabeledDegreePrior: public VertexLabeledDegreePrior {
     public:
-        DummyVertexLabeledDegreePrior(EdgeMatrixPrior& edgeMatrixPrior):
-        VertexLabeledDegreePrior(edgeMatrixPrior) {};
+        DummyVertexLabeledDegreePrior(LabelGraphPrior& labelGraphPrior):
+        VertexLabeledDegreePrior(labelGraphPrior) {};
 
         void sampleState() override {
             DegreeSequence degreeSeq(getBlockPrior().getSize(), 0);
-            degreeSeq[0] = m_edgeMatrixPriorPtr->getEdgeCount();
-            degreeSeq[6] = m_edgeMatrixPriorPtr->getEdgeCount();
+            degreeSeq[0] = m_labelGraphPriorPtr->getEdgeCount();
+            degreeSeq[6] = m_labelGraphPriorPtr->getEdgeCount();
             setState(degreeSeq);
         }
         const double getLogLikelihood() const override { return 0; }
@@ -52,8 +52,8 @@ class TestVertexLabeledDegreePrior: public ::testing::Test {
         BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
         BlockUniformPrior blockPrior = BlockUniformPrior(GRAPH_SIZE, blockCountPrior);
         EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(POISSON_MEAN);
-        EdgeMatrixUniformPrior edgeMatrixPrior = EdgeMatrixUniformPrior(edgeCountPrior, blockPrior);
-        DummyVertexLabeledDegreePrior prior = DummyVertexLabeledDegreePrior(edgeMatrixPrior);
+        LabelGraphUniformPrior labelGraphPrior = LabelGraphUniformPrior(edgeCountPrior, blockPrior);
+        DummyVertexLabeledDegreePrior prior = DummyVertexLabeledDegreePrior(labelGraphPrior);
         MultiGraph graph = getUndirectedHouseMultiGraph();
 
         bool expectConsistencyError = false;
@@ -84,14 +84,14 @@ class TestVertexLabeledDegreePrior: public ::testing::Test {
 //     EXPECT_EQ(degreeCounts[0].size(), 2);
 //     EXPECT_FALSE(degreeCounts[0].isEmpty(0));
 //     EXPECT_EQ(degreeCounts[0].get(0), 3);
-//     EXPECT_FALSE(degreeCounts[0].isEmpty(prior.getEdgeMatrixPrior().getEdgeCount()));
-//     EXPECT_EQ(degreeCounts[0].get(prior.getEdgeMatrixPrior().getEdgeCount()), 1);
+//     EXPECT_FALSE(degreeCounts[0].isEmpty(prior.getLabelGraphPrior().getEdgeCount()));
+//     EXPECT_EQ(degreeCounts[0].get(prior.getLabelGraphPrior().getEdgeCount()), 1);
 //
 //     EXPECT_EQ(degreeCounts[1].size(), 2);
 //     EXPECT_FALSE(degreeCounts[1].isEmpty(0));
 //     EXPECT_EQ(degreeCounts[1].get(0), 2);
-//     EXPECT_FALSE(degreeCounts[1].isEmpty(prior.getEdgeMatrixPrior().getEdgeCount()));
-//     EXPECT_EQ(degreeCounts[1].get(prior.getEdgeMatrixPrior().getEdgeCount()), 1);
+//     EXPECT_FALSE(degreeCounts[1].isEmpty(prior.getLabelGraphPrior().getEdgeCount()));
+//     EXPECT_EQ(degreeCounts[1].get(prior.getLabelGraphPrior().getEdgeCount()), 1);
 // }
 
 TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToState_ForAddedEdge_returnCorrectDegreeSeq){
@@ -139,7 +139,7 @@ TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToState_ForRemovedEdgeNAddedE
 TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
     blockPrior.setState(BLOCK_SEQ);
     GraphMove move = {{}, {{0,1}}};
-    size_t E = prior.getEdgeMatrixPrior().getEdgeCount();
+    size_t E = prior.getLabelGraphPrior().getEdgeCount();
     auto expected = prior.getDegreeCounts();
     expected.decrement({0, 0}); expected.increment({0, 1});
     expected.decrement({0, E}); expected.increment({0, E+1});
@@ -158,7 +158,7 @@ TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_r
 TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrectDegreeCounts){
     while(blockPrior.getBlockCount()==1) prior.sample();
     GraphMove move = {{{0, 4}}, {}};
-    size_t E = prior.getEdgeMatrixPrior().getEdgeCount();
+    size_t E = prior.getLabelGraphPrior().getEdgeCount();
     auto expected = prior.getDegreeCounts();
     prior.applyGraphMoveToDegreeCounts(move);
     auto actual = prior.getDegreeCounts();
@@ -205,8 +205,8 @@ class TestVertexLabeledDegreeUniformPrior: public ::testing::Test {
         BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
         BlockUniformPrior blockPrior = BlockUniformPrior(100, blockCountPrior);
         EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(200);
-        EdgeMatrixUniformPrior edgeMatrixPrior = EdgeMatrixUniformPrior(edgeCountPrior, blockPrior);
-        VertexLabeledDegreeUniformPrior prior = VertexLabeledDegreeUniformPrior(edgeMatrixPrior);
+        LabelGraphUniformPrior labelGraphPrior = LabelGraphUniformPrior(edgeCountPrior, blockPrior);
+        VertexLabeledDegreeUniformPrior prior = VertexLabeledDegreeUniformPrior(labelGraphPrior);
         void SetUp() {
             prior.sample();
             prior.checkSafety();
@@ -239,8 +239,8 @@ TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihoodRatioFromGraphMove_f
 TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
     while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
-    auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
-    edgeMatrixPrior.setGraph(g);
+    auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getLabelGraphPrior().getState().getAdjacencyMatrix(), prior.getState());
+    labelGraphPrior.setGraph(g);
     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
     BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
     if (nextBlockIdx == prior.getBlockPrior().getBlockCount())
@@ -261,8 +261,8 @@ class TestVertexLabeledDegreeUniformHyperPrior: public ::testing::Test {
         BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
         BlockUniformPrior blockPrior = BlockUniformPrior(100, blockCountPrior);
         EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(200);
-        EdgeMatrixUniformPrior edgeMatrixPrior = EdgeMatrixUniformPrior(edgeCountPrior, blockPrior);
-        VertexLabeledDegreeUniformHyperPrior prior = VertexLabeledDegreeUniformHyperPrior(edgeMatrixPrior);
+        LabelGraphUniformPrior labelGraphPrior = LabelGraphUniformPrior(edgeCountPrior, blockPrior);
+        VertexLabeledDegreeUniformHyperPrior prior = VertexLabeledDegreeUniformHyperPrior(labelGraphPrior);
         void SetUp() {
             prior.sample();
             prior.checkSafety();
@@ -294,8 +294,8 @@ TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromGraphM
 TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
     while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
-    auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
-    edgeMatrixPrior.setGraph(g);
+    auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getLabelGraphPrior().getState().getAdjacencyMatrix(), prior.getState());
+    labelGraphPrior.setGraph(g);
     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
     BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
     if (nextBlockIdx == prior.getBlockPrior().getBlockCount())
@@ -311,7 +311,7 @@ TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelM
 
 TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forLabelMoveAddingNewBlock_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
-    auto g = generateDCSBM(blockPrior.getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
+    auto g = generateDCSBM(blockPrior.getState(), prior.getLabelGraphPrior().getState().getAdjacencyMatrix(), prior.getState());
     BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getVertexCounts().size(), 1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
 

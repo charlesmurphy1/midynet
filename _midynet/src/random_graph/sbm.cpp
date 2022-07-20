@@ -23,6 +23,6 @@ void StochasticBlockModelFamily::sampleState(){ setGraph(generateStubLabeledSBM(
 
 
 void StochasticBlockModelFamily::checkSelfConsistency() const{
-    m_edgeMatrixPriorPtr->checkSelfConsistency();
-    checkGraphConsistencyWithEdgeMatrix("StochasticBlockModelFamily", m_graph, getLabels(), getLabelGraph());
+    m_labelGraphPriorPtr->checkSelfConsistency();
+    checkGraphConsistencyWithLabelGraph("StochasticBlockModelFamily", m_graph, getLabels(), getLabelGraph());
 }

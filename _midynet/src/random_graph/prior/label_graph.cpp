@@ -2,7 +2,7 @@
 #include <vector>
 
 
-#include "FastMIDyNet/random_graph/prior/edge_matrix.h"
+#include "FastMIDyNet/random_graph/prior/label_graph.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/utility/maps.hpp"
@@ -12,13 +12,13 @@
 namespace FastMIDyNet {
 
 /* DEFINITION OF EDGE MATRIX PRIOR BASE CLASS */
-void EdgeMatrixPrior::recomputeConsistentState() {
+void LabelGraphPrior::recomputeConsistentState() {
     m_edgeCounts.clear();
     for (auto r : m_state)
         m_edgeCounts.set(r, m_state.getDegreeOfIdx(r));
     m_edgeCountPriorPtr->setState(m_state.getTotalEdgeNumber());
 }
-void EdgeMatrixPrior::recomputeStateFromGraph() {
+void LabelGraphPrior::recomputeStateFromGraph() {
     m_state = MultiGraph(m_blockPriorPtr->getMaxBlockCount());
     m_edgeCounts.clear();
     for (const auto& vertex: *m_graphPtr){
@@ -34,23 +34,23 @@ void EdgeMatrixPrior::recomputeStateFromGraph() {
         }
     }
 }
-void EdgeMatrixPrior::setGraph(const MultiGraph& graph) {
+void LabelGraphPrior::setGraph(const MultiGraph& graph) {
     m_graphPtr = &graph;
     recomputeStateFromGraph();
 }
 
-void EdgeMatrixPrior::setPartition(const std::vector<BlockIndex>& labels) {
+void LabelGraphPrior::setPartition(const std::vector<BlockIndex>& labels) {
     m_blockPriorPtr->setState(labels);
     recomputeStateFromGraph();
 }
 
 
-void EdgeMatrixPrior::setState(const MultiGraph& edgeMatrix) {
-    m_state = edgeMatrix;
+void LabelGraphPrior::setState(const MultiGraph& labelGraph) {
+    m_state = labelGraph;
     recomputeConsistentState();
 }
 
-void EdgeMatrixPrior::applyLabelMoveToState(const BlockMove& move) {
+void LabelGraphPrior::applyLabelMoveToState(const BlockMove& move) {
     if (move.prevLabel == move.nextLabel)
         return;
 
@@ -75,7 +75,7 @@ void EdgeMatrixPrior::applyLabelMoveToState(const BlockMove& move) {
 
 }
 
-void EdgeMatrixPrior::applyGraphMoveToState(const GraphMove& move){
+void LabelGraphPrior::applyGraphMoveToState(const GraphMove& move){
     const auto& blockSeq = m_blockPriorPtr->getState();
 
     for (auto removedEdge: move.removedEdges) {
@@ -92,7 +92,7 @@ void EdgeMatrixPrior::applyGraphMoveToState(const GraphMove& move){
     }
 }
 
-void EdgeMatrixPrior::checkSelfConsistency() const {
+void LabelGraphPrior::checkSelfConsistency() const {
     m_blockPriorPtr->checkSelfConsistency();
     m_edgeCountPriorPtr->checkSelfConsistency();
 
@@ -100,17 +100,17 @@ void EdgeMatrixPrior::checkSelfConsistency() const {
     for (BlockIndex r : m_state) {
         size_t actualEdgeCounts = m_state.getDegreeOfIdx(r);
         if (actualEdgeCounts != m_edgeCounts[r])
-            throw ConsistencyError("EdgeMatrixPrior: Edge matrix row ("
+            throw ConsistencyError("LabelGraphPrior: Edge matrix row ("
             + std::to_string(actualEdgeCounts) + ") doesn't sum to edgeCounts["
             + std::to_string(r) + "] (" + std::to_string(m_edgeCounts[r]) + ").");
         sumEdges += actualEdgeCounts;
     }
     if (sumEdges != 2*m_edgeCountPriorPtr->getState())
-        throw ConsistencyError("EdgeMatrixPrior: Sum of edge matrix isn't equal to the number of edges.");
+        throw ConsistencyError("LabelGraphPrior: Sum of edge matrix isn't equal to the number of edges.");
 }
 
 
-const double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+const double LabelGraphDeltaPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
     CounterMap<std::pair<BlockIndex, BlockIndex>> map;
 
     for (auto edge : move.addedEdges){
@@ -133,7 +133,7 @@ const double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromGraphMove(const Grap
     return 0.;
 }
 
-const double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+const double LabelGraphDeltaPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
     if (move.prevLabel != move.nextLabel)
         return -INFINITY;
     return 0.;
@@ -143,39 +143,39 @@ const double EdgeMatrixDeltaPrior::getLogLikelihoodRatioFromLabelMove(const Bloc
 
 /* DEFINITION OF EDGE MATRIX UNIFORM PRIOR */
 
-void EdgeMatrixUniformPrior::sampleState() {
+void LabelGraphUniformPrior::sampleState() {
     const auto& blockCount = m_blockPriorPtr->getEffectiveBlockCount();
     const auto& blocks = m_blockPriorPtr->getState();
-    auto flattenedEdgeMatrix = sampleRandomWeakComposition(
+    auto flattenedLabelGraph = sampleRandomWeakComposition(
                 m_edgeCountPriorPtr->getState(),
                 blockCount*(blockCount+1)/2
             );
-    MultiGraph edgeMatrix = MultiGraph(m_blockPriorPtr->getBlockCount());
+    MultiGraph labelGraph = MultiGraph(m_blockPriorPtr->getBlockCount());
     std::pair<BlockIndex, BlockIndex> rs;
     m_edgeCounts.clear();
     size_t index = 0;
 
     const auto& vertexCounts = m_blockPriorPtr->getVertexCounts();
-    for (const auto ers: flattenedEdgeMatrix){
+    for (const auto ers: flattenedLabelGraph){
 
         rs = getUndirectedPairFromIndex(index, m_state.getSize());
         while (vertexCounts[rs.first] == 0 or vertexCounts[rs.second] == 0){
             ++index;
             rs = getUndirectedPairFromIndex(index, m_state.getSize());
         }
-        edgeMatrix.addMultiedgeIdx(rs.first, rs.second, ers);
+        labelGraph.addMultiedgeIdx(rs.first, rs.second, ers);
         ++index;
     }
-    setState(edgeMatrix);
+    setState(labelGraph);
 }
 
-const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+const double LabelGraphUniformPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
     double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState());
     double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState() + move.addedEdges.size() - move.removedEdges.size());
     return newLogLikelihood - currentLogLikelihood;
 }
 
-const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+const double LabelGraphUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
     double currentLogLikelihood =  getLogLikelihood(
         m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState()
     );
@@ -187,18 +187,18 @@ const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromLabelMove(const Bl
 
 // /* DEFINITION OF EDGE MATRIX EXPONENTIAL PRIOR */
 //
-// void EdgeMatrixExponentialPrior::sampleState() {
+// void LabelGraphExponentialPrior::sampleState() {
 //     auto blockCount = m_blockPriorPtr->getBlockCount();
-//     auto flattenedEdgeMatrix = sampleRandomWeakComposition(
+//     auto flattenedLabelGraph = sampleRandomWeakComposition(
 //             m_edgeCountPriorPtr->getState(),
 //             blockCount*(blockCount+1)/2
 //             );
 //
-//     m_state = EdgeMatrix(blockCount, std::vector<size_t>(blockCount, 0));
+//     m_state = LabelGraph(blockCount, std::vector<size_t>(blockCount, 0));
 //     std::pair<BlockIndex, BlockIndex> rs;
 //     m_edgeCounts = std::vector<size_t>(blockCount, 0);
 //     size_t index = 0, correctedEdgeCount;
-//     for (auto edgeCountBetweenBlocks: flattenedEdgeMatrix) {
+//     for (auto edgeCountBetweenBlocks: flattenedLabelGraph) {
 //         rs = getUndirectedPairFromIndex(index, blockCount);
 //         m_edgeCounts[rs.first] += edgeCountBetweenBlocks;
 //         m_edgeCounts[rs.second] += edgeCountBetweenBlocks;
@@ -208,13 +208,13 @@ const double EdgeMatrixUniformPrior::getLogLikelihoodRatioFromLabelMove(const Bl
 //     }
 // }
 //
-// double EdgeMatrixExponentialPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+// double LabelGraphExponentialPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
 //     double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState());
 //     double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState() + move.addedEdges.size() - move.removedEdges.size());
 //     return newLogLikelihood - currentLogLikelihood;
 // }
 //
-// double EdgeMatrixExponentialPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+// double LabelGraphExponentialPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
 //     auto vertexCounts = m_blockPriorPtr->getVertexCounts();
 //
 //     bool creatingBlock = move.nextLabel == m_blockPriorPtr->getBlockCount();

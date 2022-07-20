@@ -4,7 +4,7 @@
 #include <string>
 
 #include "FastMIDyNet/random_graph/prior/block.h"
-#include "FastMIDyNet/random_graph/prior/edge_matrix.h"
+#include "FastMIDyNet/random_graph/prior/label_graph.h"
 #include "FastMIDyNet/random_graph/prior/labeled_degree.h"
 #include "FastMIDyNet/random_graph/dcsbm.h"
 #include "FastMIDyNet/types.h"
@@ -24,8 +24,8 @@ class TestDegreeCorrectedStochasticBlockModelFamily: public::testing::Test{
         BlockCountPoissonPrior blockCountPrior = {AVG_NUM_BLOCKS};
         BlockUniformPrior blockPrior = {NUM_VERTICES, blockCountPrior};
         EdgeCountPoissonPrior edgeCountPrior = {AVG_NUM_EDGES};
-        EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
-        VertexLabeledDegreeUniformPrior degreePrior = {edgeMatrixPrior};
+        LabelGraphUniformPrior labelGraphPrior = {edgeCountPrior, blockPrior};
+        VertexLabeledDegreeUniformPrior degreePrior = {labelGraphPrior};
 
         BaseGraph::VertexIndex vertexIdx = 4;
 

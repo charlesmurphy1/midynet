@@ -7,6 +7,8 @@
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/exceptions.h"
+#include "FastMIDyNet/generators.h"
+#include "FastMIDyNet/utility/functions.h"
 
 
 namespace FastMIDyNet {

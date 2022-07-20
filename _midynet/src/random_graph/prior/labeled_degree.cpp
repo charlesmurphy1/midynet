@@ -23,7 +23,7 @@ const VertexLabeledDegreeCountsMap VertexLabeledDegreePrior::computeDegreeCounts
 }
 
 void VertexLabeledDegreePrior::recomputeConsistentState() {
-    m_degreeCounts = computeDegreeCounts(m_state, m_edgeMatrixPriorPtr->getBlockPrior().getState());
+    m_degreeCounts = computeDegreeCounts(m_state, m_labelGraphPriorPtr->getBlockPrior().getState());
 }
 
 void VertexLabeledDegreePrior::setState(const DegreeSequence& state) {
@@ -32,13 +32,13 @@ void VertexLabeledDegreePrior::setState(const DegreeSequence& state) {
 }
 
 void VertexLabeledDegreePrior::setGraph(const MultiGraph& graph) {
-    m_edgeMatrixPriorPtr->setGraph(graph);
+    m_labelGraphPriorPtr->setGraph(graph);
     m_state = graph.getDegrees();
     recomputeConsistentState();
 }
 
 void VertexLabeledDegreePrior::setPartition(const std::vector<BlockIndex>& labels){
-    m_edgeMatrixPriorPtr->setPartition(labels);
+    m_labelGraphPriorPtr->setPartition(labels);
     recomputeConsistentState();
 }
 
@@ -81,12 +81,12 @@ void VertexLabeledDegreePrior::applyLabelMoveToDegreeCounts(const BlockMove& mov
 }
 
 void VertexLabeledDegreePrior::_applyGraphMove(const GraphMove& move){
-    m_edgeMatrixPriorPtr->applyGraphMove(move);
+    m_labelGraphPriorPtr->applyGraphMove(move);
     applyGraphMoveToDegreeCounts(move);
     applyGraphMoveToState(move);
 }
 void VertexLabeledDegreePrior::_applyLabelMove(const BlockMove& move) {
-    m_edgeMatrixPriorPtr->applyLabelMove(move);
+    m_labelGraphPriorPtr->applyLabelMove(move);
     applyLabelMoveToDegreeCounts(move);
 }
 
@@ -126,8 +126,8 @@ void VertexLabeledDegreePrior::checkDegreeSequenceConsistencyWithDegreeCounts(
 }
 
 void VertexLabeledDegreePrior::checkSelfConsistency() const{
-    m_edgeMatrixPriorPtr->checkConsistency();
-    checkDegreeSequenceConsistencyWithEdgeCount(getState(), m_edgeMatrixPriorPtr->getEdgeCount());
+    m_labelGraphPriorPtr->checkConsistency();
+    checkDegreeSequenceConsistencyWithEdgeCount(getState(), m_labelGraphPriorPtr->getEdgeCount());
     checkDegreeSequenceConsistencyWithDegreeCounts(getState(), getBlockPrior().getState(), getDegreeCounts());
 };
 
@@ -154,7 +154,7 @@ void VertexLabeledDegreeUniformPrior::sampleState(){
     vector<list<size_t>> degreeSeqInBlocks(getBlockPrior().getBlockCount());
     vector<list<size_t>::iterator> ptr_degreeSeqInBlocks(getBlockPrior().getBlockCount());
     const BlockSequence& blockSeq = getBlockPrior().getState();
-    const CounterMap<size_t>& edgeCounts = m_edgeMatrixPriorPtr->getEdgeCounts();
+    const CounterMap<size_t>& edgeCounts = m_labelGraphPriorPtr->getEdgeCounts();
     const CounterMap<size_t>& vertexCounts = getBlockPrior().getVertexCounts();
     for (size_t r = 0; r < getBlockPrior().getBlockCount(); r++) {
         degreeSeqInBlocks[r] = sampleRandomWeakComposition(edgeCounts[r], vertexCounts[r]);
@@ -174,7 +174,7 @@ void VertexLabeledDegreeUniformPrior::sampleState(){
 
 const double VertexLabeledDegreeUniformPrior::getLogLikelihood() const{
     double logLikelihood = 0;
-    const CounterMap<size_t>& edgeCounts = m_edgeMatrixPriorPtr->getEdgeCounts();
+    const CounterMap<size_t>& edgeCounts = m_labelGraphPriorPtr->getEdgeCounts();
     const CounterMap<size_t>& vertexCounts = getBlockPrior().getVertexCounts();
 
     for (size_t r = 0; r < getBlockPrior().getBlockCount(); r++)
@@ -196,7 +196,7 @@ const double VertexLabeledDegreeUniformPrior::getLogLikelihoodRatioFromGraphMove
         diffEdgeCountsMap.decrement(blockSeq[edge.second]) ;
     }
 
-    const auto& edgeCounts = m_edgeMatrixPriorPtr->getEdgeCounts() ;
+    const auto& edgeCounts = m_labelGraphPriorPtr->getEdgeCounts() ;
     const auto& vertexCounts = getBlockPrior().getVertexCounts() ;
 
     double logLikelihoodRatio = 0;
@@ -214,10 +214,10 @@ const double VertexLabeledDegreeUniformPrior::getLogLikelihoodRatioFromLabelMove
     BlockIndex r = move.prevLabel, s = move.nextLabel;
     size_t k = m_state[move.vertexIndex];
     size_t nr = getBlockPrior().getVertexCounts().get(r) ;
-    size_t er = m_edgeMatrixPriorPtr->getEdgeCounts().get(r) ;
+    size_t er = m_labelGraphPriorPtr->getEdgeCounts().get(r) ;
     size_t eta_r = m_degreeCounts.get({r, k}) ;
     size_t ns = getBlockPrior().getVertexCounts().get(s) ;
-    size_t es = m_edgeMatrixPriorPtr->getEdgeCounts().get(s) ;
+    size_t es = m_labelGraphPriorPtr->getEdgeCounts().get(s) ;
     size_t eta_s =  m_degreeCounts.get({s, k});
 
     double logLikelihoodRatio = 0;
@@ -228,7 +228,7 @@ const double VertexLabeledDegreeUniformPrior::getLogLikelihoodRatioFromLabelMove
 
 void VertexLabeledDegreeUniformHyperPrior::sampleState() {
     auto nr = getBlockPrior().getVertexCounts();
-    auto er = m_edgeMatrixPriorPtr->getEdgeCounts();
+    auto er = m_labelGraphPriorPtr->getEdgeCounts();
     auto B = getBlockPrior().getBlockCount();
     std::vector<std::list<size_t>> unorderedDegrees(B);
     for (size_t r = 0; r < B; ++r){
@@ -252,7 +252,7 @@ const double VertexLabeledDegreeUniformHyperPrior::getLogLikelihood() const {
     for (const auto& nk : m_degreeCounts)
         logP += logFactorial(nk.second);
     for (const auto nr : getBlockPrior().getVertexCounts()){
-        auto er = m_edgeMatrixPriorPtr->getEdgeCounts().get(nr.first);
+        auto er = m_labelGraphPriorPtr->getEdgeCounts().get(nr.first);
         if (er == 0)
             continue;
         logP -= logFactorial(nr.second);
@@ -292,7 +292,7 @@ const double VertexLabeledDegreeUniformHyperPrior::getLogLikelihoodRatioFromGrap
         logLikelihoodRatio -= logFactorial(m_degreeCounts.get(diff.first));
     }
 
-    auto er = m_edgeMatrixPriorPtr->getEdgeCounts();
+    auto er = m_labelGraphPriorPtr->getEdgeCounts();
     auto nr = getBlockPrior().getVertexCounts();
 
     for (auto diff : diffEdgeMap){
@@ -309,7 +309,7 @@ const double VertexLabeledDegreeUniformHyperPrior::getLogLikelihoodRatioFromLabe
     bool createEmptyBlock = move.nextLabel == getBlockPrior().getVertexCounts().size();
     size_t k = m_state[move.vertexIndex];
     size_t nr = getBlockPrior().getVertexCounts().get(r), ns = getBlockPrior().getVertexCounts().get(s) ;
-    size_t er = m_edgeMatrixPriorPtr->getEdgeCounts().get(r), es = m_edgeMatrixPriorPtr->getEdgeCounts().get(s) ;
+    size_t er = m_labelGraphPriorPtr->getEdgeCounts().get(r), es = m_labelGraphPriorPtr->getEdgeCounts().get(s) ;
     size_t eta_r = m_degreeCounts.get({r, k}), eta_s = m_degreeCounts.get({s, k});
     double logLikelihoodRatio = 0;
     logLikelihoodRatio += log(eta_s + 1) - log(eta_r);

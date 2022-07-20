@@ -4,7 +4,7 @@
 #include <map>
 #include "FastMIDyNet/types.h"
 #include "prior.hpp"
-#include "edge_matrix.h"
+#include "label_graph.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/maps.hpp"
 
@@ -13,19 +13,19 @@ namespace FastMIDyNet{
 
 class VertexLabeledDegreePrior: public BlockLabeledPrior< DegreeSequence >{
 protected:
-    EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
+    LabelGraphPrior* m_labelGraphPriorPtr = nullptr;
     VertexLabeledDegreeCountsMap m_degreeCounts;
 
-    void _samplePriors() override { m_edgeMatrixPriorPtr->sample(); }
+    void _samplePriors() override { m_labelGraphPriorPtr->sample(); }
 
     void _applyGraphMove(const GraphMove& move) override;
     void _applyLabelMove(const BlockMove& move) override;
 
     const double _getLogPrior() const override {
-        return m_edgeMatrixPriorPtr->getLogJoint();
+        return m_labelGraphPriorPtr->getLogJoint();
     }
-    const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move); }
-    const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const { return m_edgeMatrixPriorPtr->getLogJointRatioFromLabelMove(move); }
+    const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const { return m_labelGraphPriorPtr->getLogJointRatioFromGraphMove(move); }
+    const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const { return m_labelGraphPriorPtr->getLogJointRatioFromLabelMove(move); }
 
     // void onBlockCreation(const BlockMove&) override;
 
@@ -37,34 +37,34 @@ public:
     using BlockLabeledPrior<DegreeSequence>::BlockLabeledPrior;
     /* Constructors */
     VertexLabeledDegreePrior(){}
-    VertexLabeledDegreePrior(EdgeMatrixPrior& edgeMatrixPrior){
-            setEdgeMatrixPrior(edgeMatrixPrior);
+    VertexLabeledDegreePrior(LabelGraphPrior& labelGraphPrior){
+            setLabelGraphPrior(labelGraphPrior);
         }
     VertexLabeledDegreePrior(const VertexLabeledDegreePrior& other){
-        setEdgeMatrixPrior(*other.m_edgeMatrixPriorPtr);
+        setLabelGraphPrior(*other.m_labelGraphPriorPtr);
     }
     virtual ~VertexLabeledDegreePrior(){}
     const VertexLabeledDegreePrior& operator=(const VertexLabeledDegreePrior& other){
-        setEdgeMatrixPrior(*other.m_edgeMatrixPriorPtr);
+        setLabelGraphPrior(*other.m_labelGraphPriorPtr);
         return *this;
     }
 
-    void samplePartition() { m_edgeMatrixPriorPtr->samplePartition(); recomputeConsistentState();}
+    void samplePartition() { m_labelGraphPriorPtr->samplePartition(); recomputeConsistentState();}
     void setGraph(const MultiGraph&);
     // const MultiGraph& getGraph() const { return *m_graphPtr; }
     virtual void setState(const DegreeSequence&) override;
     void setPartition(const std::vector<BlockIndex>&) ;
     static const VertexLabeledDegreeCountsMap computeDegreeCounts(const std::vector<size_t>&,  const std::vector<BlockIndex>);
 
-    const BlockPrior& getBlockPrior() const { return m_edgeMatrixPriorPtr->getBlockPrior(); }
-    BlockPrior& getBlockPriorRef() const { return m_edgeMatrixPriorPtr->getBlockPriorRef(); }
-    void setBlockPrior(BlockPrior& prior) const { m_edgeMatrixPriorPtr->setBlockPrior(prior); }
+    const BlockPrior& getBlockPrior() const { return m_labelGraphPriorPtr->getBlockPrior(); }
+    BlockPrior& getBlockPriorRef() const { return m_labelGraphPriorPtr->getBlockPriorRef(); }
+    void setBlockPrior(BlockPrior& prior) const { m_labelGraphPriorPtr->setBlockPrior(prior); }
 
-    const EdgeMatrixPrior& getEdgeMatrixPrior() const { return *m_edgeMatrixPriorPtr; }
-    EdgeMatrixPrior& getEdgeMatrixPriorRef() const { return *m_edgeMatrixPriorPtr; }
-    void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) {
-        m_edgeMatrixPriorPtr = &edgeMatrixPrior;
-        m_edgeMatrixPriorPtr->isRoot(false);
+    const LabelGraphPrior& getLabelGraphPrior() const { return *m_labelGraphPriorPtr; }
+    LabelGraphPrior& getLabelGraphPriorRef() const { return *m_labelGraphPriorPtr; }
+    void setLabelGraphPrior(LabelGraphPrior& labelGraphPrior) {
+        m_labelGraphPriorPtr = &labelGraphPrior;
+        m_labelGraphPriorPtr->isRoot(false);
     }
 
     const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
@@ -76,19 +76,19 @@ public:
 
     virtual void computationFinished() const override {
         m_isProcessed = false;
-        m_edgeMatrixPriorPtr->computationFinished();
+        m_labelGraphPriorPtr->computationFinished();
     }
     static void checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence&, size_t);
     static void checkDegreeSequenceConsistencyWithDegreeCounts(const DegreeSequence&, const BlockSequence&, const VertexLabeledDegreeCountsMap&);
 
     bool isSafe() const override {
-        return (m_edgeMatrixPriorPtr != nullptr) and (m_edgeMatrixPriorPtr->isSafe());
+        return (m_labelGraphPriorPtr != nullptr) and (m_labelGraphPriorPtr->isSafe());
     }
     void checkSelfConsistency() const override;
     virtual void checkSelfSafety() const override{
-        if (m_edgeMatrixPriorPtr == nullptr)
-            throw SafetyError("VertexLabeledDegreePrior: unsafe prior since `m_edgeMatrixPriorPtr` is empty.");
-        m_edgeMatrixPriorPtr->checkSafety();
+        if (m_labelGraphPriorPtr == nullptr)
+            throw SafetyError("VertexLabeledDegreePrior: unsafe prior since `m_labelGraphPriorPtr` is empty.");
+        m_labelGraphPriorPtr->checkSafety();
     }
 
 

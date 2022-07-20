@@ -6,8 +6,8 @@
 
 namespace FastMIDyNet{
 
-MultiGraph getEdgeMatrixFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq);
-void checkGraphConsistencyWithEdgeMatrix( std::string namePrefix, const MultiGraph& graph, const BlockSequence& blockSeq, const MultiGraph& expectedEdgeMat);
+MultiGraph getLabelGraphFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq);
+void checkGraphConsistencyWithLabelGraph( std::string namePrefix, const MultiGraph& graph, const BlockSequence& blockSeq, const MultiGraph& expectedEdgeMat);
 void checkGraphConsistencyWithDegreeSequence(std::string namePrefix, const MultiGraph& graph, const DegreeSequence& expectedDegreeSeq);
 
 }

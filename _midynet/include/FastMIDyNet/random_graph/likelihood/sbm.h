@@ -3,7 +3,7 @@
 
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/random_graph/likelihood/likelihood.hpp"
-#include "FastMIDyNet/random_graph/prior/edge_matrix.h"
+#include "FastMIDyNet/random_graph/prior/label_graph.h"
 #include "FastMIDyNet/random_graph/prior/block.h"
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/types.h"
@@ -23,7 +23,7 @@ public:
     const double getLogLikelihood() const override ;
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const ;
     const double getLogLikelihoodRatioFromLabelMove (const BlockMove&) const ;
-    EdgeMatrixPrior** m_edgeMatrixPriorPtrPtr = nullptr;
+    LabelGraphPrior** m_labelGraphPriorPtrPtr = nullptr;
 };
 
 

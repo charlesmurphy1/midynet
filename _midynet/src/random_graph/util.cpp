@@ -4,7 +4,7 @@
 
 namespace FastMIDyNet{
 
-MultiGraph getEdgeMatrixFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq){
+MultiGraph getLabelGraphFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq){
     size_t numBlocks = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
     MultiGraph edgeMat(numBlocks);
     for (auto idx : graph){
@@ -18,17 +18,17 @@ MultiGraph getEdgeMatrixFromGraph(const MultiGraph& graph, const BlockSequence& 
     return edgeMat;
 };
 
-void checkGraphConsistencyWithEdgeMatrix(
+void checkGraphConsistencyWithLabelGraph(
     std::string namePrefix,
     const MultiGraph& graph,
     const BlockSequence& blockSeq,
     const MultiGraph& expectedEdgeMat){
-    MultiGraph actualEdgeMat = getEdgeMatrixFromGraph(graph, blockSeq);
+    MultiGraph actualEdgeMat = getLabelGraphFromGraph(graph, blockSeq);
     for (auto r : actualEdgeMat)
         for (auto s : actualEdgeMat.getNeighboursOfIdx(r))
             if (expectedEdgeMat.getEdgeMultiplicityIdx(r, s.vertexIndex) != s.label)
                 throw ConsistencyError(namePrefix + ": at indices ("
-                + std::to_string(r) + ", " + std::to_string(s.vertexIndex) + ") edge matrix is inconsistent with graph:"
+                + std::to_string(r) + ", " + std::to_string(s.vertexIndex) + ") label graph is inconsistent with graph:"
                 + std::to_string(expectedEdgeMat.getEdgeMultiplicityIdx(r, s.vertexIndex)) + " != "
                 + std::to_string(s.label));
 };

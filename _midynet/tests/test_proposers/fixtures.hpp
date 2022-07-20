@@ -3,7 +3,7 @@
 #include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/random_graph/prior/block_count.h"
 #include "FastMIDyNet/random_graph/prior/block.h"
-#include "FastMIDyNet/random_graph/prior/edge_matrix.h"
+#include "FastMIDyNet/random_graph/prior/label_graph.h"
 #include "FastMIDyNet/random_graph/sbm.h"
 
 namespace FastMIDyNet{
@@ -41,7 +41,7 @@ class DummySBMGraph: public StochasticBlockModelFamily{
     BlockCountDeltaPrior blockCountPrior;
     BlockUniformPrior blockPrior;
     EdgeCountDeltaPrior edgeCountPrior;
-    EdgeMatrixUniformPrior edgeMatrixPrior;
+    LabelGraphUniformPrior labelGraphPrior;
 
 public:
     DummySBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
@@ -49,9 +49,9 @@ public:
     blockCountPrior(blockCount),
     blockPrior(size, blockCountPrior),
     edgeCountPrior(edgeCount),
-    edgeMatrixPrior(edgeCountPrior, blockPrior)
+    labelGraphPrior(edgeCountPrior, blockPrior)
      {
-        setEdgeMatrixPrior(edgeMatrixPrior);
+        setLabelGraphPrior(labelGraphPrior);
     }
     using StochasticBlockModelFamily::sample;
 };
@@ -64,7 +64,7 @@ class DummyRestrictedSBMGraph: public StochasticBlockModelFamily{
     BlockCountDeltaPrior blockCountPrior;
     BlockUniformHyperPrior blockPrior;
     EdgeCountDeltaPrior edgeCountPrior;
-    EdgeMatrixUniformPrior edgeMatrixPrior;
+    LabelGraphUniformPrior labelGraphPrior;
 
 public:
     DummyRestrictedSBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
@@ -72,9 +72,9 @@ public:
     blockCountPrior(blockCount),
     blockPrior(size, blockCountPrior),
     edgeCountPrior(edgeCount),
-    edgeMatrixPrior(edgeCountPrior, blockPrior)
+    labelGraphPrior(edgeCountPrior, blockPrior)
      {
-        setEdgeMatrixPrior(edgeMatrixPrior);
+        setLabelGraphPrior(labelGraphPrior);
     }
     using StochasticBlockModelFamily::sample;
 };

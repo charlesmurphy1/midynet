@@ -5,10 +5,10 @@ using namespace BaseGraph;
 namespace FastMIDyNet{
 
 const double StochasticBlockModelLikelihood::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const {
-    const BlockSequence& blockSeq = (*m_edgeMatrixPriorPtrPtr)->getBlockPrior().getState();
-    const MultiGraph& edgeMat = (*m_edgeMatrixPriorPtrPtr)->getState();
-    const CounterMap<size_t>& edgeCounts = (*m_edgeMatrixPriorPtrPtr)->getEdgeCounts();
-    const CounterMap<size_t>& vertexCounts = (*m_edgeMatrixPriorPtrPtr)->getBlockPrior().getVertexCounts();
+    const BlockSequence& blockSeq = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getState();
+    const MultiGraph& edgeMat = (*m_labelGraphPriorPtrPtr)->getState();
+    const CounterMap<size_t>& edgeCounts = (*m_labelGraphPriorPtrPtr)->getEdgeCounts();
+    const CounterMap<size_t>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
     double logLikelihoodRatioTerm = 0;
 
     IntMap<std::pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
@@ -53,7 +53,7 @@ const double StochasticBlockModelLikelihood::getLogLikelihoodRatioAdjTerm (const
 }
 
 void StochasticBlockModelLikelihood::getDiffEdgeMatMapFromEdgeMove(const BaseGraph::Edge& edge, int counter, IntMap<std::pair<BlockIndex, BlockIndex>>& diffEdgeMatMap) const{
-    const BlockSequence& blockSeq = (*m_edgeMatrixPriorPtrPtr)->getBlockPrior().getState();
+    const BlockSequence& blockSeq = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getState();
     diffEdgeMatMap.increment(
         getOrderedPair<BlockIndex>({blockSeq[edge.first], blockSeq[edge.second]}),
         counter
@@ -69,7 +69,7 @@ void StochasticBlockModelLikelihood::getDiffAdjMatMapFromEdgeMove(const Edge& ed
 void StochasticBlockModelLikelihood::getDiffEdgeMatMapFromBlockMove(
     const BlockMove& move, IntMap<std::pair<BlockIndex, BlockIndex>>& diffEdgeMatMap
 ) const {
-    const BlockSequence& blockSeq = (*m_edgeMatrixPriorPtrPtr)->getBlockPrior().getState();
+    const BlockSequence& blockSeq = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getState();
     for (auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIndex)){
         BlockIndex blockIdx = blockSeq[neighbor.vertexIndex];
         size_t edgeMult = neighbor.label;
@@ -85,9 +85,9 @@ void StochasticBlockModelLikelihood::getDiffEdgeMatMapFromBlockMove(
 }
 const double StochasticBlockModelLikelihood::getLogLikelihood() const {
 
-    const MultiGraph& edgeMat = (*m_edgeMatrixPriorPtrPtr)->getState() ;
-    const CounterMap<size_t>& edgeCounts = (*m_edgeMatrixPriorPtrPtr)->getEdgeCounts();
-    const CounterMap<size_t>& vertexCounts = (*m_edgeMatrixPriorPtrPtr)->getBlockPrior().getVertexCounts();
+    const MultiGraph& edgeMat = (*m_labelGraphPriorPtrPtr)->getState() ;
+    const CounterMap<size_t>& edgeCounts = (*m_labelGraphPriorPtrPtr)->getEdgeCounts();
+    const CounterMap<size_t>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
 
     double logLikelihood = 0;
 
@@ -112,10 +112,10 @@ const double StochasticBlockModelLikelihood::getLogLikelihoodRatioFromGraphMove 
 }
 
 const double StochasticBlockModelLikelihood::getLogLikelihoodRatioFromLabelMove (const BlockMove& move) const {
-    const BlockSequence& blockSeq = (*m_edgeMatrixPriorPtrPtr)->getBlockPrior().getState();
-    const MultiGraph& edgeMat = (*m_edgeMatrixPriorPtrPtr)->getState();
-    const CounterMap<size_t>& edgeCounts = (*m_edgeMatrixPriorPtrPtr)->getEdgeCounts();
-    const CounterMap<size_t>& vertexCounts = (*m_edgeMatrixPriorPtrPtr)->getBlockPrior().getVertexCounts();
+    const BlockSequence& blockSeq = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getState();
+    const MultiGraph& edgeMat = (*m_labelGraphPriorPtrPtr)->getState();
+    const CounterMap<size_t>& edgeCounts = (*m_labelGraphPriorPtrPtr)->getEdgeCounts();
+    const CounterMap<size_t>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
     const size_t& degree = m_graphPtr->getDegreeOfIdx(move.vertexIndex);
     double logLikelihoodRatio = 0;
 

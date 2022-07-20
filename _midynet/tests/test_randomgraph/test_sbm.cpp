@@ -4,7 +4,7 @@
 #include <string>
 
 #include "FastMIDyNet/random_graph/prior/block.h"
-#include "FastMIDyNet/random_graph/prior/edge_matrix.h"
+#include "FastMIDyNet/random_graph/prior/label_graph.h"
 #include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"
@@ -24,7 +24,7 @@ class TestStochasticBlockModelFamily: public::testing::Test{
         BlockCountPoissonPrior blockCountPrior = {NUM_BLOCKS};
         BlockUniformPrior blockPrior = {NUM_VERTICES, blockCountPrior};
         EdgeCountPoissonPrior edgeCountPrior = {NUM_EDGES};
-        EdgeMatrixUniformPrior edgeMatrixPrior = {edgeCountPrior, blockPrior};
+        LabelGraphUniformPrior labelGraphPrior = {edgeCountPrior, blockPrior};
 
         BaseGraph::Edge findEdge(){
             const auto& graph = randomGraph.getGraph();
@@ -51,7 +51,7 @@ class TestStochasticBlockModelFamily: public::testing::Test{
 
         StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(NUM_VERTICES);
         void SetUp() {
-            randomGraph.setEdgeMatrixPrior(edgeMatrixPrior);
+            randomGraph.setLabelGraphPrior(labelGraphPrior);
             randomGraph.sample();
             while (randomGraph.getLabelCounts().size() == 1) randomGraph.sample();
 

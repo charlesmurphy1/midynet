@@ -25,6 +25,6 @@ void DegreeCorrectedStochasticBlockModelFamily::sampleState(){
 
 void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency() const{
     m_degreePriorPtr->checkSelfConsistency();
-    checkGraphConsistencyWithEdgeMatrix("DegreeCorrectedStochasticBlockModelFamily", m_graph, getLabels(), getLabelGraph());
+    checkGraphConsistencyWithLabelGraph("DegreeCorrectedStochasticBlockModelFamily", m_graph, getLabels(), getLabelGraph());
     checkGraphConsistencyWithDegreeSequence("DegreeCorrectedStochasticBlockModelFamily", m_graph, getDegrees());
 }

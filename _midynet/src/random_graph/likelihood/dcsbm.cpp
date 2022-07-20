@@ -37,9 +37,9 @@ void DegreeCorrectedStochasticBlockModelLikelihood::getDiffEdgeMatMapFromBlockMo
 
 const double DegreeCorrectedStochasticBlockModelLikelihood::getLogLikelihood() const {
     double logLikelihood = 0;
-    const MultiGraph& edgeMat = (*m_degreePriorPtrPtr)->getEdgeMatrixPrior().getState() ;
+    const MultiGraph& edgeMat = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getState() ;
 
-    const CounterMap<size_t>& edgesInBlock = (*m_degreePriorPtrPtr)->getEdgeMatrixPrior().getEdgeCounts();
+    const CounterMap<size_t>& edgesInBlock = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getEdgeCounts();
     for (auto r : edgeMat){
         logLikelihood -= logFactorial(edgesInBlock[r]);
         for (auto s : edgeMat.getNeighboursOfIdx(r)){
@@ -62,8 +62,8 @@ const double DegreeCorrectedStochasticBlockModelLikelihood::getLogLikelihood() c
 
 const double DegreeCorrectedStochasticBlockModelLikelihood::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const {
     const BlockSequence& blockSeq = (*m_degreePriorPtrPtr)->getBlockPrior().getState();
-    const MultiGraph& edgeMat = (*m_degreePriorPtrPtr)->getEdgeMatrixPrior().getState();
-    const CounterMap<size_t>& edgeCountsInBlocks = (*m_degreePriorPtrPtr)->getEdgeMatrixPrior().getEdgeCounts();
+    const MultiGraph& edgeMat = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getState();
+    const CounterMap<size_t>& edgeCountsInBlocks = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getEdgeCounts();
     const CounterMap<size_t>& vertexCountsInBlocks = (*m_degreePriorPtrPtr)->getBlockPrior().getVertexCounts();
     double logLikelihoodRatioTerm = 0;
 
@@ -130,8 +130,8 @@ const double DegreeCorrectedStochasticBlockModelLikelihood::getLogLikelihoodRati
 
 const double DegreeCorrectedStochasticBlockModelLikelihood::getLogLikelihoodRatioFromLabelMove (const BlockMove& move) const {
     const BlockSequence& blockSeq = (*m_degreePriorPtrPtr)->getBlockPrior().getState();
-    const MultiGraph& edgeMat = (*m_degreePriorPtrPtr)->getEdgeMatrixPrior().getState();
-    const CounterMap<size_t>& edgesInBlock = (*m_degreePriorPtrPtr)->getEdgeMatrixPrior().getEdgeCounts();
+    const MultiGraph& edgeMat = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getState();
+    const CounterMap<size_t>& edgesInBlock = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getEdgeCounts();
     double logLikelihoodRatio = 0;
 
     if (move.prevLabel == move.nextLabel)

@@ -6,7 +6,7 @@
 #include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/random_graph/prior/block_count.h"
 #include "FastMIDyNet/random_graph/prior/block.h"
-#include "FastMIDyNet/random_graph/prior/edge_matrix.h"
+#include "FastMIDyNet/random_graph/prior/label_graph.h"
 #include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/dynamics/sis.hpp"
@@ -26,7 +26,7 @@ class DummySBM: public StochasticBlockModelFamily{
     BlockCountPoissonPrior blockCountPrior;
     BlockUniformPrior blockPrior;
     EdgeCountDeltaPrior edgeCountPrior;
-    EdgeMatrixUniformPrior edgeMatrixPrior;
+    LabelGraphUniformPrior LabelGraphPrior;
 
 public:
     DummySBM(size_t size=10, size_t edgeCount=25, size_t blockCount=5):
@@ -34,9 +34,9 @@ public:
     blockCountPrior(blockCount),
     blockPrior(size, blockCountPrior),
     edgeCountPrior(edgeCount),
-    edgeMatrixPrior(edgeCountPrior, blockPrior)
+    LabelGraphPrior(edgeCountPrior, blockPrior)
      {
-        setEdgeMatrixPrior(edgeMatrixPrior);
+        setLabelGraphPrior(LabelGraphPrior);
     }
     using StochasticBlockModelFamily::sample;
 };

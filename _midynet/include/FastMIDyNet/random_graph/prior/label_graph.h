@@ -1,5 +1,5 @@
-#ifndef FAST_MIDYNET_EDGE_MATRIX_H
-#define FAST_MIDYNET_EDGE_MATRIX_H
+#ifndef FAST_MIDYNET_LABEL_GRAPH_H
+#define FAST_MIDYNET_LABEL_GRAPH_H
 
 #include "prior.hpp"
 #include "edge_count.h"
@@ -13,7 +13,7 @@
 
 namespace FastMIDyNet{
 
-class EdgeMatrixPrior: public BlockLabeledPrior< MultiGraph >{
+class LabelGraphPrior: public BlockLabeledPrior< MultiGraph >{
     protected:
         EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
         BlockPrior* m_blockPriorPtr = nullptr;
@@ -45,16 +45,16 @@ class EdgeMatrixPrior: public BlockLabeledPrior< MultiGraph >{
         void recomputeConsistentState() ;
         void recomputeStateFromGraph() ;
     public:
-        EdgeMatrixPrior() {}
-        EdgeMatrixPrior(EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior){
+        LabelGraphPrior() {}
+        LabelGraphPrior(EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior){
                 setEdgeCountPrior(edgeCountPrior);
                 setBlockPrior(blockPrior);
             }
-        EdgeMatrixPrior(const EdgeMatrixPrior& other){
+        LabelGraphPrior(const LabelGraphPrior& other){
             setEdgeCountPrior(*other.m_edgeCountPriorPtr);
             setBlockPrior(*other.m_blockPriorPtr);
         }
-        const EdgeMatrixPrior& operator=(const EdgeMatrixPrior& other){
+        const LabelGraphPrior& operator=(const LabelGraphPrior& other){
             setEdgeCountPrior(*other.m_edgeCountPriorPtr);
             setBlockPrior(*other.m_blockPriorPtr);
             return *this;
@@ -101,44 +101,44 @@ class EdgeMatrixPrior: public BlockLabeledPrior< MultiGraph >{
 
         void checkSelfSafety()const override{
             if (m_blockPriorPtr == nullptr)
-                throw SafetyError("EdgeMatrixPrior: unsafe prior since `m_blockPriorPtr` is empty.");
+                throw SafetyError("LabelGraphPrior: unsafe prior since `m_blockPriorPtr` is empty.");
             if (m_edgeCountPriorPtr == nullptr)
-                throw SafetyError("EdgeMatrixPrior: unsafe prior since `m_edgeCountPriorPtr` is empty.");
+                throw SafetyError("LabelGraphPrior: unsafe prior since `m_edgeCountPriorPtr` is empty.");
             m_blockPriorPtr->checkSafety();
             m_edgeCountPriorPtr->checkSafety();
         }
 };
 
-class EdgeMatrixDeltaPrior: public EdgeMatrixPrior{
+class LabelGraphDeltaPrior: public LabelGraphPrior{
 public:
-    MultiGraph m_edgeMatrix;
+    MultiGraph m_labelGraph;
     EdgeCountDeltaPrior m_edgeCountDeltaPrior;
 
 public:
-    EdgeMatrixDeltaPrior(){}
-    EdgeMatrixDeltaPrior(const MultiGraph& edgeMatrix) {
-        setState(edgeMatrix);
-        m_edgeCountDeltaPrior.setState(edgeMatrix.getTotalEdgeNumber());
+    LabelGraphDeltaPrior(){}
+    LabelGraphDeltaPrior(const MultiGraph& labelGraph) {
+        setState(labelGraph);
+        m_edgeCountDeltaPrior.setState(labelGraph.getTotalEdgeNumber());
     }
-    EdgeMatrixDeltaPrior(const MultiGraph& edgeMatrix, EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
-        EdgeMatrixPrior(edgeCountPrior, blockPrior){ setState(edgeMatrix); }
+    LabelGraphDeltaPrior(const MultiGraph& labelGraph, EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
+        LabelGraphPrior(edgeCountPrior, blockPrior){ setState(labelGraph); }
 
-    EdgeMatrixDeltaPrior(const EdgeMatrixDeltaPrior& edgeMatrixDeltaPrior):
-        EdgeMatrixPrior(edgeMatrixDeltaPrior) {
-            setState(edgeMatrixDeltaPrior.getState());
+    LabelGraphDeltaPrior(const LabelGraphDeltaPrior& labelGraphDeltaPrior):
+        LabelGraphPrior(labelGraphDeltaPrior) {
+            setState(labelGraphDeltaPrior.getState());
         }
-    virtual ~EdgeMatrixDeltaPrior(){}
-    const EdgeMatrixDeltaPrior& operator=(const EdgeMatrixDeltaPrior& other){
+    virtual ~LabelGraphDeltaPrior(){}
+    const LabelGraphDeltaPrior& operator=(const LabelGraphDeltaPrior& other){
         this->setState(other.getState());
         return *this;
     }
 
-    void setState(const MultiGraph& edgeMatrix) {
-        m_edgeMatrix = edgeMatrix;
-        m_state = edgeMatrix;
+    void setState(const MultiGraph& labelGraph) {
+        m_labelGraph = labelGraph;
+        m_state = labelGraph;
         m_edgeCounts.clear();
-        for (const auto r : m_edgeMatrix)
-            m_edgeCounts.set(r, m_edgeMatrix.getDegreeOfIdx(r));
+        for (const auto r : m_labelGraph)
+            m_edgeCounts.set(r, m_labelGraph.getDegreeOfIdx(r));
         // recomputeState();
     }
     void sampleState() override { };
@@ -150,16 +150,16 @@ public:
 
     void checkSelfConsistency() const override { };
     void checkSelfSafety() const override {
-        if (m_edgeMatrix.getSize() == 0)
-            throw SafetyError("EdgeMatrixDeltaPrior: unsafe prior since `m_edgeMatrix` is empty.");
+        if (m_labelGraph.getSize() == 0)
+            throw SafetyError("LabelGraphDeltaPrior: unsafe prior since `m_labelGraph` is empty.");
     }
 
     virtual void computationFinished() const override { m_isProcessed = false; }
 };
 
-class EdgeMatrixUniformPrior: public EdgeMatrixPrior {
+class LabelGraphUniformPrior: public LabelGraphPrior {
 public:
-    using EdgeMatrixPrior::EdgeMatrixPrior;
+    using LabelGraphPrior::LabelGraphPrior;
     void sampleState() override;
     const double getLogLikelihood() const override {
         return getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState());
@@ -178,25 +178,25 @@ private:
     }
 };
 
-// class EdgeMatrixExponentialPrior: public EdgeMatrixPrior {
+// class LabelGraphExponentialPrior: public LabelGraphPrior {
 // public:
 //
-//     EdgeMatrixExponentialPrior() {}
-//     EdgeMatrixExponentialPrior(double edgeCountMean, BlockPrior& blockPrior):
-//         EdgeMatrixPrior(), m_edgeCountMean(edgeCountMean){
+//     LabelGraphExponentialPrior() {}
+//     LabelGraphExponentialPrior(double edgeCountMean, BlockPrior& blockPrior):
+//         LabelGraphPrior(), m_edgeCountMean(edgeCountMean){
 //         setEdgeCountPrior(*new EdgeCountDeltaPrior(0));
 //         setBlockPrior(blockPrior);
 //     }
-//     EdgeMatrixExponentialPrior(const EdgeMatrixExponentialPrior& other){
+//     LabelGraphExponentialPrior(const LabelGraphExponentialPrior& other){
 //         setEdgeCountPrior(*other.m_edgeCountPriorPtr);
 //         setBlockPrior(*other.m_blockPriorPtr);
 //     }
-//     const EdgeMatrixExponentialPrior& operator=(const EdgeMatrixExponentialPrior& other){
+//     const LabelGraphExponentialPrior& operator=(const LabelGraphExponentialPrior& other){
 //         setEdgeCountPrior(*other.m_edgeCountPriorPtr);
 //         setBlockPrior(*other.m_blockPriorPtr);
 //         return *this;
 //     }
-//     virtual ~EdgeMatrixExponentialPrior(){
+//     virtual ~LabelGraphExponentialPrior(){
 //         delete m_edgeCountPriorPtr;
 //     }
 //     void sampleState() override;

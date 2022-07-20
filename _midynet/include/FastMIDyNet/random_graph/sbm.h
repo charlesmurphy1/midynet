@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "BaseGraph/types.h"
-#include "prior/edge_matrix.h"
+#include "prior/label_graph.h"
 #include "prior/block.h"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/random_graph/util.h"
@@ -20,78 +20,78 @@ namespace FastMIDyNet{
 class StochasticBlockModelFamily: public BlockLabeledRandomGraph{
 private:
     StochasticBlockModelLikelihood m_likelihoodModel;
-    EdgeMatrixPrior* m_edgeMatrixPriorPtr = nullptr;
+    LabelGraphPrior* m_labelGraphPriorPtr = nullptr;
 protected:
 
     void _applyGraphMove (const GraphMove& move) override {
-        m_edgeMatrixPriorPtr->applyGraphMove(move);
+        m_labelGraphPriorPtr->applyGraphMove(move);
         RandomGraph::_applyGraphMove(move);
     }
     void _applyLabelMove (const BlockMove& move) override {
-        m_edgeMatrixPriorPtr->applyLabelMove(move);
+        m_labelGraphPriorPtr->applyLabelMove(move);
     }
-    const double _getLogPrior() const override { return m_edgeMatrixPriorPtr->getLogJoint(); }
-    const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return m_edgeMatrixPriorPtr->getLogJointRatioFromGraphMove(move); }
+    const double _getLogPrior() const override { return m_labelGraphPriorPtr->getLogJoint(); }
+    const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return m_labelGraphPriorPtr->getLogJointRatioFromGraphMove(move); }
     const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override {
-        return m_edgeMatrixPriorPtr->getLogJointRatioFromLabelMove(move);
+        return m_labelGraphPriorPtr->getLogJointRatioFromLabelMove(move);
     }
-    void _samplePrior() override { m_edgeMatrixPriorPtr->sample(); }
+    void _samplePrior() override { m_labelGraphPriorPtr->sample(); }
     void setUpLikelihood() override {
         m_likelihoodModel.m_graphPtr = &m_graph;
-        m_likelihoodModel.m_edgeMatrixPriorPtrPtr = &m_edgeMatrixPriorPtr;
+        m_likelihoodModel.m_labelGraphPriorPtrPtr = &m_labelGraphPriorPtr;
     }
 
 public:
     StochasticBlockModelFamily(size_t graphSize): VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel) {
         setUpLikelihood();
     }
-    StochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
-        VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel), m_edgeMatrixPriorPtr(&edgeMatrixPrior){
+    StochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, LabelGraphPrior& labelGraphPrior):
+        VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel), m_labelGraphPriorPtr(&labelGraphPrior){
             setUpLikelihood();
             setBlockPrior(blockPrior);
         }
 
     void sampleState () override;
     void sampleLabels() override {
-        m_edgeMatrixPriorPtr->samplePartition();
+        m_labelGraphPriorPtr->samplePartition();
     }
 
     void setGraph(const MultiGraph graph) override{
         RandomGraph::setGraph(graph);
-        m_edgeMatrixPriorPtr->setGraph(m_graph);
+        m_labelGraphPriorPtr->setGraph(m_graph);
     }
-    void setLabels(const std::vector<BlockIndex>& labels) override { m_edgeMatrixPriorPtr->setPartition(labels); }
+    void setLabels(const std::vector<BlockIndex>& labels) override { m_labelGraphPriorPtr->setPartition(labels); }
 
 
-    const BlockPrior& getBlockPrior() const { return m_edgeMatrixPriorPtr->getBlockPrior(); }
+    const BlockPrior& getBlockPrior() const { return m_labelGraphPriorPtr->getBlockPrior(); }
     void setBlockPrior(BlockPrior& blockPrior) {
-        if (m_edgeMatrixPriorPtr == nullptr)
+        if (m_labelGraphPriorPtr == nullptr)
             throw SafetyError("StochasticBlockModelFamily: unsafe edge matrix prior with value `nullptr`.");
-        m_edgeMatrixPriorPtr->setBlockPrior(blockPrior);
+        m_labelGraphPriorPtr->setBlockPrior(blockPrior);
     }
 
-    const EdgeMatrixPrior& getEdgeMatrixPrior() const { return *m_edgeMatrixPriorPtr; }
-    void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) {
-        m_edgeMatrixPriorPtr = &edgeMatrixPrior;
-        m_edgeMatrixPriorPtr->isRoot(false);
+    const LabelGraphPrior& getLabelGraphPrior() const { return *m_labelGraphPriorPtr; }
+    void setLabelGraphPrior(LabelGraphPrior& labelGraphPrior) {
+        m_labelGraphPriorPtr = &labelGraphPrior;
+        m_labelGraphPriorPtr->isRoot(false);
     }
 
-    const BlockSequence& getLabels() const override { return m_edgeMatrixPriorPtr->getBlockPrior().getState(); }
-    const size_t getLabelCount() const override { return m_edgeMatrixPriorPtr->getBlockPrior().getBlockCount(); }
-    const CounterMap<BlockIndex>& getLabelCounts() const override { return m_edgeMatrixPriorPtr->getBlockPrior().getVertexCounts(); }
-    const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return m_edgeMatrixPriorPtr->getEdgeCounts(); }
-    const MultiGraph& getLabelGraph() const override { return m_edgeMatrixPriorPtr->getState(); }
-    const size_t& getEdgeCount() const override { return m_edgeMatrixPriorPtr->getEdgeCount(); }
+    const BlockSequence& getLabels() const override { return m_labelGraphPriorPtr->getBlockPrior().getState(); }
+    const size_t getLabelCount() const override { return m_labelGraphPriorPtr->getBlockPrior().getBlockCount(); }
+    const CounterMap<BlockIndex>& getLabelCounts() const override { return m_labelGraphPriorPtr->getBlockPrior().getVertexCounts(); }
+    const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return m_labelGraphPriorPtr->getEdgeCounts(); }
+    const MultiGraph& getLabelGraph() const override { return m_labelGraphPriorPtr->getState(); }
+    const size_t& getEdgeCount() const override { return m_labelGraphPriorPtr->getEdgeCount(); }
 
     virtual void checkSelfConsistency() const override;
     virtual const bool isCompatible(const MultiGraph& graph) const override{
         if (not VertexLabeledRandomGraph<BlockIndex>::isCompatible(graph)) return false;
-        auto edgeMatrix = getEdgeMatrixFromGraph(graph, getLabels());
-        return edgeMatrix.getAdjacencyMatrix() == getLabelGraph().getAdjacencyMatrix();
+        auto labelGraph = getLabelGraphFromGraph(graph, getLabels());
+        return labelGraph.getAdjacencyMatrix() == getLabelGraph().getAdjacencyMatrix();
     }
     void computationFinished() const override {
         m_isProcessed = false;
-        m_edgeMatrixPriorPtr->computationFinished();
+        m_labelGraphPriorPtr->computationFinished();
     }
 };
 

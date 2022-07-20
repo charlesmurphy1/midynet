@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "BaseGraph/types.h"
-#include "prior/edge_matrix.h"
 #include "prior/block.h"
+#include "prior/label_graph.h"
 #include "prior/labeled_degree.h"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/random_graph/util.h"
@@ -42,12 +42,12 @@ protected:
 public:
     DegreeCorrectedStochasticBlockModelFamily(size_t graphSize):
         VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel) { setUpLikelihood(); }
-    DegreeCorrectedStochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior, VertexLabeledDegreePrior& degreePrior):
+    DegreeCorrectedStochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, LabelGraphPrior& labelGraphPrior, VertexLabeledDegreePrior& degreePrior):
         VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel), m_degreePriorPtr(&degreePrior){
             setUpLikelihood();
             m_degreePriorPtr->isRoot(false);
             setBlockPrior(blockPrior);
-            setEdgeMatrixPrior(edgeMatrixPrior);
+            setLabelGraphPrior(labelGraphPrior);
         }
 
     void sampleState () override;
@@ -71,11 +71,11 @@ public:
         m_degreePriorPtr->setBlockPrior(prior);
     }
 
-    const EdgeMatrixPrior& getEdgeMatrixPrior() const { return m_degreePriorPtr->getEdgeMatrixPrior(); }
-    void setEdgeMatrixPrior(EdgeMatrixPrior& prior) {
+    const LabelGraphPrior& getLabelGraphPrior() const { return m_degreePriorPtr->getLabelGraphPrior(); }
+    void setLabelGraphPrior(LabelGraphPrior& prior) {
         if (m_degreePriorPtr == nullptr)
             throw SafetyError("DegreeCorrectedStochasticBlockModelFamily: unsafe degree prior with value `nullptr`.");
-        m_degreePriorPtr->setEdgeMatrixPrior(prior);
+        m_degreePriorPtr->setLabelGraphPrior(prior);
     }
 
     const VertexLabeledDegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
@@ -87,18 +87,18 @@ public:
     const BlockSequence& getLabels() const override { return getBlockPrior().getState(); }
     const size_t getLabelCount() const override { return getBlockPrior().getBlockCount(); }
     const CounterMap<BlockIndex>& getLabelCounts() const override { return getBlockPrior().getVertexCounts(); }
-    const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return getEdgeMatrixPrior().getEdgeCounts(); }
-    const MultiGraph& getLabelGraph() const override { return getEdgeMatrixPrior().getState(); }
-    const size_t& getEdgeCount() const override { return getEdgeMatrixPrior().getEdgeCount(); }
+    const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return getLabelGraphPrior().getEdgeCounts(); }
+    const MultiGraph& getLabelGraph() const override { return getLabelGraphPrior().getState(); }
+    const size_t& getEdgeCount() const override { return getLabelGraphPrior().getEdgeCount(); }
     const std::vector<size_t> getDegrees() const { return getDegreePrior().getState(); }
 
     void checkSelfConsistency() const override;
     const bool isCompatible(const MultiGraph& graph) const override{
         if (not VertexLabeledRandomGraph<BlockIndex>::isCompatible(graph)) return false;
-        auto edgeMatrix = getEdgeMatrixFromGraph(graph, getLabels());
-        bool sameEdgeMatrix = edgeMatrix.getAdjacencyMatrix() == getLabelGraph().getAdjacencyMatrix() ;
+        auto labelGraph = getLabelGraphFromGraph(graph, getLabels());
+        bool sameLabelGraph = labelGraph.getAdjacencyMatrix() == getLabelGraph().getAdjacencyMatrix() ;
         bool sameDegrees = graph.getDegrees() == getDegrees();
-        return sameEdgeMatrix and sameDegrees;
+        return sameLabelGraph and sameDegrees;
     }
     void computationFinished() const override {
         m_isProcessed = false;
