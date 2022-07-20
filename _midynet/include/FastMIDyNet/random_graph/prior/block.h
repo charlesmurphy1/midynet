@@ -27,7 +27,7 @@ protected:
     void _samplePriors() override { m_blockCountPriorPtr->sample(); }
 
     void _applyGraphMove(const GraphMove&) override { };
-    void _applyLabelMove(const BlockMove& move) override {
+    virtual void _applyLabelMove(const BlockMove& move) override {
         m_blockCountPriorPtr->setState(m_blockCountPriorPtr->getState() + move.addedLabels);
         m_vertexCounts.decrement(move.prevLabel);
         m_vertexCounts.increment(move.nextLabel);
@@ -36,7 +36,7 @@ protected:
 
 
     const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0; };
-    const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override {
+    virtual const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override {
         size_t B = m_blockCountPriorPtr->getState();
         return m_blockCountPriorPtr->getLogLikelihoodFromState(B + move.addedLabels) - m_blockCountPriorPtr->getLogLikelihoodFromState(B);
     }

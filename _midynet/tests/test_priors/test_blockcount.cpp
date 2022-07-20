@@ -34,24 +34,6 @@ public:
     }
 };
 
-
-// TEST_F(TestBlockCountPrior, getStateAfterMove_SomLabelMove_returnCorrectBlockNumberIfVertexInNewBlock) {
-//     for (auto currentBlockNumber: {1, 2, 5, 10}){
-//         prior.setState(currentBlockNumber);
-//         for (BlockIndex nextBlockIdx : {0, 1, 2, 6}){
-//             BlockMove blockMove = {0, 0, nextBlockIdx};
-//             if (nextBlockIdx >= currentBlockNumber) blockMove.addedBlocks = 1;
-//
-//
-//             if (currentBlockNumber > nextBlockIdx)
-//                 EXPECT_EQ(prior.getStateAfterLabelMove(blockMove), currentBlockNumber);
-//             else
-//                 EXPECT_EQ(prior.getStateAfterLabelMove(blockMove), currentBlockNumber + 1);
-//         }
-//     }
-//
-// }
-
 TEST_F(TestBlockCountPrior, getLogLikelihoodRatio_throwLogicError) {
     prior.setState(5);
     BlockMove blockMove = {0, 0, 1};
@@ -138,5 +120,43 @@ TEST_F(TestBlockCountPoissonPrior, checkSelfConsistency_negativeMean_throwConsis
     EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
     expectConsistencyError = true;
 }
+
+
+class TestNestedBlockCountUniformPrior: public::testing::Test{
+public:
+    size_t N = 10;
+    NestedBlockCountUniformPrior prior = {N};
+    void SetUp(){
+        seedWithTime();
+    }
+    void TearDown(){
+        prior.checkConsistency();
+    }
+};
+
+TEST_F(TestNestedBlockCountUniformPrior, sampleState_returnConsistentState){
+    prior.sample();
+    EXPECT_NO_THROW(prior.checkConsistency());
+}
+
+TEST_F(TestNestedBlockCountUniformPrior, getDepth){
+    std::vector<size_t> nestedState = {7, 3, 2, 1};
+    prior.setNestedState(nestedState);
+    EXPECT_EQ(4, prior.getDepth());
+}
+
+TEST_F(TestNestedBlockCountUniformPrior, setNestedState){
+    std::vector<size_t> nestedState = {7, 3, 2, 1};
+    prior.setNestedState(nestedState);
+    EXPECT_EQ(nestedState, prior.getNestedState());
+}
+
+TEST_F(TestNestedBlockCountUniformPrior, getLogLikelihood_returnCorrectValue){
+    std::vector<size_t> nestedState = {7, 3, 2, 1};
+    prior.setNestedState(nestedState);
+    EXPECT_EQ(-log(N - 1) -log(7 - 1) - log(3 - 1) - log(2 - 1), prior.getLogLikelihood());
+}
+
+
 
 }

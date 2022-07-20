@@ -121,6 +121,64 @@ class BlockCountUniformPrior: public BlockCountPrior{
         void checkSelfConsistency() const override;
 };
 
+class NestedBlockCountPrior: public BlockCountPrior {
+protected:
+    std::vector<size_t> m_nestedState;
+public:
+    using BlockCountPrior::BlockCountPrior;
+    const double getLogLikelihoodFromState(const size_t&) const override {
+         throw std::logic_error("NestedBlockCount: this method should not be used.");
+    };
+    virtual const double getLogLikelihoodFromNestedState(const std::vector<size_t>&) const = 0;
+    const double getLogLikelihood() const override { return getLogLikelihoodFromNestedState(m_nestedState); }
+
+    const size_t getDepth() const { return m_nestedState.size(); }
+    const std::vector<size_t>& getNestedState() const { return m_nestedState; }
+    void setNestedState(const std::vector<size_t>& nestedBlockCounts) {
+        m_nestedState = nestedBlockCounts;
+        m_state = nestedBlockCounts[0];
+    }
+    void setStateFromNestedPartition(const std::vector<std::vector<BlockIndex>>& nestedBlocks) {
+        std::vector<size_t> nestedState;
+        for (auto b : nestedBlocks)
+            nestedState.push_back(*max_element(b.begin(), b.end()) + 1);
+        setNestedState(nestedState);
+    }
+    void checkSelfConsistency() const override {
+        if (m_state != m_nestedState[0])
+            throw ConsistencyError("NestedBlockCountPrior: m_state (" + std::to_string(m_state)
+                                 + ") is inconsistent with m_nestedState[0] (" + std::to_string(m_nestedState[0])
+                                 + ")");
+    };
+};
+
+class NestedBlockCountUniformPrior: public NestedBlockCountPrior{
+protected:
+    size_t m_graphSize;
+public:
+    NestedBlockCountUniformPrior(size_t graphSize=1): NestedBlockCountPrior(), m_graphSize(graphSize){}
+
+    void sampleState() override {
+        std::vector<size_t> nestedState;
+        std::uniform_int_distribution<size_t> dist(1, m_graphSize);
+        nestedState.push_back(dist(rng));
+        while(nestedState.back() != 1){
+            std::uniform_int_distribution<size_t> nestedDist(1, nestedState.back() - 1);
+            nestedState.push_back(nestedDist(rng));
+        }
+        setNestedState(nestedState);
+    }
+
+    const double getLogLikelihoodFromNestedState(const std::vector<size_t>& nestedState) const override {
+        double logLikelihood = -log(m_graphSize - 1);
+        for (size_t l=0; l<nestedState.size()-1; ++l)
+            logLikelihood -= log(nestedState[l] - 1);
+        return logLikelihood;
+    }
+    void setGraphSize(size_t size) { m_graphSize = size; }
+
+};
+
 }
 
 #endif
