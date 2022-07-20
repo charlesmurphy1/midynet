@@ -94,24 +94,34 @@ static void verifyHasAtLeastSize(
 }
 
 template<typename T>
-void displayMatrix(const Matrix<T>& matrix, std::string name="m"){
-    std::cout << name << " = [" << std::endl;
+std::string displayMatrix(const Matrix<T>& matrix, std::string name="m", bool toConsole=false){
+    std::stringstream ss;
+    ss << name << " = [" << std::endl;
     for (auto row : matrix){
-        std::cout << "  [ ";
+        ss << "  [ ";
         for (auto col : row){
-            std::cout << std::to_string(col) << " ";
+            ss << std::to_string(col) << " ";
         }
-        std::cout << "]" << std::endl;
+        ss << "]" << std::endl;
     }
-    std::cout << "]" << std::endl;
+    ss << "]";
+
+    if (toConsole)
+        std::cout << ss.str() << std::endl;
+    return ss.str();
 }
 template<typename T>
-void displayVector(const std::vector<T>& vec, std::string name="v"){
-    std::cout << name << " = [ ";
+std::string displayVector(const std::vector<T>& vec, std::string name="v", bool toConsole=false){
+    std::stringstream ss;
+    ss << name << " = [ ";
     for (auto row : vec){
-        std::cout << std::to_string(row) << " ";
+        ss << std::to_string(row) << " ";
     }
-    std::cout << "]" << std::endl;
+    ss << "]";
+    if (toConsole)
+        std::cout << ss.str() << std::endl;
+
+    return ss.str();
 }
 
 void displayNeighborhood(const MultiGraph&, const BaseGraph::VertexIndex&);

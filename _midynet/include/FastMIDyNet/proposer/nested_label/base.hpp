@@ -26,8 +26,6 @@ public:
         std::uniform_int_distribution<Level> dist(0, m_nestedGraphPriorPtr->getDepth() - 1);
         return dist(rng);
     }
-//     virtual const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex&) const = 0;
-//     virtual const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex&) const = 0;
     void checkSelfSafety() const override{
         LabelProposer<Label>::checkSelfSafety();
         if (m_nestedGraphPriorPtr == nullptr)
@@ -61,9 +59,9 @@ public:
         Level level = NestedBaseClass::sampleLevel(vertex);
 
         if ( m_uniform01(rng) < m_labelCreationProb )
-            return {vertex, m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), m_nestedGraphPriorPtr->getNestedLabelCount()[level], 1, level};
+            return {vertex, m_nestedGraphPriorPtr->getNestedLabelOfIdx(vertex, level), m_nestedGraphPriorPtr->getNestedLabelCount()[level], 1, level};
         else
-            return {vertex, m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), -1, level};
+            return {vertex, m_nestedGraphPriorPtr->getNestedLabelOfIdx(vertex, level), m_nestedGraphPriorPtr->getNestedLabelOfIdx(vertex, level), -1, level};
     }
 
     const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const override {
@@ -110,7 +108,7 @@ public:
     using NestedLabelProposer<Label>::NestedLabelProposer;
     const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
         Level level = sampleLevel(vertex);
-        Label prevLabel = m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level);
+        Label prevLabel = m_nestedGraphPriorPtr->getNestedLabelOfIdx(vertex, level);
         Label nextLabel = *sampleUniformlyFrom(m_emptyLabels[level].begin(), m_emptyLabels[level].end());
         LabelMove<Label> move = {vertex, prevLabel, nextLabel, level};
         if ( destroyingLabel(move) )

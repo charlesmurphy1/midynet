@@ -13,7 +13,7 @@ class BlockCountPrior: public BlockLabeledPrior<size_t> {
 public:
     using BlockLabeledPrior<size_t>::BlockLabeledPrior;
     virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
-    const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
+    virtual const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
     const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const { throw std::logic_error("BlockCount: this method should not be used."); }
     void setStateFromPartition(const BlockSequence& blocks) { setState(*max_element(blocks.begin(), blocks.end()) + 1);}
@@ -130,15 +130,23 @@ public:
          throw std::logic_error("NestedBlockCount: this method should not be used.");
     };
     virtual const double getLogLikelihoodFromNestedState(const std::vector<size_t>&) const = 0;
-    const double getLogLikelihood() const override { return getLogLikelihoodFromNestedState(m_nestedState); }
+    const double getLogLikelihood() const override {
+        return getLogLikelihoodFromNestedState(m_nestedState);
+    }
 
     const size_t getDepth() const { return m_nestedState.size(); }
     const std::vector<size_t>& getNestedState() const { return m_nestedState; }
+    const size_t& getNestedStateAtLevel(Level level) const { return m_nestedState[level]; }
     void setNestedState(const std::vector<size_t>& nestedBlockCounts) {
         m_nestedState = nestedBlockCounts;
         m_state = nestedBlockCounts[0];
     }
-    void setStateFromNestedPartition(const std::vector<std::vector<BlockIndex>>& nestedBlocks) {
+    void setNestedStateAtLevel(const size_t blockCount, Level level) {
+        m_nestedState[level] = blockCount;
+        if (level == 0)
+            m_state = blockCount;
+    }
+    void setNestedStateFromNestedPartition(const std::vector<std::vector<BlockIndex>>& nestedBlocks) {
         std::vector<size_t> nestedState;
         for (auto b : nestedBlocks)
             nestedState.push_back(*max_element(b.begin(), b.end()) + 1);
@@ -152,11 +160,14 @@ public:
     };
 };
 
+// #include "FastMIDyNet/utility/functions.h"
+
 class NestedBlockCountUniformPrior: public NestedBlockCountPrior{
 protected:
     size_t m_graphSize;
 public:
     NestedBlockCountUniformPrior(size_t graphSize=1): NestedBlockCountPrior(), m_graphSize(graphSize){}
+    virtual ~NestedBlockCountUniformPrior() {};
 
     void sampleState() override {
         std::vector<size_t> nestedState;
@@ -170,11 +181,16 @@ public:
     }
 
     const double getLogLikelihoodFromNestedState(const std::vector<size_t>& nestedState) const override {
+        for (size_t l=1; l<nestedState.size(); ++l)
+            if ( nestedState[l-1] <= nestedState[l] )
+                return -INFINITY;
+
         double logLikelihood = -log(m_graphSize - 1);
         for (size_t l=0; l<nestedState.size()-1; ++l)
             logLikelihood -= log(nestedState[l] - 1);
         return logLikelihood;
     }
+
     void setGraphSize(size_t size) { m_graphSize = size; }
 
 };

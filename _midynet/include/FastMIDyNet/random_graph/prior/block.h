@@ -15,13 +15,10 @@
 namespace FastMIDyNet{
 
 class BlockPrior: public BlockLabeledPrior<BlockSequence>{
-private:
-    void moveVertexCounts(const BlockMove& move);
 protected:
     size_t m_size;
     BlockCountPrior* m_blockCountPriorPtr = nullptr;
     CounterMap<BlockIndex> m_vertexCounts;
-    bool m_allowEmptyBlocks = false;
 
     const double _getLogPrior() const override { return m_blockCountPriorPtr->getLogJoint(); };
     void _samplePriors() override { m_blockCountPriorPtr->sample(); }
@@ -77,7 +74,7 @@ public:
 
     /* Accessors & mutators of attributes */
     const size_t getSize() const { return m_size; }
-    void setSize(size_t size) { m_size = size; }
+    virtual void setSize(size_t size) { m_size = size; }
 
     /* Accessors & mutators of accessory states */
     const BlockCountPrior& getBlockCountPrior() const { return *m_blockCountPriorPtr; }
@@ -114,7 +111,7 @@ public:
     }
 
     /* Consistency methods */
-    static void checkBlockSequenceConsistencyWithVertexCounts(const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCounts) ;
+    static void checkBlockSequenceConsistencyWithVertexCounts(std::string prefix, const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCounts) ;
 
     void computationFinished() const override {
         m_isProcessed=false;
@@ -123,7 +120,8 @@ public:
 
     void checkSelfConsistency() const override {
         m_blockCountPriorPtr->checkConsistency();
-        checkBlockSequenceConsistencyWithVertexCounts(m_state, getVertexCounts());
+        checkBlockSequenceConsistencyWithVertexCounts("BlockPrior", m_state, m_vertexCounts);
+
         if (m_vertexCounts.size() > getBlockCount()){
             throw ConsistencyError("BlockPrior: vertex counts (size "
             + std::to_string(m_vertexCounts.size()) +

@@ -137,24 +137,14 @@ public:
     virtual const std::vector<CounterMap<Label>>& getNestedLabelCounts() const = 0;
     virtual const std::vector<CounterMap<Label>>& getNestedEdgeLabelCounts() const = 0;
     virtual const std::vector<MultiGraph>& getNestedLabelGraph() const = 0;
-    const Label& getNestedLabelOfLabelIdx(Label idx, size_t level) const {
-        return getNestedLabels()[level][idx];
-    }
+    virtual const Label& getNestedLabelOfIdx(BaseGraph::VertexIndex idx, size_t level) const = 0;
+    const Label& getNestedLabelOfLabelIdx(Label idx, size_t level) const { return getNestedLabels()[level][idx]; }
 
     const std::vector<Label>& getLabels() const override { return getNestedLabels()[0]; }
     const size_t getLabelCount() const override { return getNestedLabelCount()[0]; }
     const CounterMap<Label>& getLabelCounts() const override { return getNestedLabelCounts()[0]; }
     const CounterMap<Label>& getEdgeLabelCounts() const override { return getNestedEdgeLabelCounts()[0]; }
     const MultiGraph& getLabelGraph() const override { return getNestedLabelGraph()[0]; }
-    const Label& getLabelOfIdx(BaseGraph::VertexIndex vertex, size_t level) const {
-        if (level == getDepth()-1)
-            return 0;
-        Label currentLabel = getLabelOfIdx(vertex);
-        for (size_t l=0; l<level; ++l){
-            currentLabel = getNestedLabelOfLabelIdx(currentLabel, l+1);
-        }
-        return currentLabel;
-    }
 };
 
 } // namespace FastMIDyNet

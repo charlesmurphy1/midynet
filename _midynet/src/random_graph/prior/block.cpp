@@ -22,17 +22,17 @@ CounterMap<size_t> BlockPrior::computeVertexCounts(const BlockSequence& state) {
 }
 
 void BlockPrior::checkBlockSequenceConsistencyWithVertexCounts(
-    const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCounts
+    std::string prefix, const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCounts
 ) {
     CounterMap<size_t> actualVertexCounts = computeVertexCounts(blockSeq);
     if (actualVertexCounts.size() != expectedVertexCounts.size())
-        throw ConsistencyError("BlockPrior: size of vertex count in blockSeq is inconsistent with expected block count.");
+        throw ConsistencyError(prefix + ": size of vertex count in blockSeq is inconsistent with expected block count.");
 
     for (size_t i=0; i<actualVertexCounts.size(); ++i){
         auto x = actualVertexCounts[i];
         auto y = expectedVertexCounts[i];
         if (x != y){
-            throw ConsistencyError("BlockPrior: actual vertex count at index "
+            throw ConsistencyError(prefix + ": actual vertex count at index "
             + std::to_string(i) + " is inconsistent with expected vertex count: "
             + std::to_string(x) + " != " + std::to_string(y) + ".");
         }
@@ -46,12 +46,13 @@ void BlockUniformPrior::sampleState() {
     for (size_t vertexIdx = 0; vertexIdx < getSize(); vertexIdx++) {
         blockSeq[vertexIdx] = dist(rng);
     }
-    setState(blockSeq);
+    m_state = blockSeq;
+    m_vertexCounts = computeVertexCounts(m_state);
 }
 
 
 const double BlockUniformPrior::getLogLikelihood() const {
-    return -logMultisetCoefficient(getSize(), getBlockCount());
+    return -(getSize() * log(getBlockCount()));
 }
 
 const double BlockUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
@@ -60,8 +61,8 @@ const double BlockUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMo
     size_t prevNumBlocks = m_blockCountPriorPtr->getState();
     size_t newNumBlocks = prevNumBlocks + move.addedLabels;
     double logLikelihoodRatio = 0;
-    logLikelihoodRatio += -logMultisetCoefficient(getSize(), newNumBlocks);
-    logLikelihoodRatio -= -logMultisetCoefficient(getSize(), prevNumBlocks);
+    logLikelihoodRatio += -(double)getSize() * log(newNumBlocks);
+    logLikelihoodRatio -= -(double)getSize() * log(prevNumBlocks);
     return logLikelihoodRatio;
 }
 
@@ -73,8 +74,8 @@ void BlockUniformHyperPrior::sampleState() {
         vertexCounts.push_back(nr);
     }
 
-    BlockSequence blockSeq = sampleRandomPermutation( vertexCounts );
-    setState(blockSeq);
+    m_state = sampleRandomPermutation( vertexCounts );
+    m_vertexCounts = computeVertexCounts(m_state);
 }
 
 

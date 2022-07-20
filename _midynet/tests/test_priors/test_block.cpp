@@ -206,7 +206,9 @@ TEST_F(TestBlockUniformPrior, getLogLikelihood_fromSomeRandomBlockSeq_returnCorr
     for (size_t i = 0; i < 10; i++) {
         prior.sample();
         double logLikelihood = prior.getLogLikelihood();
-        double expectedLogLikelihood = -logMultisetCoefficient(GRAPH_SIZE, prior.getBlockCount());
+        std::cout << "getSize: " << prior.getSize() << std::endl;
+        std::cout << "getBlockCount: " << prior.getBlockCount() << std::endl;
+        double expectedLogLikelihood = -GRAPH_SIZE * log(prior.getBlockCount());
         EXPECT_FLOAT_EQ(expectedLogLikelihood, logLikelihood);
     }
 }

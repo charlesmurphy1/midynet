@@ -126,11 +126,13 @@ class TestNestedBlockCountUniformPrior: public::testing::Test{
 public:
     size_t N = 10;
     NestedBlockCountUniformPrior prior = {N};
+    bool expectConsistencyError = false;
     void SetUp(){
         seedWithTime();
     }
     void TearDown(){
-        prior.checkConsistency();
+        if (not expectConsistencyError)
+            prior.checkConsistency();
     }
 };
 
@@ -155,6 +157,20 @@ TEST_F(TestNestedBlockCountUniformPrior, getLogLikelihood_returnCorrectValue){
     std::vector<size_t> nestedState = {7, 3, 2, 1};
     prior.setNestedState(nestedState);
     EXPECT_EQ(-log(N - 1) -log(7 - 1) - log(3 - 1) - log(2 - 1), prior.getLogLikelihood());
+}
+
+TEST_F(TestNestedBlockCountUniformPrior, getLogLikelihoodFromNestedState_forValidState_returnCorrectValue){
+    std::vector<size_t> nestedState = {7, 3, 2, 1};
+    double logP = prior.getLogLikelihoodFromNestedState(nestedState);
+    EXPECT_EQ(-log(N - 1) -log(7 - 1) - log(3 - 1) - log(2 - 1), logP);
+    expectConsistencyError = true;
+}
+
+TEST_F(TestNestedBlockCountUniformPrior, getLogLikelihoodFromNestedState_forIncorrectState_returnMinusInfinity){
+    std::vector<size_t> nestedState = {7, 8, 2, 1};
+    double logP = prior.getLogLikelihoodFromNestedState(nestedState);
+    EXPECT_EQ(-INFINITY, logP);
+    expectConsistencyError = true;
 }
 
 
