@@ -13,30 +13,22 @@ namespace FastMIDyNet {
 
 /* DEFINITION OF EDGE MATRIX PRIOR BASE CLASS */
 void LabelGraphPrior::recomputeConsistentState() {
-    m_edgeCounts.clear();
-    for (auto r : m_state)
-        m_edgeCounts.set(r, m_state.getDegreeOfIdx(r));
+    m_edgeCounts = computeEdgeCountsFromState(m_state);
     m_edgeCountPriorPtr->setState(m_state.getTotalEdgeNumber());
 }
 void LabelGraphPrior::recomputeStateFromGraph() {
-    m_state = MultiGraph(m_blockPriorPtr->getMaxBlockCount());
-    m_edgeCounts.clear();
+    MultiGraph state(m_blockPriorPtr->getMaxBlockCount());
     for (const auto& vertex: *m_graphPtr){
         for (const auto& neighbor: m_graphPtr->getNeighboursOfIdx(vertex)){
             if (vertex > neighbor.vertexIndex)
                 continue;
 
-            m_edgeCounts.increment(m_blockPriorPtr->getBlockOfIdx(vertex), neighbor.label);
-            m_edgeCounts.increment(m_blockPriorPtr->getBlockOfIdx(neighbor.vertexIndex), neighbor.label);
-            m_state.addMultiedgeIdx(
+            state.addMultiedgeIdx(
                 m_blockPriorPtr->getBlockOfIdx(vertex), m_blockPriorPtr->getBlockOfIdx(neighbor.vertexIndex), neighbor.label
             );
         }
     }
-}
-void LabelGraphPrior::setGraph(const MultiGraph& graph) {
-    m_graphPtr = &graph;
-    recomputeStateFromGraph();
+    setState(state);
 }
 
 void LabelGraphPrior::setPartition(const std::vector<BlockIndex>& labels) {

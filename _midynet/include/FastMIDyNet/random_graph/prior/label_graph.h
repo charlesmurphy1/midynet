@@ -18,7 +18,7 @@ class LabelGraphPrior: public BlockLabeledPrior< MultiGraph >{
     protected:
         EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
         BlockPrior* m_blockPriorPtr = nullptr;
-        CounterMap<size_t> m_edgeCounts;
+        CounterMap<BlockIndex> m_edgeCounts;
         const MultiGraph* m_graphPtr;
 
         void _samplePriors() override { m_edgeCountPriorPtr->sample(); m_blockPriorPtr->sample(); }
@@ -41,10 +41,16 @@ class LabelGraphPrior: public BlockLabeledPrior< MultiGraph >{
             return m_blockPriorPtr->getLogJointRatioFromLabelMove(move);
         }
 
-        void applyGraphMoveToState(const GraphMove&);
-        void applyLabelMoveToState(const BlockMove&);
-        void recomputeConsistentState() ;
-        void recomputeStateFromGraph() ;
+        virtual void applyGraphMoveToState(const GraphMove&);
+        virtual void applyLabelMoveToState(const BlockMove&);
+        virtual void recomputeConsistentState() ;
+        virtual void recomputeStateFromGraph() ;
+        CounterMap<BlockIndex> computeEdgeCountsFromState(const MultiGraph& state){
+            CounterMap<BlockIndex> edgeCounts;
+            for (auto v : state)
+                edgeCounts.set(v, state.getDegreeOfIdx(v));
+            return edgeCounts;
+        }
     public:
         LabelGraphPrior() {}
         LabelGraphPrior(EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior){
@@ -81,7 +87,7 @@ class LabelGraphPrior: public BlockLabeledPrior< MultiGraph >{
         }
 
         const size_t& getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }
-        const CounterMap<size_t>& getEdgeCounts() const { return m_edgeCounts; }
+        const CounterMap<BlockIndex>& getEdgeCounts() const { return m_edgeCounts; }
 
 
         virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
@@ -98,7 +104,7 @@ class LabelGraphPrior: public BlockLabeledPrior< MultiGraph >{
             m_edgeCountPriorPtr->computationFinished();
         }
         void checkSelfConsistencywithGraph() const;
-        void checkSelfConsistency() const override;
+        virtual void checkSelfConsistency() const override;
 
         void checkSelfSafety()const override{
             if (m_blockPriorPtr == nullptr)
@@ -162,7 +168,7 @@ class LabelGraphErdosRenyiPrior: public LabelGraphPrior {
 public:
     using LabelGraphPrior::LabelGraphPrior;
     void sampleState() override {
-        setState(generateMultiGraphErdosRenyi(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState()));
+        setState(generateMultiGraphErdosRenyi(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState(), true));
     }
     const double getLogLikelihood() const override {
         return getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState());

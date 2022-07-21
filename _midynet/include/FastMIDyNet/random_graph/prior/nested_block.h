@@ -32,6 +32,7 @@ protected:
         return logLikelihoodAfter - logLikelihoodBefore;
     }
 
+
     // void remapBlockIndex(const std::map<size_t, size_t> indexMap){
     //     auto newBlocks = m_state;
     //     for (size_t v=0; v<m_size; ++v){
@@ -42,7 +43,6 @@ protected:
 
 public:
     /* Constructors */
-
     NestedBlockPrior() {}
     NestedBlockPrior(size_t size, NestedBlockCountPrior& blockCountPrior):
         BlockPrior(size, blockCountPrior) { setNestedBlockCountPrior(blockCountPrior); }
@@ -65,8 +65,7 @@ public:
         m_nestedVertexCounts = computeNestedVertexCounts(nestedBlocks);
         m_nestedBlockCountPriorPtr->setNestedStateFromNestedPartition(nestedBlocks);
         m_nestedState = nestedBlocks;
-        m_state = nestedBlocks[0];
-        m_size = nestedBlocks[0].size();
+        setState(nestedBlocks[0]);
     }
 
     /* Accessors & mutators of attributes */
@@ -88,11 +87,17 @@ public:
     const size_t getNestedBlockCountAtLevel(Level level) const {
         return (level==-1) ? getSize() : m_nestedBlockCountPriorPtr->getNestedStateAtLevel(level);
     }
+    const size_t getNestedMaxBlockCountAtLevel(Level level) const {
+        return (level==-1) ? getSize() : getMaxBlockCountFromPartition(getNestedStateAtLevel(level));
+    }
     const std::vector<size_t> getNestedMaxBlockCount() const {
         std::vector<size_t> B;
         for (const auto& b: m_nestedState)
             B.push_back(getMaxBlockCountFromPartition(b));
         return B;
+    }
+    const size_t getNestedEffectiveBlockCountAtLevel(Level level) const {
+        return (level==-1) ? getSize() : getEffectiveBlockCountFromPartition(getNestedStateAtLevel(level));
     }
     const std::vector<size_t> getNestedEffectiveBlockCount() const {
         std::vector<size_t> B;
@@ -101,7 +106,9 @@ public:
         return B;
     }
     const std::vector<CounterMap<size_t>>& getNestedVertexCounts() const { return m_nestedVertexCounts; };
-    const BlockIndex getNestedBlockOfIdx(BaseGraph::VertexIndex idx, Level level) const {
+    const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex idx, Level level) const {
+        if (level == -1)
+            return (BlockIndex) idx;
         BlockIndex currentBlock = m_nestedState[0][idx];
         for (Level l=1; l<level; ++l)
             currentBlock = m_nestedState[l][currentBlock];
@@ -146,6 +153,13 @@ public:
         m_isProcessed=false;
         m_nestedBlockCountPriorPtr->computationFinished();
 
+    }
+
+    void checkLevel(std::string prefix, Level level) const {
+        if (level < -1 or level > getDepth())
+            throw std::logic_error(prefix + ": level "
+                 + std::to_string(level) + " out of range [-1, "
+                 + std::to_string(getDepth()) + "].");
     }
 
     void checkSelfConsistency() const override {
