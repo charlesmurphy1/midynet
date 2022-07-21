@@ -67,6 +67,7 @@ class TestLabelGraphPrior: public ::testing::Test {
         void SetUp() {
             blockPrior.setState(BLOCK_SEQUENCE);
             edgeCountPrior.setState(graph.getTotalEdgeNumber());
+
             prior.setGraph(graph);
             prior.checkSafety();
         }
@@ -217,7 +218,6 @@ class TestLabelGraphErdosRenyiPrior: public ::testing::Test {
             seedWithTime();
             blockPrior.setState(BLOCK_SEQUENCE);
             prior.setGraph(graph);
-            edgeCountPrior.setState(graph.getTotalEdgeNumber());
             prior.checkSafety();
         }
         void TearDown(){

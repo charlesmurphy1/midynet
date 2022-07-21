@@ -29,6 +29,12 @@ std::list<size_t> sampleRandomWeakComposition(size_t n, size_t k);
 std::list<size_t> sampleRandomRestrictedPartition(size_t n, size_t k, size_t numberOfSteps=0);
 std::vector<size_t> sampleRandomPermutation(const std::vector<size_t>& nk);
 
+template <typename T>
+T sampleUniformly(T min, T max) {
+    std::uniform_int_distribution<> dist(min, max);
+    return dist(rng);
+}
+
 template <typename Iterator>
 Iterator sampleUniformlyFrom(Iterator start, Iterator end) {
     std::uniform_int_distribution<> dist(0, std::distance(start, end) - 1);

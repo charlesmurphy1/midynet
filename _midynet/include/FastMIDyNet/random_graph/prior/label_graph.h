@@ -168,7 +168,7 @@ class LabelGraphErdosRenyiPrior: public LabelGraphPrior {
 public:
     using LabelGraphPrior::LabelGraphPrior;
     void sampleState() override {
-        setState(generateMultiGraphErdosRenyi(m_blockPriorPtr->getBlockCount(), m_edgeCountPriorPtr->getState(), true));
+        setState(generateMultiGraphErdosRenyi(m_blockPriorPtr->getBlockCount(), getEdgeCount(), true));
     }
     const double getLogLikelihood() const override {
         return getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState());

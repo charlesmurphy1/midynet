@@ -11,27 +11,8 @@ protected:
     NestedBlockCountPrior* m_nestedBlockCountPriorPtr = nullptr;
     std::vector<CounterMap<BlockIndex>> m_nestedVertexCounts;
 
-    void _applyLabelMove(const BlockMove& move) override {
-        m_nestedBlockCountPriorPtr->setNestedStateAtLevel(m_nestedBlockCountPriorPtr->getNestedStateAtLevel(move.level) + move.addedLabels, move.level);
-        m_nestedVertexCounts[move.level].decrement(move.prevLabel);
-        m_nestedVertexCounts[move.level].increment(move.nextLabel);
-
-        if (move.level == 0){
-            m_vertexCounts.decrement(move.prevLabel);
-            m_vertexCounts.increment(move.nextLabel);
-            m_state[move.vertexIndex] = move.nextLabel;
-        }
-    }
-
-
-    const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override {
-        std::vector<size_t> B = m_nestedBlockCountPriorPtr->getNestedState();
-        double logLikelihoodBefore = m_nestedBlockCountPriorPtr->getLogLikelihoodFromNestedState(B);
-        B[move.level] += move.addedLabels;
-        double logLikelihoodAfter = m_nestedBlockCountPriorPtr->getLogLikelihoodFromNestedState(B);
-        return logLikelihoodAfter - logLikelihoodBefore;
-    }
-
+    void _applyLabelMove(const BlockMove& move) override ;
+    const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override ;
 
     // void remapBlockIndex(const std::map<size_t, size_t> indexMap){
     //     auto newBlocks = m_state;
@@ -110,8 +91,10 @@ public:
     const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex idx, Level level) const {
         if (level == -1)
             return (BlockIndex) idx;
-        BlockIndex currentBlock = m_nestedState[0][idx];
-        for (Level l=1; l<level; ++l)
+        if (level == getDepth())
+            return 0;
+        BlockIndex currentBlock = idx;
+        for (Level l=0; l<=level; ++l)
             currentBlock = m_nestedState[l][currentBlock];
         return currentBlock;
     }
@@ -161,6 +144,12 @@ public:
             throw std::logic_error(prefix + ": level "
                  + std::to_string(level) + " out of range [-1, "
                  + std::to_string(getDepth()) + "].");
+    }
+
+    bool isValideBlockMove(const BlockMove& move) const {
+        return (getNestedStateAtLevel(move.level + 1)[move.prevLabel] == getNestedStateAtLevel(move.level + 1)[move.nextLabel]) and
+                (m_nestedVertexCounts[move.level].size() + getAddedBlocks(move) <= getNestedBlockCountAtLevel(move.level) + move.addedLabels) and
+                (getNestedBlockCountAtLevel(move.level) + move.addedLabels > getNestedBlockCountAtLevel(move.level + 1));
     }
 
     void checkSelfConsistency() const override {

@@ -137,6 +137,12 @@ public:
     const size_t getDepth() const { return m_nestedState.size(); }
     const std::vector<size_t>& getNestedState() const { return m_nestedState; }
     const size_t& getNestedStateAtLevel(Level level) const { return m_nestedState[level]; }
+    void createNewLevel() {
+        m_nestedState.push_back(1);
+    }
+    void destroyLastLevel() {
+        m_nestedState.pop_back();
+    }
     void setNestedState(const std::vector<size_t>& nestedBlockCounts) {
         m_nestedState = nestedBlockCounts;
         m_state = nestedBlockCounts[0];

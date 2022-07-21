@@ -31,6 +31,11 @@ void LabelGraphPrior::recomputeStateFromGraph() {
     setState(state);
 }
 
+void LabelGraphPrior::setGraph(const MultiGraph& graph) {
+    m_graphPtr = &graph;
+    recomputeStateFromGraph();
+}
+
 void LabelGraphPrior::setPartition(const std::vector<BlockIndex>& labels) {
     m_blockPriorPtr->setState(labels);
     recomputeStateFromGraph();

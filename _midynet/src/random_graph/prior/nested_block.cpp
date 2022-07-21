@@ -3,6 +3,43 @@
 
 namespace FastMIDyNet{
 
+void NestedBlockPrior::_applyLabelMove(const BlockMove& move) {
+    BlockIndex nestedIndex = getBlockOfIdx(move.vertexIndex, move.level-1);
+    m_nestedState[move.level][nestedIndex] = move.nextLabel;
+
+    // checking if move creates new label
+    if (move.nextLabel == getNestedBlockCountAtLevel(move.level)){
+        // checking if newly created label create new level
+        if (move.level == getDepth() - 1){
+            m_nestedState.push_back(std::vector<BlockIndex>(move.nextLabel + 1, 0));
+            m_nestedVertexCounts.push_back({});
+            m_nestedVertexCounts[move.level + 1].increment(0, move.nextLabel + 1);
+            m_nestedBlockCountPriorPtr->createNewLevel();
+        } else {
+            m_nestedState[move.level + 1].push_back(m_nestedState[move.level + 1][move.prevLabel]);
+            m_nestedVertexCounts[move.level + 1].increment(m_nestedState[move.level + 1][move.prevLabel]);
+        }
+    }
+
+    m_nestedBlockCountPriorPtr->setNestedStateAtLevel(m_nestedBlockCountPriorPtr->getNestedStateAtLevel(move.level) + move.addedLabels, move.level);
+    m_nestedVertexCounts[move.level].decrement(move.prevLabel);
+    m_nestedVertexCounts[move.level].increment(move.nextLabel);
+
+    if (move.level == 0){
+        m_vertexCounts.decrement(move.prevLabel);
+        m_vertexCounts.increment(move.nextLabel);
+        m_state[move.vertexIndex] = move.nextLabel;
+    }
+}
+
+
+const double NestedBlockPrior::_getLogPriorRatioFromLabelMove(const BlockMove& move) const {
+    std::vector<size_t> B = m_nestedBlockCountPriorPtr->getNestedState();
+    double logLikelihoodBefore = m_nestedBlockCountPriorPtr->getLogLikelihoodFromNestedState(B);
+    B[move.level] += move.addedLabels;
+    double logLikelihoodAfter = m_nestedBlockCountPriorPtr->getLogLikelihoodFromNestedState(B);
+    return logLikelihoodAfter - logLikelihoodBefore;
+}
 
 std::vector<CounterMap<size_t>> NestedBlockPrior::computeNestedVertexCounts(const std::vector<BlockSequence>& nestedState) {
     std::vector<CounterMap<size_t>> nestedVertexCount;
@@ -44,7 +81,7 @@ const double NestedBlockUniformPrior::getLogLikelihoodAtLevel(Level level) const
 }
 
 const double NestedBlockUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
-    if (m_nestedVertexCounts[move.level].size() + getAddedBlocks(move) > m_blockCountPriorPtr->getState() + move.addedLabels)
+    if (not isValideBlockMove(move))
         return -INFINITY;
     size_t bPrev = (move.level == 0) ? getSize() : getNestedBlockCount()[move.level - 1];
     size_t bNext = getNestedBlockCount()[move.level];
