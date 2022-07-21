@@ -4,6 +4,7 @@
 #include "label_graph.h"
 #include "nested_block.h"
 #include "FastMIDyNet/generators.h"
+#include "FastMIDyNet/utility/functions.h"
 
 namespace FastMIDyNet{
 
@@ -26,6 +27,15 @@ protected:
         return nestedEdgeCounts;
     }
 
+    void updateNestedEdgeDiffFromEdge(const BaseGraph::Edge& edge, std::vector<IntMap<BaseGraph::Edge>>& nestedEdgeDiff, int counter) const{
+        size_t r = edge.first, s =edge.second;
+        for (Level l=0; l<m_nestedBlockPriorPtr->getDepth(); ++l){
+            nestedEdgeDiff[l].increment({r, s}, counter);
+            r = m_nestedBlockPriorPtr->getNestedStateAtLevel(l)[r];
+            s = m_nestedBlockPriorPtr->getNestedStateAtLevel(l)[s];
+        }
+    }
+
 public:
     NestedLabelGraphPrior() {}
     NestedLabelGraphPrior(EdgeCountPrior& edgeCountPrior, NestedBlockPrior& blockPrior):
@@ -45,16 +55,14 @@ public:
 
 
     virtual const MultiGraph sampleStateAtLevel(Level) const = 0;
-    void sampleState() override{
-        std::vector<MultiGraph> nestedLabelGraph(m_nestedBlockPriorPtr->getDepth() + 1);
+    void sampleState() override ;
 
-        for (Level l=m_nestedBlockPriorPtr->getDepth(); l==0; --l)
-            nestedLabelGraph[l] = sampleStateAtLevel(l);
-
-        m_nestedState = nestedLabelGraph;
-        m_nestedEdgeCounts = computeNestedEdgeCountsFromNestedState(m_nestedState);
-        m_state = nestedLabelGraph[0];
-        m_edgeCounts = m_nestedEdgeCounts[0];
+    virtual const double getLogLikelihoodAtLevel(Level) const = 0;
+    const double getLogLikelihood() const override{
+        double logLikelihood = 0;
+        for (Level l=m_nestedBlockPriorPtr->getDepth()-1; l==0; --l)
+            logLikelihood = getLogLikelihoodAtLevel(l);
+        return logLikelihood;
     }
 
     const std::vector<MultiGraph>& getNestedState() const { return m_nestedState; }
@@ -91,31 +99,29 @@ public:
 
 class NestedStochasticBlockLabelGraphPrior: public NestedLabelGraphPrior{
 private:
-    double getLogLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {
-        return 0;
-    }
-    double getLogLikelihoodOfLevel( const CounterMap<BlockIndex>& vertexCounts, const MultiGraph& nextLabelGraph) const {
-        return 0;
-    }
+    double getLogLikelihoodRatioOfLevel(const CounterMap<BlockIndex>& vertexCounts,
+                                         const MultiGraph& nextLabelGraph,
+                                         const IntMap<BaseGraph::Edge>& edgeDiff,
+                                         const IntMap<BlockIndex>& vertexDiff) const ;
+
+    double getLogLikelihoodOfLevel( const CounterMap<BlockIndex>& vertexCounts, const MultiGraph& nextLabelGraph) const ;
 public:
     using NestedLabelGraphPrior::NestedLabelGraphPrior;
     const MultiGraph sampleStateAtLevel(Level level) const override {
-        if (level == m_nestedBlockPriorPtr->getDepth()){
-            MultiGraph graph(1);
-            graph.addMultiedgeIdx(1, 1, getEdgeCount());
-            return graph;
-        }
+        if (level == m_nestedBlockPriorPtr->getDepth() - 1)
+            return generateMultiGraphErdosRenyi(m_nestedBlockPriorPtr->getNestedBlockCountAtLevel(level), getEdgeCount());
         return generateMultiGraphSBM(
                     m_nestedBlockPriorPtr->getNestedStateAtLevel(level),
                     getNestedStateAtLevel(level + 1).getAdjacencyMatrix(),
                     true
                 );
     }
-    const double getLogLikelihood() const override {
-        return 0;
+    const double getLogLikelihoodAtLevel(Level level) const override {
+        return getLogLikelihoodOfLevel(m_nestedBlockPriorPtr->getNestedVertexCountsAtLevel(level), getNestedStateAtLevel(level + 1));
+
     }
-    const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override;
-    const double getLogLikelihoodRatioFromLabelMove(const BlockMove&) const override;
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override ;
+    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const override ;
 
 
 };

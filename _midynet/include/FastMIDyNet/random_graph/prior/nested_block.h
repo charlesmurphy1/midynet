@@ -105,7 +105,8 @@ public:
             B.push_back(getEffectiveBlockCountFromPartition(b));
         return B;
     }
-    const std::vector<CounterMap<size_t>>& getNestedVertexCounts() const { return m_nestedVertexCounts; };
+    const std::vector<CounterMap<BlockIndex>>& getNestedVertexCounts() const { return m_nestedVertexCounts; };
+    const CounterMap<BlockIndex>& getNestedVertexCountsAtLevel(Level l) const { return m_nestedVertexCounts[l]; };
     const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex idx, Level level) const {
         if (level == -1)
             return (BlockIndex) idx;
@@ -114,7 +115,7 @@ public:
             currentBlock = m_nestedState[l][currentBlock];
         return currentBlock;
     }
-    static std::vector<CounterMap<size_t>> computeNestedVertexCounts(const std::vector<std::vector<BlockIndex>>&);
+    static std::vector<CounterMap<BlockIndex>> computeNestedVertexCounts(const std::vector<std::vector<BlockIndex>>&);
 
     /* sampling methods */
     void sampleState() override{
@@ -156,7 +157,7 @@ public:
     }
 
     void checkLevel(std::string prefix, Level level) const {
-        if (level < -1 or level > getDepth())
+        if (level < -1 or level >= getDepth())
             throw std::logic_error(prefix + ": level "
                  + std::to_string(level) + " out of range [-1, "
                  + std::to_string(getDepth()) + "].");

@@ -90,6 +90,19 @@ void NestedLabelGraphPrior::recomputeStateFromGraph() {
     setNestedState(nestedState);
 }
 
+
+void NestedLabelGraphPrior::sampleState() {
+    std::vector<MultiGraph> nestedLabelGraph(m_nestedBlockPriorPtr->getDepth());
+
+    for (Level l=m_nestedBlockPriorPtr->getDepth()-1; l==0; --l)
+        nestedLabelGraph[l] = sampleStateAtLevel(l);
+
+    m_nestedState = nestedLabelGraph;
+    m_nestedEdgeCounts = computeNestedEdgeCountsFromNestedState(m_nestedState);
+    m_state = nestedLabelGraph[0];
+    m_edgeCounts = m_nestedEdgeCounts[0];
+}
+
 void NestedLabelGraphPrior::checkSelfConsistencyBetweenLevels() const{
     MultiGraph graph, actualLabelGraph;
     BlockIndex r, s;
@@ -136,6 +149,84 @@ void NestedLabelGraphPrior::checkSelfConsistencyBetweenLevels() const{
 
     }
 
+}
+
+double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioOfLevel(
+        const CounterMap<BlockIndex>& vertexCounts,
+        const MultiGraph& nextLabelGraph,
+        const IntMap<BaseGraph::Edge>& edgeDiff,
+        const IntMap<BlockIndex>& vertexDiff) const {
+    double logLikelihoodRatio = 0;
+    size_t vertexBefore, vertexAfter, edgeBefore, edgeAfter, nr, ns;
+    BlockIndex r, s;
+
+    for (auto diff: edgeDiff){
+        r = diff.first.first, s = diff.first.second;
+        nr = vertexCounts[r], ns = vertexCounts[s];
+        vertexBefore = (r == s) ? nr * (nr + 1) / 2 : nr * ns;
+        vertexAfter = (r == s) ? (nr + vertexDiff.get(r)) * (nr + vertexDiff.get(r) + 1) / 2 : (nr + vertexDiff.get(r)) * (ns + vertexDiff.get(s));
+        edgeBefore = ((r == s) ? 2 : 1) * nextLabelGraph.getEdgeMultiplicityIdx(r, s);
+        edgeAfter = ((r == s) ? 2 : 1) * (nextLabelGraph.getEdgeMultiplicityIdx(r, s) + diff.second);
+        logLikelihoodRatio -= logMultisetCoefficient(vertexAfter, edgeAfter) - logMultisetCoefficient(vertexBefore, edgeBefore);
+    }
+
+    return logLikelihoodRatio;
+}
+
+double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodOfLevel( const CounterMap<BlockIndex>& vertexCounts, const MultiGraph& nextLabelGraph) const {
+    double logLikelihood = 0;
+    size_t nr, ns;
+    for (const auto& r : nextLabelGraph){
+        nr = vertexCounts[r];
+        logLikelihood -= logMultisetCoefficient(nr * (nr + 1) / 2, 2 * nextLabelGraph.getEdgeMultiplicityIdx(r, r));
+        for (const auto& s : nextLabelGraph.getNeighboursOfIdx(r)){
+            if (r >= s.vertexIndex)
+                continue;
+            ns = vertexCounts[s.vertexIndex];
+            logLikelihood -= logMultisetCoefficient(nr * ns, s.label);
+        }
+    }
+    return logLikelihood;
+}
+
+const double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+    std::vector<IntMap<BaseGraph::Edge>> nestedEdgeDiff(m_nestedBlockPriorPtr->getDepth());
+    for (auto edge : move.addedEdges){
+        updateNestedEdgeDiffFromEdge(edge, nestedEdgeDiff, 1);
+    }
+    for (auto edge : move.removedEdges){
+        updateNestedEdgeDiffFromEdge(edge, nestedEdgeDiff, -1);
+    }
+    double logLikelihoodRatio = 0;
+    for (Level l=0; l<m_nestedBlockPriorPtr->getDepth(); ++l){
+        logLikelihoodRatio += getLogLikelihoodRatioOfLevel(
+                                m_nestedBlockPriorPtr->getNestedVertexCountsAtLevel(l),
+                                getNestedStateAtLevel(l + 1),
+                                nestedEdgeDiff[l], {}
+                            );
+    }
+    return logLikelihoodRatio;
+
+}
+
+const double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+    if (m_nestedBlockPriorPtr->getNestedStateAtLevel(move.level + 1)[move.prevLabel] != m_nestedBlockPriorPtr->getNestedStateAtLevel(move.level + 1)[move.nextLabel])
+        return -INFINITY;
+
+    BlockIndex nestedIndex = m_nestedBlockPriorPtr->getBlockOfIdx(move.vertexIndex, move.level-1);
+    IntMap<BaseGraph::Edge> edgeDiff;
+    IntMap<BlockIndex> vertexDiff;
+    vertexDiff.decrement(move.prevLabel);
+    vertexDiff.increment(move.nextLabel);
+    for (auto neighbor : getNestedStateAtLevel(move.level-1).getNeighboursOfIdx(nestedIndex)){
+        BlockIndex s = m_nestedBlockPriorPtr->getNestedStateAtLevel(move.level)[neighbor.vertexIndex];
+        edgeDiff.decrement(getOrderedEdge({move.prevLabel, s}));
+        edgeDiff.increment(getOrderedEdge({move.nextLabel, s}));
+    }
+    return getLogLikelihoodRatioOfLevel(
+                            m_nestedBlockPriorPtr->getNestedVertexCountsAtLevel(move.level),
+                            getNestedStateAtLevel(move.level + 1),
+                            edgeDiff, vertexDiff);
 }
 
 
