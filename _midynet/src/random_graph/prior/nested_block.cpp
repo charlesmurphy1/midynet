@@ -57,7 +57,7 @@ std::vector<CounterMap<size_t>> NestedBlockPrior::computeNestedVertexCounts(cons
 const double NestedBlockPrior::getLogLikelihood() const {
     double logLikelihood = 0;
     for (Level l=0; l<getDepth(); ++l)
-        logLikelihood -= getLogLikelihoodAtLevel(l);
+        logLikelihood += getLogLikelihoodAtLevel(l);
     return logLikelihood;
 }
 
@@ -77,14 +77,14 @@ const BlockSequence NestedBlockUniformPrior::sampleStateAtLevel(Level level) con
 const double NestedBlockUniformPrior::getLogLikelihoodAtLevel(Level level) const {
     size_t bPrev = (level == 0) ? getSize() : getNestedBlockCount()[level - 1];
     size_t bNext = getNestedBlockCount()[level];
-    return -bPrev * log(bNext);
+    return -((double) bPrev) * log(bNext);
 }
 
 const double NestedBlockUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
     if (not isValideBlockMove(move))
         return -INFINITY;
-    size_t bPrev = (move.level == 0) ? getSize() : getNestedBlockCount()[move.level - 1];
-    size_t bNext = getNestedBlockCount()[move.level];
+    int bPrev = (move.level == 0) ? getSize() : getNestedBlockCount()[move.level - 1];
+    int bNext = getNestedBlockCount()[move.level];
     double logLikelihoodRatio = 0;
     logLikelihoodRatio += -bPrev * log(bNext + move.addedLabels);
     logLikelihoodRatio -= -bPrev * log(bNext);

@@ -92,7 +92,7 @@ private:
     VertexLabeledGraphLikelihoodModel<Label>* m_vertexLabeledlikelihoodModelPtr = nullptr;
 protected:
     virtual void _applyLabelMove(const LabelMove<Label>&) { };
-    virtual const double _getLogPriorRatioFromLabelMove (const LabelMove<Label>& move) const { }
+    virtual const double _getLogPriorRatioFromLabelMove (const LabelMove<Label>& move) const { return 0; }
 public:
     VertexLabeledRandomGraph(size_t size, VertexLabeledGraphLikelihoodModel<Label>& likelihoodModel):
         RandomGraph(size, likelihoodModel), m_vertexLabeledlikelihoodModelPtr(&likelihoodModel){ }

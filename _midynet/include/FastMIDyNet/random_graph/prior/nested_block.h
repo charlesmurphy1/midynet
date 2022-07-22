@@ -147,9 +147,17 @@ public:
     }
 
     bool isValideBlockMove(const BlockMove& move) const {
-        return (getNestedStateAtLevel(move.level + 1)[move.prevLabel] == getNestedStateAtLevel(move.level + 1)[move.nextLabel]) and
-                (m_nestedVertexCounts[move.level].size() + getAddedBlocks(move) <= getNestedBlockCountAtLevel(move.level) + move.addedLabels) and
-                (getNestedBlockCountAtLevel(move.level) + move.addedLabels > getNestedBlockCountAtLevel(move.level + 1));
+        if (move.level >= getDepth())
+            return false;
+        if (m_nestedVertexCounts[move.level].size() + getAddedBlocks(move) > getNestedBlockCountAtLevel(move.level) + move.addedLabels)
+            return false;
+        if (getDepth() == 1)
+            return true;
+        if (getNestedBlockCountAtLevel(move.level) + move.addedLabels <= getNestedBlockCountAtLevel(move.level + 1))
+            return false;
+        if (getNestedStateAtLevel(move.level + 1)[move.prevLabel] != getNestedStateAtLevel(move.level + 1)[move.nextLabel])
+            return false;
+        return true;
     }
 
     void checkSelfConsistency() const override {
