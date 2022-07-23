@@ -269,6 +269,8 @@ BaseGraph::UndirectedMultigraph generateStubLabeledSBM(const BlockSequence& bloc
 
 BaseGraph::UndirectedMultigraph generateMultiGraphSBM(const BlockSequence& blockSeq, const EdgeMatrix& edgeMat, bool withSelfLoops) {
 
+    // displayVector(blockSeq, "[generator] b", true);
+    // displayMatrix(edgeMat, "[generator] E", true);
     if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= edgeMat.size())
         throw std::logic_error("generateSBM: Vertex is out of range of edgeMat.");
 

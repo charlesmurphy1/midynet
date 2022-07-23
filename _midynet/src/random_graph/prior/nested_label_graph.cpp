@@ -92,14 +92,14 @@ void NestedLabelGraphPrior::recomputeStateFromGraph() {
 
 
 void NestedLabelGraphPrior::sampleState() {
-    std::vector<MultiGraph> nestedLabelGraph(m_nestedBlockPriorPtr->getDepth());
+    m_nestedState = std::vector<MultiGraph>(m_nestedBlockPriorPtr->getDepth());
 
-    for (Level l=m_nestedBlockPriorPtr->getDepth()-1; l==0; --l)
-        nestedLabelGraph[l] = sampleStateAtLevel(l);
+    for (Level l=m_nestedBlockPriorPtr->getDepth()-1; l>=0; --l){
+        m_nestedState[l] = sampleStateAtLevel(l);
+    }
 
-    m_nestedState = nestedLabelGraph;
     m_nestedEdgeCounts = computeNestedEdgeCountsFromNestedState(m_nestedState);
-    m_state = nestedLabelGraph[0];
+    m_state = m_nestedState[0];
     m_edgeCounts = m_nestedEdgeCounts[0];
 }
 
@@ -108,8 +108,9 @@ void NestedLabelGraphPrior::checkSelfConsistencyBetweenLevels() const{
     BlockIndex r, s;
     std::string prefix;
 
-    for (Level l=0; l<m_nestedBlockPriorPtr->getDepth(); ++l){
+    for (Level l=1; l<m_nestedBlockPriorPtr->getDepth(); ++l){
         graph = getNestedStateAtLevel(l - 1);
+        std::cout << l - 1 << " " << m_nestedBlockPriorPtr->getNestedMaxBlockCountAtLevel(l) << std::endl;
         actualLabelGraph = MultiGraph(m_nestedBlockPriorPtr->getNestedMaxBlockCountAtLevel(l));
         prefix = "NestedLabelGraphPrior (level=" + std::to_string(l) + ")";
 
@@ -149,6 +150,24 @@ void NestedLabelGraphPrior::checkSelfConsistencyBetweenLevels() const{
 
     }
 
+}
+
+const MultiGraph NestedStochasticBlockLabelGraphPrior::sampleStateAtLevel(Level level) const {
+    MultiGraph graph(1);
+
+    if (level == m_nestedBlockPriorPtr->getDepth() - 1) {
+        // std::cout << "[prior] E_" << level + 1 << " = " << getEdgeCount() << std::endl;
+        graph.addMultiedgeIdx(0, 0, getEdgeCount());
+    } else {
+        // displayMatrix(getNestedStateAtLevel(level + 1).getAdjacencyMatrix(), "[prior] E_" + std::to_string(level + 1), true);
+        graph = generateMultiGraphSBM(
+            getNestedBlocksAtLevel(level + 1),
+            getNestedStateAtLevel(level + 1).getAdjacencyMatrix(),
+            true
+        );
+    }
+
+    return graph;
 }
 
 double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioOfLevel(

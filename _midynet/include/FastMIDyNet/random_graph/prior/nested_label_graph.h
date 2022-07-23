@@ -39,8 +39,11 @@ protected:
 public:
     NestedLabelGraphPrior() {}
     NestedLabelGraphPrior(EdgeCountPrior& edgeCountPrior, NestedBlockPrior& blockPrior):
-        LabelGraphPrior(edgeCountPrior, blockPrior)
-        { setNestedBlockPrior(blockPrior); }
+        LabelGraphPrior(){
+            setEdgeCountPrior(edgeCountPrior);
+            setNestedBlockPrior(blockPrior);
+        }
+    ~NestedLabelGraphPrior(){}
     NestedLabelGraphPrior(const NestedLabelGraphPrior& other){
         setEdgeCountPrior(*other.m_edgeCountPriorPtr);
         setNestedBlockPrior(*other.m_nestedBlockPriorPtr);
@@ -67,7 +70,6 @@ public:
 
     const std::vector<MultiGraph>& getNestedState() const { return m_nestedState; }
     const MultiGraph& getNestedStateAtLevel(Level level) const {
-        m_nestedBlockPriorPtr->checkLevel("NestedLabelGraphPrior", level);
         return (level==-1) ? *m_graphPtr : m_nestedState[level];
     }
     void setNestedState(const std::vector<MultiGraph>& nestedState) {
@@ -82,6 +84,25 @@ public:
         m_nestedBlockPriorPtr = &prior;
         m_nestedBlockPriorPtr->isRoot(false);
     }
+
+
+    const std::vector<size_t>& getNestedBlockCount() const {
+        return m_nestedBlockPriorPtr->getNestedBlockCount();
+    }
+    const size_t getNestedBlockCountAtLevel(Level level) const {
+        return m_nestedBlockPriorPtr->getNestedBlockCountAtLevel(level);
+    }
+
+    const std::vector<std::vector<BlockIndex>>& getNestedBlocks() const {
+        return m_nestedBlockPriorPtr->getNestedState();
+    }
+    const std::vector<BlockIndex>& getNestedBlocksAtLevel(Level level) const {
+        return m_nestedBlockPriorPtr->getNestedStateAtLevel(level);
+    }
+    const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex vertex, Level level) const {
+        return m_nestedBlockPriorPtr->getBlockOfIdx(vertex, level);
+    }
+
 
     void setNestedPartition(const std::vector<std::vector<BlockIndex>>& nestedBlocks) {
         m_nestedBlockPriorPtr->setNestedState(nestedBlocks);
@@ -107,15 +128,7 @@ private:
     double getLogLikelihoodOfLevel( const CounterMap<BlockIndex>& vertexCounts, const MultiGraph& nextLabelGraph) const ;
 public:
     using NestedLabelGraphPrior::NestedLabelGraphPrior;
-    const MultiGraph sampleStateAtLevel(Level level) const override {
-        if (level == m_nestedBlockPriorPtr->getDepth() - 1)
-            return generateMultiGraphErdosRenyi(m_nestedBlockPriorPtr->getNestedBlockCountAtLevel(level), getEdgeCount());
-        return generateMultiGraphSBM(
-                    m_nestedBlockPriorPtr->getNestedStateAtLevel(level),
-                    getNestedStateAtLevel(level + 1).getAdjacencyMatrix(),
-                    true
-                );
-    }
+    const MultiGraph sampleStateAtLevel(Level level) const override ;
     const double getLogLikelihoodAtLevel(Level level) const override {
         return getLogLikelihoodOfLevel(m_nestedBlockPriorPtr->getNestedVertexCountsAtLevel(level), getNestedStateAtLevel(level + 1));
 

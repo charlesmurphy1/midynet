@@ -140,7 +140,7 @@ public:
     }
 
     void checkLevel(std::string prefix, Level level) const {
-        if (level < -1 or level >= getDepth())
+        if (level < -1 or level >= (int) getDepth())
             throw std::logic_error(prefix + ": level "
                  + std::to_string(level) + " out of range [-1, "
                  + std::to_string(getDepth()) + "].");

@@ -89,6 +89,16 @@ class LabelGraphPrior: public BlockLabeledPrior< MultiGraph >{
         const size_t& getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }
         const CounterMap<BlockIndex>& getEdgeCounts() const { return m_edgeCounts; }
 
+        const size_t getBlockCount() const {
+            return m_blockPriorPtr->getBlockCount();
+        }
+        const std::vector<BlockIndex> getBlocks() const {
+            return m_blockPriorPtr->getState();
+        }
+        const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex vertex) const {
+            return m_blockPriorPtr->getBlockOfIdx(vertex);
+        }
+
 
         virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;
         virtual const double getLogLikelihoodRatioFromLabelMove(const BlockMove&) const = 0;

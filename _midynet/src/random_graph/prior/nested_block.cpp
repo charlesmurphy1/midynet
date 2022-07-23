@@ -4,6 +4,8 @@
 namespace FastMIDyNet{
 
 void NestedBlockPrior::_applyLabelMove(const BlockMove& move) {
+    if (move.prevLabel == move.nextLabel)
+        return;
     BlockIndex nestedIndex = getBlockOfIdx(move.vertexIndex, move.level-1);
     m_nestedState[move.level][nestedIndex] = move.nextLabel;
 
@@ -83,8 +85,10 @@ const double NestedBlockUniformPrior::getLogLikelihoodAtLevel(Level level) const
 const double NestedBlockUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
     if (not isValideBlockMove(move))
         return -INFINITY;
-    int bPrev = (move.level == 0) ? getSize() : getNestedBlockCount()[move.level - 1];
-    int bNext = getNestedBlockCount()[move.level];
+    if (move.prevLabel == move.nextLabel)
+        return 0;
+    int bPrev = getNestedBlockCountAtLevel(move.level - 1);
+    int bNext = getNestedBlockCountAtLevel(move.level);
     double logLikelihoodRatio = 0;
     logLikelihoodRatio += -bPrev * log(bNext + move.addedLabels);
     logLikelihoodRatio -= -bPrev * log(bNext);
@@ -105,19 +109,24 @@ const BlockSequence NestedBlockUniformHyperPrior::sampleStateAtLevel(Level level
 }
 
 const double NestedBlockUniformHyperPrior::getLogLikelihoodAtLevel(Level level) const {
-    size_t bPrev = (level == 0) ? getSize() : getNestedBlockCount()[level-1];
-    size_t bNext = getNestedBlockCount()[level];
-    return -logMultinomialCoefficient(m_nestedVertexCounts[level].getValues()) - logBinomialCoefficient(bPrev - 1, bNext - 1);
+    int bPrev = getNestedBlockCountAtLevel(level-1);
+    int bNext = getNestedBlockCountAtLevel(level);
+
+    double logP = -logMultinomialCoefficient(m_nestedVertexCounts[level].getValues()) - logBinomialCoefficient(bPrev - 1, bNext - 1);
+    return logP;
 }
 
 const double NestedBlockUniformHyperPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
-    if (m_nestedVertexCounts[move.level].size() + getAddedBlocks(move) != getNestedBlockCount()[move.level] + move.addedLabels)
+    if (not isValideBlockMove(move))
         return -INFINITY;
+    if (move.prevLabel == move.nextLabel)
+        return 0;
+
     double logLikelihoodRatio = 0;
-    size_t bPrev = (move.level == 0) ? getSize() : getNestedBlockCount()[move.level-1];
-    size_t bNext = getNestedBlockCount()[move.level];
-    logLikelihoodRatio += logFactorial(m_nestedVertexCounts[move.level][move.prevLabel] - 1) - logFactorial(m_nestedVertexCounts[move.level][move.prevLabel]);
-    logLikelihoodRatio += logFactorial(m_nestedVertexCounts[move.level][move.nextLabel] + 1) - logFactorial(m_nestedVertexCounts[move.level][move.nextLabel]);
+    int bPrev = getNestedBlockCountAtLevel(move.level-1);
+    int bNext = getNestedBlockCountAtLevel(move.level);
+    logLikelihoodRatio += log(m_nestedVertexCounts[move.level][move.nextLabel] + 1) - log(m_nestedVertexCounts[move.level][move.prevLabel]);
+    logLikelihoodRatio -= logFactorial(bNext + move.addedLabels) - logFactorial(bNext);
     logLikelihoodRatio -= logBinomialCoefficient(bPrev - 1, bNext + move.addedLabels - 1) - logBinomialCoefficient(bPrev - 1, bNext - 1);
     return logLikelihoodRatio;
 }
