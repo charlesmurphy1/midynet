@@ -20,9 +20,8 @@ class TestNestedLabelGraphPrior: public ::testing::Test {
 
         size_t EDGE_COUNT=10, GRAPH_SIZE=10;
         size_t NUM_SAMPLES=100;
-        NestedBlockUniformPrior blockPrior = NestedBlockUniformPrior(GRAPH_SIZE);
         EdgeCountDeltaPrior edgeCountPrior = EdgeCountDeltaPrior(EDGE_COUNT);
-        NestedStochasticBlockLabelGraphPrior prior = NestedStochasticBlockLabelGraphPrior(edgeCountPrior, blockPrior);
+        NestedStochasticBlockLabelGraphPrior prior = NestedStochasticBlockLabelGraphPrior(GRAPH_SIZE, edgeCountPrior);
 
         bool expectConsistencyError = false;
         void SetUp() {
@@ -33,17 +32,13 @@ class TestNestedLabelGraphPrior: public ::testing::Test {
 };
 
 TEST_F(TestNestedLabelGraphPrior, sampleState_noThrow){
-    prior.sample();
     EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
-    // 
-    // for (Level level=0; level<blockPrior.getDepth(); ++level)
-    //     displayMatrix(prior.getNestedStateAtLevel(level).getAdjacencyMatrix(), "E_" + std::to_string(level), true);
 }
 
 TEST_F(TestNestedLabelGraphPrior, getLogLikelihood_returnSumOfLogLikelihoodAtEaclLevel){
     double actualLogLikelihood = prior.getLogLikelihood();
     double expectedLogLikelihood = 0;
-    for (Level l=0; l<blockPrior.getDepth(); ++l)
-        expectedLogLikelihood += prior.getLogLikelihoodAtLevel(l);
+    // for (Level l=0; l<prior.getDepth(); ++l)
+    //     expectedLogLikelihood += prior.getLogLikelihoodAtLevel(l);
     EXPECT_NEAR(actualLogLikelihood, expectedLogLikelihood, 1e-6);
 }

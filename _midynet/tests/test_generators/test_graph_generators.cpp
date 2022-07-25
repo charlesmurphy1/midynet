@@ -1,13 +1,22 @@
 #include "gtest/gtest.h"
 
+#include "FastMIDyNet/types.h"
 #include "FastMIDyNet/generators.h"
 
+namespace FastMIDyNet{
 
-static const FastMIDyNet::Matrix<size_t> EDGE_MATRIX = {
-    {4, 1, 3},
-    {1, 0, 2},
-    {3, 2, 6}
-};
+MultiGraph constructLabelGraph() {
+    MultiGraph labelGraph(3);
+
+    labelGraph.addMultiedgeIdx(0, 0, 2);
+    labelGraph.addMultiedgeIdx(0, 1, 1);
+    labelGraph.addMultiedgeIdx(0, 2, 3);
+    labelGraph.addMultiedgeIdx(1, 2, 2);
+    labelGraph.addMultiedgeIdx(2, 2, 3);
+    return labelGraph;
+}
+
+static const MultiGraph LABEL_GRAPH = constructLabelGraph();
 static const FastMIDyNet::BlockSequence VERTEX_BLOCKS = {
     0, 0, 0, 0,
     1, 1, 1,
@@ -19,26 +28,24 @@ static const FastMIDyNet::DegreeSequence DEGREES = {
     0, 4, 4, 2, 1
 };
 
-static FastMIDyNet::Matrix<size_t> getEdgeMatrix(const FastMIDyNet::MultiGraph& graph, const std::vector<size_t>& vertexBlocks) {
+static LabelGraph getLabelGraph(const FastMIDyNet::MultiGraph& graph, const std::vector<size_t>& vertexBlocks) {
     size_t blockNumber = 1;
     for (auto block: vertexBlocks)
         if (block >= blockNumber) blockNumber = block+1;
 
-    FastMIDyNet::Matrix<size_t> edgeMatrix = {blockNumber, std::vector<size_t>(blockNumber, 0)};
-    size_t block1, block2;
+    LabelGraph labelGraph(blockNumber);
+    size_t r, s;
 
     for (auto vertex: graph) {
         for (auto neighbor: graph.getNeighboursOfIdx(vertex)) {
-            if (neighbor.vertexIndex > vertex)
+            if (neighbor.vertexIndex < vertex)
                 continue;
-
-            block1 = vertexBlocks[vertex];
-            block2 = vertexBlocks[neighbor.vertexIndex];
-            edgeMatrix[block1][block2] += neighbor.label;
-            edgeMatrix[block2][block1] += neighbor.label;
+            r = vertexBlocks[vertex];
+            s = vertexBlocks[neighbor.vertexIndex];
+            labelGraph.addMultiedgeIdx(r, s, neighbor.label);
         }
     }
-    return edgeMatrix;
+    return labelGraph;
 }
 static const size_t numberOfGeneratedGraphs = 10;
 
@@ -50,17 +57,26 @@ static const FastMIDyNet::DegreeSequence convertDegrees(const std::vector<size_t
 }
 
 
-TEST(TestDCSBMGenerator, generateDCSBM_givenEdgeMatrixAndDegrees_generatedGraphsRespectEdgeMatrixAndDegrees) {
+TEST(TestDCSBMGenerator, generateDCSBM_givenLabelGraphAndDegrees_generatedGraphsRespectLabelGraphAndDegrees) {
     for (size_t i=0; i<numberOfGeneratedGraphs; i++) {
-        auto randomGraph = FastMIDyNet::generateDCSBM(VERTEX_BLOCKS, EDGE_MATRIX, DEGREES);
-        EXPECT_EQ(EDGE_MATRIX, getEdgeMatrix(randomGraph, VERTEX_BLOCKS));
+        auto randomGraph = FastMIDyNet::generateDCSBM(VERTEX_BLOCKS, LABEL_GRAPH, DEGREES);
+        EXPECT_EQ(LABEL_GRAPH, getLabelGraph(randomGraph, VERTEX_BLOCKS));
         EXPECT_EQ(DEGREES, convertDegrees(randomGraph.getDegrees()));
     }
 }
 
-TEST(TestSBMGenerator, generate_SBM_givenEdgeMatrix_generatedGraphsRespectEdgeMatrix) {
+TEST(TestSBMGenerator, generateStubLabeledSBM_givenLabelGraph_generatedGraphsRespectLabelGraph) {
     for (size_t i=0; i<numberOfGeneratedGraphs; i++) {
-        auto randomGraph = FastMIDyNet::generateStubLabeledSBM(VERTEX_BLOCKS, EDGE_MATRIX);
-        EXPECT_EQ(EDGE_MATRIX, getEdgeMatrix(randomGraph, VERTEX_BLOCKS));
+        auto randomGraph = FastMIDyNet::generateStubLabeledSBM(VERTEX_BLOCKS, LABEL_GRAPH);
+        EXPECT_EQ(LABEL_GRAPH, getLabelGraph(randomGraph, VERTEX_BLOCKS));
     }
+}
+
+TEST(TestSBMGenerator, generateMultiGraphSBM_givenLabelGraph_generatedGraphsRespectLabelGraph) {
+    for (size_t i=0; i<numberOfGeneratedGraphs; i++) {
+        auto randomGraph = FastMIDyNet::generateMultiGraphSBM(VERTEX_BLOCKS, LABEL_GRAPH);
+        EXPECT_EQ(LABEL_GRAPH, getLabelGraph(randomGraph, VERTEX_BLOCKS));
+    }
+}
+
 }

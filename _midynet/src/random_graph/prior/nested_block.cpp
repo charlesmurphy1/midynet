@@ -56,6 +56,22 @@ std::vector<CounterMap<size_t>> NestedBlockPrior::computeNestedVertexCounts(cons
     return nestedVertexCount;
 }
 
+std::vector<BlockSequence> NestedBlockPrior::reduceNestedState() const {
+    std::vector<BlockSequence> reducedState(getDepth());
+    for (Level l=getDepth() - 1; l>=0; --l){
+        std::map<BlockIndex, BlockIndex> remap;
+        BlockIndex id = 0;
+        for (auto b : getNestedStateAtLevel(l)){
+            if (remap.count(b) == 0){
+                remap.insert({b, id});
+                ++id;
+            }
+            reducedState[l].push_back(remap[b]);
+        }
+
+    }
+    return reducedState;
+}
 const double NestedBlockPrior::getLogLikelihood() const {
     double logLikelihood = 0;
     for (Level l=0; l<getDepth(); ++l)

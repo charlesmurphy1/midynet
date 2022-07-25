@@ -14,7 +14,7 @@
 
 namespace FastMIDyNet{
 
-class LabelGraphPrior: public BlockLabeledPrior< MultiGraph >{
+class LabelGraphPrior: public BlockLabeledPrior< LabelGraph >{
     protected:
         EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
         BlockPrior* m_blockPriorPtr = nullptr;
@@ -45,11 +45,34 @@ class LabelGraphPrior: public BlockLabeledPrior< MultiGraph >{
         virtual void applyLabelMoveToState(const BlockMove&);
         virtual void recomputeConsistentState() ;
         virtual void recomputeStateFromGraph() ;
-        CounterMap<BlockIndex> computeEdgeCountsFromState(const MultiGraph& state){
+        CounterMap<BlockIndex> computeEdgeCountsFromState(const LabelGraph& state){
             CounterMap<BlockIndex> edgeCounts;
             for (auto v : state)
                 edgeCounts.set(v, state.getDegreeOfIdx(v));
             return edgeCounts;
+        }
+        static const MultiGraph addEmptyLabelsToLabelGraph(const LabelGraph& labelGraph, const CounterMap<BlockIndex>& vertexCounts, size_t blockCount){
+            std::map<BlockIndex, BlockIndex> indexMap;
+            BlockIndex id = 0;
+            for(BlockIndex r = 0; r < blockCount; ++r){
+                if (vertexCounts[r] > 0){
+                    indexMap[r] = vertexCounts[r];
+                    ++id;
+                }
+            }
+
+            LabelGraph resizedLabelGraph = labelGraph;
+            // for (auto r : labelGraph){
+            //     for (const auto& s : labelGraph.getNeighboursOfIdx(r)){
+            //         if (r > s.vertexIndex)
+            //             continue;
+            //         BlockIndex rr = indexMap[r], ss = indexMap[s.vertexIndex];
+            //         resizedLabelGraph.addMultiedgeIdx(rr, ss, s.label);
+            //     }
+            // }
+
+            return resizedLabelGraph;
+
         }
     public:
         LabelGraphPrior() {}
@@ -79,7 +102,7 @@ class LabelGraphPrior: public BlockLabeledPrior< MultiGraph >{
 
         void setGraph(const MultiGraph& graph);
         const MultiGraph& getGraph() { return *m_graphPtr; }
-        void setState(const MultiGraph&) override;
+        void setState(const LabelGraph&) override;
         void setPartition(const std::vector<BlockIndex>&) ;
         void samplePartition() {
             m_blockPriorPtr->sampleState();
@@ -128,16 +151,16 @@ class LabelGraphPrior: public BlockLabeledPrior< MultiGraph >{
 
 class LabelGraphDeltaPrior: public LabelGraphPrior{
 public:
-    MultiGraph m_labelGraph;
+    LabelGraph m_labelGraph;
     EdgeCountDeltaPrior m_edgeCountDeltaPrior;
 
 public:
     LabelGraphDeltaPrior(){}
-    LabelGraphDeltaPrior(const MultiGraph& labelGraph) {
+    LabelGraphDeltaPrior(const LabelGraph& labelGraph) {
         setState(labelGraph);
         m_edgeCountDeltaPrior.setState(labelGraph.getTotalEdgeNumber());
     }
-    LabelGraphDeltaPrior(const MultiGraph& labelGraph, EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
+    LabelGraphDeltaPrior(const LabelGraph& labelGraph, EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
         LabelGraphPrior(edgeCountPrior, blockPrior){ setState(labelGraph); }
 
     LabelGraphDeltaPrior(const LabelGraphDeltaPrior& labelGraphDeltaPrior):
@@ -150,7 +173,7 @@ public:
         return *this;
     }
 
-    void setState(const MultiGraph& labelGraph) {
+    void setState(const LabelGraph& labelGraph) {
         m_labelGraph = labelGraph;
         m_state = labelGraph;
         m_edgeCounts.clear();
@@ -177,9 +200,7 @@ public:
 class LabelGraphErdosRenyiPrior: public LabelGraphPrior {
 public:
     using LabelGraphPrior::LabelGraphPrior;
-    void sampleState() override {
-        setState(generateMultiGraphErdosRenyi(m_blockPriorPtr->getBlockCount(), getEdgeCount(), true));
-    }
+    void sampleState() override ;
     const double getLogLikelihood() const override {
         return getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState());
     }

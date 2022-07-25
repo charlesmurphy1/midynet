@@ -140,6 +140,34 @@ const double LabelGraphDeltaPrior::getLogLikelihoodRatioFromLabelMove(const Bloc
 
 /* DEFINITION OF EDGE MATRIX UNIFORM PRIOR */
 
+void LabelGraphErdosRenyiPrior::sampleState() {
+    LabelGraph labelGraph(m_blockPriorPtr->getBlockCount());
+
+    std::vector<std::pair<BlockIndex, BlockIndex>> allEdges;
+
+    for(auto nr : m_blockPriorPtr->getVertexCounts()){
+        if (nr.second == 0)
+            continue;
+        for(auto ns : m_blockPriorPtr->getVertexCounts()){
+            if (ns.second == 0 or nr.first > ns.first)
+                continue;
+            allEdges.push_back({nr.first, ns.first});
+        }
+    }
+
+    auto edgeMultiplicities = sampleRandomWeakComposition(getEdgeCount(), allEdges.size());
+
+    size_t counter = 0;
+    for (auto m: edgeMultiplicities){
+        if (m != 0)
+            labelGraph.addMultiedgeIdx(allEdges[counter].first, allEdges[counter].second, m);
+        ++counter;
+    }
+
+    setState(labelGraph);
+}
+
+
 const double LabelGraphErdosRenyiPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
     double currentLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState());
     double newLogLikelihood =  getLogLikelihood(m_blockPriorPtr->getEffectiveBlockCount(), m_edgeCountPriorPtr->getState() + move.addedEdges.size() - move.removedEdges.size());

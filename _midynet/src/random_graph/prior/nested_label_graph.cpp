@@ -2,13 +2,33 @@
 
 namespace FastMIDyNet{
 
+// BlockSequence remapEmptyBlocks(const BlockSequence& blocks){
+//     CounterMap<BlockIndex> counts;
+//     for (auto b : blocks)
+//         counts.increment(b);
+//
+//     std::map<BlockIndex, BlockIndex> remapping;
+//     BlockIndex id=0;
+//     for (auto nr : counts){
+//         if (nr.second > 0){
+//             remapping.insert({nr.first, id});
+//             ++id;
+//         }
+//     }
+//
+//     BlockSequence remappedBlocks;
+//      for (size_t i=0; i<blocks.size(); ++i)
+//         remappedBlocks.push_back(remapping.at(blocks[i]));
+//     return remappedBlocks;
+// }
+
 void NestedLabelGraphPrior::applyGraphMoveToState(const GraphMove& move) {
 
     BlockIndex r, s;
     for (auto removedEdge: move.removedEdges) {
         r = (BlockIndex) removedEdge.first;
         s = (BlockIndex) removedEdge.second;
-        for (Level l=0; l<m_nestedBlockPriorPtr->getDepth(); ++l){
+        for (Level l=0; l<getDepth(); ++l){
             r = m_nestedBlockPriorPtr->getNestedStateAtLevel(l)[r];
             s = m_nestedBlockPriorPtr->getNestedStateAtLevel(l)[s];
             m_nestedState[l].removeEdgeIdx(r, s);
@@ -19,7 +39,7 @@ void NestedLabelGraphPrior::applyGraphMoveToState(const GraphMove& move) {
     for (auto addedEdge: move.addedEdges) {
         r = (BlockIndex) addedEdge.first;
         s = (BlockIndex) addedEdge.second;
-        for (Level l=0; l<m_nestedBlockPriorPtr->getDepth(); ++l){
+        for (Level l=0; l<getDepth(); ++l){
             r = m_nestedBlockPriorPtr->getNestedStateAtLevel(l)[r];
             s = m_nestedBlockPriorPtr->getNestedStateAtLevel(l)[s];
             m_nestedState[l].addEdgeIdx(r, s);
@@ -33,7 +53,7 @@ void NestedLabelGraphPrior::applyLabelMoveToState(const BlockMove& move) {
     if (move.prevLabel == move.nextLabel)
         return;
     BlockIndex vertexIndex = m_nestedBlockPriorPtr->getBlockOfIdx(move.vertexIndex, move.level-1);
-    const MultiGraph& graph = getNestedStateAtLevel(move.level-1);
+    const LabelGraph& graph = getNestedStateAtLevel(move.level-1);
     const BlockSequence& blocks = m_nestedBlockPriorPtr->getNestedStateAtLevel(move.level);
     const auto& degree = graph.getDegreeOfIdx(vertexIndex);
 
@@ -64,19 +84,19 @@ void NestedLabelGraphPrior::applyLabelMoveToState(const BlockMove& move) {
 
 void NestedLabelGraphPrior::recomputeConsistentState() {
     m_nestedEdgeCounts.clear();
-    m_nestedEdgeCounts.resize(m_nestedBlockPriorPtr->getDepth(), {});
-    for (Level l=0; l<m_nestedBlockPriorPtr->getDepth(); ++l)
+    m_nestedEdgeCounts.resize(getDepth(), {});
+    for (Level l=0; l<getDepth(); ++l)
         for (auto r : m_nestedState[l])
             m_nestedEdgeCounts[l].set(r, m_state.getDegreeOfIdx(r));
     m_edgeCountPriorPtr->setState(m_state.getTotalEdgeNumber());
 }
 
 void NestedLabelGraphPrior::recomputeStateFromGraph() {
-    std::vector<MultiGraph> nestedState(m_nestedBlockPriorPtr->getDepth());
+    std::vector<LabelGraph> nestedState(getDepth());
     BlockIndex r, s;
-    for (Level l=0; l<m_nestedBlockPriorPtr->getDepth(); ++l){
+    for (Level l=0; l<getDepth(); ++l){
         nestedState[l].resize(m_nestedBlockPriorPtr->getNestedMaxBlockCountAtLevel(l));
-        const MultiGraph& graph = getNestedStateAtLevel(l);
+        const LabelGraph& graph = getNestedStateAtLevel(l);
         for (const auto& vertex: graph){
             for (const auto& neighbor: graph.getNeighboursOfIdx(vertex)){
                 if (vertex > neighbor.vertexIndex)
@@ -92,28 +112,25 @@ void NestedLabelGraphPrior::recomputeStateFromGraph() {
 
 
 void NestedLabelGraphPrior::sampleState() {
-    m_nestedState = std::vector<MultiGraph>(m_nestedBlockPriorPtr->getDepth());
-
-    for (Level l=m_nestedBlockPriorPtr->getDepth()-1; l>=0; --l){
+    m_nestedState = std::vector<LabelGraph>(getDepth());
+    for (Level l=getDepth()-1; l>=0; --l){
         m_nestedState[l] = sampleStateAtLevel(l);
     }
-
     m_nestedEdgeCounts = computeNestedEdgeCountsFromNestedState(m_nestedState);
     m_state = m_nestedState[0];
     m_edgeCounts = m_nestedEdgeCounts[0];
 }
 
 void NestedLabelGraphPrior::checkSelfConsistencyBetweenLevels() const{
-    MultiGraph graph, actualLabelGraph;
+    LabelGraph graph, actualLabelGraph;
     BlockIndex r, s;
     std::string prefix;
 
-    for (Level l=1; l<m_nestedBlockPriorPtr->getDepth(); ++l){
-        graph = getNestedStateAtLevel(l - 1);
-        std::cout << l - 1 << " " << m_nestedBlockPriorPtr->getNestedMaxBlockCountAtLevel(l) << std::endl;
-        actualLabelGraph = MultiGraph(m_nestedBlockPriorPtr->getNestedMaxBlockCountAtLevel(l));
-        prefix = "NestedLabelGraphPrior (level=" + std::to_string(l) + ")";
 
+    for (Level l=1; l<getDepth(); ++l){
+        graph = getNestedStateAtLevel(l - 1);
+        actualLabelGraph = LabelGraph(m_nestedBlockPriorPtr->getNestedMaxBlockCountAtLevel(l));
+        prefix = "NestedLabelGraphPrior (level=" + std::to_string(l) + ")";
         for (const auto& vertex: graph){
             for (const auto& neighbor: graph.getNeighboursOfIdx(vertex)){
                 if (vertex > neighbor.vertexIndex)
@@ -152,27 +169,45 @@ void NestedLabelGraphPrior::checkSelfConsistencyBetweenLevels() const{
 
 }
 
-const MultiGraph NestedStochasticBlockLabelGraphPrior::sampleStateAtLevel(Level level) const {
-    MultiGraph graph(1);
+const LabelGraph NestedStochasticBlockLabelGraphPrior::sampleStateAtLevel(Level level) const {
 
-    if (level == m_nestedBlockPriorPtr->getDepth() - 1) {
-        // std::cout << "[prior] E_" << level + 1 << " = " << getEdgeCount() << std::endl;
-        graph.addMultiedgeIdx(0, 0, getEdgeCount());
-    } else {
-        // displayMatrix(getNestedStateAtLevel(level + 1).getAdjacencyMatrix(), "[prior] E_" + std::to_string(level + 1), true);
-        graph = generateMultiGraphSBM(
-            getNestedBlocksAtLevel(level + 1),
-            getNestedStateAtLevel(level + 1).getAdjacencyMatrix(),
-            true
-        );
+
+    BlockSequence blocks;
+    if (level == getDepth() - 1)
+        blocks.push_back(0);
+    else
+        blocks = getNestedBlocksAtLevel(level + 1);
+
+    std::map<std::pair<BlockIndex, BlockIndex>, std::vector<BaseGraph::Edge>> allLabeledEdges;
+    for (auto nr : m_nestedBlockPriorPtr->getNestedVertexCountsAtLevel(level)){
+        if (nr.second == 0)
+            continue;
+        for (auto ns : m_nestedBlockPriorPtr->getNestedVertexCountsAtLevel(level)){
+            if (ns.second == 0 or nr.first > ns.first)
+                continue;
+            auto rs = getOrderedPair<BlockIndex>({blocks[nr.first], blocks[ns.first]});
+            allLabeledEdges[rs].push_back({nr.first, ns.first});
+        }
     }
 
+    LabelGraph graph(m_nestedBlockPriorPtr->getNestedBlockCountAtLevel(level));
+    for(const auto& labeledEdges : allLabeledEdges){
+        BlockIndex r = labeledEdges.first.first, s = labeledEdges.first.second;
+        size_t ers = (level == getDepth() - 1) ? getEdgeCount() : getNestedStateAtLevel(level + 1).getEdgeMultiplicityIdx(r, s);
+        auto flatMultiplicity = sampleRandomWeakComposition(ers, labeledEdges.second.size());
+        size_t counter = 0;
+        for (const auto& m: flatMultiplicity){
+            if (m != 0)
+                graph.addMultiedgeIdx(labeledEdges.second[counter].first, labeledEdges.second[counter].second, m);
+            ++counter;
+        }
+    }
     return graph;
 }
 
 double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioOfLevel(
         const CounterMap<BlockIndex>& vertexCounts,
-        const MultiGraph& nextLabelGraph,
+        const LabelGraph& nextLabelGraph,
         const IntMap<BaseGraph::Edge>& edgeDiff,
         const IntMap<BlockIndex>& vertexDiff) const {
     double logLikelihoodRatio = 0;
@@ -192,7 +227,7 @@ double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioOfLevel(
     return logLikelihoodRatio;
 }
 
-double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodOfLevel( const CounterMap<BlockIndex>& vertexCounts, const MultiGraph& nextLabelGraph) const {
+double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodOfLevel( const CounterMap<BlockIndex>& vertexCounts, const LabelGraph& nextLabelGraph) const {
     double logLikelihood = 0;
     size_t nr, ns;
     for (const auto& r : nextLabelGraph){
@@ -209,7 +244,7 @@ double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodOfLevel( const Coun
 }
 
 const double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
-    std::vector<IntMap<BaseGraph::Edge>> nestedEdgeDiff(m_nestedBlockPriorPtr->getDepth());
+    std::vector<IntMap<BaseGraph::Edge>> nestedEdgeDiff(getDepth());
     for (auto edge : move.addedEdges){
         updateNestedEdgeDiffFromEdge(edge, nestedEdgeDiff, 1);
     }
@@ -217,7 +252,7 @@ const double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioFromGrap
         updateNestedEdgeDiffFromEdge(edge, nestedEdgeDiff, -1);
     }
     double logLikelihoodRatio = 0;
-    for (Level l=0; l<m_nestedBlockPriorPtr->getDepth(); ++l){
+    for (Level l=0; l<getDepth(); ++l){
         logLikelihoodRatio += getLogLikelihoodRatioOfLevel(
                                 m_nestedBlockPriorPtr->getNestedVertexCountsAtLevel(l),
                                 getNestedStateAtLevel(l + 1),

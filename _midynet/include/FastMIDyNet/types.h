@@ -22,6 +22,7 @@ typedef std::mt19937_64 RNG;
 
 
 typedef BaseGraph::UndirectedMultigraph MultiGraph;
+typedef BaseGraph::UndirectedMultigraph LabelGraph;
 typedef size_t BlockIndex;
 typedef std::vector<size_t> DegreeSequence;
 typedef std::vector<BlockIndex> BlockSequence;

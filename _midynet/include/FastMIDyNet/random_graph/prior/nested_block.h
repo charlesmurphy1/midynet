@@ -48,6 +48,7 @@ public:
         m_nestedState = nestedBlocks;
         setState(nestedBlocks[0]);
     }
+    std::vector<BlockSequence> reduceNestedState() const ;
 
     /* Accessors & mutators of attributes */
     const size_t getSize() const { return m_size; }

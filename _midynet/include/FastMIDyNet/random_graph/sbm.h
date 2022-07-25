@@ -80,7 +80,7 @@ public:
     const size_t getLabelCount() const override { return m_labelGraphPriorPtr->getBlockPrior().getBlockCount(); }
     const CounterMap<BlockIndex>& getLabelCounts() const override { return m_labelGraphPriorPtr->getBlockPrior().getVertexCounts(); }
     const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return m_labelGraphPriorPtr->getEdgeCounts(); }
-    const MultiGraph& getLabelGraph() const override { return m_labelGraphPriorPtr->getState(); }
+    const LabelGraph& getLabelGraph() const override { return m_labelGraphPriorPtr->getState(); }
     const size_t& getEdgeCount() const override { return m_labelGraphPriorPtr->getEdgeCount(); }
 
     virtual void checkSelfConsistency() const override;

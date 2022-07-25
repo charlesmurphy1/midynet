@@ -55,6 +55,17 @@ def clean_dir(path: pathlib.Path = ".", prefix: str = None):
                     p.unlink()
 
 
+def drawHierarchyTree(b):
+    hierarchy = nx.Graph()
+    b = list(reversed(b))
+    for l in range(1, len(b)):
+        for i, bb in enumerate(b[l]):
+            hierarchy.add_edge(f"l{l-1}-{bb}", f"l{l}-{i}")
+    pos = nx.drawing.nx_pydot.graphviz_layout(hierarchy, prog="dot")
+    nx.draw(hierarchy, pos, with_labels=True)
+    plt.show()
+
+
 hex_colors = {
     "blue": ["#7bafd3", "#1f77b4", "#1f53ff"],
     "orange": ["#f7be90", "#f19143", "#fd7931"],

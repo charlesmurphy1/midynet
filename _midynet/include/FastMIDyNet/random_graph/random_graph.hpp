@@ -100,7 +100,7 @@ public:
     virtual const size_t getLabelCount() const = 0;
     virtual const CounterMap<Label>& getLabelCounts() const = 0;
     virtual const CounterMap<Label>& getEdgeLabelCounts() const = 0;
-    virtual const MultiGraph& getLabelGraph() const = 0;
+    virtual const LabelGraph& getLabelGraph() const = 0;
     const Label& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getLabels()[vertexIdx]; }
 
     virtual void setLabels(const std::vector<Label>&) = 0;

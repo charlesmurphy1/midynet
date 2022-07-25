@@ -12,7 +12,7 @@ namespace FastMIDyNet{
 
 class NestedLabelGraphPrior: public LabelGraphPrior{
 protected:
-    std::vector<MultiGraph> m_nestedState;
+    std::vector<LabelGraph> m_nestedState;
     std::vector<CounterMap<BlockIndex>> m_nestedEdgeCounts;
     NestedBlockPrior* m_nestedBlockPriorPtr = nullptr;
 
@@ -22,14 +22,14 @@ protected:
     void recomputeStateFromGraph() override ;
     std::vector<CounterMap<BlockIndex>> computeNestedEdgeCountsFromNestedState(const std::vector<MultiGraph>& nestedState){
         std::vector<CounterMap<BlockIndex>> nestedEdgeCounts;
-        for (Level l=0; l<m_nestedBlockPriorPtr->getDepth(); ++l)
+        for (Level l=0; l<getDepth(); ++l)
             nestedEdgeCounts.push_back(computeEdgeCountsFromState(nestedState[l]));
         return nestedEdgeCounts;
     }
 
     void updateNestedEdgeDiffFromEdge(const BaseGraph::Edge& edge, std::vector<IntMap<BaseGraph::Edge>>& nestedEdgeDiff, int counter) const{
         size_t r = edge.first, s =edge.second;
-        for (Level l=0; l<m_nestedBlockPriorPtr->getDepth(); ++l){
+        for (Level l=0; l<getDepth(); ++l){
             nestedEdgeDiff[l].increment({r, s}, counter);
             r = m_nestedBlockPriorPtr->getNestedStateAtLevel(l)[r];
             s = m_nestedBlockPriorPtr->getNestedStateAtLevel(l)[s];
@@ -57,22 +57,22 @@ public:
     }
 
 
-    virtual const MultiGraph sampleStateAtLevel(Level) const = 0;
+    virtual const LabelGraph sampleStateAtLevel(Level) const = 0;
     void sampleState() override ;
 
     virtual const double getLogLikelihoodAtLevel(Level) const = 0;
     const double getLogLikelihood() const override{
         double logLikelihood = 0;
-        for (Level l=m_nestedBlockPriorPtr->getDepth()-1; l==0; --l)
+        for (Level l=getDepth()-1; l==0; --l)
             logLikelihood = getLogLikelihoodAtLevel(l);
         return logLikelihood;
     }
 
-    const std::vector<MultiGraph>& getNestedState() const { return m_nestedState; }
-    const MultiGraph& getNestedStateAtLevel(Level level) const {
+    const std::vector<LabelGraph>& getNestedState() const { return m_nestedState; }
+    const LabelGraph& getNestedStateAtLevel(Level level) const {
         return (level==-1) ? *m_graphPtr : m_nestedState[level];
     }
-    void setNestedState(const std::vector<MultiGraph>& nestedState) {
+    void setNestedState(const std::vector<LabelGraph>& nestedState) {
         m_nestedState = nestedState;
         setState(nestedState[0]);
     }
@@ -102,6 +102,7 @@ public:
     const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex vertex, Level level) const {
         return m_nestedBlockPriorPtr->getBlockOfIdx(vertex, level);
     }
+    size_t getDepth() const { return m_nestedBlockPriorPtr->getDepth(); }
 
 
     void setNestedPartition(const std::vector<std::vector<BlockIndex>>& nestedBlocks) {
@@ -121,14 +122,20 @@ public:
 class NestedStochasticBlockLabelGraphPrior: public NestedLabelGraphPrior{
 private:
     double getLogLikelihoodRatioOfLevel(const CounterMap<BlockIndex>& vertexCounts,
-                                         const MultiGraph& nextLabelGraph,
+                                         const LabelGraph& nextLabelGraph,
                                          const IntMap<BaseGraph::Edge>& edgeDiff,
                                          const IntMap<BlockIndex>& vertexDiff) const ;
 
-    double getLogLikelihoodOfLevel( const CounterMap<BlockIndex>& vertexCounts, const MultiGraph& nextLabelGraph) const ;
+    double getLogLikelihoodOfLevel( const CounterMap<BlockIndex>& vertexCounts, const LabelGraph& nextLabelGraph) const ;
+    NestedBlockUniformHyperPrior m_nestedBlockUniformHyperPrior;
+
 public:
-    using NestedLabelGraphPrior::NestedLabelGraphPrior;
-    const MultiGraph sampleStateAtLevel(Level level) const override ;
+    NestedStochasticBlockLabelGraphPrior(size_t graphSize, EdgeCountPrior& edgeCountPrior):
+        NestedLabelGraphPrior(), m_nestedBlockUniformHyperPrior(graphSize){
+            setEdgeCountPrior(edgeCountPrior);
+            setNestedBlockPrior(m_nestedBlockUniformHyperPrior);
+        }
+    const LabelGraph sampleStateAtLevel(Level level) const override ;
     const double getLogLikelihoodAtLevel(Level level) const override {
         return getLogLikelihoodOfLevel(m_nestedBlockPriorPtr->getNestedVertexCountsAtLevel(level), getNestedStateAtLevel(level + 1));
 

@@ -56,6 +56,20 @@ std::pair<size_t, size_t> getUndirectedPairFromIndex(size_t index, size_t n);
 std::list<BaseGraph::Edge> getEdgeList(const MultiGraph& graph);
 std::map<BaseGraph::Edge, size_t> getWeightedEdgeList(const MultiGraph& graph);
 
+// MultiGraph convertMatrixToMultiGraph(Matrix<size_t> matrix){
+//     MultiGraph graph(matrix.size());
+//
+//     for (size_t i=0; i<matrix.size(); ++i){
+//         if (matrix[i][i] > 0)
+//             graph.addMultiedgeIdx(i, i, matrix[i][i]/2);
+//         for (size_t j=i + 1; j<matrix[i].size(); ++j){
+//             if (matrix[i][j] > 0)
+//                 graph.addMultiedgeIdx(i, j, matrix[i][j]);
+//         }
+//     }
+//     return graph;
+// }
+
 template<typename T>
 T sumElementsOfMatrix(Matrix<T> mat, T init){
     T sum = init;
@@ -100,9 +114,9 @@ std::string displayMatrix(const Matrix<T>& matrix, std::string name="m", bool to
     for (auto row : matrix){
         ss << "  [ ";
         for (auto col : row){
-            ss << std::to_string(col) << " ";
+            ss << std::to_string(col) << ", ";
         }
-        ss << "]" << std::endl;
+        ss << "]," << std::endl;
     }
     ss << "]";
 
@@ -115,7 +129,7 @@ std::string displayVector(const std::vector<T>& vec, std::string name="v", bool 
     std::stringstream ss;
     ss << name << " = [ ";
     for (auto row : vec){
-        ss << std::to_string(row) << " ";
+        ss << std::to_string(row) << ", ";
     }
     ss << "]";
     if (toConsole)

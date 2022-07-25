@@ -239,7 +239,7 @@ TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihoodRatioFromGraphMove_f
 TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
     while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
-    auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getLabelGraphPrior().getState().getAdjacencyMatrix(), prior.getState());
+    auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getLabelGraphPrior().getState(), prior.getState());
     labelGraphPrior.setGraph(g);
     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
     BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
@@ -294,7 +294,7 @@ TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromGraphM
 TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
     while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
-    auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getLabelGraphPrior().getState().getAdjacencyMatrix(), prior.getState());
+    auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getLabelGraphPrior().getState(), prior.getState());
     labelGraphPrior.setGraph(g);
     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
     BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
@@ -311,7 +311,7 @@ TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelM
 
 TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forLabelMoveAddingNewBlock_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
-    auto g = generateDCSBM(blockPrior.getState(), prior.getLabelGraphPrior().getState().getAdjacencyMatrix(), prior.getState());
+    auto g = generateDCSBM(blockPrior.getState(), prior.getLabelGraphPrior().getState(), prior.getState());
     BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getVertexCounts().size(), 1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
 

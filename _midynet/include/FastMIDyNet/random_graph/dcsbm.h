@@ -88,7 +88,7 @@ public:
     const size_t getLabelCount() const override { return getBlockPrior().getBlockCount(); }
     const CounterMap<BlockIndex>& getLabelCounts() const override { return getBlockPrior().getVertexCounts(); }
     const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return getLabelGraphPrior().getEdgeCounts(); }
-    const MultiGraph& getLabelGraph() const override { return getLabelGraphPrior().getState(); }
+    const LabelGraph& getLabelGraph() const override { return getLabelGraphPrior().getState(); }
     const size_t& getEdgeCount() const override { return getLabelGraphPrior().getEdgeCount(); }
     const std::vector<size_t> getDegrees() const { return getDegreePrior().getState(); }
 

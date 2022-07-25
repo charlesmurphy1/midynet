@@ -18,7 +18,7 @@ using namespace BaseGraph;
 
 
 void DegreeCorrectedStochasticBlockModelFamily::sampleState(){
-    MultiGraph graph = generateDCSBM(getLabels(), getLabelGraph().getAdjacencyMatrix(), getDegrees());
+    MultiGraph graph = generateDCSBM(getLabels(), getLabelGraph(), getDegrees());
     setGraph( graph );
     computationFinished();
 }
