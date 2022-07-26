@@ -120,6 +120,33 @@ TEST_F(TestBlockPrior, applyMove_forSomeLabelMove_changeBlockOfNode0From0To1){
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
+TEST_F(TestBlockPrior, reducePartition_forSomeIrreduciblePartition_returnSame){
+    BlockSequence partition = {0, 0, 1, 1, 1, 2};
+    BlockSequence reduced = prior.reducePartition(partition);
+    EXPECT_EQ(partition, reduced);
+}
+
+TEST_F(TestBlockPrior, reducePartition_forSomeUnsortedPartition_returnSorted){
+    BlockSequence partition = {0, 0, 2, 1, 1, 1}, expected = {0, 0, 1, 2, 2, 2};
+    BlockSequence reduced = prior.reducePartition(partition);
+
+    EXPECT_EQ(expected, reduced);
+}
+
+TEST_F(TestBlockPrior, reducePartition_forSomeReduciblePartition_returnReduced){
+    BlockSequence partition = {0, 0, 2, 2, 2, 2}, expected = {0, 0, 1, 1, 1, 1};
+    BlockSequence reduced = prior.reducePartition(partition);
+
+    EXPECT_EQ(expected, reduced);
+}
+
+TEST_F(TestBlockPrior, reducePartition_forSomeUnsortedAndReduciblePartition_returnSortedAndReduced){
+    BlockSequence partition = {2, 2, 0, 0, 0, 0}, expected = {0, 0, 1, 1, 1, 1};
+    BlockSequence reduced = prior.reducePartition(partition);
+
+    EXPECT_EQ(expected, reduced);
+}
+
 class TestBlockDeltaPrior: public::testing::Test{
     public:
         BlockDeltaPrior prior = BlockDeltaPrior(BLOCK_SEQ);
@@ -206,8 +233,6 @@ TEST_F(TestBlockUniformPrior, getLogLikelihood_fromSomeRandomBlockSeq_returnCorr
     for (size_t i = 0; i < 10; i++) {
         prior.sample();
         double logLikelihood = prior.getLogLikelihood();
-        std::cout << "getSize: " << prior.getSize() << std::endl;
-        std::cout << "getBlockCount: " << prior.getBlockCount() << std::endl;
         double expectedLogLikelihood = -GRAPH_SIZE * log(prior.getBlockCount());
         EXPECT_FLOAT_EQ(expectedLogLikelihood, logLikelihood);
     }

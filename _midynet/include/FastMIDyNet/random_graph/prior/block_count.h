@@ -136,7 +136,7 @@ public:
 
     const size_t getDepth() const { return m_nestedState.size(); }
     const std::vector<size_t>& getNestedState() const { return m_nestedState; }
-    const size_t& getNestedStateAtLevel(Level level) const { return m_nestedState[level]; }
+    const size_t& getNestedState(Level level) const { return m_nestedState[level]; }
     void createNewLevel() {
         m_nestedState.push_back(1);
     }
@@ -147,7 +147,7 @@ public:
         m_nestedState = nestedBlockCounts;
         m_state = nestedBlockCounts[0];
     }
-    void setNestedStateAtLevel(const size_t blockCount, Level level) {
+    void setNestedState(const size_t blockCount, Level level) {
         m_nestedState[level] = blockCount;
         if (level == 0)
             m_state = blockCount;
@@ -177,7 +177,7 @@ public:
 
     void sampleState() override {
         std::vector<size_t> nestedState;
-        std::uniform_int_distribution<size_t> dist(1, m_graphSize);
+        std::uniform_int_distribution<size_t> dist(1, m_graphSize - 1);
         nestedState.push_back(dist(rng));
         while(nestedState.back() != 1){
             std::uniform_int_distribution<size_t> nestedDist(1, nestedState.back() - 1);

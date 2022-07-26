@@ -140,6 +140,19 @@ public:
         m_blockCountPriorPtr->checkSafety();
 
     }
+    BlockSequence reducePartition(const BlockSequence& blocks) const {
+        BlockIndex id=0;
+        BlockSequence reducedBlocks;
+        std::map<BlockIndex, BlockIndex> remap;
+        for (auto b : blocks){
+            if (remap.count(b) == 0){
+                remap.insert({b, id});
+                ++id;
+            }
+            reducedBlocks.push_back(remap[b]);
+        }
+        return reducedBlocks;
+    }
 
 };
 

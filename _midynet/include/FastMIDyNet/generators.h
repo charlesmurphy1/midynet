@@ -35,6 +35,11 @@ T sampleUniformly(T min, T max) {
     return dist(rng);
 }
 
+template <typename T, typename out>
+out sampleUniformlyFrom(T sequence) {
+    return *sampleUniformlyFrom<T>(sequence.begin(), sequence.end());
+}
+
 template <typename Iterator>
 Iterator sampleUniformlyFrom(Iterator start, Iterator end) {
     std::uniform_int_distribution<> dist(0, std::distance(start, end) - 1);

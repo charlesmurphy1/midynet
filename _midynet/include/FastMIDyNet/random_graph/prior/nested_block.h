@@ -7,9 +7,10 @@ namespace FastMIDyNet{
 
 class NestedBlockPrior: public BlockPrior{
 protected:
-    std::vector<std::vector<BlockIndex>> m_nestedState;
     NestedBlockCountPrior* m_nestedBlockCountPriorPtr = nullptr;
+    std::vector<std::vector<BlockIndex>> m_nestedState;
     std::vector<CounterMap<BlockIndex>> m_nestedVertexCounts;
+    std::vector<CounterMap<BlockIndex>> m_nestedAbsVertexCounts;
 
     void _applyLabelMove(const BlockMove& move) override ;
     const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override ;
@@ -40,15 +41,15 @@ public:
     }
 
     const std::vector<BlockSequence>& getNestedState() const { return m_nestedState; }
-    const BlockSequence& getNestedStateAtLevel(Level level) const { return m_nestedState[level]; }
+    const BlockSequence& getNestedState(Level level) const { return m_nestedState[level]; }
 
     void setNestedState(const std::vector<std::vector<BlockIndex>>& nestedBlocks) {
         m_nestedVertexCounts = computeNestedVertexCounts(nestedBlocks);
+        m_nestedAbsVertexCounts = computeNestedAbsoluteVertexCounts(nestedBlocks);
         m_nestedBlockCountPriorPtr->setNestedStateFromNestedPartition(nestedBlocks);
         m_nestedState = nestedBlocks;
         setState(nestedBlocks[0]);
     }
-    std::vector<BlockSequence> reduceNestedState() const ;
 
     /* Accessors & mutators of attributes */
     const size_t getSize() const { return m_size; }
@@ -66,11 +67,11 @@ public:
     }
 
     const std::vector<size_t>& getNestedBlockCount() const { return m_nestedBlockCountPriorPtr->getNestedState(); }
-    const size_t getNestedBlockCountAtLevel(Level level) const {
-        return (level==-1) ? getSize() : m_nestedBlockCountPriorPtr->getNestedStateAtLevel(level);
+    const size_t getNestedBlockCount(Level level) const {
+        return (level==-1) ? getSize() : m_nestedBlockCountPriorPtr->getNestedState(level);
     }
-    const size_t getNestedMaxBlockCountAtLevel(Level level) const {
-        return (level==-1) ? getSize() : getMaxBlockCountFromPartition(getNestedStateAtLevel(level));
+    const size_t getNestedMaxBlockCount(Level level) const {
+        return (level==-1) ? getSize() : getMaxBlockCountFromPartition(getNestedState(level));
     }
     const std::vector<size_t> getNestedMaxBlockCount() const {
         std::vector<size_t> B;
@@ -78,17 +79,19 @@ public:
             B.push_back(getMaxBlockCountFromPartition(b));
         return B;
     }
-    const size_t getNestedEffectiveBlockCountAtLevel(Level level) const {
-        return (level==-1) ? getSize() : getEffectiveBlockCountFromPartition(getNestedStateAtLevel(level));
+    const size_t getNestedEffectiveBlockCount(Level level) const {
+        return (level==-1) ? getSize() : getNestedAbsVertexCounts(level).size();
     }
     const std::vector<size_t> getNestedEffectiveBlockCount() const {
         std::vector<size_t> B;
-        for (const auto& b: m_nestedState)
-            B.push_back(getEffectiveBlockCountFromPartition(b));
+        for (Level level=0; level<getDepth(); ++level)
+            B.push_back(getNestedEffectiveBlockCount(level));
         return B;
     }
     const std::vector<CounterMap<BlockIndex>>& getNestedVertexCounts() const { return m_nestedVertexCounts; };
-    const CounterMap<BlockIndex>& getNestedVertexCountsAtLevel(Level l) const { return m_nestedVertexCounts[l]; };
+    const CounterMap<BlockIndex>& getNestedVertexCounts(Level l) const { return m_nestedVertexCounts[l]; };
+    const std::vector<CounterMap<BlockIndex>>& getNestedAbsVertexCounts() const { return m_nestedAbsVertexCounts; };
+    const CounterMap<BlockIndex>& getNestedAbsVertexCounts(Level l) const { return m_nestedAbsVertexCounts[l]; };
     const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex idx, Level level) const {
         if (level == -1)
             return (BlockIndex) idx;
@@ -99,19 +102,24 @@ public:
             currentBlock = m_nestedState[l][currentBlock];
         return currentBlock;
     }
+    const BlockIndex getNestedBlockOfIdx(BlockIndex idx, Level level) const { return m_nestedState[level][idx]; }
     static std::vector<CounterMap<BlockIndex>> computeNestedVertexCounts(const std::vector<std::vector<BlockIndex>>&);
+    static std::vector<CounterMap<BlockIndex>> computeNestedAbsoluteVertexCounts(const std::vector<std::vector<BlockIndex>>&);
+    static std::vector<BlockSequence> reduceHierarchy(const std::vector<BlockSequence>& nestedState) ;
+    void reduceHierarchy() { setNestedState(reduceHierarchy(m_nestedState)); }
 
     /* sampling methods */
     void sampleState() override{
         std::vector<BlockSequence> nestedBlocks;
         for (size_t l=0; l<getDepth(); ++l)
-            nestedBlocks.push_back(sampleStateAtLevel(l));
+            nestedBlocks.push_back(sampleState(l));
         m_nestedState = nestedBlocks;
         m_nestedVertexCounts = computeNestedVertexCounts(m_nestedState);
+        m_nestedAbsVertexCounts = computeNestedAbsoluteVertexCounts(m_nestedState);
         m_state = nestedBlocks[0];
         m_vertexCounts = m_nestedVertexCounts[0];
     }
-    virtual const BlockSequence sampleStateAtLevel(Level level) const = 0;
+    virtual const BlockSequence sampleState(Level level) const = 0;
 
     /* MCMC methods */
     const double getLogLikelihood() const override;
@@ -124,7 +132,7 @@ public:
     bool destroyingBlock(const BlockMove& move) const {
         return move.prevLabel != move.nextLabel and
                not creatingNewLevel(move) and
-               m_nestedVertexCounts[move.level].get(move.prevLabel) == 1 ;
+               m_nestedVertexCounts[move.level].get(move.prevLabel);
     }
     bool creatingNewLevel(const BlockMove& move) const {
         return move.level == m_nestedVertexCounts.size() - 1 and move.addedLabels == 1;
@@ -147,33 +155,40 @@ public:
                  + std::to_string(getDepth()) + "].");
     }
 
-    bool isValideBlockMove(const BlockMove& move) const {
-        if (move.level >= getDepth())
-            return false;
-        if (m_nestedVertexCounts[move.level].size() + getAddedBlocks(move) > getNestedBlockCountAtLevel(move.level) + move.addedLabels)
-            return false;
-        if (getDepth() == 1)
-            return true;
-        if (getNestedBlockCountAtLevel(move.level) + move.addedLabels <= getNestedBlockCountAtLevel(move.level + 1))
-            return false;
-        if (getNestedStateAtLevel(move.level + 1)[move.prevLabel] != getNestedStateAtLevel(move.level + 1)[move.nextLabel])
-            return false;
-        return true;
+    bool isValideBlockMove(const BlockMove& move) const ;
+
+    void checkNestedStateConsistencyWithAbsVertexCounts() const {
+        std::vector<CounterMap<size_t>> actualNestedAbsVertexCount = computeNestedAbsoluteVertexCounts(m_nestedState);
+        for (Level l=0; l<getDepth(); ++l){
+            std::string prefix = "NestedBlockPrior (l=" + std::to_string(l) + ")";
+            size_t N = 0;
+            for (const auto& nr : m_nestedAbsVertexCounts[l]){
+                if (nr.second != actualNestedAbsVertexCount[l][nr.first])
+                    throw ConsistencyError(prefix + ": nested state is inconsistent with absolute vertex counts at r="
+                        + std::to_string(nr.first) + ": expected=" + std::to_string(nr.second) + " actual="
+                        + std::to_string(actualNestedAbsVertexCount[l][nr.first]) + ".");
+                N += nr.second;
+            }
+            if (N != getSize())
+                throw ConsistencyError(prefix + ": nested state (size=" + std::to_string(getSize())
+                    + ") is inconsistent with absolute vertex counts (size=" + std::to_string(N) + ").");
+        }
     }
 
     void checkSelfConsistency() const override {
         m_nestedBlockCountPriorPtr->checkConsistency();
+        checkNestedStateConsistencyWithAbsVertexCounts();
         for (Level l=0; l<getDepth()-1; ++l){
             std::string prefix = "NestedBlockPrior (l=" + std::to_string(l) + ")";
             checkBlockSequenceConsistencyWithVertexCounts(prefix, m_nestedState[l], m_nestedVertexCounts[l]);
-            if (m_nestedState[l].size() != getNestedBlockCountAtLevel(l - 1))
+            if (m_nestedState[l].size() < getNestedBlockCount(l - 1))
                 throw ConsistencyError(prefix + ": nested state (size "
                 + std::to_string(m_nestedState[l].size()) +
-                ") is inconsistent with block count (" + std::to_string(getNestedBlockCountAtLevel(l - 1)) +  ").");
-            if (m_nestedVertexCounts[l].size() > getNestedBlockCountAtLevel(l)){
+                ") is inconsistent with block count (" + std::to_string(getNestedBlockCount(l - 1)) +  ").");
+            if (m_nestedVertexCounts[l].size() > getNestedBlockCount(l)){
                 throw ConsistencyError(prefix + ": nested vertex counts (size "
                 + std::to_string(m_nestedVertexCounts[l].size()) +
-                ") are inconsistent with block count (" + std::to_string(getNestedBlockCountAtLevel(l)) +  ").");
+                ") are inconsistent with block count (" + std::to_string(getNestedBlockCount(l)) +  ").");
             }
         }
     }
@@ -206,7 +221,7 @@ public:
     void setSize(size_t size) override { m_size = size; m_nestedBlockCountPrior.setGraphSize(size); }
     const double getLogLikelihoodAtLevel(Level level) const override;
     const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const ;
-    const BlockSequence sampleStateAtLevel(Level level) const override;
+    const BlockSequence sampleState(Level level) const override;
 };
 
 class NestedBlockUniformHyperPrior: public NestedBlockPrior{
@@ -223,7 +238,7 @@ public:
     void setSize(size_t size) override { m_size = size; m_nestedBlockCountPrior.setGraphSize(size); }
     const double getLogLikelihoodAtLevel(Level level) const override;
     const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const ;
-    const BlockSequence sampleStateAtLevel(Level level) const override;
+    const BlockSequence sampleState(Level level) const override;
 };
 
 

@@ -20,21 +20,18 @@ protected:
     void applyLabelMoveToState(const BlockMove& move) override ;
     void recomputeConsistentState() override ;
     void recomputeStateFromGraph() override ;
-    std::vector<CounterMap<BlockIndex>> computeNestedEdgeCountsFromNestedState(const std::vector<MultiGraph>& nestedState){
+    std::vector<CounterMap<BlockIndex>> computeNestedEdgeCountsFromNestedState(
+        const std::vector<MultiGraph>& nestedState
+    ){
         std::vector<CounterMap<BlockIndex>> nestedEdgeCounts;
         for (Level l=0; l<getDepth(); ++l)
             nestedEdgeCounts.push_back(computeEdgeCountsFromState(nestedState[l]));
         return nestedEdgeCounts;
     }
 
-    void updateNestedEdgeDiffFromEdge(const BaseGraph::Edge& edge, std::vector<IntMap<BaseGraph::Edge>>& nestedEdgeDiff, int counter) const{
-        size_t r = edge.first, s =edge.second;
-        for (Level l=0; l<getDepth(); ++l){
-            nestedEdgeDiff[l].increment({r, s}, counter);
-            r = m_nestedBlockPriorPtr->getNestedStateAtLevel(l)[r];
-            s = m_nestedBlockPriorPtr->getNestedStateAtLevel(l)[s];
-        }
-    }
+    void updateNestedEdgeDiffFromEdge(
+        const BaseGraph::Edge& edge, std::vector<IntMap<BaseGraph::Edge>>& nestedEdgeDiff, int counter
+    ) const ;
 
 public:
     NestedLabelGraphPrior() {}
@@ -57,19 +54,19 @@ public:
     }
 
 
-    virtual const LabelGraph sampleStateAtLevel(Level) const = 0;
+    virtual const LabelGraph sampleState(Level) const = 0;
     void sampleState() override ;
 
     virtual const double getLogLikelihoodAtLevel(Level) const = 0;
-    const double getLogLikelihood() const override{
-        double logLikelihood = 0;
-        for (Level l=getDepth()-1; l==0; --l)
-            logLikelihood = getLogLikelihoodAtLevel(l);
-        return logLikelihood;
-    }
+    const double getLogLikelihood() const override;
+
+    // virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override = 0;
+    // virtual const double getLogLikelihoodRatioFromLabelMoveAtLevel( const BlockMove& move ) const = 0;
+    // const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const override;
+
 
     const std::vector<LabelGraph>& getNestedState() const { return m_nestedState; }
-    const LabelGraph& getNestedStateAtLevel(Level level) const {
+    const LabelGraph& getNestedState(Level level) const {
         return (level==-1) ? *m_graphPtr : m_nestedState[level];
     }
     void setNestedState(const std::vector<LabelGraph>& nestedState) {
@@ -89,18 +86,22 @@ public:
     const std::vector<size_t>& getNestedBlockCount() const {
         return m_nestedBlockPriorPtr->getNestedBlockCount();
     }
-    const size_t getNestedBlockCountAtLevel(Level level) const {
-        return m_nestedBlockPriorPtr->getNestedBlockCountAtLevel(level);
+    const size_t getNestedBlockCount(Level level) const {
+        return m_nestedBlockPriorPtr->getNestedBlockCount(level);
     }
 
     const std::vector<std::vector<BlockIndex>>& getNestedBlocks() const {
         return m_nestedBlockPriorPtr->getNestedState();
     }
-    const std::vector<BlockIndex>& getNestedBlocksAtLevel(Level level) const {
-        return m_nestedBlockPriorPtr->getNestedStateAtLevel(level);
+    const std::vector<BlockIndex>& getNestedBlocks(Level level) const {
+        return m_nestedBlockPriorPtr->getNestedState(level);
     }
+    using LabelGraphPrior::getBlockOfIdx;
     const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex vertex, Level level) const {
         return m_nestedBlockPriorPtr->getBlockOfIdx(vertex, level);
+    }
+    const BlockIndex getNestedBlockOfIdx(BaseGraph::VertexIndex vertex, Level level) const {
+        return m_nestedBlockPriorPtr->getNestedBlockOfIdx(vertex, level);
     }
     size_t getDepth() const { return m_nestedBlockPriorPtr->getDepth(); }
 
@@ -110,7 +111,20 @@ public:
         recomputeStateFromGraph();
     }
 
+    void reduceHierarchy() {
+        m_nestedBlockPriorPtr->reduceHierarchy();
+        recomputeStateFromGraph();
+    }
+
+    const std::vector<CounterMap<BlockIndex>>& getNestedVertexCounts() const {
+        return m_nestedBlockPriorPtr->getNestedVertexCounts();
+    }
+    const CounterMap<BlockIndex>& getNestedVertexCounts(Level level) const {
+        return m_nestedBlockPriorPtr->getNestedVertexCounts(level);
+    }
+
     const std::vector<CounterMap<BlockIndex>>& getNestedEdgeCounts() const { return m_nestedEdgeCounts; }
+    const CounterMap<BlockIndex>& getNestedEdgeCounts(Level level) const { return m_nestedEdgeCounts[level]; }
 
     void checkSelfConsistencyBetweenLevels() const;
     void checkSelfConsistency() const override{
@@ -121,29 +135,17 @@ public:
 
 class NestedStochasticBlockLabelGraphPrior: public NestedLabelGraphPrior{
 private:
-    double getLogLikelihoodRatioOfLevel(const CounterMap<BlockIndex>& vertexCounts,
-                                         const LabelGraph& nextLabelGraph,
-                                         const IntMap<BaseGraph::Edge>& edgeDiff,
-                                         const IntMap<BlockIndex>& vertexDiff) const ;
-
-    double getLogLikelihoodOfLevel( const CounterMap<BlockIndex>& vertexCounts, const LabelGraph& nextLabelGraph) const ;
-    NestedBlockUniformHyperPrior m_nestedBlockUniformHyperPrior;
-
+    NestedBlockUniformHyperPrior m_blockPrior;
 public:
     NestedStochasticBlockLabelGraphPrior(size_t graphSize, EdgeCountPrior& edgeCountPrior):
-        NestedLabelGraphPrior(), m_nestedBlockUniformHyperPrior(graphSize){
+        NestedLabelGraphPrior(), m_blockPrior(graphSize){
             setEdgeCountPrior(edgeCountPrior);
-            setNestedBlockPrior(m_nestedBlockUniformHyperPrior);
+            setNestedBlockPrior(m_blockPrior);
         }
-    const LabelGraph sampleStateAtLevel(Level level) const override ;
-    const double getLogLikelihoodAtLevel(Level level) const override {
-        return getLogLikelihoodOfLevel(m_nestedBlockPriorPtr->getNestedVertexCountsAtLevel(level), getNestedStateAtLevel(level + 1));
-
-    }
-    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override ;
-    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const override ;
-
-
+    const LabelGraph sampleState(Level level) const override ;
+    const double getLogLikelihoodAtLevel(Level level) const override;
+    const double getLogLikelihoodRatioFromGraphMove( const GraphMove& move ) const override ;
+    const double getLogLikelihoodRatioFromLabelMove( const BlockMove& move ) const override ;
 };
 
 }

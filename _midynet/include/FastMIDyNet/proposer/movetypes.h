@@ -34,7 +34,7 @@ struct GraphMove{
 
 template <typename Label>
 struct LabelMove{
-    LabelMove(BaseGraph::VertexIndex vertexIndex, Label prevLabel, Label nextLabel, int addedLabels=0, Level level=0):
+    LabelMove(BaseGraph::VertexIndex vertexIndex=0, Label prevLabel=0, Label nextLabel=0, int addedLabels=0, Level level=0):
         vertexIndex(vertexIndex), prevLabel(prevLabel),
         nextLabel(nextLabel), addedLabels(addedLabels),
         level(level){ }
