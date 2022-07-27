@@ -105,8 +105,8 @@ public:
     const BlockIndex getNestedBlockOfIdx(BlockIndex idx, Level level) const { return m_nestedState[level][idx]; }
     static std::vector<CounterMap<BlockIndex>> computeNestedVertexCounts(const std::vector<std::vector<BlockIndex>>&);
     static std::vector<CounterMap<BlockIndex>> computeNestedAbsoluteVertexCounts(const std::vector<std::vector<BlockIndex>>&);
-    static std::vector<BlockSequence> reduceHierarchy(const std::vector<BlockSequence>& nestedState) ;
-    void reduceHierarchy() { setNestedState(reduceHierarchy(m_nestedState)); }
+    static std::vector<BlockSequence> reduceHierarchy(const std::vector<BlockSequence>& nestedState, Level minLevel=0) ;
+    void reduceHierarchy(Level minLevel=0) { setNestedState(reduceHierarchy(m_nestedState, minLevel)); }
 
     /* sampling methods */
     void sampleState() override{
@@ -243,7 +243,7 @@ public:
     void destroyBlock(const BlockMove& move) override {
         BlockIndex r = getNestedBlockOfIdx(move.prevLabel, move.level + 1);
         m_nestedVertexCounts[move.level + 1].decrement(r);
-        reduceHierarchy();
+        reduceHierarchy(move.level);
     }
 
 };

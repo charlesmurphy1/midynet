@@ -87,14 +87,14 @@ void NestedBlockPrior::createNewBlock(const BlockMove& move){
     }
 }
 
-std::vector<BlockSequence> NestedBlockPrior::reduceHierarchy(const std::vector<BlockSequence>& nestedState) {
+std::vector<BlockSequence> NestedBlockPrior::reduceHierarchy(const std::vector<BlockSequence>& nestedState, Level minLevel) {
     size_t depth = nestedState.size();
     std::vector<BlockSequence> reducedState = nestedState;
 
     BlockIndex id, i;
     std::map<BlockIndex, BlockIndex> remap;
 
-    for (Level l=0; l<depth; ++l){
+    for (Level l=minLevel; l<depth; ++l){
         remap.clear();
         id = 0, i = 0;
         BlockSequence relabeled;
