@@ -31,6 +31,48 @@ std::string displayNestedVertexCount(std::vector<CounterMap<BlockIndex>> nestedV
 
 }
 
+BlockMove proposeMove(
+        NestedBlockPrior& prior,
+        BaseGraph::VertexIndex id, Level level,
+        size_t depth=4, bool creatingNewBlock=false, bool destroyingBlock=false){
+    size_t it = 0;
+
+    while (it < 100){
+        prior.sample();
+        if (prior.getDepth() != depth)
+            continue;
+        BlockIndex r, s;
+        int addedLabels = 0;
+        r = prior.getBlockOfIdx(id, level);
+        if (prior.getNestedVertexCounts(level)[r] == 1 and not destroyingBlock)
+            continue;
+        if (creatingNewBlock){
+            addedLabels = 1;
+            s = prior.getNestedBlockCount(level);
+        } else if (destroyingBlock){
+            s = 1;
+            addedLabels = -1;
+            for (size_t i=0; i<prior.getSize(); ++i){
+                r = prior.getBlockOfIdx(i, level);
+                if (prior.getNestedVertexCounts(level)[r] == 1){
+                    id = i;
+                    break;
+                }
+                s = r;
+            }
+        } else{
+            s = sampleUniformly(0, (int)prior.getNestedBlockCount(level) - 1);
+            if (prior.getNestedVertexCounts(level)[r] == 1)
+                continue;
+        }
+        BlockMove move = {id, r, s, addedLabels, level};
+        if (prior.isValidBlockMove(move) and r != s)
+            return move;
+        ++it;
+    }
+    throw std::logic_error("Could not create valid move.");
+}
+
 class TestNestedBlockPrior: public ::testing::Test {
     public:
 
@@ -46,42 +88,7 @@ class TestNestedBlockPrior: public ::testing::Test {
                 prior.checkConsistency();
         }
 
-        BlockMove proposeMove(
-                BaseGraph::VertexIndex id, Level level,
-                size_t depth=4, bool creatingNewBlock=false, bool destroyingBlock=false){
-            size_t it = 0;
 
-            while (it < 100){
-                prior.sample();
-                if (prior.getDepth() != depth)
-                    continue;
-                BlockIndex r, s;
-                int addedLabels = 0;
-                r = prior.getBlockOfIdx(id, level);
-                if (creatingNewBlock){
-                    s = prior.getNestedBlockCount(level);
-                    addedLabels = 1;
-                } else if (destroyingBlock){
-                    s = 1;
-                    addedLabels = -1;
-                    for (size_t i=0; i<prior.getSize(); ++i){
-                        r = prior.getBlockOfIdx(i, level);
-                        if (prior.getNestedVertexCounts(level)[r] == 1){
-                            id = i;
-                            break;
-                        }
-                        s = r;
-                    }
-                } else{
-                    s = sampleUniformly(0, (int)prior.getNestedBlockCount(level) - 1);
-                }
-                BlockMove move = {id, r, s, addedLabels, level};
-                if (prior.isValideBlockMove(move))
-                    return move;
-                ++it;
-            }
-            throw std::logic_error("Could not create valid move.");
-        }
 };
 
 TEST_F(TestNestedBlockPrior, sampleState_returnConsistentState){
@@ -148,14 +155,14 @@ TEST_F(TestNestedBlockPrior, creatingNewLevel_forMoveCreatingLevel_returnFalse){
 }
 
 TEST_F(TestNestedBlockPrior, applyLabelMove_forBlockMoveAtFirstLevel_returnConsistentState){
-    BlockMove move = proposeMove(0, 0, 3);
+    BlockMove move = proposeMove(prior, 0, 0, 3);
     prior.applyLabelMove(move);
     EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
     EXPECT_NO_THROW(prior.checkConsistency());
 }
 
 TEST_F(TestNestedBlockPrior, applyLabelMove_forBlockMoveAtSomeLevel_returnConsistentState){
-    BlockMove move = proposeMove(0, 1, 3);
+    BlockMove move = proposeMove(prior, 0, 1, 3);
     prior.applyLabelMove(move);
     EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
     EXPECT_NO_THROW(prior.checkConsistency());
@@ -164,7 +171,7 @@ TEST_F(TestNestedBlockPrior, applyLabelMove_forBlockMoveAtSomeLevel_returnConsis
 
 
 TEST_F(TestNestedBlockPrior, applyLabelMove_forBlockMoveAddingBlockAtFirstLevelNotCreatingNewLevel_returnConsistentState){
-    BlockMove move = proposeMove(0, 0, 3, true);
+    BlockMove move = proposeMove(prior, 0, 0, 3, true);
     std::vector<size_t> prevBlockCounts = prior.getNestedBlockCount();
     prior.applyLabelMove(move);
     EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
@@ -176,7 +183,7 @@ TEST_F(TestNestedBlockPrior, applyLabelMove_forBlockMoveAddingBlockAtFirstLevelN
 }
 
 TEST_F(TestNestedBlockPrior, applyLabelMove_forBlockMoveAddingBlockAtSomeLevelNotCreatingNewLevel_returnConsistentState){
-    BlockMove move = proposeMove(0, 1, 4, true);
+    BlockMove move = proposeMove(prior, 0, 1, 4, true);
     std::vector<size_t> prevBlockCounts = prior.getNestedBlockCount();
     prior.applyLabelMove(move);
     EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
@@ -191,7 +198,7 @@ TEST_F(TestNestedBlockPrior, applyLabelMove_forBlockMoveAddingBlockAtSomeLevelNo
 
 TEST_F(TestNestedBlockPrior, applyLabelMove_forBlockMoveAddingBlockCreatingNewLevel_returnConsistentState){
 
-    BlockMove move = proposeMove(0, 3, 4, true);
+    BlockMove move = proposeMove(prior, 0, 2, 4, true);
     std::vector<size_t> prevBlockCounts = prior.getNestedBlockCount();
     prior.applyLabelMove(move);
     EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
@@ -207,50 +214,40 @@ TEST_F(TestNestedBlockPrior, applyLabelMove_forBlockMoveAddingBlockCreatingNewLe
 }
 
 TEST_F(TestNestedBlockPrior, applyLabelMove_forBlockMoveDestroyingBlock_returnConsistentState){
-    BlockMove move = proposeMove(0, 1, 3, false, true);
+    BlockMove move = proposeMove(prior, 0, 1, 3, false, true);
     prior.applyLabelMove(move);
     EXPECT_NO_THROW(prior.checkConsistency());
 }
 
-TEST_F(TestNestedBlockPrior, isValideBlockMove_forMoveAtFirstLevelNotCreatingLabel_returnCorrectValue){
+
+TEST_F(TestNestedBlockPrior, applyLabelMove_forBlockMoveDestroyingBlockAtSecondToLastLevel_returnConsistentState){
+    prior.sample();
+    // BlockMove move = proposeMove(prior, 0, 2, 3, false, true);
+    // std::cout << move.display() << std::endl;
+    // displayMatrix(prior.getNestedState(), "b", true);
+    // prior.applyLabelMove(move);
+    // displayMatrix(prior.getNestedState(), "b", true);
+    // EXPECT_NO_THROW(prior.checkConsistency());
+}
+
+TEST_F(TestNestedBlockPrior, isValidBlockMove_forMoveAtFirstLevelNotCreatingLabel_returnCorrectValue){
     BaseGraph::VertexIndex vertex = 0;
     Level level = 0;
     for (size_t i=0; i<NUM_SAMPLES; ++i){
-        prior.sample();
-        while (prior.getDepth() != 3)
-            prior.sample();
-        BlockIndex prevIndex = prior.getBlockOfIdx(vertex, level);
-        BlockIndex nextIndex = sampleUniformly((size_t) 1, prior.getNestedBlockCount(level) - 1);
-        int it = 0;
-        while( it < 100 and prior.getNestedState(level+1)[prevIndex] == prior.getNestedState(level+1)[nextIndex] ){
-            nextIndex = sampleUniformly((size_t) 1, prior.getNestedBlockCount(level) - 1);
-            ++it;
-        }
-
-        BlockMove move(0, prevIndex, nextIndex, 0, level);
+        BlockMove move = proposeMove(prior, vertex, level, 4);
         bool expectedIsValue = (prior.getNestedState(move.level + 1)[move.prevLabel] == prior.getNestedState(move.level + 1)[move.nextLabel]);
-        EXPECT_EQ(prior.isValideBlockMove(move), expectedIsValue);
+        EXPECT_EQ(prior.isValidBlockMove(move), expectedIsValue);
     }
 }
 
-TEST_F(TestNestedBlockPrior, isValideBlockMove_forMoveAtSomeLevelNotCreatingLabel_returnCorrectValue){
+TEST_F(TestNestedBlockPrior, isValidBlockMove_forMoveAtSomeLevelNotCreatingLabel_returnCorrectValue){
     BaseGraph::VertexIndex vertex = 0;
     Level level = 1;
     for (size_t i=0; i<NUM_SAMPLES; ++i){
-        prior.sample();
-        while (prior.getDepth() != 4)
-            prior.sample();
-        BlockIndex prevIndex = prior.getBlockOfIdx(vertex, level);
-        BlockIndex nextIndex = sampleUniformly((size_t) 1, prior.getNestedBlockCount(level) - 1);
-        int it = 0;
-        while( it < 100 and prior.getNestedState(level+1)[prevIndex] == prior.getNestedState(level+1)[nextIndex] ){
-            nextIndex = sampleUniformly((size_t) 1, prior.getNestedBlockCount(level) - 1);
-            ++it;
-        }
+        BlockMove move = proposeMove(prior, vertex, level, 4);
 
-        BlockMove move(0, prevIndex, nextIndex, 0, level);
         bool expectedIsValue = (prior.getNestedState(move.level + 1)[move.prevLabel] == prior.getNestedState(move.level + 1)[move.nextLabel]);
-        EXPECT_EQ(prior.isValideBlockMove(move), expectedIsValue);
+        EXPECT_EQ(prior.isValidBlockMove(move), expectedIsValue);
     }
 }
 
@@ -266,61 +263,62 @@ TEST_F(TestNestedBlockPrior, reduceHierarchy_forSomeState_returnReduced){
     // displayMatrix(reducedNestedState, "[reduced] b", true);
 
 }
-class TestNestedBlockUniformPrior: public ::testing::Test {
-    public:
 
-        size_t GRAPH_SIZE=10, NUM_SAMPLES=100;
-        NestedBlockUniformPrior prior = NestedBlockUniformPrior(GRAPH_SIZE);
-
-        bool expectConsistencyError = false;
-        void SetUp() {
-            prior.checkSafety();
-            prior.sample();
-        }
-        void TearDown(){
-            if (not expectConsistencyError)
-                prior.checkConsistency();
-        }
-};
-
-TEST_F(TestNestedBlockUniformPrior, setSize_forNewSize_returnStateWithNewSize) {
-    prior.setSize(11);
-    prior.sample();
-    EXPECT_EQ(prior.getState().size(), 11);
-}
-
-TEST_F(TestNestedBlockUniformPrior, getLogLikelihood_returnSomeOfLogLikelihoodAtEachLevel) {
-    double actualLogLikelihood = prior.getLogLikelihood();
-    double expectedLogLikelihood = 0;
-    for (Level l=0; l<prior.getDepth(); ++l)
-        expectedLogLikelihood += prior.getLogLikelihoodAtLevel(l);
-    EXPECT_NEAR(actualLogLikelihood, expectedLogLikelihood, 1e-6);
-}
-
-TEST_F(TestNestedBlockUniformPrior, getLogLikelihoodAtLevel_forAllLevel_returnCorrectValue) {
-    for (Level l=0; l<prior.getDepth(); ++l){
-        double actualLogLikelihood = prior.getLogLikelihoodAtLevel(l);
-        double graphSize = prior.getNestedBlockCount(l - 1);
-        double blockCount = prior.getNestedBlockCount(l);
-        double expectedLogLikelihood = -graphSize * log(blockCount);
-        EXPECT_NEAR(actualLogLikelihood, expectedLogLikelihood, 1e-6);
-    }
-}
-
-TEST_F(TestNestedBlockUniformPrior, getLogLikelihoodRatioFromLabelMove_forValidLabelMoveAtFirstLevel_returnCorrectRatio) {
-    BaseGraph::VertexIndex vertex = 0; //sampleUniformly(0, prior.getSize());
-    Level level = 0;
-    BlockMove move = {0, prior.getBlockOfIdx(0, level), sampleUniformly<BlockIndex>(0, prior.getNestedBlockCount(level) - 1), 0, level};
-    while( not prior.isValideBlockMove(move) ){
-        prior.sample();
-         move = {0, prior.getBlockOfIdx(0, level), sampleUniformly<BlockIndex>(0, prior.getNestedBlockCount(level) - 1), 0, level};
-     }
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
-    double logLikelihoodBefore = prior.getLogLikelihood();
-    prior.applyLabelMove(move);
-    double logLikelihoodAfter = prior.getLogLikelihood();
-    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter-logLikelihoodBefore, 1e-6);
-}
+// class TestNestedBlockUniformPrior: public ::testing::Test {
+//     public:
+//
+//         size_t GRAPH_SIZE=10, NUM_SAMPLES=100;
+//         NestedBlockUniformPrior prior = NestedBlockUniformPrior(GRAPH_SIZE);
+//
+//         bool expectConsistencyError = false;
+//         void SetUp() {
+//             prior.checkSafety();
+//             prior.sample();
+//         }
+//         void TearDown(){
+//             if (not expectConsistencyError)
+//                 prior.checkConsistency();
+//         }
+// };
+//
+// TEST_F(TestNestedBlockUniformPrior, setSize_forNewSize_returnStateWithNewSize) {
+//     prior.setSize(11);
+//     prior.sample();
+//     EXPECT_EQ(prior.getState().size(), 11);
+// }
+//
+// TEST_F(TestNestedBlockUniformPrior, getLogLikelihood_returnSomeOfLogLikelihoodAtEachLevel) {
+//     double actualLogLikelihood = prior.getLogLikelihood();
+//     double expectedLogLikelihood = 0;
+//     for (Level l=0; l<prior.getDepth(); ++l)
+//         expectedLogLikelihood += prior.getLogLikelihoodAtLevel(l);
+//     EXPECT_NEAR(actualLogLikelihood, expectedLogLikelihood, 1e-6);
+// }
+//
+// TEST_F(TestNestedBlockUniformPrior, getLogLikelihoodAtLevel_forAllLevel_returnCorrectValue) {
+//     for (Level l=0; l<prior.getDepth(); ++l){
+//         double actualLogLikelihood = prior.getLogLikelihoodAtLevel(l);
+//         double graphSize = prior.getNestedBlockCount(l - 1);
+//         double blockCount = prior.getNestedBlockCount(l);
+//         double expectedLogLikelihood = -graphSize * log(blockCount);
+//         EXPECT_NEAR(actualLogLikelihood, expectedLogLikelihood, 1e-6);
+//     }
+// }
+//
+// TEST_F(TestNestedBlockUniformPrior, getLogLikelihoodRatioFromLabelMove_forValidLabelMoveAtFirstLevel_returnCorrectRatio) {
+//     BaseGraph::VertexIndex vertex = 0; //sampleUniformly(0, prior.getSize());
+//     Level level = 0;
+//     BlockMove move = {0, prior.getBlockOfIdx(0, level), sampleUniformly<BlockIndex>(0, prior.getNestedBlockCount(level) - 1), 0, level};
+//     while( not prior.isValidBlockMove(move) ){
+//         prior.sample();
+//          move = {0, prior.getBlockOfIdx(0, level), sampleUniformly<BlockIndex>(0, prior.getNestedBlockCount(level) - 1), 0, level};
+//      }
+//     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
+//     double logLikelihoodBefore = prior.getLogLikelihood();
+//     prior.applyLabelMove(move);
+//     double logLikelihoodAfter = prior.getLogLikelihood();
+//     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter-logLikelihoodBefore, 1e-6);
+// }
 
 
 
@@ -375,17 +373,58 @@ TEST_F(TestNestedBlockUniformHyperPrior, getLogLikelihoodAtLevel_forAllLevel_ret
 TEST_F(TestNestedBlockUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forValidLabelMoveAtFirstLevel_returnCorrectRatio) {
     BaseGraph::VertexIndex vertex = 0; //sampleUniformly(0, prior.getSize());
     Level level = 0;
-    BlockMove move = {0, prior.getBlockOfIdx(0, level), sampleUniformly<BlockIndex>(0, prior.getNestedBlockCount(level) - 1), 0, level};
-    while( not prior.isValideBlockMove(move) ){
-        prior.sample();
-         move = {0, prior.getBlockOfIdx(0, level), sampleUniformly<BlockIndex>(0, prior.getNestedBlockCount(level) - 1), 0, level};
-     }
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
+    BlockMove move = proposeMove(prior, vertex, level, 4);
+    double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
     prior.applyLabelMove(move);
     double logLikelihoodAfter = prior.getLogLikelihood();
-    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter-logLikelihoodBefore, 1e-6);
+    EXPECT_NEAR(expectedLogLikelihoodRatio, logLikelihoodAfter-logLikelihoodBefore, 1e-6);
 }
+
+TEST_F(TestNestedBlockUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forValidLabelMoveAddingBlockAtFirstLevel_returnCorrectRatio) {
+    BaseGraph::VertexIndex vertex = 0; //sampleUniformly(0, prior.getSize());
+    Level level = 0;
+    BlockMove move = proposeMove(prior, vertex, level, 4, true);
+    double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
+    double logLikelihoodBefore = prior.getLogLikelihood();
+    prior.applyLabelMove(move);
+    double logLikelihoodAfter = prior.getLogLikelihood();
+    EXPECT_NEAR(expectedLogLikelihoodRatio, logLikelihoodAfter-logLikelihoodBefore, 1e-6);
+}
+
+TEST_F(TestNestedBlockUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forValidLabelMoveDestroyingBlockAtFirstLevel_returnCorrectRatio) {
+    BaseGraph::VertexIndex vertex = 0; //sampleUniformly(0, prior.getSize());
+    Level level = 0;
+    BlockMove move = proposeMove(prior, vertex, level, 4, false, true);
+    double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
+    double logLikelihoodBefore = prior.getLogLikelihood();
+    prior.applyLabelMove(move);
+    double logLikelihoodAfter = prior.getLogLikelihood();
+    EXPECT_NEAR(expectedLogLikelihoodRatio, logLikelihoodAfter-logLikelihoodBefore, 1e-6);
+}
+
+TEST_F(TestNestedBlockUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forValidLabelMoveCreatingBlockAtLastLevel_returnCorrectRatio) {
+    BaseGraph::VertexIndex vertex = 0; //sampleUniformly(0, prior.getSize());
+    Level level = 2;
+    BlockMove move = proposeMove(prior, vertex, level, 4, true);
+    double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
+    double logLikelihoodBefore = prior.getLogLikelihood();
+    prior.applyLabelMove(move);
+    double logLikelihoodAfter = prior.getLogLikelihood();
+    EXPECT_NEAR(expectedLogLikelihoodRatio, logLikelihoodAfter-logLikelihoodBefore, 1e-6);
+}
+
+TEST_F(TestNestedBlockUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forValidLabelMoveDestroyingBlockAtLastLevel_returnCorrectRatio) {
+    std::vector<BlockSequence> blocks = {{1,2,0,0,0,0,0,0,0,0}, {0, 1, 0}, {0, 0}};
+    prior.setNestedState(blocks);
+    BlockMove move = {0, 1, 0, -1, 1};
+    double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
+    double logLikelihoodBefore = prior.getLogLikelihood();
+    prior.applyLabelMove(move);
+    double logLikelihoodAfter = prior.getLogLikelihood();
+    EXPECT_NEAR(expectedLogLikelihoodRatio, logLikelihoodAfter-logLikelihoodBefore, 1e-6);
+}
+
 
 TEST_F(TestNestedBlockUniformHyperPrior, reduceHierarchy_forSomeState_returnSameLikelihood){
     prior.sample();

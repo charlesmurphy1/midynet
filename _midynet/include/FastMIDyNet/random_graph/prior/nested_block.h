@@ -44,11 +44,11 @@ public:
     const BlockSequence& getNestedState(Level level) const { return m_nestedState[level]; }
 
     void setNestedState(const std::vector<std::vector<BlockIndex>>& nestedBlocks) {
-        m_nestedVertexCounts = computeNestedVertexCounts(nestedBlocks);
-        m_nestedAbsVertexCounts = computeNestedAbsoluteVertexCounts(nestedBlocks);
-        m_nestedBlockCountPriorPtr->setNestedStateFromNestedPartition(nestedBlocks);
         m_nestedState = nestedBlocks;
-        setState(nestedBlocks[0]);
+        m_nestedVertexCounts = computeNestedVertexCounts(m_nestedState);
+        m_nestedAbsVertexCounts = computeNestedAbsoluteVertexCounts(m_nestedState);
+        m_nestedBlockCountPriorPtr->setNestedStateFromNestedPartition(m_nestedState);
+        setState(m_nestedState[0]);
     }
 
     /* Accessors & mutators of attributes */
@@ -130,13 +130,13 @@ public:
     }
 
     bool destroyingBlock(const BlockMove& move) const {
-        return move.prevLabel != move.nextLabel and
-               not creatingNewLevel(move) and
-               m_nestedVertexCounts[move.level].get(move.prevLabel);
+        return move.prevLabel != move.nextLabel and not creatingNewLevel(move) and m_nestedVertexCounts[move.level].get(move.prevLabel) == 1;
     }
     bool creatingNewLevel(const BlockMove& move) const {
         return move.level == m_nestedVertexCounts.size() - 1 and move.addedLabels == 1;
     }
+    virtual void createNewBlock(const BlockMove& move) ;
+    virtual void destroyBlock(const BlockMove& move) { };
     const int getAddedBlocks(const BlockMove& move) const {
         return (int) creatingNewBlock(move) - (int) destroyingBlock(move);
     }
@@ -155,7 +155,7 @@ public:
                  + std::to_string(getDepth()) + "].");
     }
 
-    bool isValideBlockMove(const BlockMove& move) const ;
+    bool isValidBlockMove(const BlockMove& move) const ;
 
     void checkNestedStateConsistencyWithAbsVertexCounts() const {
         std::vector<CounterMap<size_t>> actualNestedAbsVertexCount = computeNestedAbsoluteVertexCounts(m_nestedState);
@@ -239,6 +239,13 @@ public:
     const double getLogLikelihoodAtLevel(Level level) const override;
     const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const ;
     const BlockSequence sampleState(Level level) const override;
+
+    void destroyBlock(const BlockMove& move) override {
+        BlockIndex r = getNestedBlockOfIdx(move.prevLabel, move.level + 1);
+        m_nestedVertexCounts[move.level + 1].decrement(r);
+        reduceHierarchy();
+    }
+
 };
 
 
