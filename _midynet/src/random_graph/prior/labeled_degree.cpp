@@ -55,10 +55,11 @@ void VertexLabeledDegreePrior::applyGraphMoveToState(const GraphMove& move){
     }
 }
 void VertexLabeledDegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& move){
-    const DegreeSequence& degreeSeq = getState();
-    const BlockSequence& blockSeq = getBlockPrior().getState();
+    const DegreeSequence& degrees = getState();
+    const BlockSequence& blocks = getBlockPrior().getState();
 
     IntMap<BaseGraph::VertexIndex> diffDegreeMap;
+    // std::cout << move << std::endl;
     for (auto edge : move.addedEdges){
         diffDegreeMap.increment(edge.first);
         diffDegreeMap.increment(edge.second);
@@ -68,10 +69,23 @@ void VertexLabeledDegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& mov
         diffDegreeMap.decrement(edge.second);
     }
 
+    // std::cout << "diffDegreeMap=";
+    // for (auto diff : diffDegreeMap)
+    //     std::cout << " " << diff.first << "[" << getBlockPrior().getBlockOfIdx(diff.first) << ", " << degrees[diff.first] << "] -> " << diff.second << " ";
+    // std::cout << std::endl;
+    //
+    // std::cout << "[BEFORE]m_degreeCounts=";
+    // for (auto d : m_degreeCounts)
+    //     std::cout << " (" << d.first.first << ", " << d.first.second << ") -> " << d.second << " ";
+    // std::cout << std::endl;
     for (auto diff : diffDegreeMap){
-        m_degreeCounts.decrement({blockSeq[diff.first], degreeSeq[diff.first]});
-        m_degreeCounts.increment({blockSeq[diff.first], degreeSeq[diff.first] + diff.second});
+        m_degreeCounts.decrement({getBlockPrior().getBlockOfIdx(diff.first), degrees[diff.first]});
+        m_degreeCounts.increment({getBlockPrior().getBlockOfIdx(diff.first), degrees[diff.first] + diff.second});
     }
+    // std::cout << "[AFTER]m_degreeCounts=";
+    // for (auto d : m_degreeCounts)
+    //     std::cout << " (" << d.first.first << ", " << d.first.second << ") -> " << d.second << " ";
+    // std::cout << std::endl;
 }
 
 void VertexLabeledDegreePrior::applyLabelMoveToDegreeCounts(const BlockMove& move){

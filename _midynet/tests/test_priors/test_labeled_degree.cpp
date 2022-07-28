@@ -49,9 +49,9 @@ class DummyVertexLabeledDegreePrior: public VertexLabeledDegreePrior {
 class TestVertexLabeledDegreePrior: public ::testing::Test {
     public:
 
-        BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
+        BlockCountDeltaPrior blockCountPrior = BlockCountDeltaPrior(3);
         BlockUniformPrior blockPrior = BlockUniformPrior(GRAPH_SIZE, blockCountPrior);
-        EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(POISSON_MEAN);
+        EdgeCountDeltaPrior edgeCountPrior = EdgeCountDeltaPrior(10);
         LabelGraphErdosRenyiPrior labelGraphPrior = LabelGraphErdosRenyiPrior(edgeCountPrior, blockPrior);
         DummyVertexLabeledDegreePrior prior = DummyVertexLabeledDegreePrior(labelGraphPrior);
         MultiGraph graph = getUndirectedHouseMultiGraph();
@@ -156,8 +156,8 @@ TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_r
 }
 
 TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrectDegreeCounts){
-    while(blockPrior.getBlockCount()==1) prior.sample();
     GraphMove move = {{{0, 4}}, {}};
+    prior.applyGraphMove(move);
     size_t E = prior.getLabelGraphPrior().getEdgeCount();
     auto expected = prior.getDegreeCounts();
     prior.applyGraphMoveToDegreeCounts(move);
@@ -175,7 +175,7 @@ TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge
 }
 
 TEST_F(TestVertexLabeledDegreePrior, applyLabelMoveToDegreeCounts_forNonEmptyLabelMove_returnCorrectDegreeCounts){
-    while(blockPrior.getBlockCount() == 1 || blockPrior.getBlockOfIdx(0) != 0) prior.sample();
+    while(blockPrior.getBlockOfIdx(0) != 0) prior.sample();
     BlockMove move = {0, 0, 1};
     size_t k = prior.getState()[0], r = blockPrior.getBlockOfIdx(0);
     auto expected = prior.getDegreeCounts();
@@ -187,14 +187,16 @@ TEST_F(TestVertexLabeledDegreePrior, applyLabelMoveToDegreeCounts_forNonEmptyLab
 }
 
 TEST_F(TestVertexLabeledDegreePrior, applyLabelMoveToDegreeCounts_forAddedLabelMove_returnCorrectDegreeCounts){
-    while(blockPrior.getBlockCount() != 2 || blockPrior.getBlockOfIdx(0) != 0) prior.sample();
-    BlockMove move = {0, 0, 2};
-    size_t k = prior.getState()[0], r = 0, s = 2;
+    while(blockPrior.getBlockOfIdx(0) != 0) prior.sample();
+    BlockMove move = {0, 0, 3};
+    size_t k = prior.getState()[0];
     auto expected = prior.getDegreeCounts();
+
     prior.applyLabelMoveToDegreeCounts(move);
     auto actual = prior.getDegreeCounts();
+
     EXPECT_EQ(expected.get({0, k}) - 1, actual.get({0, k}));
-    EXPECT_EQ(1, actual.get({2, k}));
+    EXPECT_EQ(1, actual.get({3, k}));
     expectConsistencyError = true;
 }
 
@@ -202,7 +204,7 @@ TEST_F(TestVertexLabeledDegreePrior, applyLabelMoveToDegreeCounts_forAddedLabelM
 class TestVertexLabeledDegreeUniformPrior: public ::testing::Test {
     public:
 
-        BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
+        BlockCountDeltaPrior blockCountPrior = BlockCountDeltaPrior(3);
         BlockUniformPrior blockPrior = BlockUniformPrior(100, blockCountPrior);
         EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(200);
         LabelGraphErdosRenyiPrior labelGraphPrior = LabelGraphErdosRenyiPrior(edgeCountPrior, blockPrior);
@@ -238,7 +240,6 @@ TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihoodRatioFromGraphMove_f
 
 TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
-    while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
     auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getLabelGraphPrior().getState(), prior.getState());
     labelGraphPrior.setGraph(g);
     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
@@ -258,9 +259,9 @@ TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihoodRatioFromLabelMove_f
 class TestVertexLabeledDegreeUniformHyperPrior: public ::testing::Test {
     public:
 
-        BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
+        BlockCountDeltaPrior blockCountPrior = BlockCountDeltaPrior(3);
         BlockUniformPrior blockPrior = BlockUniformPrior(100, blockCountPrior);
-        EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(200);
+        EdgeCountDeltaPrior edgeCountPrior = EdgeCountDeltaPrior(200);
         LabelGraphErdosRenyiPrior labelGraphPrior = LabelGraphErdosRenyiPrior(edgeCountPrior, blockPrior);
         VertexLabeledDegreeUniformHyperPrior prior = VertexLabeledDegreeUniformHyperPrior(labelGraphPrior);
         void SetUp() {
@@ -293,7 +294,6 @@ TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromGraphM
 
 TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
-    while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
     auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getLabelGraphPrior().getState(), prior.getState());
     labelGraphPrior.setGraph(g);
     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
