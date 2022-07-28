@@ -437,27 +437,37 @@ void Dynamics<GraphPriorType>::checkConsistencyOfNeighborsPastStateSequence() co
     if (m_neighborsPastStateSequence.size() == 0)
         return;
     else if (m_neighborsPastStateSequence.size() != getSize())
-            throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsistent with past states with size "
-                + std::to_string(m_neighborsPastStateSequence.size())
-                + ", expected size " + std::to_string(getSize()) + ".");
+        throw ConsistencyError(
+            "Dynamics",
+            "graph prior", "size=" + std::to_string(getSize()),
+            "m_neighborsPastStateSequence", "size=" + std::to_string(m_neighborsPastStateSequence.size())
+        );
     const auto& actual = m_neighborsPastStateSequence;
     const auto expected = computeNeighborsStateSequence(m_pastStateSequence);
     for (size_t v=0; v<getSize(); ++v){
         if (actual[v].size() != getNumSteps())
-            throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsistent with past states at (v="
-                + std::to_string(v) + ") with size " + std::to_string(m_neighborsPastStateSequence[v].size())
-                + ", expected size " + std::to_string(getNumSteps()) + ".");
+            throw ConsistencyError(
+                "Dynamics",
+                "m_numSteps", "value=" + std::to_string(getNumSteps()),
+                "m_neighborsPastStateSequence", "size=" + std::to_string(actual[v].size()),
+                "vertex=" + std::to_string(v)
+            );
         for (size_t t=0; t<getSize(); ++t){
             if (actual[v][t].size() != getNumStates())
-                throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsistent with past states at (v="
-                    + std::to_string(v) + ", t=" + std::to_string(t) + ") with size " + std::to_string(m_neighborsPastStateSequence[t][v].size())
-                    + ", expected size " + std::to_string(getNumStates()) + ".");
+                throw ConsistencyError(
+                    "Dynamics",
+                    "m_numStates", "value=" + std::to_string(getNumStates()),
+                    "m_neighborsPastStateSequence", "size=" + std::to_string(actual[v][t].size()),
+                    "vertex=" + std::to_string(v) + ", time=" + std::to_string(t)
+                );
             for (size_t s=0; s<m_numStates; ++s){
                 if (actual[v][t][s] != expected[v][t][s])
-                    throw ConsistencyError("Dynamics: `m_neighborsPastStateSequence` is inconsistent with past states at (v="
-                        + std::to_string(v) + ", t=" + std::to_string(t) + ", s=" + std::to_string(s)
-                        + ") with value " + std::to_string(actual[v][t][s])
-                        + ", expected value" + std::to_string(expected[v][t][s]) + ".");
+                    throw ConsistencyError(
+                        "Dynamics",
+                        "neighbor counts", "value=" + std::to_string(expected[v][t][s]),
+                        "m_neighborsPastStateSequence", "value=" + std::to_string(actual[v][t][s]),
+                        "vertex=" + std::to_string(v) + ", time=" + std::to_string(t) + ", state=" + std::to_string(s)
+                    );
             }
         }
     }
@@ -465,24 +475,33 @@ void Dynamics<GraphPriorType>::checkConsistencyOfNeighborsPastStateSequence() co
 
 template<typename GraphPriorType>
 void Dynamics<GraphPriorType>::checkConsistencyOfNeighborsState() const {
-    if (m_neighborsState.size() == 0)
-        return;
-    else if (m_neighborsState.size() != getSize())
-        throw ConsistencyError("Dynamics: `m_neighborsState` is inconsistent with `m_states` with size "
-            + std::to_string(m_neighborsState.size()) + ", expected size " + std::to_string(getSize()) + ".");
     const auto& actual = m_neighborsState;
     const auto expected = computeNeighborsState(m_state);
+    if (m_neighborsState.size() == 0)
+        return;
+    else if (actual.size() != getSize())
+        throw ConsistencyError(
+            "Dynamics",
+            "graph prior", "size=" + std::to_string(getSize()),
+            "m_neighborsState", "value=" + std::to_string(actual.size())
+        );
     for (size_t v=0; v<getSize(); ++v){
         if (actual[v].size() != getNumStates())
-            throw ConsistencyError("Dynamics: `m_neighborsState` is inconsistent with `m_states` at (v="
-                + std::to_string(v) + "_ with size " + std::to_string(m_neighborsState[v].size())
-                + ", expected size " + std::to_string(getNumStates()) + ".");
+            throw ConsistencyError(
+                "Dynamics",
+                "m_numStates", "value=" + std::to_string(getNumStates()),
+                "m_neighborsState", "size=" + std::to_string(actual[v].size()),
+                "vertex=" + std::to_string(v)
+
+            );
         for (size_t s=0; s<m_numStates; ++s){
             if (actual[v][s] != expected[v][s])
-                throw ConsistencyError("Dynamics: `m_neighborsState` is inconsistent with `m_states` at (v="
-                    + std::to_string(v) + ", s=" + std::to_string(s) +
-                    + ") with value " + std::to_string(actual[v][s])
-                    + ", expected value" + std::to_string(expected[v][s]) + ".");
+                throw ConsistencyError(
+                    "Dynamics",
+                    "neighbor counts", "value=" + std::to_string(expected[v][s]),
+                    "m_neighborsState", "value=" + std::to_string(actual[v][s]),
+                    "vertex=" + std::to_string(v) + ", state=" + std::to_string(s)
+                );
         }
     }
 
@@ -497,17 +516,17 @@ void Dynamics<GraphPriorType>::checkSelfConsistency() const {
 template<typename GraphPriorType>
 void Dynamics<GraphPriorType>::checkSelfSafety() const {
     if (m_graphPriorPtr == nullptr)
-        throw SafetyError("Dynamics: unsafe graph family since `m_graphPriorPtr` is empty.");
+        throw SafetyError("Dynamics", "m_graphPriorPtr");
     m_graphPriorPtr->checkSafety();
 
     if (m_state.size() == 0)
-        throw SafetyError("Dynamics: unsafe graph family since `m_state` is empty.");
+        throw SafetyError("Dynamics", "m_state.size()", "0");
     if (m_pastStateSequence.size() == 0)
-        throw SafetyError("Dynamics: unsafe graph family since `m_pastStateSequence` is empty.");
+        throw SafetyError("Dynamics", "m_pastStateSequence.size()", "0");
     if (m_futureStateSequence.size() == 0)
-        throw SafetyError("Dynamics: unsafe graph family since `m_futureStateSequence` is empty.");
+        throw SafetyError("Dynamics", "m_futureStateSequence.size()", "0");
     if (m_neighborsPastStateSequence.size() == 0)
-        throw SafetyError("Dynamics: unsafe graph family since `m_neighborsPastStateSequence` is empty.");
+        throw SafetyError("Dynamics", "m_neighborsPastStateSequence.size()", "0");
 }
 
 } // namespace FastMIDyNet
