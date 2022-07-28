@@ -18,11 +18,10 @@
 
 namespace FastMIDyNet{
 
-class DegreeCorrectedStochasticBlockModelFamily: public BlockLabeledRandomGraph{
-private:
+class DegreeCorrectedStochasticBlockModelBase: public BlockLabeledRandomGraph{
+protected:
     DegreeCorrectedStochasticBlockModelLikelihood m_likelihoodModel = DegreeCorrectedStochasticBlockModelLikelihood();
     VertexLabeledDegreePrior* m_degreePriorPtr = nullptr;
-protected:
     void _applyGraphMove (const GraphMove& move) override {
         RandomGraph::_applyGraphMove(move);
         m_degreePriorPtr->applyGraphMove(move);
@@ -40,9 +39,9 @@ protected:
     }
 
 public:
-    DegreeCorrectedStochasticBlockModelFamily(size_t graphSize):
+    DegreeCorrectedStochasticBlockModelBase(size_t graphSize):
         VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel) { setUpLikelihood(); }
-    DegreeCorrectedStochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, LabelGraphPrior& labelGraphPrior, VertexLabeledDegreePrior& degreePrior):
+    DegreeCorrectedStochasticBlockModelBase(size_t graphSize, BlockPrior& blockPrior, LabelGraphPrior& labelGraphPrior, VertexLabeledDegreePrior& degreePrior):
         VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel), m_degreePriorPtr(&degreePrior){
             setUpLikelihood();
             m_degreePriorPtr->isRoot(false);
@@ -67,14 +66,14 @@ public:
     const BlockPrior& getBlockPrior() const { return m_degreePriorPtr->getBlockPrior(); }
     void setBlockPrior(BlockPrior& prior) {
         if (m_degreePriorPtr == nullptr)
-            throw SafetyError("DegreeCorrectedStochasticBlockModelFamily", "m_degreePriorPtr");
+            throw SafetyError("DegreeCorrectedStochasticBlockModelBase", "m_degreePriorPtr");
         m_degreePriorPtr->setBlockPrior(prior);
     }
 
     const LabelGraphPrior& getLabelGraphPrior() const { return m_degreePriorPtr->getLabelGraphPrior(); }
     void setLabelGraphPrior(LabelGraphPrior& prior) {
         if (m_degreePriorPtr == nullptr)
-            throw SafetyError("DegreeCorrectedStochasticBlockModelFamily", "m_degreePriorPtr");
+            throw SafetyError("DegreeCorrectedStochasticBlockModelBase", "m_degreePriorPtr");
         m_degreePriorPtr->setLabelGraphPrior(prior);
     }
 
@@ -108,8 +107,33 @@ public:
     void checkSelfSafety() const override {
         RandomGraph::checkSelfSafety();
         if (not m_degreePriorPtr)
-            throw SafetyError("DegreeCorrectedStochasticBlockModelFamily", "m_degreePriorPtr");
+            throw SafetyError("DegreeCorrectedStochasticBlockModelBase", "m_degreePriorPtr");
         m_degreePriorPtr->checkSafety();
+    }
+};
+
+class DegreeCorrectedStochasticBlockModelFamily: public DegreeCorrectedStochasticBlockModelBase{
+    BlockCountUniformPrior m_blockCountPrior;
+    LabelGraphErdosRenyiPrior m_labelGraphPrior;
+
+    BlockPrior* m_blockPriorPtr;
+    EdgeCountPrior* m_edgeCountPriorPtr;
+public:
+    DegreeCorrectedStochasticBlockModelFamily(size_t size, double edgeCount, bool useHyperPrior=false, bool canonical=false):
+        DegreeCorrectedStochasticBlockModelBase(size),
+        m_blockCountPrior(1, size-1),
+        m_labelGraphPrior(){
+            m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
+            m_blockPriorPtr = makeBlockPrior(size, m_blockCountPrior, useHyperPrior);
+            m_labelGraphPrior = LabelGraphErdosRenyiPrior(*m_edgeCountPriorPtr, *m_blockPriorPtr);
+            m_degreePriorPtr = makeVertexLabeledDegreePrior(m_labelGraphPrior);
+            checkSafety();
+            sample();
+    }
+    virtual ~DegreeCorrectedStochasticBlockModelFamily(){
+        delete m_edgeCountPriorPtr;
+        delete m_blockPriorPtr;
+        delete m_degreePriorPtr;
     }
 };
 

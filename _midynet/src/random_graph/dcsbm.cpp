@@ -17,14 +17,14 @@ using namespace FastMIDyNet;
 using namespace BaseGraph;
 
 
-void DegreeCorrectedStochasticBlockModelFamily::sampleState(){
+void DegreeCorrectedStochasticBlockModelBase::sampleState(){
     MultiGraph graph = generateDCSBM(getLabels(), getLabelGraph(), getDegrees());
     setGraph( graph );
     computationFinished();
 }
 
-void DegreeCorrectedStochasticBlockModelFamily::checkSelfConsistency() const{
+void DegreeCorrectedStochasticBlockModelBase::checkSelfConsistency() const{
     m_degreePriorPtr->checkSelfConsistency();
-    checkGraphConsistencyWithLabelGraph("DegreeCorrectedStochasticBlockModelFamily", m_graph, getLabels(), getLabelGraph());
-    checkGraphConsistencyWithDegreeSequence("DegreeCorrectedStochasticBlockModelFamily", m_graph, getDegrees());
+    checkGraphConsistencyWithLabelGraph("DegreeCorrectedStochasticBlockModelBase", m_graph, getLabels(), getLabelGraph());
+    checkGraphConsistencyWithDegreeSequence("DegreeCorrectedStochasticBlockModelBase", m_graph, getDegrees());
 }

@@ -8,12 +8,11 @@
 
 namespace FastMIDyNet{
 
-class NestedStochasticBlockModelFamily: public NestedBlockLabeledRandomGraph{
-private:
+class NestedStochasticBlockModelBase: public NestedBlockLabeledRandomGraph{
+protected:
     StochasticBlockModelLikelihood m_likelihoodModel;
     NestedStochasticBlockLabelGraphPrior m_nestedLabelGraphPrior;
     LabelGraphPrior* m_labelGraphPriorPtr = &m_nestedLabelGraphPrior;
-protected:
 
     void _applyGraphMove (const GraphMove& move) override {
         m_nestedLabelGraphPrior.applyGraphMove(move);
@@ -34,11 +33,11 @@ protected:
     }
 public:
 
-    NestedStochasticBlockModelFamily(size_t graphSize):
+    NestedStochasticBlockModelBase(size_t graphSize):
         NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel),
         m_nestedLabelGraphPrior(graphSize),
         m_likelihoodModel() { setUpLikelihood(); }
-    NestedStochasticBlockModelFamily(size_t graphSize, EdgeCountPrior& edgeCountPrior):
+    NestedStochasticBlockModelBase(size_t graphSize, EdgeCountPrior& edgeCountPrior):
         NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel),
         m_likelihoodModel(),
         m_nestedLabelGraphPrior(graphSize, edgeCountPrior){
@@ -91,7 +90,7 @@ public:
 
     void checkSelfConsistency() const override {
         m_nestedLabelGraphPrior.checkSelfConsistency();
-        checkGraphConsistencyWithLabelGraph("NestedStochasticBlockModelFamily", m_graph, getLabels(), getLabelGraph());
+        checkGraphConsistencyWithLabelGraph("NestedStochasticBlockModelBase", m_graph, getLabels(), getLabelGraph());
     }
     const bool isCompatible(const MultiGraph& graph) const override{
         if (not VertexLabeledRandomGraph<BlockIndex>::isCompatible(graph)) return false;
@@ -107,6 +106,22 @@ public:
     }
 
 };
+
+class NestedStochasticBlockModelFamily: public NestedStochasticBlockModelBase{
+    EdgeCountPrior* m_edgeCountPriorPtr;
+public:
+    NestedStochasticBlockModelFamily(size_t size, double edgeCount, bool canonical=false):
+        NestedStochasticBlockModelBase(size){
+            m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
+            setEdgeCountPrior(*m_edgeCountPriorPtr);
+            checkSafety();
+            sample();
+    }
+    virtual ~NestedStochasticBlockModelFamily(){
+        delete m_edgeCountPriorPtr;
+    }
+};
+
 
 
 }

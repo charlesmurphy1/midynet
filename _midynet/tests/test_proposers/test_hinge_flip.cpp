@@ -7,6 +7,7 @@
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/rng.h"
+#include "../fixtures.hpp"
 
 namespace FastMIDyNet{
 
@@ -18,8 +19,7 @@ public:
 
 class TestHingeFlipUniformProposer: public::testing::Test {
     public:
-        EdgeCountDeltaPrior edgeCountPrior = {3};
-        ErdosRenyiFamily randomGraph = ErdosRenyiFamily(3, edgeCountPrior);
+        DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph(3, 3);
         DummyEdgeProposer proposer;
         MultiGraph graph;
         MultiGraph toyGraph = getToyMultiGraph();

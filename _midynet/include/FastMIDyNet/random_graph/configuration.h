@@ -8,12 +8,13 @@
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/random_graph/likelihood/configuration.h"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
+#include "FastMIDyNet/random_graph/util.h"
 #include "FastMIDyNet/generators.h"
 
 namespace FastMIDyNet{
 
 
-class ConfigurationModelFamily: public RandomGraph{
+class ConfigurationModelBase: public RandomGraph{
 protected:
     ConfigurationModelLikelihood m_likelihoodModel;
     DegreePrior* m_degreePriorPtr;
@@ -32,9 +33,9 @@ protected:
         m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
     }
 public:
-    ConfigurationModelFamily(size_t graphSize):
+    ConfigurationModelBase(size_t graphSize):
         RandomGraph(graphSize, m_likelihoodModel){ setUpLikelihood(); }
-    ConfigurationModelFamily(size_t graphSize, EdgeCountPrior& edgeCountPrior, DegreePrior& degreePrior):
+    ConfigurationModelBase(size_t graphSize, EdgeCountPrior& edgeCountPrior, DegreePrior& degreePrior):
         RandomGraph(graphSize, m_likelihoodModel), m_degreePriorPtr(&degreePrior){
             setUpLikelihood();
             m_degreePriorPtr->isRoot(false);
@@ -45,7 +46,7 @@ public:
     const EdgeCountPrior& getEdgeCountPrior() const { return m_degreePriorPtr->getEdgeCountPrior(); }
     void setEdgeCountPrior(EdgeCountPrior& prior) {
         if (m_degreePriorPtr == nullptr)
-            throw SafetyError("ConfigurationModelFamily", "degree prior");
+            throw SafetyError("ConfigurationModelBase", "degree prior");
         m_degreePriorPtr->setEdgeCountPrior(prior);
     }
 
@@ -70,11 +71,41 @@ public:
     void checkSelfSafety() const override {
         RandomGraph::checkSelfSafety();
         if (not m_degreePriorPtr)
-            throw SafetyError("ConfigurationModelFamily", "m_degreePriorPtr");
+            throw SafetyError("ConfigurationModelBase", "m_degreePriorPtr");
         m_degreePriorPtr->checkSafety();
     }
-
-
 };
+
+class ConfigurationModel : public ConfigurationModelBase{
+public:
+    ConfigurationModel(const DegreeSequence& degrees):
+        ConfigurationModelBase(degrees.size()) {
+            m_degreePriorPtr = new DegreeDeltaPrior(degrees);
+            checkSafety();
+            sample();
+
+        }
+    virtual ~ConfigurationModel(){
+        delete m_degreePriorPtr;
+    }
+};
+
+class ConfigurationModelFamily : public ConfigurationModelBase{
+    EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
+public:
+    ConfigurationModelFamily(size_t size, double edgeCount, bool useHyperPrior=true, bool canonical=false):
+        ConfigurationModelBase(size) {
+            m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
+            m_degreePriorPtr = makeDegreePrior(size, *m_edgeCountPriorPtr, useHyperPrior);
+            setDegreePrior(*m_degreePriorPtr);
+            checkSafety();
+            sample();
+        }
+    virtual ~ConfigurationModelFamily(){
+        delete m_edgeCountPriorPtr;
+        delete m_degreePriorPtr;
+    }
+};
+
 }// end FastMIDyNet
 #endif

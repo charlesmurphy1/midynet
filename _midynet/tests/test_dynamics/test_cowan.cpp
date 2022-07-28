@@ -5,6 +5,7 @@
 #include "FastMIDyNet/dynamics/types.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
+#include "../fixtures.hpp"
 
 
 namespace FastMIDyNet {
@@ -15,8 +16,7 @@ public:
     const double A = 1., NU = 7., MU = 1., ETA = 0.5;
     const size_t NUM_STEPS=20;
     const std::list<std::vector<VertexState>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}, {2, 0}};
-    EdgeCountDeltaPrior edgeCountPrior = {10};
-    ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph(10, 10);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
     FastMIDyNet::CowanDynamics<RandomGraph> dynamics = FastMIDyNet::CowanDynamics<RandomGraph>(randomGraph, NUM_STEPS, NU, A, MU, ETA, 0, 0, false, -1);
 };

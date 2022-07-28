@@ -14,27 +14,27 @@ using namespace std;
 using namespace FastMIDyNet;
 
 
-class TestConfigurationModelFamily: public::testing::Test{
+class TestConfigurationModelBase: public::testing::Test{
     public:
         double AVG_NUM_EDGES = 100;
         size_t NUM_VERTICES = 50;
         EdgeCountPoissonPrior edgeCountPrior = {AVG_NUM_EDGES};
         DegreeUniformPrior degreePrior = {NUM_VERTICES, edgeCountPrior};
-        ConfigurationModelFamily randomGraph = ConfigurationModelFamily(NUM_VERTICES, edgeCountPrior, degreePrior);
+        ConfigurationModelBase randomGraph = ConfigurationModelBase(NUM_VERTICES, edgeCountPrior, degreePrior);
         void SetUp() {
             randomGraph.sample();
         }
 };
 
-TEST_F(TestConfigurationModelFamily, sample_getGraphWithCorrectNumberOfEdges){
+TEST_F(TestConfigurationModelBase, sample_getGraphWithCorrectNumberOfEdges){
     EXPECT_EQ(randomGraph.getGraph().getTotalEdgeNumber(), randomGraph.getEdgeCount());
 }
 
-TEST_F(TestConfigurationModelFamily, getLogLikelihood_returnNonPositiveValue){
+TEST_F(TestConfigurationModelBase, getLogLikelihood_returnNonPositiveValue){
     EXPECT_LE(randomGraph.getLogLikelihood(), 0);
 }
 
-TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectValue){
+TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectValue){
     GraphMove move = {{}, {{0, 1}}};
 
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -45,7 +45,7 @@ TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forAdded
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
-TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forAddedSelfLoop_returnCorrectValue){
+TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forAddedSelfLoop_returnCorrectValue){
     GraphMove move = {{}, {{0, 0}}};
 
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -58,7 +58,7 @@ TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forAdded
 
 
 
-TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forRemovedEdge_returnCorrectValue){
+TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forRemovedEdge_returnCorrectValue){
     GraphMove move = {{{0, 1}}, {}};
     randomGraph.applyGraphMove({{}, {{0, 1}}});
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -69,7 +69,7 @@ TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forRemov
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
-TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forRemovedSelfLoop_returnCorrectValue){
+TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forRemovedSelfLoop_returnCorrectValue){
     GraphMove move = {{{0, 0}}, {}};
     randomGraph.applyGraphMove({{}, {{0, 0}}});
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -80,18 +80,18 @@ TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forRemov
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
-TEST_F(TestConfigurationModelFamily, isCompatible_forGraphSampledFromSBM_returnTrue){
+TEST_F(TestConfigurationModelBase, isCompatible_forGraphSampledFromSBM_returnTrue){
     randomGraph.sample();
     auto g = randomGraph.getGraph();
     EXPECT_TRUE(randomGraph.isCompatible(g));
 }
 
-TEST_F(TestConfigurationModelFamily, isCompatible_forEmptyGraph_returnFalse){
+TEST_F(TestConfigurationModelBase, isCompatible_forEmptyGraph_returnFalse){
     MultiGraph g(0);
     EXPECT_FALSE(randomGraph.isCompatible(g));
 }
 
-TEST_F(TestConfigurationModelFamily, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
+TEST_F(TestConfigurationModelBase, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
     randomGraph.sample();
     auto g = randomGraph.getGraph();
     for (auto vertex: g){

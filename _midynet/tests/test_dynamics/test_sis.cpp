@@ -5,6 +5,7 @@
 #include "FastMIDyNet/dynamics/sis.hpp"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
+#include "../fixtures.hpp"
 
 namespace FastMIDyNet{
 
@@ -17,8 +18,7 @@ public:
     const bool NORMALIZE_COUPLING = false;
     const std::list<std::vector<VertexState>> neighbor_states = {{1, 3}, {2, 2}, {3, 1}};
     const size_t NUM_STEPS=20;
-    EdgeCountDeltaPrior edgeCountPrior = {10};
-    ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
+    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph(10, 10);
     HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
     FastMIDyNet::SISDynamics<RandomGraph> dynamics = FastMIDyNet::SISDynamics<RandomGraph>(
         randomGraph, NUM_STEPS, INFECTION_PROB, RECOVERY_PROB,

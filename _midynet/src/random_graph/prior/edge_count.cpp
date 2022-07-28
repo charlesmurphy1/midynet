@@ -13,22 +13,6 @@ size_t EdgeCountPrior::getStateAfterGraphMove(const GraphMove& move) const {
         return m_state + edgeNumberDifference;
 }
 
-void EdgeCountPoissonPrior::sampleState() {
-    setState( m_poissonDistribution(rng) );
-}
-
-const double EdgeCountPoissonPrior::getLogLikelihoodFromState(const size_t& state) const {
-    return logPoissonPMF(state, m_mean);
-}
-
-void EdgeCountPoissonPrior::checkSelfSafety() const {
-    if (m_mean < 0)
-        throw SafetyError("EdgeCountPoissonPrior", "m_mean", "<0");
-
-    if (m_state < 0)
-        throw SafetyError("EdgeCountPoissonPrior", "m_state", "<0");
-}
-
 // void EdgeCountMultisetPrior::sampleState(){
 //     size_t E = m_maxWeightEdgeCount;
 //     std::uniform_int_distribution<int> flipDist(0, 1);

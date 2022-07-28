@@ -5,14 +5,13 @@
 #include "FastMIDyNet/proposer/edge/single_edge.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
-// #include "../graph_fixtures.hpp"
+#include "../fixtures.hpp"
 
 namespace FastMIDyNet{
 
 class TestSingleEdgeUniformProposer: public::testing::Test {
     public:
-        EdgeCountDeltaPrior edgeCountPrior = {10};
-        ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
+        DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph(10, 10);
         SingleEdgeUniformProposer proposer;
         MultiGraph graph;
         BaseGraph::Edge inexistentEdge = {0, 1};
@@ -58,7 +57,7 @@ TEST_F(TestSingleEdgeUniformProposer, getLogProposalProbRatio_removeEdgeWithMult
 class TestSingleEdgeDegreeProposer: public::testing::Test {
     public:
         EdgeCountDeltaPrior edgeCountPrior = {10};
-        ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
+        DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph(10, 10);
         SingleEdgeDegreeProposer proposer;
         MultiGraph graph;
         BaseGraph::Edge inexistentEdge = {0, 1};

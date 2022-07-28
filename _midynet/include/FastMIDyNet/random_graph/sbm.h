@@ -17,11 +17,10 @@
 
 namespace FastMIDyNet{
 
-class StochasticBlockModelFamily: public BlockLabeledRandomGraph{
-private:
+class StochasticBlockModelBase: public BlockLabeledRandomGraph{
+protected:
     StochasticBlockModelLikelihood m_likelihoodModel;
     LabelGraphPrior* m_labelGraphPriorPtr = nullptr;
-protected:
 
     void _applyGraphMove (const GraphMove& move) override {
         m_labelGraphPriorPtr->applyGraphMove(move);
@@ -42,10 +41,10 @@ protected:
     }
 
 public:
-    StochasticBlockModelFamily(size_t graphSize): VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel) {
+    StochasticBlockModelBase(size_t graphSize): VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel) {
         setUpLikelihood();
     }
-    StochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, LabelGraphPrior& labelGraphPrior):
+    StochasticBlockModelBase(size_t graphSize, BlockPrior& blockPrior, LabelGraphPrior& labelGraphPrior):
         VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel), m_labelGraphPriorPtr(&labelGraphPrior){
             setUpLikelihood();
             setBlockPrior(blockPrior);
@@ -66,7 +65,7 @@ public:
     const BlockPrior& getBlockPrior() const { return m_labelGraphPriorPtr->getBlockPrior(); }
     void setBlockPrior(BlockPrior& blockPrior) {
         if (m_labelGraphPriorPtr == nullptr)
-            throw SafetyError("StochasticBlockModelFamily", "m_labelGraphPriorPtr");
+            throw SafetyError("StochasticBlockModelBase", "m_labelGraphPriorPtr");
         m_labelGraphPriorPtr->setBlockPrior(blockPrior);
     }
 
@@ -96,17 +95,41 @@ public:
     void checkSelfSafety() const override {
         RandomGraph::checkSelfSafety();
         if (not m_labelGraphPriorPtr)
-            throw SafetyError("StochasticBlockModelFamily", "m_labelGraphPriorPtr");
+            throw SafetyError("StochasticBlockModelBase", "m_labelGraphPriorPtr");
     }
 };
 
 
-class UniformStochasticBlockModel: public StochasticBlockModelFamily{
-
+class StochasticBlockModel: public StochasticBlockModelBase{
+    BlockDeltaPrior m_blockPrior;
+    LabelGraphDeltaPrior m_labelGraph;
+public:
+    StochasticBlockModel(const BlockSequence& blocks, const LabelGraph& labelGraph):
+        StochasticBlockModelBase(blocks.size()), m_blockPrior(blocks), m_labelGraph(labelGraph){
+            checkSafety();
+            sample();
+        }
 };
 
-class HyperUniformStochasticBlockModel: public StochasticBlockModelFamily{
-
+class StochasticBlockModelFamily: public StochasticBlockModelBase{
+    BlockCountUniformPrior m_blockCountPrior;
+    BlockPrior* m_blockPriorPtr;
+    EdgeCountPrior* m_edgeCountPriorPtr;
+public:
+    StochasticBlockModelFamily(size_t size, double edgeCount, bool useHyperPrior=true, bool canonical=false):
+        StochasticBlockModelBase(size),
+        m_blockCountPrior(1, size-1){
+            m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
+            m_blockPriorPtr = makeBlockPrior(size, m_blockCountPrior);
+            m_labelGraphPriorPtr = new LabelGraphErdosRenyiPrior(*m_edgeCountPriorPtr, *m_blockPriorPtr);
+            checkSafety();
+            sample();
+    }
+    virtual ~StochasticBlockModelFamily(){
+        delete m_labelGraphPriorPtr;
+        delete m_blockPriorPtr;
+        delete m_edgeCountPriorPtr;
+    }
 };
 
 }// end FastMIDyNet

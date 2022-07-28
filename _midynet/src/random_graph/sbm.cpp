@@ -19,10 +19,10 @@ using namespace std;
 using namespace FastMIDyNet;
 using namespace BaseGraph;
 
-void StochasticBlockModelFamily::sampleState(){ setGraph(generateStubLabeledSBM(getLabels(), getLabelGraph())); }
+void StochasticBlockModelBase::sampleState(){ setGraph(generateStubLabeledSBM(getLabels(), getLabelGraph())); }
 
 
-void StochasticBlockModelFamily::checkSelfConsistency() const{
+void StochasticBlockModelBase::checkSelfConsistency() const{
     m_labelGraphPriorPtr->checkSelfConsistency();
-    checkGraphConsistencyWithLabelGraph("StochasticBlockModelFamily", m_graph, getLabels(), getLabelGraph());
+    checkGraphConsistencyWithLabelGraph("StochasticBlockModelBase", m_graph, getLabels(), getLabelGraph());
 }

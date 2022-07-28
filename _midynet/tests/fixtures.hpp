@@ -73,14 +73,14 @@ public:
     void sampleState() override { };
 };
 
-class DummyErdosRenyiGraph: public ErdosRenyiFamily{
+class DummyErdosRenyiGraph: public ErdosRenyiModelBase{
 public:
     EdgeCountDeltaPrior prior;
     DummyErdosRenyiGraph(size_t size=10, size_t edgeCount=25):
-    ErdosRenyiFamily(size), prior(edgeCount) { setEdgeCountPrior(prior); }
+    ErdosRenyiModelBase(size), prior(edgeCount) { setEdgeCountPrior(prior); }
 };
 
-class DummySBMGraph: public StochasticBlockModelFamily{
+class DummySBMGraph: public StochasticBlockModelBase{
     size_t size;
     size_t edgeCount;
     size_t blockCount;
@@ -92,7 +92,7 @@ class DummySBMGraph: public StochasticBlockModelFamily{
 
 public:
     DummySBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
-    StochasticBlockModelFamily(size),
+    StochasticBlockModelBase(size),
     blockCountPrior(blockCount),
     blockPrior(size, blockCountPrior),
     edgeCountPrior(edgeCount),
@@ -100,10 +100,10 @@ public:
      {
         setLabelGraphPrior(labelGraphPrior);
     }
-    using StochasticBlockModelFamily::sample;
+    using StochasticBlockModelBase::sample;
 };
 
-class DummyRestrictedSBMGraph: public StochasticBlockModelFamily{
+class DummyRestrictedSBMGraph: public StochasticBlockModelBase{
     size_t size;
     size_t edgeCount;
     size_t blockCount;
@@ -115,7 +115,7 @@ class DummyRestrictedSBMGraph: public StochasticBlockModelFamily{
 
 public:
     DummyRestrictedSBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
-    StochasticBlockModelFamily(size),
+    StochasticBlockModelBase(size),
     blockCountPrior(blockCount),
     blockPrior(size, blockCountPrior),
     edgeCountPrior(edgeCount),
@@ -123,7 +123,7 @@ public:
      {
         setLabelGraphPrior(labelGraphPrior);
     }
-    using StochasticBlockModelFamily::sample;
+    using StochasticBlockModelBase::sample;
 };
 
 class DummyDynamics: public Dynamics<RandomGraph>{

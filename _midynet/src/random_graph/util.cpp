@@ -48,4 +48,33 @@ void checkGraphConsistencyWithDegreeSequence(std::string namePrefix, const Multi
             );
     }
 }
+
+EdgeCountPrior* makeEdgeCountPrior(double edgeCount, bool canonical){
+    if (canonical)
+        return new EdgeCountExponentialPrior(edgeCount);
+    else
+        return new EdgeCountDeltaPrior((size_t) edgeCount);
+}
+
+BlockPrior* makeBlockPrior(size_t size, BlockCountPrior& blockCountPrior, bool hyperPrior){
+    if (hyperPrior)
+        return new BlockUniformHyperPrior(size, blockCountPrior);
+    else
+        return new BlockUniformPrior(size, blockCountPrior);
+}
+
+DegreePrior* makeDegreePrior(size_t size, EdgeCountPrior& prior, bool hyperPrior){
+    if (hyperPrior)
+        return new DegreeUniformHyperPrior(size, prior);
+    else
+        return new DegreeUniformPrior(size, prior);
+}
+
+VertexLabeledDegreePrior* makeVertexLabeledDegreePrior(LabelGraphPrior& prior, bool hyperPrior){
+    if (hyperPrior)
+        return new VertexLabeledDegreeUniformHyperPrior(prior);
+    else
+        return new VertexLabeledDegreeUniformPrior(prior);
+}
+
 }

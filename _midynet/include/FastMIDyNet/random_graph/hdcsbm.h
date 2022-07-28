@@ -9,8 +9,8 @@
 
 namespace FastMIDyNet{
 
-class NestedDegreeCorrectedStochasticBlockModelFamily: public NestedBlockLabeledRandomGraph{
-private:
+class NestedDegreeCorrectedStochasticBlockModelBase: public NestedBlockLabeledRandomGraph{
+protected:
     DegreeCorrectedStochasticBlockModelLikelihood m_likelihoodModel;
     NestedStochasticBlockLabelGraphPrior m_nestedLabelGraphPrior;
     VertexLabeledDegreePrior* m_degreePriorPtr = nullptr;
@@ -35,11 +35,11 @@ protected:
     }
 public:
 
-    NestedDegreeCorrectedStochasticBlockModelFamily(size_t graphSize):
+    NestedDegreeCorrectedStochasticBlockModelBase(size_t graphSize):
         NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel),
         m_nestedLabelGraphPrior(graphSize),
         m_likelihoodModel() { setUpLikelihood(); }
-    NestedDegreeCorrectedStochasticBlockModelFamily(size_t graphSize, EdgeCountPrior& EdgeCountPrior, VertexLabeledDegreePrior& degreePrior):
+    NestedDegreeCorrectedStochasticBlockModelBase(size_t graphSize, EdgeCountPrior& EdgeCountPrior, VertexLabeledDegreePrior& degreePrior):
         NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel),
         m_likelihoodModel(),
         m_nestedLabelGraphPrior(graphSize, EdgeCountPrior){
@@ -126,6 +126,23 @@ public:
         return m_nestedLabelGraphPrior.getNestedBlockPrior().isValidBlockMove(move);
     }
 
+};
+
+class NestedNestedDegreeCorrectedStochasticBlockModelFamily: public NestedDegreeCorrectedStochasticBlockModelBase{
+    EdgeCountPrior* m_edgeCountPriorPtr;
+public:
+    NestedNestedDegreeCorrectedStochasticBlockModelFamily(size_t size, double edgeCount, bool useHyperPrior=true, bool canonical=false):
+        NestedDegreeCorrectedStochasticBlockModelBase(size){
+            m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
+            m_nestedLabelGraphPrior = NestedStochasticBlockLabelGraphPrior(size, *m_edgeCountPriorPtr);
+            m_degreePriorPtr = makeVertexLabeledDegreePrior(m_nestedLabelGraphPrior, useHyperPrior);
+            checkSafety();
+            sample();
+    }
+    virtual ~NestedNestedDegreeCorrectedStochasticBlockModelFamily(){
+        delete m_edgeCountPriorPtr;
+        delete m_degreePriorPtr; 
+    }
 };
 
 
