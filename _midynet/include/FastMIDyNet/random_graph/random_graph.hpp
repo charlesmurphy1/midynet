@@ -84,6 +84,8 @@ public:
     virtual void checkSelfConsistency() const override {
         m_likelihoodModelPtr->checkConsistency();
     }
+
+    virtual bool isValidGraphMove(const GraphMove& move) const { return true; }
 };
 
 template <typename Label>
@@ -121,6 +123,7 @@ public:
         checkConsistency();
         #endif
     }
+    virtual bool isValidLabelMove(const LabelMove<Label>& move) const { return true; }
 };
 
 using BlockLabeledRandomGraph = VertexLabeledRandomGraph<BlockIndex>;
@@ -132,7 +135,7 @@ public:
     using VertexLabeledRandomGraph<Label>::VertexLabeledRandomGraph;
 
     void setLabels(const std::vector<Label>&) override {
-        throw std::logic_error("This method should not be used.");
+        throw DepletedMethodError("NestedVertexLabeledRandomGraph", "setLabels");
     }
     virtual void setNestedLabels(const std::vector<std::vector<Label>>&) = 0;
 

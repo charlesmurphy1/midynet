@@ -3,11 +3,12 @@
 namespace FastMIDyNet{
 
 void NestedLabelGraphPrior::applyGraphMoveToState(const GraphMove& move) {
-
+    LabelGraphPrior::applyGraphMoveToState(move);
     BlockIndex r, s;
     for (auto removedEdge: move.removedEdges) {
         r = (BlockIndex) removedEdge.first;
         s = (BlockIndex) removedEdge.second;
+
         for (Level l=0; l<getDepth(); ++l){
             r = m_nestedBlockPriorPtr->getNestedState(l)[r];
             s = m_nestedBlockPriorPtr->getNestedState(l)[s];
@@ -27,12 +28,15 @@ void NestedLabelGraphPrior::applyGraphMoveToState(const GraphMove& move) {
             m_nestedEdgeCounts[l].increment(s);
         }
     }
+
+
 }
 
 void NestedLabelGraphPrior::applyLabelMoveToState(const BlockMove& move) {
     // identity move
     if (move.prevLabel == move.nextLabel)
         return;
+    LabelGraphPrior::applyLabelMoveToState(move);
 
     // move creating new layer
     if (move.addedLabels == 1 and move.level == m_nestedState.size() - 1){

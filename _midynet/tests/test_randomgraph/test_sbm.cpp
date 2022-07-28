@@ -108,8 +108,10 @@ TEST_F(TestStochasticBlockModelFamily, applyMove_forRemovedEdge){
 }
 
 TEST_F(TestStochasticBlockModelFamily, applyMove_forRemovedEdgeAndAddedEdge){
-    BaseGraph::Edge addedEdge = {0, 2};
+    BaseGraph::Edge addedEdge = {0, 1};
     BaseGraph::Edge removedEdge = findEdge();
+    while (addedEdge == removedEdge)
+        removedEdge = findEdge();
     size_t removedEdgeMultBefore = randomGraph.getGraph().getEdgeMultiplicityIdx(removedEdge);
     size_t addedEdgeMultBefore = randomGraph.getGraph().getEdgeMultiplicityIdx(addedEdge);
     FastMIDyNet::GraphMove move = {{removedEdge}, {addedEdge}};

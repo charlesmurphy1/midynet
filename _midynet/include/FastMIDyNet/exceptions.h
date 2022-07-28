@@ -32,8 +32,8 @@ public:
         const std::string& actualProperty,
         const std::string& actualValue
     ): std::runtime_error(
-        className + ": `" + expectedProperty + "` (value=`" + expectedValue + "`) is inconsistent with `"
-        + actualProperty + "` (value=`" + actualValue + "`)."
+        className + ": `" + expectedProperty + "` (`" + expectedValue + "`) is inconsistent with `"
+        + actualProperty + "` (`" + actualValue + "`)."
     ) {}
 
     // Message with values and locations

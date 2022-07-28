@@ -98,16 +98,16 @@ void LabelGraphPrior::checkSelfConsistency() const {
         if (actualEdgeCounts != m_edgeCounts[r])
             throw ConsistencyError(
                 "LabelGraphPrior",
-                "m_state", "degree=" + std::to_string(m_state.getDegreeOfIdx(r)),
-                "m_edgeCounts", "value=" + std::to_string(m_edgeCounts[r]),
+                "m_state.degree", std::to_string(m_state.getDegreeOfIdx(r)),
+                "m_edgeCounts", std::to_string(m_edgeCounts[r]),
                 "r=" + std::to_string(r)
             );
     }
     if (m_state.getTotalEdgeNumber() != m_edgeCountPriorPtr->getState())
         throw ConsistencyError(
             "LabelGraphPrior",
-            "m_state", "edgeCount=" + std::to_string(m_state.getTotalEdgeNumber()),
-            "edgeCount", "value=" + std::to_string(m_edgeCountPriorPtr->getState())
+            "m_state.edgeCount", std::to_string(m_state.getTotalEdgeNumber()),
+            "m_edgeCountPriorPtr", std::to_string(m_edgeCountPriorPtr->getState())
         );
 }
 
