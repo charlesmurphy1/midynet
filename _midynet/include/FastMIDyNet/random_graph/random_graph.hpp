@@ -98,7 +98,7 @@ public:
         RandomGraph(size, likelihoodModel), m_vertexLabeledlikelihoodModelPtr(&likelihoodModel){ }
     virtual const std::vector<Label>& getLabels() const = 0;
     virtual const size_t getLabelCount() const = 0;
-    virtual const CounterMap<Label>& getLabelCounts() const = 0;
+    virtual const CounterMap<Label>& getVertexCounts() const = 0;
     virtual const CounterMap<Label>& getEdgeLabelCounts() const = 0;
     virtual const LabelGraph& getLabelGraph() const = 0;
     const Label& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getLabels()[vertexIdx]; }
@@ -130,22 +130,35 @@ template <typename Label>
 class NestedVertexLabeledRandomGraph: public VertexLabeledRandomGraph<Label>{
 public:
     using VertexLabeledRandomGraph<Label>::VertexLabeledRandomGraph;
+
+    void setLabels(const std::vector<Label>&) override {
+        throw std::logic_error("This method should not be used.");
+    }
+    virtual void setNestedLabels(const std::vector<std::vector<Label>>&) = 0;
+
     virtual const size_t getDepth() const = 0;
 
+    virtual const Label& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx, Level level) const = 0;
+    virtual const Label& getNestedLabelOfIdx(BaseGraph::VertexIndex vertexIdx, Level level) const = 0;
     virtual const std::vector<std::vector<Label>>& getNestedLabels() const = 0;
+    virtual const std::vector<Label>& getNestedLabels(Level) const = 0;
     virtual const std::vector<size_t>& getNestedLabelCount() const = 0;
-    virtual const std::vector<CounterMap<Label>>& getNestedLabelCounts() const = 0;
+    virtual const size_t& getNestedLabelCount(Level) const = 0;
+    virtual const std::vector<CounterMap<Label>>& getNestedVertexCounts() const = 0;
+    virtual const CounterMap<Label>& getNestedVertexCounts(Level) const = 0;
     virtual const std::vector<CounterMap<Label>>& getNestedEdgeLabelCounts() const = 0;
+    virtual const CounterMap<Label>& getNestedEdgeLabelCounts(Level) const = 0;
     virtual const std::vector<MultiGraph>& getNestedLabelGraph() const = 0;
-    virtual const Label& getNestedLabelOfIdx(BaseGraph::VertexIndex idx, size_t level) const = 0;
-    const Label& getNestedLabelOfLabelIdx(Label idx, size_t level) const { return getNestedLabels()[level][idx]; }
+    virtual const MultiGraph& getNestedLabelGraph(Level ) const = 0;
 
+    using VertexLabeledRandomGraph<Label>::getLabelOfIdx;
     const std::vector<Label>& getLabels() const override { return getNestedLabels()[0]; }
     const size_t getLabelCount() const override { return getNestedLabelCount()[0]; }
-    const CounterMap<Label>& getLabelCounts() const override { return getNestedLabelCounts()[0]; }
+    const CounterMap<Label>& getVertexCounts() const override { return getNestedVertexCounts()[0]; }
     const CounterMap<Label>& getEdgeLabelCounts() const override { return getNestedEdgeLabelCounts()[0]; }
     const MultiGraph& getLabelGraph() const override { return getNestedLabelGraph()[0]; }
 };
+using NestedBlockLabeledRandomGraph = NestedVertexLabeledRandomGraph<BlockIndex>;
 
 } // namespace FastMIDyNet
 

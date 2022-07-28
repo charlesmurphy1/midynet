@@ -9,6 +9,7 @@
 #include "FastMIDyNet/random_graph/prior/block.h"
 #include "FastMIDyNet/random_graph/prior/label_graph.h"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
+#include "FastMIDyNet/random_graph/prior/nested_block.h"
 #include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 
@@ -46,7 +47,6 @@ static MultiGraph getUndirectedHouseMultiGraph(){
     return graph;
 
 }
-
 
 class DummyGraphLikelihood: public GraphLikelihoodModel{
 public:
@@ -177,6 +177,7 @@ public:
     const double getLogPrior() const override { return 2; }
     const double getLogJoint() const override { return getLogLikelihood() + getLogPrior(); }
 };
+
 
 
 

@@ -84,10 +84,10 @@ class RestrictedLabelProposer: public LabelProposer<Label>{
 protected:
     std::set<Label> m_emptyLabels, m_availableLabels;
     bool creatingNewLabel(const LabelMove<Label>& move) const {
-        return m_graphPriorPtr->getLabelCounts().get(move.nextLabel) == 0;
+        return m_graphPriorPtr->getVertexCounts().get(move.nextLabel) == 0;
     };
     bool destroyingLabel(const LabelMove<Label>& move) const {
-        return move.prevLabel != move.nextLabel and m_graphPriorPtr->getLabelCounts().get(move.prevLabel) == 1 ;
+        return move.prevLabel != move.nextLabel and m_graphPriorPtr->getVertexCounts().get(move.prevLabel) == 1 ;
     }
     int getAddedLabels(const LabelMove<Label>& move) const {
         return (int) creatingNewLabel(move) - (int) destroyingLabel(move);
@@ -116,7 +116,7 @@ public:
         m_emptyLabels.clear();
         m_availableLabels.clear();
         m_emptyLabels.insert(m_graphPriorPtr->getLabelCount());
-        for (const auto& nr: graphPrior.getLabelCounts())
+        for (const auto& nr: graphPrior.getVertexCounts())
             m_availableLabels.insert(nr.first);
     }
 

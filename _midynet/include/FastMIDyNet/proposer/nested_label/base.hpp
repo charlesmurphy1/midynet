@@ -85,10 +85,10 @@ protected:
     }
 
     bool creatingNewLabel(const LabelMove<Label>& move) const {
-        return m_nestedGraphPriorPtr->getNestedLabelCounts()[move.level].get(move.nextLabel) == 0;
+        return m_nestedGraphPriorPtr->getNestedVertexCounts()[move.level].get(move.nextLabel) == 0;
     };
     bool destroyingLabel(const LabelMove<Label>& move) const {
-        return move.prevLabel != move.nextLabel and m_nestedGraphPriorPtr->getNestedLabelCounts()[move.level].get(move.prevLabel) == 1 ;
+        return move.prevLabel != move.nextLabel and m_nestedGraphPriorPtr->getNestedVertexCounts()[move.level].get(move.prevLabel) == 1 ;
     }
 
     int getAddedLabels(const LabelMove<Label>& move) const {
@@ -123,7 +123,7 @@ public:
         for (Level l=0; l<m_nestedGraphPriorPtr->getDepth(); ++l){
             m_emptyLabels.push_back({m_nestedGraphPriorPtr->getNestedLabelCount()[l]});
             m_availableLabels.push_back({});
-            for (const auto& nr: graphPrior.getNestedLabelCounts()[l])
+            for (const auto& nr: graphPrior.getNestedVertexCounts()[l])
                 m_availableLabels[l].insert(nr.first);
         }
     }

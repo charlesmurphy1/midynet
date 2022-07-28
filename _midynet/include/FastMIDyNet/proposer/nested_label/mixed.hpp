@@ -7,7 +7,7 @@
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/proposer/movetypes.h"
-#include "FastMIDyNet/proposer/label/proposer.hpp"
+#include "FastMIDyNet/proposer/label/base.hpp"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 
 namespace FastMIDyNet {

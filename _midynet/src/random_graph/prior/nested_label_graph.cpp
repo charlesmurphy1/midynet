@@ -2,26 +2,6 @@
 
 namespace FastMIDyNet{
 
-// BlockSequence remapEmptyBlocks(const BlockSequence& blocks){
-//     CounterMap<BlockIndex> counts;
-//     for (auto b : blocks)
-//         counts.increment(b);
-//
-//     std::map<BlockIndex, BlockIndex> remapping;
-//     BlockIndex id=0;
-//     for (auto nr : counts){
-//         if (nr.second > 0){
-//             remapping.insert({nr.first, id});
-//             ++id;
-//         }
-//     }
-//
-//     BlockSequence remappedBlocks;
-//      for (size_t i=0; i<blocks.size(); ++i)
-//         remappedBlocks.push_back(remapping.at(blocks[i]));
-//     return remappedBlocks;
-// }
-
 void NestedLabelGraphPrior::applyGraphMoveToState(const GraphMove& move) {
 
     BlockIndex r, s;
@@ -167,7 +147,6 @@ void NestedLabelGraphPrior::checkSelfConsistencyBetweenLevels() const{
             }
         }
         prefix = "NestedLabelGraphPrior (level=" + std::to_string(l) + ")";
-
         for (const auto& vertex: m_nestedState[l]){
             for (const auto& neighbor: m_nestedState[l].getNeighboursOfIdx(vertex)){
                 if (vertex > neighbor.vertexIndex)

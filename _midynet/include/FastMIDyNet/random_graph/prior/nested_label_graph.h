@@ -110,6 +110,9 @@ public:
         m_nestedBlockPriorPtr->setNestedState(nestedBlocks);
         recomputeStateFromGraph();
     }
+    void setPartition(const std::vector<BlockIndex>& labels) override {
+        throw std::logic_error("This method should not be used.");
+    }
 
     void reduceHierarchy() {
         m_nestedBlockPriorPtr->reduceHierarchy();
@@ -137,6 +140,10 @@ class NestedStochasticBlockLabelGraphPrior: public NestedLabelGraphPrior{
 private:
     NestedBlockUniformHyperPrior m_blockPrior;
 public:
+    NestedStochasticBlockLabelGraphPrior(size_t graphSize):
+        NestedLabelGraphPrior(), m_blockPrior(graphSize){
+            setNestedBlockPrior(m_blockPrior);
+        }
     NestedStochasticBlockLabelGraphPrior(size_t graphSize, EdgeCountPrior& edgeCountPrior):
         NestedLabelGraphPrior(), m_blockPrior(graphSize){
             setEdgeCountPrior(edgeCountPrior);

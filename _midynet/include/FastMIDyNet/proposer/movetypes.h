@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/types.h"
 
@@ -18,17 +19,23 @@ struct GraphMove{
     std::vector<BaseGraph::Edge> removedEdges;
     std::vector<BaseGraph::Edge> addedEdges;
 
-    void display() const{
-        std::cout << "edges removed : { ";
-        for (auto e : removedEdges){
-            std::cout << "{ " << e.first << ", " << e.second << "}, ";
-        }
-        std::cout << "}\t edges added : { ";
-        for (auto e : addedEdges){
-            std::cout << "{ " << e.first << ", " << e.second << "}, ";
-        }
-        std::cout << "}" << std::endl;
+    friend std::ostream& operator <<(std::ostream& os, const GraphMove& move) {
+        os << move.display();
+        return os;
+    }
 
+    std::string display() const{
+        std::stringstream ss;
+        ss << "edges removed : { ";
+        for (auto e : removedEdges){
+            ss << "{ " << e.first << ", " << e.second << "}, ";
+        }
+        ss << "}\t edges added : { ";
+        for (auto e : addedEdges){
+            ss << "{ " << e.first << ", " << e.second << "}, ";
+        }
+        ss << "}";
+        return ss.str();
     }
 };
 
@@ -43,6 +50,12 @@ struct LabelMove{
     Label nextLabel;
     int addedLabels;
     Level level;
+
+    friend std::ostream& operator <<(std::ostream& os, const LabelMove<Label>& move) {
+        os << move.display();
+        return os;
+    }
+
 
     std::string display()const{
         std::stringstream ss;

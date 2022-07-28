@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 
+#include "../fixtures.hpp"
 #include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/random_graph/prior/block_count.h"
 #include "FastMIDyNet/random_graph/prior/nested_block.h"
@@ -13,7 +14,6 @@
 #include "FastMIDyNet/exceptions.h"
 
 using namespace FastMIDyNet;
-
 
 class TestNestedLabelGraphPrior: public ::testing::Test {
     public:
@@ -33,13 +33,18 @@ class TestNestedLabelGraphPrior: public ::testing::Test {
         }
         void TearDown(){ }
 
-        BlockMove proposeMove(
-                BaseGraph::VertexIndex id, Level level,
-                size_t depth=4, bool creatingNewBlock=false,
-                bool destroyingBlock=false){
-            size_t it = 0;
+        BlockMove proposeNestedBlockMove(
+            NestedLabelGraphPrior& prior,
+            BaseGraph::VertexIndex id,
+            Level level,
+            size_t depth=4,
+            bool creatingNewBlock=false,
+            bool destroyingBlock=false
+        ){
 
+            size_t it = 0;
             while (it < 100){
+                graph = generateMultiGraphErdosRenyi(GRAPH_SIZE, EDGE_COUNT);
                 prior.sample();
                 prior.setGraph(graph);
                 if (prior.getDepth() != depth)
@@ -47,29 +52,22 @@ class TestNestedLabelGraphPrior: public ::testing::Test {
                 BlockIndex r, s;
                 int addedLabels = 0;
                 r = prior.getBlockOfIdx(id, level);
-                if (creatingNewBlock){
-                    s = prior.getNestedBlockCount(level);
-                    addedLabels = 1;
-                } else if (destroyingBlock){
-                    s = 1;
-                    addedLabels = -1;
-                    for (size_t i=0; i<prior.getNestedBlockPrior().getSize(); ++i){
-                        r = prior.getBlockOfIdx(i, level);
-                        if (prior.getNestedVertexCounts(level)[r] == 1){
-                            id = i;
-                            break;
-                        }
-                        s = r;
-                    }
-                } else{
-                    s = sampleUniformly(0, (int)prior.getNestedBlockCount(level) - 1);
-                    if (prior.getNestedVertexCounts(level)[r] == 1)
-                        continue;
-                }
-                if (r == s)
+                if (prior.getNestedVertexCounts(level)[r] == 1 and not destroyingBlock)
                     continue;
+                if (creatingNewBlock){
+                    addedLabels = 1;
+                    s = prior.getNestedBlockCount(level);
+                } else{
+                    s = sampleUniformly(0, (int) prior.getNestedBlockCount(level) - 1);
+                    if (prior.getNestedVertexCounts(level)[r] == 1 and not destroyingBlock)
+                        continue;
+                    else if (prior.getNestedVertexCounts(level)[r] != 1 and destroyingBlock)
+                        continue;
+                    else if (prior.getNestedVertexCounts(level)[r] == 1 and destroyingBlock)
+                        addedLabels = -1;
+                }
                 BlockMove move = {id, r, s, addedLabels, level};
-                if (prior.getNestedBlockPrior().isValideBlockMove(move))
+                if (prior.getNestedBlockPrior().isValidBlockMove(move) and r != s)
                     return move;
                 ++it;
             }
@@ -158,10 +156,9 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forIdentityMoveAtAnyLevel_doNot
 TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveNotChangingBlockCountAtAnyLevel_noThrow){
 
     size_t depth = 4;
-    for(Level level=0; level < depth - 1; ++level){
-        BlockMove move = proposeMove(0, level, depth);
+    for(Level level=0; level < 1; ++level){
+        BlockMove move = proposeNestedBlockMove(prior, 0, level, depth);
         prior.applyLabelMove(move);
-
         EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
         EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
     }
@@ -171,7 +168,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveNotChangingBlockCountAtA
 TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveChangingBlockCountAtAnyLevel_noThrow){
     size_t depth = 4;
     for(Level level=0; level < depth - 1; ++level){
-        BlockMove move = proposeMove(0, level, depth, true);
+        BlockMove move = proposeNestedBlockMove(prior, 0, level, depth, true);
         prior.applyLabelMove(move);
         EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
         EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
@@ -180,7 +177,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveChangingBlockCountAtAnyL
 
 TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveChangingBlockCountAtAnyLevel_noThrow2){
     size_t depth = 4;
-    BlockMove move = proposeMove(0, 2, depth, true);
+    BlockMove move = proposeNestedBlockMove(prior, 0, 2, depth, true);
     prior.applyLabelMove(move);
     EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
     EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
@@ -190,7 +187,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveIncreasingDepth_noThrow)
     size_t depth = 3;
     size_t id = 0;
     Level level = depth - 1;
-    BlockMove move = proposeMove(id, level, depth, true);
+    BlockMove move = proposeNestedBlockMove(prior, id, level, depth, true);
 
     prior.applyLabelMove(move);
     EXPECT_EQ(prior.getDepth(), depth + 1);
@@ -229,7 +226,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forIdentity
 TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveNotChangingBlockCountAtAnyLevel_returnCorrectValue){
     size_t depth = 4;
     for (Level l=0; l<depth - 1; ++l){
-        BlockMove move = proposeMove(0, l, depth);
+        BlockMove move = proposeNestedBlockMove(prior, 0, l, depth);
         double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
         double logLikelihoodBefore = prior.getLogLikelihood();
         prior.applyLabelMove(move);
@@ -241,7 +238,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveNotC
 TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveChangingBlockCountAtAnyLevel_returnCorrectValue){
     size_t depth = 4;
     for (Level l=0; l<1; ++l){
-        BlockMove move = proposeMove(0, l, depth, true);
+        BlockMove move = proposeNestedBlockMove(prior, 0, l, depth, true);
         double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
         double logLikelihoodBefore = prior.getLogLikelihood();
         prior.applyLabelMove(move);
@@ -252,7 +249,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveChan
 
 TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveIncreasingDepth_returnCorrectValue){
     size_t depth = 4;
-    BlockMove move = proposeMove(0, depth-1, depth, true);
+    BlockMove move = proposeNestedBlockMove(prior, 0, depth-1, depth, true);
     double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
     prior.applyLabelMove(move);

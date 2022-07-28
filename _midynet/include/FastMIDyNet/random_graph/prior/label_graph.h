@@ -100,10 +100,10 @@ class LabelGraphPrior: public BlockLabeledPrior< LabelGraph >{
             m_blockPriorPtr->isRoot(false);
         }
 
-        void setGraph(const MultiGraph& graph);
+        virtual void setGraph(const MultiGraph& graph);
         const MultiGraph& getGraph() { return *m_graphPtr; }
         void setState(const LabelGraph&) override;
-        void setPartition(const std::vector<BlockIndex>&) ;
+        virtual void setPartition(const std::vector<BlockIndex>&) ;
         void samplePartition() {
             m_blockPriorPtr->sampleState();
             recomputeConsistentState();

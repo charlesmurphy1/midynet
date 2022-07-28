@@ -86,7 +86,7 @@ public:
 
     const BlockSequence& getLabels() const override { return getBlockPrior().getState(); }
     const size_t getLabelCount() const override { return getBlockPrior().getBlockCount(); }
-    const CounterMap<BlockIndex>& getLabelCounts() const override { return getBlockPrior().getVertexCounts(); }
+    const CounterMap<BlockIndex>& getVertexCounts() const override { return getBlockPrior().getVertexCounts(); }
     const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return getLabelGraphPrior().getEdgeCounts(); }
     const LabelGraph& getLabelGraph() const override { return getLabelGraphPrior().getState(); }
     const size_t& getEdgeCount() const override { return getLabelGraphPrior().getEdgeCount(); }

@@ -152,7 +152,7 @@ TEST_F(TestRestrictedUniformBlockProposer, proposeNewLabelMove_returnValidMove){
 TEST_F(TestRestrictedUniformBlockProposer, proposeLabelMove_forMoveDestroyingLabel_returnValidMove){
     proposer.setUp(smallGraphPrior);
     auto move = proposer.proposeLabelMove(0);
-    while(smallGraphPrior.getLabelCounts().get(move.prevLabel) != 1){
+    while(smallGraphPrior.getVertexCounts().get(move.prevLabel) != 1){
         smallGraphPrior.sample();
         proposer.setUp(smallGraphPrior);
         move = proposer.proposeLabelMove(0);
@@ -181,7 +181,7 @@ TEST_F(TestRestrictedUniformBlockProposer, getLogProposalProb_forBlockMoveAdding
 TEST_F(TestRestrictedUniformBlockProposer, getLogProposalProb_forBlockMoveDestroyingLabel_returnCorrectProb){
     proposer.setUp(smallGraphPrior);
     auto move = proposer.proposeLabelMove(0);
-    while(smallGraphPrior.getLabelCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
+    while(smallGraphPrior.getVertexCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
         smallGraphPrior.sample();
         proposer.setUp(smallGraphPrior);
         move = proposer.proposeLabelMove(0);
@@ -210,7 +210,7 @@ TEST_F(TestRestrictedUniformBlockProposer, getLogReverseProposalProb_forBlockMov
 TEST_F(TestRestrictedUniformBlockProposer, getLogReverseProposalProb_forBlockMoveDestroyingLabel_returnCorrectProb){
     proposer.setUp(smallGraphPrior);
     auto move = proposer.proposeLabelMove(0);
-    while(smallGraphPrior.getLabelCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
+    while(smallGraphPrior.getVertexCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
         smallGraphPrior.sample();
         proposer.setUp(smallGraphPrior);
         move = proposer.proposeLabelMove(0);
@@ -242,7 +242,7 @@ TEST_F(TestRestrictedUniformBlockProposer, applyLabelMove_forBlockMoveDestroying
     proposer.setUp(smallGraphPrior);
     auto empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();
     auto move = proposer.proposeLabelMove(0);
-    while(smallGraphPrior.getLabelCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
+    while(smallGraphPrior.getVertexCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
         smallGraphPrior.sample();
         proposer.setUp(smallGraphPrior);
         empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();

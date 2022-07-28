@@ -41,10 +41,10 @@ protected:
     virtual const size_t getAvailableLabelCount() const = 0;
 
     bool creatingNewLabel(const LabelMove<Label>& move) const {
-        return (*m_graphPriorPtrPtr)->getLabelCounts().get(move.nextLabel) == 0;
+        return (*m_graphPriorPtrPtr)->getVertexCounts().get(move.nextLabel) == 0;
     };
     bool destroyingLabel(const LabelMove<Label>& move) const {
-        return move.prevLabel != move.nextLabel and (*m_graphPriorPtrPtr)->getLabelCounts().get(move.prevLabel) == 1 ;
+        return move.prevLabel != move.nextLabel and (*m_graphPriorPtrPtr)->getVertexCounts().get(move.prevLabel) == 1 ;
     }
  public:
      MixedSampler(double shift=1): m_shift(shift) {}

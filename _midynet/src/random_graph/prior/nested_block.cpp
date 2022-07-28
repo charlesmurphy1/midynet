@@ -130,7 +130,7 @@ const double NestedBlockPrior::getLogLikelihood() const {
 
 bool NestedBlockPrior::isValidBlockMove(const BlockMove& move) const {
     // level of move is greater than depth
-    if (move.level >= getDepth() - 1)
+    if (move.level >= getDepth())
         return false;
         // {std::cout << "CODE 1" << std::endl; return false;}
     // size of new partition is greater than expected blockCount
@@ -144,13 +144,13 @@ bool NestedBlockPrior::isValidBlockMove(const BlockMove& move) const {
     if (getNestedBlockCount(move.level) + move.addedLabels >= getNestedBlockCount(move.level - 1))
         return false;
         // {std::cout << "CODE 3" << std::endl; return false;}
+    // if max depth is reach, stop
+    if (move.level == getDepth() - 1)
+        return true;
     // new blockCount at level is lesser than blockCount in upper level
     if (getNestedBlockCount(move.level) + move.addedLabels <= getNestedBlockCount(move.level + 1) and move.level < getDepth() - 2)
         return false;
         // {std::cout << "CODE 4" << std::endl; return false;}
-    // // if max depth is reach, stop
-    if (move.level == getDepth() - 2)
-        return true;
     // block creation does not destroy block
     if (getNestedVertexCounts(move.level)[move.prevLabel] == 1 and getNestedVertexCounts(move.level)[move.nextLabel] == 0)
         return false;
