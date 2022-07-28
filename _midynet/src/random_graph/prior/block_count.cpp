@@ -25,32 +25,34 @@ const double BlockCountPoissonPrior::getLogLikelihoodFromState(const size_t& sta
     return logZeroTruncatedPoissonPMF(state, m_mean);
 };
 
-void BlockCountPoissonPrior::checkSelfConsistency() const {
+void BlockCountPoissonPrior::checkSelfSafety() const {
     if (m_mean < 0)
-        throw ConsistencyError("BlockCountPoissonPrior: Negative mean `" + std::to_string(m_mean) + "`.");
+        throw SafetyError("BlockCountPoissonPrior", "m_mean", "<0");
 
     if (m_state<=0)
-        throw ConsistencyError("BlockCountPoissonPrior: Non-positive state `" + std::to_string(m_state) + "`.");
+        throw SafetyError("BlockCountPoissonPrior", "m_state", "<1");
 };
 
 void BlockCountUniformPrior::checkMin() const {
     if (m_min < 0)
-        throw ConsistencyError("BlockCountPoissonPrior: Negative mean `" + std::to_string(m_min) + "`.");
+        throw SafetyError("BlockCountUniformPrior", "m_min", "<0");
 }
 
 void BlockCountUniformPrior::checkMax() const {
     if (m_max < m_min)
-        throw ConsistencyError("BlockCountUniformPrior: `max` must be greater than or equal to `min` :"
+        throw SafetyError("BlockCountUniformPrior: `max` must be greater than or equal to `min` :"
             + std::to_string(m_min) + ">" + std::to_string(m_max) + ".");
 }
-void BlockCountUniformPrior::checkSelfConsistency() const {
+void BlockCountUniformPrior::checkSelfSafety() const {
     checkMin();
     checkMax();
-    if (m_state < m_min || m_state > m_max)
-        throw ConsistencyError("BlockCountUniformPrior: Inconsistent state " + std::to_string(m_state)
-            + ", must be within [" + std::to_string(m_min) + ", " + std::to_string(m_max) + "]." );
-
-
+    // if (m_state < m_min || m_state > m_max)
+    //     throw SaftetyError(
+    //         "BlockCountUniformPrior"
+    //
+    //         : Inconsistent state " + std::to_string(m_state)
+    //         + ", must be within [" + std::to_string(m_min) + ", " + std::to_string(m_max) + "]."
+    //     );
 };
 
 }

@@ -76,7 +76,7 @@ public:
         if( m_labelCallBacks.contains(key) )
             m_labelCallBacks.remove(key);
         else
-            throw std::logic_error("VertexLabelMCMC: callback of key `" + key + "` cannot be removed.");
+            throw std::runtime_error("VertexLabelMCMC: callback of key `" + key + "` cannot be removed.");
     }
     const CallBack<VertexLabelMCMC<Label>>& getLabelCallBack(std::string key){ return m_labelCallBacks.get(key); }
 
@@ -109,15 +109,12 @@ public:
     }
 
     void checkSelfSafety() const override {
-        if (not MCMC::isSafe())
-            throw SafetyError("VertexLabelMCMC: it is unsafe to set up, since `MCMC` is not safe.");
-
         if (m_graphPriorPtr == nullptr)
-            throw SafetyError("VertexLabelMCMC: it is unsafe to set up, since `m_graphPriorPtr` is NULL.");
+            throw SafetyError("VertexLabelMCMC", "m_graphPriorPtr");
         m_graphPriorPtr->checkSafety();
 
         if (m_labelProposerPtr == nullptr)
-            throw SafetyError("VertexLabelMCMC: it is unsafe to set up, since `m_labelProposerPtr` is NULL.");
+            throw SafetyError("VertexLabelMCMC", "m_labelProposerPtr");
         m_labelProposerPtr->checkSafety();
     }
     void checkSelfConsistency() const override {

@@ -58,7 +58,7 @@ public:
         if ( m_mcmcCallBacks.contains(key) )
             m_mcmcCallBacks.remove(key);
         else
-            throw std::logic_error("MCMC: callback of key `" + key + "` cannot be removed.");
+            throw std::runtime_error("MCMC: callback of key `" + key + "` cannot be removed.");
     }
     const CallBack<MCMC>& getMCMCCallBack(std::string key){ return m_mcmcCallBacks.get(key); }
 

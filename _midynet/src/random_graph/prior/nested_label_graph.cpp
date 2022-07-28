@@ -153,30 +153,27 @@ void NestedLabelGraphPrior::checkSelfConsistencyBetweenLevels() const{
                     continue;
                 if (actualLabelGraph.getEdgeMultiplicityIdx(vertex, neighbor.vertexIndex) != neighbor.label)
                     throw ConsistencyError(
-                        prefix + ": graph is inconsistent with label graph at (r="
-                        + std::to_string(vertex) + ", s=" + std::to_string(neighbor.vertexIndex)
-                        + "): expected=" + std::to_string(neighbor.label) + ", actual="
-                        + std::to_string(actualLabelGraph.getEdgeMultiplicityIdx(vertex, neighbor.vertexIndex))
-                        + "."
+                        prefix,
+                        "m_nestedState[l-1]", "edgeCount=" + std::to_string(actualLabelGraph.getEdgeMultiplicityIdx(vertex, neighbor.vertexIndex)),
+                        "m_nestedState[l]", "edgeCount=" + std::to_string(neighbor.label),
+                        "(r=" + std::to_string(vertex) + ", s=" + std::to_string(neighbor.vertexIndex) + ")"
                     );
             }
 
             if (actualLabelGraph.getDegreeOfIdx(vertex) != m_nestedEdgeCounts[l][vertex])
                 throw ConsistencyError(
-                    prefix + ": graph is inconsistent with edge counts at (r="
-                    + std::to_string(vertex)
-                    + "): expected=" + std::to_string(m_nestedEdgeCounts[l][vertex]) + ", actual="
-                    + std::to_string(actualLabelGraph.getDegreeOfIdx(vertex))
-                    + "."
+                    prefix,
+                    "m_nestedState[l-1]", "degree=" + std::to_string(actualLabelGraph.getDegreeOfIdx(vertex)),
+                    "m_nestedEdgeCounts[l]", "value=" + std::to_string(m_nestedEdgeCounts[l][vertex]),
+                    "r=" + std::to_string(vertex)
                 );
 
             if (actualLabelGraph.getDegreeOfIdx(vertex) != m_nestedState[l].getDegreeOfIdx(vertex))
                 throw ConsistencyError(
-                    prefix + ": graph is inconsistent with edge counts at (r="
-                    + std::to_string(vertex)
-                    + "): expected=" + std::to_string(m_nestedState[l].getDegreeOfIdx(vertex)) + ", actual="
-                    + std::to_string(actualLabelGraph.getDegreeOfIdx(vertex))
-                    + "."
+                    prefix,
+                    "m_nestedState[l-1]", "degree=" + std::to_string(actualLabelGraph.getDegreeOfIdx(vertex)),
+                    "m_nestedState[l]", "degree=" + std::to_string(m_nestedState[l].getDegreeOfIdx(vertex)),
+                    "r=" + std::to_string(vertex)
                 );
         }
 

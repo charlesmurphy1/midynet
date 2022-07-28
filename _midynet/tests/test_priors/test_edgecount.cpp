@@ -154,7 +154,7 @@ TEST_F(TestEdgeCountPoissonPrior, checkSelfConsistency_validMean_noThrow) {
 
 TEST_F(TestEdgeCountPoissonPrior, checkSelfConsistency_nonPositiveMean_throwConsistencyError) {
     prior={-2};
-    EXPECT_THROW(prior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    EXPECT_THROW(prior.checkSafety(), FastMIDyNet::SafetyError);
     expectConsistencyError = true;
 }
 

@@ -68,24 +68,10 @@ void VertexLabeledDegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& mov
         diffDegreeMap.decrement(edge.first);
         diffDegreeMap.decrement(edge.second);
     }
-
-    // std::cout << "diffDegreeMap=";
-    // for (auto diff : diffDegreeMap)
-    //     std::cout << " " << diff.first << "[" << getBlockPrior().getBlockOfIdx(diff.first) << ", " << degrees[diff.first] << "] -> " << diff.second << " ";
-    // std::cout << std::endl;
-    //
-    // std::cout << "[BEFORE]m_degreeCounts=";
-    // for (auto d : m_degreeCounts)
-    //     std::cout << " (" << d.first.first << ", " << d.first.second << ") -> " << d.second << " ";
-    // std::cout << std::endl;
     for (auto diff : diffDegreeMap){
         m_degreeCounts.decrement({getBlockPrior().getBlockOfIdx(diff.first), degrees[diff.first]});
         m_degreeCounts.increment({getBlockPrior().getBlockOfIdx(diff.first), degrees[diff.first] + diff.second});
     }
-    // std::cout << "[AFTER]m_degreeCounts=";
-    // for (auto d : m_degreeCounts)
-    //     std::cout << " (" << d.first.first << ", " << d.first.second << ") -> " << d.second << " ";
-    // std::cout << std::endl;
 }
 
 void VertexLabeledDegreePrior::applyLabelMoveToDegreeCounts(const BlockMove& move){
@@ -108,8 +94,11 @@ void VertexLabeledDegreePrior::checkDegreeSequenceConsistencyWithEdgeCount(const
     size_t actualEdgeCount = 0;
     for (auto k : degreeSeq) actualEdgeCount += k;
     if (actualEdgeCount != 2 * expectedEdgeCount)
-        throw ConsistencyError("VertexLabeledDegreePrior: degree sequence is inconsistent with expected edge count: "
-        + to_string(actualEdgeCount) + "!=" + to_string(2 * expectedEdgeCount));
+        throw ConsistencyError(
+            "VertexLabeledDegreePrior",
+            "degree sequence", "sum=" + std::to_string(actualEdgeCount),
+            "edge count", "value=" + std::to_string(expectedEdgeCount)
+        );
 }
 
 void VertexLabeledDegreePrior::checkDegreeSequenceConsistencyWithDegreeCounts(
@@ -117,24 +106,30 @@ void VertexLabeledDegreePrior::checkDegreeSequenceConsistencyWithDegreeCounts(
     const BlockSequence& blockSeq,
     const VertexLabeledDegreeCountsMap& expected){
     if (degreeSeq.size() != blockSeq.size())
-        throw invalid_argument("size of degreeSeq is inconsistent with size of blockSeq: "
-        + to_string(degreeSeq.size()) + "!=" + to_string(blockSeq.size()));
+        throw ConsistencyError(
+            "VertexLabeledDegreePrior",
+            "degree sequence", "size=" + std::to_string(degreeSeq.size()),
+            "partition", "size=" + std::to_string(blockSeq.size())
+        );
 
     size_t numBlocks = *max_element(blockSeq.begin(), blockSeq.end()) + 1;
     VertexLabeledDegreeCountsMap actual = VertexLabeledDegreePrior::computeDegreeCounts(degreeSeq, blockSeq);
 
     if (expected.size() != actual.size())
-        throw ConsistencyError("VertexLabeledDegreePrior: expected degree counts are inconsistent with actual degree counts: "
-        + to_string(expected.size()) + "!=" + to_string(actual.size()));
+        throw ConsistencyError(
+            "VertexLabeledDegreePrior",
+            "degree sequence", "countSize=" + std::to_string(actual.size()),
+            "degree counts", "size=" + std::to_string(expected.size())
+        );
 
     for (auto nk : actual){
-        if ( expected.isEmpty(nk.first) )
-            throw ConsistencyError("VertexLabeledDegreePrior: expected degree counts is inconsistent with degree sequence, since n_"
-            + pairToString(nk.first) + " is empty while it registered " + std::to_string(nk.second) + ".");
         if ( expected.get(nk.first) != nk.second )
-            throw ConsistencyError("VertexLabeledDegreePrior: expected degree counts is inconsistent with actual degree counts for n_"
-            + pairToString(nk.first) + ": "
-            + to_string(expected.get(nk.first)) + "!=" + to_string(nk.second));
+            throw ConsistencyError(
+                "VertexLabeledDegreePrior",
+                "degree sequence", "count=" + std::to_string(nk.second),
+                "degree counts", "value=" + std::to_string(expected.get(nk.first)),
+                "r=" + std::to_string(nk.first.first) + ", k=" + std::to_string(nk.first.second)
+            );
 
     }
 }

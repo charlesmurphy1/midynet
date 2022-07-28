@@ -32,7 +32,6 @@ public:
 
 
     size_t getStateAfterGraphMove(const GraphMove& move) const;
-    void checkSelfSafety()const override {}
 };
 
 class EdgeCountDeltaPrior: public EdgeCountPrior{
@@ -52,7 +51,6 @@ public:
     void sampleState() override { };
     const double getLogLikelihoodFromState(const size_t& state) const override { if (state == m_state) return 0.; else return -INFINITY; };
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { if (move.addedEdges.size() == move.removedEdges.size()) return 0; else return -INFINITY;}
-    void checkSelfConsistency() const override { };
 
 };
 
@@ -79,7 +77,7 @@ public:
     }
     void sampleState() override;
     const double getLogLikelihoodFromState(const size_t& state) const override;
-    void checkSelfConsistency() const;
+    void checkSelfSafety() const override;
 
 
 };

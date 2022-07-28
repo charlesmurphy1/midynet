@@ -27,10 +27,12 @@ void checkGraphConsistencyWithLabelGraph(
     for (auto r : actualEdgeMat)
         for (auto s : actualEdgeMat.getNeighboursOfIdx(r))
             if (expectedEdgeMat.getEdgeMultiplicityIdx(r, s.vertexIndex) != s.label)
-                throw ConsistencyError(namePrefix + ": at indices ("
-                + std::to_string(r) + ", " + std::to_string(s.vertexIndex) + ") label graph is inconsistent with graph:"
-                + std::to_string(expectedEdgeMat.getEdgeMultiplicityIdx(r, s.vertexIndex)) + " != "
-                + std::to_string(s.label));
+                throw ConsistencyError(
+                    namePrefix,
+                    "label graph", "edgeCount=" + std::to_string(s.label),
+                    "graph", "edgeCount=" + std::to_string(expectedEdgeMat.getEdgeMultiplicityIdx(r, s.vertexIndex)),
+                    "(r=" + std::to_string(r) + ", s=" + std::to_string(s.vertexIndex) + ")"
+                );
 };
 
 void checkGraphConsistencyWithDegreeSequence(std::string namePrefix, const MultiGraph& graph, const DegreeSequence& expectedDegreeSeq){
@@ -38,8 +40,12 @@ void checkGraphConsistencyWithDegreeSequence(std::string namePrefix, const Multi
 
     for (auto idx : graph){
         if (expectedDegreeSeq[idx] != actualDegreeSeq[idx])
-            throw ConsistencyError(namePrefix + ": expected degree of index " + std::to_string(idx)
-            + " is inconsistent with graph : " + std::to_string(expectedDegreeSeq[idx]) + " != " + std::to_string(actualDegreeSeq[idx]));
+            throw ConsistencyError(
+                namePrefix,
+                "expected degree", "k=" + std::to_string(expectedDegreeSeq[idx]),
+                "actual degree", "k=" + std::to_string(actualDegreeSeq[idx]),
+                "vertex=" + std::to_string(idx)
+            );
     }
 }
 }

@@ -26,15 +26,22 @@ void BlockPrior::checkBlockSequenceConsistencyWithVertexCounts(
 ) {
     CounterMap<size_t> actualVertexCounts = computeVertexCounts(blockSeq);
     if (actualVertexCounts.size() != expectedVertexCounts.size())
-        throw ConsistencyError(prefix + ": size of vertex count in blockSeq is inconsistent with expected block count.");
+        throw ConsistencyError(
+            prefix,
+            "blockSeq", "B=" + std::to_string(actualVertexCounts.size()),
+            "vertexCounts", "B=" + std::to_string(expectedVertexCounts.size())
+        );
 
     for (size_t i=0; i<actualVertexCounts.size(); ++i){
         auto x = actualVertexCounts[i];
         auto y = expectedVertexCounts[i];
         if (x != y){
-            throw ConsistencyError(prefix + ": actual vertex count at index "
-            + std::to_string(i) + " is inconsistent with expected vertex count: "
-            + std::to_string(x) + " != " + std::to_string(y) + ".");
+            throw ConsistencyError(
+                prefix,
+                "blockSeq", "counts=" + std::to_string(actualVertexCounts.size()),
+                "vertexCounts", "value=" + std::to_string(expectedVertexCounts.size()),
+                "r=" + std::to_string(i)
+            );
         }
     }
 

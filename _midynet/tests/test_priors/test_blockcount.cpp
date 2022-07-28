@@ -34,17 +34,17 @@ public:
     }
 };
 
-TEST_F(TestBlockCountPrior, getLogLikelihoodRatio_throwLogicError) {
+TEST_F(TestBlockCountPrior, getLogLikelihoodRatio_throwDepletedMethodError) {
     prior.setState(5);
     BlockMove blockMove = {0, 0, 1};
-    EXPECT_THROW(prior.getLogLikelihoodRatioFromLabelMove(blockMove), std::logic_error);
+    EXPECT_THROW(prior.getLogLikelihoodRatioFromLabelMove(blockMove), DepletedMethodError);
 }
 
 
 TEST_F(TestBlockCountPrior, applyLabelMove_noNewblockMove_blockNumberUnchangedIsProcessedIsTrue) {
     prior.setState(5);
     BlockMove blockMove = {0, 0, 2};
-    EXPECT_THROW(prior.applyLabelMove(blockMove), std::logic_error);
+    EXPECT_THROW(prior.applyLabelMove(blockMove), DepletedMethodError);
 }
 
 /* BLOCK COUNT DELTA PRIOR TEST: BEGIN */
@@ -113,11 +113,11 @@ TEST_F(TestBlockCountPoissonPrior, checkSelfConsistency_noError_noThrow) {
 
 TEST_F(TestBlockCountPoissonPrior, checkSelfConsistency_negativeMean_throwConsistencyError) {
     prior={-2};
-    EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
+    EXPECT_THROW(prior.checkSafety(), SafetyError);
 
     prior={1};
     prior.setState(0);
-    EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
+    EXPECT_THROW(prior.checkSelfSafety(), SafetyError);
     expectConsistencyError = true;
 }
 

@@ -91,7 +91,7 @@ public:
         else if( m_graphCallBacks.contains(key) )
             m_graphCallBacks.remove(key);
         else
-            throw std::logic_error("GraphReconstructionMCMC: callback of key `" + key + "` cannot be removed.");
+            throw std::runtime_error("GraphReconstructionMCMC: callback of key `" + key + "` cannot be removed.");
     }
     const CallBack<GraphReconstructionMCMC<GraphPriorType>>& getGraphCallBack(std::string key){ return m_graphCallBacks.get(key); }
 
@@ -124,15 +124,14 @@ public:
     }
 
     virtual void checkSelfSafety() const override {
-        if (not MCMC::isSafe())
-            throw SafetyError("GraphReconstructionMCMC: it is unsafe to set up, since `MCMC` is not safe.");
+        MCMC::checkSelfSafety();
 
         if (m_dynamicsPtr == nullptr)
-            throw SafetyError("GraphReconstructionMCMC: it is unsafe to set up, since `m_dynamicsPtr` is NULL.");
+            throw SafetyError("GraphReconstructionMCMC, m_dynamicsPtr");
         m_dynamicsPtr->checkSafety();
 
         if (m_edgeProposerPtr == nullptr)
-            throw SafetyError("GraphReconstructionMCMC: it is unsafe to set up, since `m_edgeProposerPtr` is NULL.");
+            throw SafetyError("GraphReconstructionMCMC", "m_edgeProposerPtr");
         m_edgeProposerPtr->checkSafety();
     }
     virtual void checkSelfConsistency() const override {
@@ -249,7 +248,7 @@ public:
     void checkSelfSafety() const override {
         BaseClass::checkSelfSafety();
         if (m_labelProposerPtr == nullptr)
-            throw SafetyError("VertexLabeledGraphReconstructionMCMC: it is unsafe to set up, since `m_labelProposerPtr` is NULL.");
+            throw SafetyError("VertexLabeledGraphReconstructionMCMC", "m_labelProposerPtr");
         m_labelProposerPtr->checkSafety();
     }
     void checkSelfConsistency() const override {

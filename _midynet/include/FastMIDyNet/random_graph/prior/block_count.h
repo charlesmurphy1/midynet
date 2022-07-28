@@ -42,8 +42,6 @@ public:
     const double getLogLikelihoodFromState(const size_t& blockCount) const override{
         return (blockCount != m_state) ? -INFINITY : 0;
     }
-    void checkSelfConsistency() const override { };
-
     void checkSelfSafety() const override {
         if (m_state == 0)
             throw SafetyError("BlockCountDeltaPrior", "m_blockCount", "0");
@@ -74,7 +72,7 @@ class BlockCountPoissonPrior: public BlockCountPrior{
         void sampleState() override;
         const double getLogLikelihoodFromState(const size_t& state) const override;
 
-        void checkSelfConsistency() const override;
+        void checkSelfSafety() const override;
 };
 
 class BlockCountUniformPrior: public BlockCountPrior{
@@ -118,16 +116,15 @@ class BlockCountUniformPrior: public BlockCountPrior{
 
         void checkMin() const;
         void checkMax() const;
-        void checkSelfConsistency() const override;
+        void checkSelfSafety() const override;
 };
 
 class NestedBlockCountPrior: public BlockCountPrior {
 protected:
     std::vector<size_t> m_nestedState;
 public:
-    using BlockCountPrior::BlockCountPrior;
     const double getLogLikelihoodFromState(const size_t&) const override {
-         throw std::logic_error("NestedBlockCount: this method should not be used.");
+         throw DepletedMethodError("NestedBlockCount", "getLogLikelihoodFromState");
     };
     virtual const double getLogLikelihoodFromNestedState(const std::vector<size_t>&) const = 0;
     const double getLogLikelihood() const override {
@@ -160,9 +157,11 @@ public:
     }
     void checkSelfConsistency() const override {
         if (m_state != m_nestedState[0])
-            throw ConsistencyError("NestedBlockCountPrior: m_state (" + std::to_string(m_state)
-                                 + ") is inconsistent with m_nestedState[0] (" + std::to_string(m_nestedState[0])
-                                 + ")");
+            throw ConsistencyError(
+                "NestedBlockCountPrior",
+                "m_state", "value=" + std::to_string(m_state),
+                "m_nestedState[0]", "value=" + std::to_string(m_nestedState[0])
+            );
     };
 };
 
@@ -198,6 +197,10 @@ public:
     }
 
     void setGraphSize(size_t size) { m_graphSize = size; }
+    void checkSelfSafety() const override {
+        if (m_graphSize<0)
+            throw SafetyError("NestedBlockCountUniformPrior", "m_graphSize", "<0");
+    }
 
 };
 

@@ -77,8 +77,11 @@ void DegreePrior::checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequen
     size_t actualEdgeCount = 0;
     for (auto k : degreeSeq) actualEdgeCount += k;
     if (actualEdgeCount != 2 * expectedEdgeCount)
-        throw ConsistencyError("DegreePrior: degree sequence is inconsistent with expected edge count: "
-        + to_string(actualEdgeCount) + "!=" + to_string(2 * expectedEdgeCount));
+        throw ConsistencyError(
+            "DegreePrior",
+            "m_state", "E=" + std::to_string(expectedEdgeCount),
+            "edgeCount", "value=" + std::to_string(actualEdgeCount)
+    );
 }
 
 void DegreePrior::checkDegreeSequenceConsistencyWithDegreeCounts(
@@ -86,17 +89,20 @@ void DegreePrior::checkDegreeSequenceConsistencyWithDegreeCounts(
     const DegreeCountsMap& expected){
     DegreeCountsMap actual = DegreePrior::computeDegreeCounts(degreeSeq);
     if (expected.size() != actual.size())
-        throw ConsistencyError("DegreePrior: expected degree counts are inconsistent with actual degree counts: "
-        + to_string(expected.size()) + "!=" + to_string(actual.size()));
+        throw ConsistencyError(
+            "DegreePrior",
+            "m_state", "countSize=" + std::to_string(actual.size()),
+            "vertexCounts", "size=" + std::to_string(expected.size())
+        );
 
     for (auto nk : actual){
-        if ( expected.isEmpty(nk.first) )
-            throw ConsistencyError("DegreePrior: expected degree counts is inconsistent with degree sequence, since n_"
-            + std::to_string(nk.first) + " is empty while it registered " + std::to_string(nk.second) + ".");
         if ( expected.get(nk.first) != nk.second )
-            throw ConsistencyError("DegreePrior: expected degree counts is inconsistent with actual degree counts for n_"
-            + std::to_string(nk.first) + ": "
-            + std::to_string(expected.get(nk.first)) + "!=" + std::to_string(nk.second));
+            throw ConsistencyError(
+                "DegreePrior",
+                "m_state", "count=" + std::to_string(nk.second),
+                "vertexCounts", "value=" + std::to_string(expected.get(nk.first)),
+                "k=" + std::to_string(nk.first)
+            );
 
     }
 }

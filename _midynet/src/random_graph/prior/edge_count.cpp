@@ -9,7 +9,7 @@ namespace FastMIDyNet{
 size_t EdgeCountPrior::getStateAfterGraphMove(const GraphMove& move) const {
         long edgeNumberDifference = (long) move.addedEdges.size() - (long) move.removedEdges.size();
         if ((long) m_state + edgeNumberDifference < 0)
-            throw ConsistencyError("EdgeCountPoissonPrior: Removing more edges than present in graph.");
+            throw std::runtime_error("EdgeCountPrior: Removing more edges than present in graph.");
         return m_state + edgeNumberDifference;
 }
 
@@ -21,12 +21,12 @@ const double EdgeCountPoissonPrior::getLogLikelihoodFromState(const size_t& stat
     return logPoissonPMF(state, m_mean);
 }
 
-void EdgeCountPoissonPrior::checkSelfConsistency() const {
+void EdgeCountPoissonPrior::checkSelfSafety() const {
     if (m_mean < 0)
-        throw ConsistencyError("EdgeCountPoissonPrior: Negative mean `" + std::to_string(m_mean) + "`.");
+        throw SafetyError("EdgeCountPoissonPrior", "m_mean", "<0");
 
     if (m_state < 0)
-        throw ConsistencyError("EdgeCountPoissonPrior: Negative state `" + std::to_string(m_state) + "`.");
+        throw SafetyError("EdgeCountPoissonPrior", "m_state", "<0");
 }
 
 // void EdgeCountMultisetPrior::sampleState(){
