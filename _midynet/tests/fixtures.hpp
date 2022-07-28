@@ -68,7 +68,7 @@ public:
         m_edgeCount = graph.getTotalEdgeNumber();
     }
 
-    const size_t& getEdgeCount() const override { return m_edgeCount; }
+    const size_t getEdgeCount() const override { return m_edgeCount; }
 
     void sampleState() override { };
 };

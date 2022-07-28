@@ -67,14 +67,14 @@ public:
     const BlockPrior& getBlockPrior() const { return m_degreePriorPtr->getBlockPrior(); }
     void setBlockPrior(BlockPrior& prior) {
         if (m_degreePriorPtr == nullptr)
-            throw SafetyError("DegreeCorrectedStochasticBlockModelFamily: unsafe degree prior with value `nullptr`.");
+            throw SafetyError("DegreeCorrectedStochasticBlockModelFamily", "m_degreePriorPtr");
         m_degreePriorPtr->setBlockPrior(prior);
     }
 
     const LabelGraphPrior& getLabelGraphPrior() const { return m_degreePriorPtr->getLabelGraphPrior(); }
     void setLabelGraphPrior(LabelGraphPrior& prior) {
         if (m_degreePriorPtr == nullptr)
-            throw SafetyError("DegreeCorrectedStochasticBlockModelFamily: unsafe degree prior with value `nullptr`.");
+            throw SafetyError("DegreeCorrectedStochasticBlockModelFamily", "m_degreePriorPtr");
         m_degreePriorPtr->setLabelGraphPrior(prior);
     }
 
@@ -89,7 +89,7 @@ public:
     const CounterMap<BlockIndex>& getVertexCounts() const override { return getBlockPrior().getVertexCounts(); }
     const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return getLabelGraphPrior().getEdgeCounts(); }
     const LabelGraph& getLabelGraph() const override { return getLabelGraphPrior().getState(); }
-    const size_t& getEdgeCount() const override { return getLabelGraphPrior().getEdgeCount(); }
+    const size_t getEdgeCount() const override { return getLabelGraphPrior().getEdgeCount(); }
     const std::vector<size_t> getDegrees() const { return getDegreePrior().getState(); }
 
     void checkSelfConsistency() const override;
@@ -103,6 +103,13 @@ public:
     void computationFinished() const override {
         m_isProcessed = false;
         m_degreePriorPtr->computationFinished();
+    }
+
+    void checkSelfSafety() const override {
+        RandomGraph::checkSelfSafety();
+        if (not m_degreePriorPtr)
+            throw SafetyError("DegreeCorrectedStochasticBlockModelFamily", "m_degreePriorPtr");
+        m_degreePriorPtr->checkSafety();
     }
 };
 

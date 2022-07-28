@@ -141,9 +141,9 @@ class LabelGraphPrior: public BlockLabeledPrior< LabelGraph >{
 
         void checkSelfSafety()const override{
             if (m_blockPriorPtr == nullptr)
-                throw SafetyError("LabelGraphPrior: unsafe prior since `m_blockPriorPtr` is empty.");
+                throw SafetyError("LabelGraphPrior", "m_blockPriorPtr");
             if (m_edgeCountPriorPtr == nullptr)
-                throw SafetyError("LabelGraphPrior: unsafe prior since `m_edgeCountPriorPtr` is empty.");
+                throw SafetyError("LabelGraphPrior", "m_edgeCountPriorPtr");
             m_blockPriorPtr->checkSafety();
             m_edgeCountPriorPtr->checkSafety();
         }
@@ -191,7 +191,7 @@ public:
     void checkSelfConsistency() const override { };
     void checkSelfSafety() const override {
         if (m_labelGraph.getSize() == 0)
-            throw SafetyError("LabelGraphDeltaPrior: unsafe prior since `m_labelGraph` is empty.");
+            throw SafetyError("LabelGraphDeltaPrior", "m_labelGraph", "empty");
     }
 
     virtual void computationFinished() const override { m_isProcessed = false; }

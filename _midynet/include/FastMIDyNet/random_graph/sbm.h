@@ -66,7 +66,7 @@ public:
     const BlockPrior& getBlockPrior() const { return m_labelGraphPriorPtr->getBlockPrior(); }
     void setBlockPrior(BlockPrior& blockPrior) {
         if (m_labelGraphPriorPtr == nullptr)
-            throw SafetyError("StochasticBlockModelFamily: unsafe edge matrix prior with value `nullptr`.");
+            throw SafetyError("StochasticBlockModelFamily", "m_labelGraphPriorPtr");
         m_labelGraphPriorPtr->setBlockPrior(blockPrior);
     }
 
@@ -81,7 +81,7 @@ public:
     const CounterMap<BlockIndex>& getVertexCounts() const override { return m_labelGraphPriorPtr->getBlockPrior().getVertexCounts(); }
     const CounterMap<BlockIndex>& getEdgeLabelCounts() const override { return m_labelGraphPriorPtr->getEdgeCounts(); }
     const LabelGraph& getLabelGraph() const override { return m_labelGraphPriorPtr->getState(); }
-    const size_t& getEdgeCount() const override { return m_labelGraphPriorPtr->getEdgeCount(); }
+    const size_t getEdgeCount() const override { return m_labelGraphPriorPtr->getEdgeCount(); }
 
     virtual void checkSelfConsistency() const override;
     virtual const bool isCompatible(const MultiGraph& graph) const override{
@@ -93,6 +93,20 @@ public:
         m_isProcessed = false;
         m_labelGraphPriorPtr->computationFinished();
     }
+    void checkSelfSafety() const override {
+        RandomGraph::checkSelfSafety();
+        if (not m_labelGraphPriorPtr)
+            throw SafetyError("StochasticBlockModelFamily", "m_labelGraphPriorPtr");
+    }
+};
+
+
+class UniformStochasticBlockModel: public StochasticBlockModelFamily{
+
+};
+
+class HyperUniformStochasticBlockModel: public StochasticBlockModelFamily{
+
 };
 
 }// end FastMIDyNet

@@ -37,7 +37,7 @@ public:
     }
     const size_t getSize() const { return m_size; }
     void setSize(const size_t size) { m_size = size; }
-    virtual const size_t& getEdgeCount() const = 0;
+    virtual const size_t getEdgeCount() const = 0;
     const double getAverageDegree() const {
         double avgDegree = 2 * (double) getEdgeCount();
         avgDegree /= (double) getSize();
@@ -77,9 +77,9 @@ public:
 
     virtual const bool isCompatible(const MultiGraph& graph) const { return graph.getSize() == m_size; }
     virtual bool isSafe() const override { return m_likelihoodModelPtr and m_likelihoodModelPtr->isSafe(); }
-    void checkSelfSafety() const override {
+    virtual void checkSelfSafety() const override {
         if (not m_likelihoodModelPtr)
-            throw SafetyError("RandomGraph: unsafe likelihood model with value `nullptr`.");
+            throw SafetyError("RandomGraph", "m_likelihoodModelPtr");
     }
     virtual void checkSelfConsistency() const override {
         m_likelihoodModelPtr->checkConsistency();
@@ -138,12 +138,12 @@ public:
 
     virtual const size_t getDepth() const = 0;
 
-    virtual const Label& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx, Level level) const = 0;
-    virtual const Label& getNestedLabelOfIdx(BaseGraph::VertexIndex vertexIdx, Level level) const = 0;
+    virtual const Label getLabelOfIdx(BaseGraph::VertexIndex vertexIdx, Level level) const = 0;
+    virtual const Label getNestedLabelOfIdx(BaseGraph::VertexIndex vertexIdx, Level level) const = 0;
     virtual const std::vector<std::vector<Label>>& getNestedLabels() const = 0;
     virtual const std::vector<Label>& getNestedLabels(Level) const = 0;
     virtual const std::vector<size_t>& getNestedLabelCount() const = 0;
-    virtual const size_t& getNestedLabelCount(Level) const = 0;
+    virtual const size_t getNestedLabelCount(Level) const = 0;
     virtual const std::vector<CounterMap<Label>>& getNestedVertexCounts() const = 0;
     virtual const CounterMap<Label>& getNestedVertexCounts(Level) const = 0;
     virtual const std::vector<CounterMap<Label>>& getNestedEdgeLabelCounts() const = 0;

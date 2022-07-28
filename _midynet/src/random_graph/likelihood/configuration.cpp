@@ -47,7 +47,6 @@ const double ConfigurationModelLikelihood::getLogLikelihoodRatioFromGraphMove (c
     }
 
     for (auto diff : edgeMultDiffMap){
-        std::cout << "Edge (" << diff.first.first << ", " << diff.first.second << "): " << diff.second << std::endl;
         size_t edgeMult = m_graphPtr->getEdgeMultiplicityIdx(diff.first);
         int factor = (diff.first.first == diff.first.second) ? 2 : 1;
         auto factFunc = (diff.first.first == diff.first.second) ? logDoubleFactorial : logFactorial;

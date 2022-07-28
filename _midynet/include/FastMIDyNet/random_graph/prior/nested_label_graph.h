@@ -111,7 +111,7 @@ public:
         recomputeStateFromGraph();
     }
     void setPartition(const std::vector<BlockIndex>& labels) override {
-        throw std::logic_error("This method should not be used.");
+        throw DepletedMethodError("NestedLabelGraphPrior", "setPartition", "setNestedPartition");
     }
 
     void reduceHierarchy() {

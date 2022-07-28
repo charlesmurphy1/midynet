@@ -45,7 +45,7 @@ public:
     const EdgeCountPrior& getEdgeCountPrior() const { return m_degreePriorPtr->getEdgeCountPrior(); }
     void setEdgeCountPrior(EdgeCountPrior& prior) {
         if (m_degreePriorPtr == nullptr)
-            throw SafetyError("StochasticBlockModelFamily: unsafe degree prior with value `nullptr`.");
+            throw SafetyError("ConfigurationModelFamily", "degree prior");
         m_degreePriorPtr->setEdgeCountPrior(prior);
     }
 
@@ -55,7 +55,7 @@ public:
         m_degreePriorPtr->isRoot(false);
     }
 
-    const size_t& getEdgeCount() const { return m_degreePriorPtr->getEdgeCount(); }
+    const size_t getEdgeCount() const { return m_degreePriorPtr->getEdgeCount(); }
     void sampleState() { setGraph(generateCM(m_degreePriorPtr->getState())); }
 
     const bool isCompatible(const MultiGraph& graph) const override{
@@ -67,40 +67,14 @@ public:
     }
 
 
-};
-// class ConfigurationModelFamily: public DegreeCorrectedStochasticBlockModelFamily{
-// protected:
-//     BlockSequence m_blockSeq;
-//     BlockDeltaPrior m_blockDeltaPrior;
-//     EdgeMatrixUniformPrior m_edgeMatrixUniformPrior;
-//
-// public:
-//     ConfigurationModelFamily(size_t graphSize):
-//         DegreeCorrectedStochasticBlockModelFamily(graphSize),
-//         m_blockSeq(graphSize, 0),
-//         m_blockDeltaPrior(m_blockSeq),
-//         m_edgeMatrixUniformPrior() {
-//             setBlockPrior(m_blockDeltaPrior);
-//             setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
-//         }
-//     ConfigurationModelFamily(size_t graphSize, EdgeCountPrior& edgeCountPrior, DegreePrior& degreePrior):
-//         DegreeCorrectedStochasticBlockModelFamily(graphSize),
-//         m_blockSeq(graphSize, 0),
-//         m_blockDeltaPrior(m_blockSeq),
-//         m_edgeMatrixUniformPrior(edgeCountPrior, m_blockDeltaPrior){
-//
-//             setDegreePrior(degreePrior);
-//             setBlockPrior(m_blockDeltaPrior);
-//             setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
-//         }
-//     const EdgeCountPrior& getEdgeCountPrior(){
-//         return m_edgeMatrixUniformPrior.getEdgeCountPrior();
-//     }
-//     void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){
-//         m_edgeMatrixUniformPrior.setEdgeCountPrior(edgeCountPrior);
-//     }
-//
-// };
+    void checkSelfSafety() const override {
+        RandomGraph::checkSelfSafety();
+        if (not m_degreePriorPtr)
+            throw SafetyError("ConfigurationModelFamily", "m_degreePriorPtr");
+        m_degreePriorPtr->checkSafety();
+    }
 
+
+};
 }// end FastMIDyNet
 #endif

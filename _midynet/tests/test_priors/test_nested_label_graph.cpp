@@ -34,7 +34,6 @@ class TestNestedLabelGraphPrior: public ::testing::Test {
         void TearDown(){ }
 
         BlockMove proposeNestedBlockMove(
-            NestedLabelGraphPrior& prior,
             BaseGraph::VertexIndex id,
             Level level,
             size_t depth=4,
@@ -157,7 +156,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveNotChangingBlockCountAtA
 
     size_t depth = 4;
     for(Level level=0; level < 1; ++level){
-        BlockMove move = proposeNestedBlockMove(prior, 0, level, depth);
+        BlockMove move = proposeNestedBlockMove(0, level, depth);
         prior.applyLabelMove(move);
         EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
         EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
@@ -168,7 +167,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveNotChangingBlockCountAtA
 TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveChangingBlockCountAtAnyLevel_noThrow){
     size_t depth = 4;
     for(Level level=0; level < depth - 1; ++level){
-        BlockMove move = proposeNestedBlockMove(prior, 0, level, depth, true);
+        BlockMove move = proposeNestedBlockMove(0, level, depth, true);
         prior.applyLabelMove(move);
         EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
         EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
@@ -177,7 +176,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveChangingBlockCountAtAnyL
 
 TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveChangingBlockCountAtAnyLevel_noThrow2){
     size_t depth = 4;
-    BlockMove move = proposeNestedBlockMove(prior, 0, 2, depth, true);
+    BlockMove move = proposeNestedBlockMove(0, 2, depth, true);
     prior.applyLabelMove(move);
     EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
     EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
@@ -187,7 +186,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveIncreasingDepth_noThrow)
     size_t depth = 3;
     size_t id = 0;
     Level level = depth - 1;
-    BlockMove move = proposeNestedBlockMove(prior, id, level, depth, true);
+    BlockMove move = proposeNestedBlockMove(id, level, depth, true);
 
     prior.applyLabelMove(move);
     EXPECT_EQ(prior.getDepth(), depth + 1);
@@ -226,7 +225,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forIdentity
 TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveNotChangingBlockCountAtAnyLevel_returnCorrectValue){
     size_t depth = 4;
     for (Level l=0; l<depth - 1; ++l){
-        BlockMove move = proposeNestedBlockMove(prior, 0, l, depth);
+        BlockMove move = proposeNestedBlockMove(0, l, depth);
         double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
         double logLikelihoodBefore = prior.getLogLikelihood();
         prior.applyLabelMove(move);
@@ -238,7 +237,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveNotC
 TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveChangingBlockCountAtAnyLevel_returnCorrectValue){
     size_t depth = 4;
     for (Level l=0; l<1; ++l){
-        BlockMove move = proposeNestedBlockMove(prior, 0, l, depth, true);
+        BlockMove move = proposeNestedBlockMove(0, l, depth, true);
         double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
         double logLikelihoodBefore = prior.getLogLikelihood();
         prior.applyLabelMove(move);
@@ -249,7 +248,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveChan
 
 TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveIncreasingDepth_returnCorrectValue){
     size_t depth = 4;
-    BlockMove move = proposeNestedBlockMove(prior, 0, depth-1, depth, true);
+    BlockMove move = proposeNestedBlockMove(0, depth-1, depth, true);
     double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
     prior.applyLabelMove(move);

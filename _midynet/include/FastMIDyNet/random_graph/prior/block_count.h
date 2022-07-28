@@ -15,11 +15,11 @@ public:
     virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
     virtual const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
-    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const { throw std::logic_error("BlockCount: this method should not be used."); }
+    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const { throw DepletedMethodError("BlockCount", "getLogLikelihoodRatioFromLabelMove"); }
     void setStateFromPartition(const BlockSequence& blocks) { setState(*max_element(blocks.begin(), blocks.end()) + 1);}
 protected:
     void _applyGraphMove(const GraphMove& move) override { }
-    void _applyLabelMove(const BlockMove& move) override { throw std::logic_error("BlockCount: this method should not be used."); }
+    void _applyLabelMove(const BlockMove& move) override { throw DepletedMethodError("BlockCount", "_applyLabelMove"); }
     void _samplePriors() override { }
     const double _getLogPrior() const override { return 0; }
     const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0; }
@@ -46,7 +46,7 @@ public:
 
     void checkSelfSafety() const override {
         if (m_state == 0)
-            throw SafetyError("BlockCountDeltaPrior: unsafe prior since `m_blockCount` is zero.");
+            throw SafetyError("BlockCountDeltaPrior", "m_blockCount", "0");
     }
 
 };

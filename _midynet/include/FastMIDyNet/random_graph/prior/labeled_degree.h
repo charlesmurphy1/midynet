@@ -87,7 +87,7 @@ public:
     void checkSelfConsistency() const override;
     virtual void checkSelfSafety() const override{
         if (m_labelGraphPriorPtr == nullptr)
-            throw SafetyError("VertexLabeledDegreePrior: unsafe prior since `m_labelGraphPriorPtr` is empty.");
+            throw SafetyError("VertexLabeledDegreePrior", "m_labelGraphPriorPtr");
         m_labelGraphPriorPtr->checkSafety();
     }
 
@@ -129,7 +129,7 @@ public:
     void checkSelfConsistency() const override { };
     void checkSelfSafety() const override {
         if (m_degreeSeq.size() == 0)
-            throw SafetyError("DegreeDeltaPrior: unsafe prior since `m_degreeSeq` is empty.");
+            throw SafetyError("DegreeDeltaPrior", "m_degreeSeq", "empty");
     }
 
     void computationFinished() const override { m_isProcessed = false; }

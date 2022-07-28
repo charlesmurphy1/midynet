@@ -43,7 +43,7 @@ public:
         m_withParallelEdges(withParallelEdges),
         m_edgeCountPriorPtr(&edgeCountPrior){ setUpLikelihood(); }
 
-    const size_t& getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }
+    const size_t getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }
     void sampleState() {
         size_t E = getEdgeCount();
         const auto& generator = (m_withParallelEdges) ? generateMultiGraphErdosRenyi : generateErdosRenyi;
@@ -59,6 +59,12 @@ public:
     void computationFinished() const override {
         m_isProcessed = false;
         m_edgeCountPriorPtr->computationFinished();
+    }
+    void checkSelfSafety() const override {
+        RandomGraph::checkSelfSafety();
+        if (not m_edgeCountPriorPtr)
+            throw SafetyError("ErdosRenyiFamily", "m_edgeCountPriorPtr");
+        m_edgeCountPriorPtr->checkSafety();
     }
 };
 

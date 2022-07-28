@@ -83,7 +83,7 @@ public:
     void checkSelfConsistency() const override;
     virtual void checkSelfSafety() const override{
         if (m_edgeCountPriorPtr == nullptr)
-            throw SafetyError("DegreePrior: unsafe prior since `m_edgeCountPriorPtr` is empty.");
+            throw SafetyError("DegreePrior", "m_edgeCountPriorPtr");
         m_edgeCountPriorPtr->checkSafety();
     }
 
@@ -122,7 +122,7 @@ public:
     void checkSelfConsistency() const override { };
     void checkSelfSafety() const override {
         if (m_degreeSeq.size() == 0)
-            throw SafetyError("DegreeDeltaPrior: unsafe prior since `m_degreeSeq` is empty.");
+            throw SafetyError("DegreeDeltaPrior", "m_degreeSeq");
     }
 
     void computationFinished() const override { m_isProcessed = false; }

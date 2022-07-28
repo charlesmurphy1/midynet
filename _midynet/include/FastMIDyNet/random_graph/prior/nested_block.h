@@ -164,14 +164,20 @@ public:
             size_t N = 0;
             for (const auto& nr : m_nestedAbsVertexCounts[l]){
                 if (nr.second != actualNestedAbsVertexCount[l][nr.first])
-                    throw ConsistencyError(prefix + ": nested state is inconsistent with absolute vertex counts at r="
-                        + std::to_string(nr.first) + ": expected=" + std::to_string(nr.second) + " actual="
-                        + std::to_string(actualNestedAbsVertexCount[l][nr.first]) + ".");
+                    throw ConsistencyError(
+                        prefix,
+                        "m_nestedState", std::to_string(nr.second),
+                        "m_nestedAbsVertexCounts", std::to_string(actualNestedAbsVertexCount[l][nr.first]),
+                        "r=" + std::to_string(nr.second)
+                    );
                 N += nr.second;
             }
             if (N != getSize())
-                throw ConsistencyError(prefix + ": nested state (size=" + std::to_string(getSize())
-                    + ") is inconsistent with absolute vertex counts (size=" + std::to_string(N) + ").");
+                throw ConsistencyError(
+                    prefix,
+                    "m_nestedState", "size=" + std::to_string(getSize()),
+                    "m_nestedAbsVertexCounts", "size=" + std::to_string(N)
+                );
         }
     }
 
@@ -182,13 +188,17 @@ public:
             std::string prefix = "NestedBlockPrior (l=" + std::to_string(l) + ")";
             checkBlockSequenceConsistencyWithVertexCounts(prefix, m_nestedState[l], m_nestedVertexCounts[l]);
             if (m_nestedState[l].size() < getNestedBlockCount(l - 1))
-                throw ConsistencyError(prefix + ": nested state (size "
-                + std::to_string(m_nestedState[l].size()) +
-                ") is inconsistent with block count (" + std::to_string(getNestedBlockCount(l - 1)) +  ").");
+                throw ConsistencyError(
+                    prefix,
+                    "m_nestedState", "size=" + std::to_string(m_nestedState[l].size()),
+                    "graph size", "size=" + std::to_string(getNestedBlockCount(l - 1))
+                );
             if (m_nestedVertexCounts[l].size() > getNestedBlockCount(l)){
-                throw ConsistencyError(prefix + ": nested vertex counts (size "
-                + std::to_string(m_nestedVertexCounts[l].size()) +
-                ") are inconsistent with block count (" + std::to_string(getNestedBlockCount(l)) +  ").");
+                throw ConsistencyError(
+                    prefix,
+                    "m_nestedVertexCounts", "size=" + std::to_string(m_nestedVertexCounts[l].size()),
+                    "partition", "size=" + std::to_string(getNestedBlockCount(l))
+                );
             }
         }
     }
@@ -198,9 +208,9 @@ public:
     }
     void checkSelfSafety() const override {
         if (m_size == 0)
-            throw SafetyError("NestedBlockPrior: unsafe prior since `m_size` is zero.");
+            throw SafetyError("NestedBlockPrior", "m_size", "0");
         if (m_nestedBlockCountPriorPtr == nullptr)
-            throw SafetyError("NestedBlockPrior: unsafe prior since `m_nestedBlockCountPriorPtr` is empty.");
+            throw SafetyError("NestedBlockPrior", "m_nestedBlockCountPriorPtr");
         m_nestedBlockCountPriorPtr->checkSafety();
 
     }

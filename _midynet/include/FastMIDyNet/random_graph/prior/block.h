@@ -123,9 +123,10 @@ public:
         checkBlockSequenceConsistencyWithVertexCounts("BlockPrior", m_state, m_vertexCounts);
 
         if (m_vertexCounts.size() > getBlockCount()){
-            throw ConsistencyError("BlockPrior: vertex counts (size "
-            + std::to_string(m_vertexCounts.size()) +
-            ") are inconsistent with block count (" + std::to_string(getBlockCount()) +  ").");
+            throw ConsistencyError(
+                "BlockPrior",
+                "m_vertexCounts", "size=" + std::to_string(m_vertexCounts.size()),
+                "block count", "value=" + std::to_string(getBlockCount()));
         }
     }
 
@@ -134,9 +135,9 @@ public:
     }
     void checkSelfSafety() const override {
         if (m_size == 0)
-            throw SafetyError("BlockPrior: unsafe prior since `m_size` is zero.");
+            throw SafetyError("BlockPrior", "m_size", "0");
         if (m_blockCountPriorPtr == nullptr)
-            throw SafetyError("BlockPrior: unsafe prior since `m_blockCountPriorPtr` is empty.");
+            throw SafetyError("BlockPrior", "m_blockCountPriorPtr");
         m_blockCountPriorPtr->checkSafety();
 
     }

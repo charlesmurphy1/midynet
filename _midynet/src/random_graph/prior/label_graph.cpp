@@ -103,7 +103,8 @@ void LabelGraphPrior::checkSelfConsistency() const {
         sumEdges += actualEdgeCounts;
     }
     if (sumEdges != 2*m_edgeCountPriorPtr->getState())
-        throw ConsistencyError("LabelGraphPrior: Sum of edge matrix isn't equal to the number of edges.");
+    throw ConsistencyError("LabelGraphPrior: Sum of edge matrix (" + std::to_string(sumEdges)
+        + ") isn't equal to the number of edges (" + std::to_string(2*m_edgeCountPriorPtr->getState()) + ").");
 }
 
 
