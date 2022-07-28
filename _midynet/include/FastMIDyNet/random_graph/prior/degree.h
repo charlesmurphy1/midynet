@@ -32,7 +32,6 @@ protected:
 
     void applyGraphMoveToState(const GraphMove&);
     void applyGraphMoveToDegreeCounts(const GraphMove&);
-    void recomputeConsistentState() ;
 public:
     /* Constructors */
     DegreePrior(size_t graphSize): m_size(graphSize){}
@@ -86,6 +85,7 @@ public:
             throw SafetyError("DegreePrior", "m_edgeCountPriorPtr");
         m_edgeCountPriorPtr->checkSafety();
     }
+    void recomputeConsistentState() ;
 
 
 };

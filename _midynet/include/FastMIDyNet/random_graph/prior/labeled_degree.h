@@ -32,7 +32,6 @@ protected:
     void applyGraphMoveToState(const GraphMove&);
     void applyGraphMoveToDegreeCounts(const GraphMove&);
     void applyLabelMoveToDegreeCounts(const BlockMove&);
-    void recomputeConsistentState() ;
 public:
     using BlockLabeledPrior<DegreeSequence>::BlockLabeledPrior;
     /* Constructors */
@@ -90,6 +89,7 @@ public:
             throw SafetyError("VertexLabeledDegreePrior", "m_labelGraphPriorPtr");
         m_labelGraphPriorPtr->checkSafety();
     }
+    void recomputeConsistentState() ;
 
 
 };

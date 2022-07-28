@@ -18,7 +18,6 @@ protected:
 
     void applyGraphMoveToState(const GraphMove& move) override ;
     void applyLabelMoveToState(const BlockMove& move) override ;
-    void recomputeConsistentState() override ;
     void recomputeStateFromGraph() override ;
     std::vector<CounterMap<BlockIndex>> computeNestedEdgeCountsFromNestedState(
         const std::vector<MultiGraph>& nestedState
@@ -134,6 +133,7 @@ public:
         checkSelfConsistencyBetweenLevels();
         LabelGraphPrior::checkSelfConsistency();
     }
+    void recomputeConsistentState() override ;
 };
 
 class NestedStochasticBlockLabelGraphPrior: public NestedLabelGraphPrior{

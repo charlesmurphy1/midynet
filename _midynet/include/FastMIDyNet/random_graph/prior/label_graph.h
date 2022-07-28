@@ -43,7 +43,6 @@ class LabelGraphPrior: public BlockLabeledPrior< LabelGraph >{
 
         virtual void applyGraphMoveToState(const GraphMove&);
         virtual void applyLabelMoveToState(const BlockMove&);
-        virtual void recomputeConsistentState() ;
         virtual void recomputeStateFromGraph() ;
         CounterMap<BlockIndex> computeEdgeCountsFromState(const LabelGraph& state){
             CounterMap<BlockIndex> edgeCounts;
@@ -147,6 +146,7 @@ class LabelGraphPrior: public BlockLabeledPrior< LabelGraph >{
             m_blockPriorPtr->checkSafety();
             m_edgeCountPriorPtr->checkSafety();
         }
+        virtual void recomputeConsistentState() ;
 };
 
 class LabelGraphDeltaPrior: public LabelGraphPrior{

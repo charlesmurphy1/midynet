@@ -30,6 +30,8 @@ protected:
 public:
     RandomGraph(size_t size, GraphLikelihoodModel& likelihoodModel):
         m_size(size), m_graph(size), m_likelihoodModelPtr(&likelihoodModel) { }
+    virtual ~RandomGraph() {}
+    
     const MultiGraph& getGraph() const { return m_graph; }
 
     virtual void setGraph(const MultiGraph state) {
