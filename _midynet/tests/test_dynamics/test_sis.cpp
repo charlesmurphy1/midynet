@@ -71,7 +71,7 @@ TEST_F(TestSISDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
 
 TEST_F(TestSISDynamics, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
     dynamics.sample();
-    edgeProposer.setUp(randomGraph.getGraph());
+    edgeProposer.setUp(dynamics.getGraph());
     auto graphMove = edgeProposer.proposeMove();
     double ratio = dynamics.getLogLikelihoodRatioFromGraphMove(graphMove);
     double logLikelihoodBefore = dynamics.getLogLikelihood();

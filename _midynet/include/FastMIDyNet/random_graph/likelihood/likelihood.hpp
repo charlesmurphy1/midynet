@@ -12,14 +12,15 @@ protected:
 public:
     virtual const double getLogLikelihood() const = 0 ;
     virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0 ;
-    const MultiGraph* m_graphPtr = nullptr;
+    virtual const MultiGraph sample() const = 0;
+    const MultiGraph* m_statePtr = nullptr;
 };
 
 template <typename Label>
 class VertexLabeledGraphLikelihoodModel : public GraphLikelihoodModel{
 public:
     virtual const double getLogLikelihoodRatioFromLabelMove(const LabelMove<Label>&) const = 0 ;
-    using GraphLikelihoodModel::m_graphPtr;
+    using GraphLikelihoodModel::m_statePtr;
 };
 
 }

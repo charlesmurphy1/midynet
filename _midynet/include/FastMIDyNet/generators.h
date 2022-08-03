@@ -50,6 +50,7 @@ Iterator sampleUniformlyFrom(Iterator start, Iterator end) {
 BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks, const LabelGraph& blockEdgeMatrix, const DegreeSequence& degrees);
 BaseGraph::UndirectedMultigraph generateStubLabeledSBM(const BlockSequence& vertexBlocks, const LabelGraph& labelGraph, bool withSelfLoops=true);
 BaseGraph::UndirectedMultigraph generateMultiGraphSBM(const BlockSequence& vertexBlocks, const LabelGraph& labelGraph, bool withSelfLoops=true);
+BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& vertexBlocks, const LabelGraph& labelGraph, bool withSelfLoops=true);
 MultiGraph generateCM(const DegreeSequence& degrees);
 
 MultiGraph generateErdosRenyi(size_t size, size_t edgeCount, bool withSelfLoops=true);

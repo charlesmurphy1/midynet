@@ -25,8 +25,8 @@ class TestHingeFlipUniformProposer: public::testing::Test {
         MultiGraph toyGraph = getToyMultiGraph();
         void SetUp() {
             randomGraph.sample();
-            graph = randomGraph.getGraph();
-            randomGraph.setGraph(graph);
+            graph = randomGraph.getState();
+            randomGraph.setState(graph);
             proposer.setUp(graph);
             proposer.checkSafety();
         }

@@ -58,7 +58,7 @@ TEST_F(TestDegreeDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
 
 TEST_F(TestDegreeDynamics, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
     dynamics.sample();
-    edgeProposer.setUp(randomGraph.getGraph());
+    edgeProposer.setUp(dynamics.getGraph());
     auto graphMove = edgeProposer.proposeMove();
     double ratio = dynamics.getLogLikelihoodRatioFromGraphMove(graphMove);
     double logLikelihoodBefore = dynamics.getLogLikelihood();

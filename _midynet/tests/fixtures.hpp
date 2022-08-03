@@ -50,27 +50,28 @@ static MultiGraph getUndirectedHouseMultiGraph(){
 
 class DummyGraphLikelihood: public GraphLikelihoodModel{
 public:
+    const MultiGraph sample() const { return generateErdosRenyi(*m_sizePtr, *m_edgeCountPtr); }
     const double getLogLikelihood() const { return 0; }
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const { return 0; }
+    size_t* m_sizePtr = nullptr;
+    size_t* m_edgeCountPtr = nullptr;
 };
 
 
 class DummyRandomGraph: public RandomGraph{
     size_t m_edgeCount;
     DummyGraphLikelihood likelihood;
-    void setUpLikelihood() override { };
+    void setUpLikelihood() override { likelihood.m_sizePtr = &m_size; likelihood.m_edgeCountPtr = &m_edgeCount; }
 public:
     using RandomGraph::RandomGraph;
     DummyRandomGraph(size_t size): RandomGraph(size, likelihood) { }
 
-    void setGraph(const MultiGraph graph) override{
-        RandomGraph::setGraph(graph);
-        m_edgeCount = graph.getTotalEdgeNumber();
+    void setState(const MultiGraph state) override{
+        RandomGraph::setState(state);
+        m_edgeCount = state.getTotalEdgeNumber();
     }
 
     const size_t getEdgeCount() const override { return m_edgeCount; }
-
-    void sampleState() override { };
 };
 
 class DummyErdosRenyiGraph: public ErdosRenyiModelBase{

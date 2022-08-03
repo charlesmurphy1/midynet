@@ -34,7 +34,7 @@ protected:
     const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override { return m_degreePriorPtr->getLogJointRatioFromLabelMove(move); }
     void _samplePrior() override { m_degreePriorPtr->sample(); }
     void setUpLikelihood() override {
-        m_likelihoodModel.m_graphPtr = &m_graph;
+        m_likelihoodModel.m_statePtr = &m_state;
         m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
     }
 
@@ -49,14 +49,13 @@ public:
             setLabelGraphPrior(labelGraphPrior);
         }
 
-    void sampleState () override;
     void sampleLabels() override {
         m_degreePriorPtr->samplePartition();
     }
 
-    void setGraph(const MultiGraph graph) override {
-        RandomGraph::setGraph(graph);
-        m_degreePriorPtr->setGraph(m_graph);
+    void setState(const MultiGraph state) override {
+        RandomGraph::setState(state);
+        m_degreePriorPtr->setGraph(m_state);
     }
     void setLabels(const std::vector<BlockIndex>& labels) override {
         m_degreePriorPtr->setPartition(labels);
@@ -91,7 +90,11 @@ public:
     const size_t getEdgeCount() const override { return getLabelGraphPrior().getEdgeCount(); }
     const std::vector<size_t> getDegrees() const { return getDegreePrior().getState(); }
 
-    void checkSelfConsistency() const override;
+    virtual void checkSelfConsistency() const override {
+        m_degreePriorPtr->checkSelfConsistency();
+        checkGraphConsistencyWithLabelGraph("DegreeCorrectedStochasticBlockModelBase", m_state, getLabels(), getLabelGraph());
+        checkGraphConsistencyWithDegreeSequence("DegreeCorrectedStochasticBlockModelBase", m_state, getDegrees());
+    }
     const bool isCompatible(const MultiGraph& graph) const override{
         if (not VertexLabeledRandomGraph<BlockIndex>::isCompatible(graph)) return false;
         auto labelGraph = getLabelGraphFromGraph(graph, getLabels());

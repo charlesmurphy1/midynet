@@ -41,8 +41,8 @@ public:
     LabelProposer<Label>& getLabelProposerRef(){ return *m_labelProposerPtr; }
 
 
-    const MultiGraph& getGraph() const { return m_graphPriorPtr->getGraph(); }
-    void setGraph(const MultiGraph& graph) {m_graphPriorPtr->setGraph(graph); }
+    const MultiGraph& getGraph() const { return m_graphPriorPtr->getState(); }
+    void setGraph(const MultiGraph& graph) {m_graphPriorPtr->setState(graph); }
 
     const std::vector<Label>& getLabels() const { return m_graphPriorPtr->getLabels(); }
     void setLabels(const std::vector<Label>& labels) { m_graphPriorPtr->setLabels(labels); }

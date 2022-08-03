@@ -20,9 +20,9 @@ protected:
     mutable std::uniform_real_distribution<double> m_uniform01 = std::uniform_real_distribution<double>(0, 1);
 
     Label sampleNeighborLabel(BaseGraph::VertexIndex vertex) const {
-        size_t degree = (*m_graphPriorPtrPtr)->getGraph().getDegreeOfIdx(vertex);
+        size_t degree = (*m_graphPriorPtrPtr)->getState().getDegreeOfIdx(vertex);
         size_t counter = std::uniform_int_distribution<size_t>(0, degree-1)(rng);
-        for (const auto& neighbor : (*m_graphPriorPtrPtr)->getGraph().getNeighboursOfIdx(vertex)){
+        for (const auto& neighbor : (*m_graphPriorPtrPtr)->getState().getNeighboursOfIdx(vertex)){
             counter -= neighbor.label;
             if (counter < 0)
                 return (*m_graphPriorPtrPtr)->getLabelOfIdx(neighbor.vertexIndex);
@@ -78,7 +78,7 @@ template<typename Label>
 const double MixedSampler<Label>::_getLogProposalProbForMove(const LabelMove<Label>& move) const {
     const auto & labels = (*m_graphPriorPtrPtr)->getLabels();
     const auto & edgeCounts = (*m_graphPriorPtrPtr)->getEdgeLabelCounts();
-    const auto & graph = (*m_graphPriorPtrPtr)->getGraph();
+    const auto & graph = (*m_graphPriorPtrPtr)->getState();
     const auto &labelGraph = (*m_graphPriorPtrPtr)->getLabelGraph();
 
     double weight = 0, degree = 0;
@@ -104,7 +104,7 @@ template<typename Label>
 const double MixedSampler<Label>::_getLogProposalProbForReverseMove(const LabelMove<Label>& move) const {
     const auto & labels = (*m_graphPriorPtrPtr)->getLabels();
     const auto & edgeCounts = (*m_graphPriorPtrPtr)->getEdgeLabelCounts();
-    const auto & graph = (*m_graphPriorPtrPtr)->getGraph();
+    const auto & graph = (*m_graphPriorPtrPtr)->getState();
     const auto &labelGraph = (*m_graphPriorPtrPtr)->getLabelGraph();
 
     auto edgeMatDiff = getEdgeMatrixDiff(move);
@@ -132,7 +132,7 @@ template<typename Label>
 IntMap<std::pair<Label, Label>> MixedSampler<Label>::getEdgeMatrixDiff(const LabelMove<Label>& move) const {
 
     const auto & labels = (*m_graphPriorPtrPtr)->getLabels();
-    const auto & graph = (*m_graphPriorPtrPtr)->getGraph();
+    const auto & graph = (*m_graphPriorPtrPtr)->getState();
 
     IntMap<std::pair<Label, Label>> edgeMatDiff;
     Label r = move.prevLabel, s = move.nextLabel;
@@ -151,7 +151,7 @@ IntMap<std::pair<Label, Label>> MixedSampler<Label>::getEdgeMatrixDiff(const Lab
 template<typename Label>
 IntMap<Label> MixedSampler<Label>::getEdgeCountsDiff(const LabelMove<Label>& move) const {
     IntMap<Label> edgeCountsDiff;
-    size_t degree = (*m_graphPriorPtrPtr)->getGraph().getDegreeOfIdx(move.vertexIndex);
+    size_t degree = (*m_graphPriorPtrPtr)->getState().getDegreeOfIdx(move.vertexIndex);
     edgeCountsDiff.decrement(move.prevLabel, degree);
     edgeCountsDiff.increment(move.nextLabel, degree);
      return edgeCountsDiff;

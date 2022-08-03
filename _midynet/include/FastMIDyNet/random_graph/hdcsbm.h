@@ -30,7 +30,7 @@ protected:
     }
     void _samplePrior() override { m_degreePriorPtr->sample(); }
     void setUpLikelihood() override {
-        m_likelihoodModel.m_graphPtr = &m_graph;
+        m_likelihoodModel.m_statePtr = &m_state;
         m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
     }
 public:
@@ -66,17 +66,13 @@ public:
 
 
 
-    void sampleState() override {
-        setGraph(generateStubLabeledSBM(getLabels(), getLabelGraph()));
-    }
-
     void sampleLabels() override {
         m_degreePriorPtr->samplePartition();
     }
 
-    void setGraph(const MultiGraph graph) override{
-        RandomGraph::setGraph(graph);
-        m_degreePriorPtr->setGraph(m_graph);
+    void setState(const MultiGraph state) override{
+        RandomGraph::setState(state);
+        m_degreePriorPtr->setGraph(m_state);
     }
     void setNestedLabels(const std::vector<BlockSequence>& labels) override {
         m_nestedLabelGraphPrior.setNestedPartition(labels);
@@ -100,7 +96,7 @@ public:
 
     void checkSelfConsistency() const override {
         m_degreePriorPtr->checkSelfConsistency();
-        checkGraphConsistencyWithLabelGraph("NestedDegreeStochasticBlockModelFamily", m_graph, getLabels(), getLabelGraph());
+        checkGraphConsistencyWithLabelGraph("NestedDegreeStochasticBlockModelFamily", m_state, getLabels(), getLabelGraph());
     }
     const bool isCompatible(const MultiGraph& graph) const override{
         if (not VertexLabeledRandomGraph<BlockIndex>::isCompatible(graph)){
@@ -141,7 +137,7 @@ public:
     }
     virtual ~NestedNestedDegreeCorrectedStochasticBlockModelFamily(){
         delete m_edgeCountPriorPtr;
-        delete m_degreePriorPtr; 
+        delete m_degreePriorPtr;
     }
 };
 

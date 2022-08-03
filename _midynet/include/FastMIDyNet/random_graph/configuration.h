@@ -29,7 +29,7 @@ protected:
     }
     void _samplePrior() override { m_degreePriorPtr->sample(); }
     void setUpLikelihood() {
-        m_likelihoodModel.m_graphPtr = &m_graph;
+        m_likelihoodModel.m_statePtr = &m_state;
         m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
     }
 public:
@@ -57,7 +57,6 @@ public:
     }
 
     const size_t getEdgeCount() const { return m_degreePriorPtr->getEdgeCount(); }
-    void sampleState() { setGraph(generateCM(m_degreePriorPtr->getState())); }
 
     const bool isCompatible(const MultiGraph& graph) const override{
         return RandomGraph::isCompatible(graph) and graph.getDegrees() == m_degreePriorPtr->getState(); ;

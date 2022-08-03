@@ -26,8 +26,8 @@ class TestConfigurationModelBase: public::testing::Test{
         }
 };
 
-TEST_F(TestConfigurationModelBase, sample_getGraphWithCorrectNumberOfEdges){
-    EXPECT_EQ(randomGraph.getGraph().getTotalEdgeNumber(), randomGraph.getEdgeCount());
+TEST_F(TestConfigurationModelBase, sample_getStateWithCorrectNumberOfEdges){
+    EXPECT_EQ(randomGraph.getState().getTotalEdgeNumber(), randomGraph.getEdgeCount());
 }
 
 TEST_F(TestConfigurationModelBase, getLogLikelihood_returnNonPositiveValue){
@@ -82,7 +82,7 @@ TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forRemoved
 
 TEST_F(TestConfigurationModelBase, isCompatible_forGraphSampledFromSBM_returnTrue){
     randomGraph.sample();
-    auto g = randomGraph.getGraph();
+    auto g = randomGraph.getState();
     EXPECT_TRUE(randomGraph.isCompatible(g));
 }
 
@@ -93,7 +93,7 @@ TEST_F(TestConfigurationModelBase, isCompatible_forEmptyGraph_returnFalse){
 
 TEST_F(TestConfigurationModelBase, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
     randomGraph.sample();
-    auto g = randomGraph.getGraph();
+    auto g = randomGraph.getState();
     for (auto vertex: g){
         for (auto neighbor: g.getNeighboursOfIdx(vertex)){
             g.removeEdgeIdx(vertex, neighbor.vertexIndex);

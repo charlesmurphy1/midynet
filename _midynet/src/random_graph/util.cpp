@@ -77,4 +77,12 @@ VertexLabeledDegreePrior* makeVertexLabeledDegreePrior(LabelGraphPrior& prior, b
         return new VertexLabeledDegreeUniformPrior(prior);
 }
 
+StochasticBlockModelLikelihood* makeSBMLikelihood(bool stubLabeled){
+    if (stubLabeled)
+        return new StubLabeledStochasticBlockModelLikelihood();
+    else
+        return new UniformStochasticBlockModelLikelihood();
+}
+
+
 }

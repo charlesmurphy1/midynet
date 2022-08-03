@@ -73,7 +73,7 @@ public:
         checkConsistency();
         #endif
     }
-    const MultiGraph& getGraph() const { return m_graphPriorPtr->getGraph(); }
+    const MultiGraph& getGraph() const { return m_graphPriorPtr->getState(); }
     void setGraph(const MultiGraph& graph) ;
 
     const GraphPriorType& getGraphPrior() const { return *m_graphPriorPtr; }
@@ -99,7 +99,7 @@ public:
     void sampleState(bool async=true){ sampleState(getRandomState(), async); }
     void sampleGraph() {
         m_graphPriorPtr->sample();
-        setGraph(m_graphPriorPtr->getGraph());
+        setGraph(m_graphPriorPtr->getState());
         computationFinished();
     }
     virtual const State getRandomState() const;
@@ -204,7 +204,7 @@ void Dynamics<GraphPriorType>::sampleState(const State& x0, bool async){
 
 template<typename GraphPriorType>
 void Dynamics<GraphPriorType>::setGraph(const MultiGraph& graph) {
-    m_graphPriorPtr->setGraph(graph);
+    m_graphPriorPtr->setState(graph);
     if (m_pastStateSequence.size() == 0)
         return;
     m_neighborsState = computeNeighborsState(m_state);
@@ -336,7 +336,7 @@ void Dynamics<GraphPriorType>::updateNeighborsStateFromEdgeMove(
     edge = getOrderedEdge(edge);
     BaseGraph::VertexIndex v = edge.first, u = edge.second;
 
-    if (m_graphPriorPtr->getGraph().getEdgeMultiplicityIdx(edge) == 0 and counter < 0)
+    if (m_graphPriorPtr->getState().getEdgeMultiplicityIdx(edge) == 0 and counter < 0)
         throw std::logic_error("Dynamics: Edge ("
                                 + std::to_string(edge.first) + ", "
                                 + std::to_string(edge.second) + ") "

@@ -92,7 +92,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihood_forLastLevel_returnCorrectVal
     Level level = prior.getDepth() - 1;
     double actualLogLikelihood = prior.getLogLikelihoodAtLevel(level);
     size_t N = prior.getNestedState(level - 1).getSize();
-    double expectedLogLikelihood = -logMultisetCoefficient(N * (N + 1) / 2, 2 * prior.getEdgeCount());
+    double expectedLogLikelihood = -logMultisetCoefficient(N * (N + 1) / 2, prior.getEdgeCount());
     EXPECT_NEAR(actualLogLikelihood, expectedLogLikelihood, 1e-6);
 }
 
@@ -105,7 +105,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihood_forAnyLevelOtherThanLast_retu
         for (const auto& nr : prior.getNestedBlockPrior().getNestedVertexCounts(level)) {
             r = nr.first;
             err = prior.getNestedState(level).getEdgeMultiplicityIdx(r, r);
-            expectedLogLikelihood -= logMultisetCoefficient(nr.second * (nr.second + 1) / 2, 2 * err);
+            expectedLogLikelihood -= logMultisetCoefficient(nr.second * (nr.second + 1) / 2, err);
             for (const auto& ns : prior.getNestedBlockPrior().getNestedVertexCounts(level)) {
                 s = ns.first;
                 if (r >= s)

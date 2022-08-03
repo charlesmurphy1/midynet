@@ -10,9 +10,10 @@ namespace FastMIDyNet{
 
 class NestedStochasticBlockModelBase: public NestedBlockLabeledRandomGraph{
 protected:
-    StochasticBlockModelLikelihood m_likelihoodModel;
+    StochasticBlockModelLikelihood* m_sbmLikelihoodModelPtr = nullptr;
     NestedStochasticBlockLabelGraphPrior m_nestedLabelGraphPrior;
     LabelGraphPrior* m_labelGraphPriorPtr = &m_nestedLabelGraphPrior;
+    bool m_withSelfLoops, m_withParallelEdges, m_stubLabeled;
 
     void _applyGraphMove (const GraphMove& move) override {
         m_nestedLabelGraphPrior.applyGraphMove(move);
@@ -28,21 +29,32 @@ protected:
     }
     void _samplePrior() override { m_nestedLabelGraphPrior.sample(); }
     void setUpLikelihood() override {
-        m_likelihoodModel.m_graphPtr = &m_graph;
-        m_likelihoodModel.m_labelGraphPriorPtrPtr = &m_labelGraphPriorPtr;
+        m_sbmLikelihoodModelPtr->m_statePtr = &m_state;
+        m_sbmLikelihoodModelPtr->m_withSelfLoopsPtr = &m_withSelfLoops;
+        m_sbmLikelihoodModelPtr->m_withParallelEdgesPtr = &m_withParallelEdges;
+        m_sbmLikelihoodModelPtr->m_labelGraphPriorPtrPtr = &m_labelGraphPriorPtr;
     }
 public:
 
-    NestedStochasticBlockModelBase(size_t graphSize):
-        NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel),
+    NestedStochasticBlockModelBase(size_t graphSize, bool stubLabeled=true, bool withSelfLoops=true, bool withParallelEdges=true):
+        NestedBlockLabeledRandomGraph(graphSize),
         m_nestedLabelGraphPrior(graphSize),
-        m_likelihoodModel() { setUpLikelihood(); }
-    NestedStochasticBlockModelBase(size_t graphSize, EdgeCountPrior& edgeCountPrior):
-        NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel),
-        m_likelihoodModel(),
-        m_nestedLabelGraphPrior(graphSize, edgeCountPrior){
+        m_stubLabeled(stubLabeled),
+        m_withSelfLoops(withSelfLoops),
+        m_withParallelEdges(withParallelEdges){
+                m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelPtr = makeSBMLikelihood(stubLabeled);
+                setUpLikelihood();
+            }
+    NestedStochasticBlockModelBase(size_t graphSize, EdgeCountPrior& edgeCountPrior, bool stubLabeled=true, bool withSelfLoops=true, bool withParallelEdges=true):
+        NestedBlockLabeledRandomGraph(graphSize),
+        m_nestedLabelGraphPrior(graphSize, edgeCountPrior),
+        m_stubLabeled(stubLabeled),
+        m_withSelfLoops(withSelfLoops),
+        m_withParallelEdges(withParallelEdges){
+            m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelPtr = makeSBMLikelihood(stubLabeled);
             setUpLikelihood();
         }
+    virtual ~NestedStochasticBlockModelBase(){ delete m_sbmLikelihoodModelPtr; }
 
 
     const size_t getEdgeCount() const { return m_nestedLabelGraphPrior.getEdgeCount(); }
@@ -63,17 +75,13 @@ public:
 
 
 
-    void sampleState() override {
-        setGraph(generateStubLabeledSBM(getLabels(), getLabelGraph()));
-    }
-
     void sampleLabels() override {
         m_nestedLabelGraphPrior.samplePartition();
     }
 
-    void setGraph(const MultiGraph graph) override{
-        RandomGraph::setGraph(graph);
-        m_nestedLabelGraphPrior.setGraph(m_graph);
+    void setState(const MultiGraph state) override{
+        RandomGraph::setState(state);
+        m_nestedLabelGraphPrior.setGraph(m_state);
     }
     void setNestedLabels(const std::vector<BlockSequence>& labels) override {
         m_nestedLabelGraphPrior.setNestedPartition(labels);
@@ -90,7 +98,7 @@ public:
 
     void checkSelfConsistency() const override {
         m_nestedLabelGraphPrior.checkSelfConsistency();
-        checkGraphConsistencyWithLabelGraph("NestedStochasticBlockModelBase", m_graph, getLabels(), getLabelGraph());
+        checkGraphConsistencyWithLabelGraph("NestedStochasticBlockModelBase", m_state, getLabels(), getLabelGraph());
     }
     const bool isCompatible(const MultiGraph& graph) const override{
         if (not VertexLabeledRandomGraph<BlockIndex>::isCompatible(graph)) return false;
@@ -110,8 +118,8 @@ public:
 class NestedStochasticBlockModelFamily: public NestedStochasticBlockModelBase{
     EdgeCountPrior* m_edgeCountPriorPtr;
 public:
-    NestedStochasticBlockModelFamily(size_t size, double edgeCount, bool canonical=false):
-        NestedStochasticBlockModelBase(size){
+    NestedStochasticBlockModelFamily(size_t size, double edgeCount, bool canonical=false, bool stubLabeled=true, bool withSelfLoops=true, bool withParallelEdges=true):
+        NestedStochasticBlockModelBase(size, stubLabeled, withSelfLoops, withParallelEdges){
             m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
             setEdgeCountPrior(*m_edgeCountPriorPtr);
             checkSafety();

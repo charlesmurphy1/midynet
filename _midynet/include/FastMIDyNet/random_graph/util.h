@@ -8,6 +8,7 @@
 #include "prior/block.h"
 #include "prior/degree.h"
 #include "prior/labeled_degree.h"
+#include "likelihood/sbm.h"
 
 namespace FastMIDyNet{
 
@@ -18,6 +19,9 @@ EdgeCountPrior* makeEdgeCountPrior(double edgeCount, bool canonical=false);
 BlockPrior* makeBlockPrior(size_t size, BlockCountPrior& blockCountPrior, bool hyperPrior=false);
 DegreePrior* makeDegreePrior(size_t size, EdgeCountPrior& prior, bool hyperPrior=false);
 VertexLabeledDegreePrior* makeVertexLabeledDegreePrior(LabelGraphPrior& prior, bool hyperPrior=false);
+
+StochasticBlockModelLikelihood* makeSBMLikelihood(bool stubLabeled=true);
+
 }
 
 #endif

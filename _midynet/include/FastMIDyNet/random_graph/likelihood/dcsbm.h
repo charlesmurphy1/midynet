@@ -21,6 +21,12 @@ protected:
     const double getLogLikelihoodRatioAdjTerm (const GraphMove&) const;
 
 public:
+    const MultiGraph sample() const override {
+        const auto& blocks = (*m_degreePriorPtrPtr)->getBlockPrior().getState();
+        const auto& labelGraph = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getState();
+        const auto& degrees = (*m_degreePriorPtrPtr)->getState();
+        return generateDCSBM(blocks, labelGraph, degrees);
+    }
     const double getLogLikelihood() const override;
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
     const double getLogLikelihoodRatioFromLabelMove (const BlockMove&) const override;

@@ -26,12 +26,12 @@ class TestErdosRenyiModelBase: public::testing::Test{
 
 TEST_F(TestErdosRenyiModelBase, sample_getGraphWithCorrectNumberOfEdges){
     randomGraph.sample();
-    EXPECT_EQ(randomGraph.getGraph().getTotalEdgeNumber(), randomGraph.getEdgeCount());
+    EXPECT_EQ(randomGraph.getState().getTotalEdgeNumber(), randomGraph.getEdgeCount());
 }
 
 
 TEST_F(TestErdosRenyiModelBase, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectLogLikelihoodRatio){
-    auto graph = randomGraph.getGraph();
+    auto graph = randomGraph.getState();
 
     GraphMove move = {};
     for (auto vertex: graph){
@@ -50,7 +50,7 @@ TEST_F(TestErdosRenyiModelBase, getLogLikelihoodRatioFromGraphMove_forAddedEdge_
 }
 
 TEST_F(TestErdosRenyiModelBase, getLogLikelihoodRatioFromGraphMove_forRemovedEdge_returnCorrectLogLikelihoodRatio){
-    auto graph = randomGraph.getGraph();
+    auto graph = randomGraph.getState();
 
     GraphMove move = {};
     for (auto neighbor: graph.getNeighboursOfIdx(0)){
@@ -68,7 +68,7 @@ TEST_F(TestErdosRenyiModelBase, getLogLikelihoodRatioFromGraphMove_forRemovedEdg
 
 TEST_F(TestErdosRenyiModelBase, isCompatible_forGraphSampledFromSBM_returnTrue){
     randomGraph.sample();
-    auto g = randomGraph.getGraph();
+    auto g = randomGraph.getState();
     EXPECT_TRUE(randomGraph.isCompatible(g));
 }
 
@@ -79,7 +79,7 @@ TEST_F(TestErdosRenyiModelBase, isCompatible_forEmptyGraph_returnFalse){
 
 TEST_F(TestErdosRenyiModelBase, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
     randomGraph.sample();
-    auto g = randomGraph.getGraph();
+    auto g = randomGraph.getState();
     for (auto vertex: g){
         for (auto neighbor: g.getNeighboursOfIdx(vertex)){
             g.removeEdgeIdx(vertex, neighbor.vertexIndex);

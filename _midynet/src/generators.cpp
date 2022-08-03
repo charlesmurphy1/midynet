@@ -220,6 +220,12 @@ BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq, const
     for(const auto& labeledEdges : allLabeledEdges){
         BlockIndex r = labeledEdges.first.first, s = labeledEdges.first.second;
         size_t ers = labelGraph.getEdgeMultiplicityIdx(r, s);
+
+        if (labeledEdges.second.size() < ers)
+            throw std::logic_error("generateSBM: edge count at r=" + std::to_string(r)
+                + " and s=" + std::to_string(s) + " (ers=" + std::to_string(ers)
+                + ") must be greater than the total number of pairs ("
+                + std::to_string(labeledEdges.second.size()) + ").");
         auto indices = sampleUniformlySequenceWithoutReplacement(labeledEdges.second.size(), ers);
         for (const auto& i: indices)
             graph.addEdgeIdx(labeledEdges.second[i].first, labeledEdges.second[i].second);
@@ -333,6 +339,9 @@ MultiGraph generateErdosRenyi(size_t size, size_t edgeCount, bool withSelfLoops)
         for (size_t j=i; j < size; ++j )
             if (withSelfLoops or j != i)
                 allEdges.push_back({i, j});
+    if (allEdges.size() < edgeCount)
+        throw std::logic_error("generateErdosRenyi: edge count (" + std::to_string(edgeCount) +
+            ") must be greater than the total number of pairs (with N=" + std::to_string(size) + ").");
     auto indices = sampleUniformlySequenceWithoutReplacement(allEdges.size(), edgeCount);
 
     MultiGraph graph(size);

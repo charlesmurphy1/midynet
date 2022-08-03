@@ -224,7 +224,7 @@ const double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodAtLevel(Level
     for (const auto& r : getNestedState(level)){
         nr = getNestedVertexCounts(level)[r];
         label = getNestedState(level).getEdgeMultiplicityIdx(r, r);
-        logLikelihood -= logMultisetCoefficient(nr * (nr + 1) / 2, 2 * label);
+        logLikelihood -= logMultisetCoefficient(nr * (nr + 1) / 2, label);
         for (const auto& s : getNestedState(level)){
             if (r >= s)
                 continue;
@@ -250,8 +250,8 @@ const double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioFromGrap
             BlockIndex r = diff.first.first, s = diff.first.second;
             nr = getNestedVertexCounts(l)[r], ns = getNestedVertexCounts(l)[s];
             vTerm = (r == s) ? nr * (nr + 1) / 2 : nr * ns;
-            eTermBefore = ((r == s) ? 2 : 1) * getNestedState(l).getEdgeMultiplicityIdx(r, s);
-            eTermAfter = ((r == s) ? 2 : 1) * (getNestedState(l).getEdgeMultiplicityIdx(r, s) + diff.second);
+            eTermBefore = getNestedState(l).getEdgeMultiplicityIdx(r, s);
+            eTermAfter = getNestedState(l).getEdgeMultiplicityIdx(r, s) + diff.second;
 
             logLikelihoodRatio -= logMultisetCoefficient(vTerm, eTermAfter) - logMultisetCoefficient(vTerm, eTermBefore);
         }
@@ -285,9 +285,9 @@ const double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioFromLabe
         nr = getNestedVertexCounts(move.level)[r], ns = getNestedVertexCounts(move.level)[s];
         vTermBefore = (r == s) ? nr * (nr + 1) / 2 : nr * ns;
         vTermAfter = (r == s) ? (nr + vertexDiff.get(r)) * (nr + vertexDiff.get(r) + 1) / 2 : (nr + vertexDiff.get(r)) * (ns + vertexDiff.get(s));
-        edgeMult = (move.addedLabels == 1 and (r == move.nextLabel or s == move.nextLabel)) ? 0 : getNestedState(move.level).getEdgeMultiplicityIdx(r, s);
-        eTermBefore = ((r == s) ? 2 : 1) * edgeMult;
-        eTermAfter = ((r == s) ? 2 : 1) * (edgeMult + diff.second);
+        edgeMult = (r >= getNestedState(move.level).getSize() or s >= getNestedState(move.level).getSize()) ? 0 : getNestedState(move.level).getEdgeMultiplicityIdx(r, s);
+        eTermBefore = edgeMult;
+        eTermAfter = edgeMult + diff.second;
 
         logLikelihoodRatio -= logMultisetCoefficient(vTermAfter, eTermAfter) - logMultisetCoefficient(vTermBefore, eTermBefore);
     }
@@ -307,8 +307,7 @@ const double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioFromLabe
             nr = getNestedVertexCounts(move.level)[r], ns = getNestedVertexCounts(move.level)[s];
             vTermBefore = (r == s) ? nr * (nr + 1) / 2 : nr * ns;
             vTermAfter = (r == s) ? (nr + vertexDiff.get(r)) * (nr + vertexDiff.get(r) + 1) / 2 : (nr + vertexDiff.get(r)) * (ns + vertexDiff.get(s));
-            edgeMult = ((r == s) ? 2 : 1) * neighbor.label;
-            logLikelihoodRatio -= logMultisetCoefficient(vTermAfter, edgeMult) - logMultisetCoefficient(vTermBefore, edgeMult);
+            logLikelihoodRatio -= logMultisetCoefficient(vTermAfter, neighbor.label) - logMultisetCoefficient(vTermBefore, neighbor.label);
         }
     }
 
@@ -322,13 +321,12 @@ const double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodRatioFromLabe
                 ns = getNestedVertexCounts(move.level + 1)[s];
                 vTermBefore = (r == s) ? nr * (nr + 1) / 2 : nr * ns;
                 vTermAfter = (r == s) ? (nr + 1) * (nr + 2) / 2 : (nr + 1) * ns;
-                eTermBefore = ((r == s) ? 2 : 1) * neighbor.label;
-                logLikelihoodRatio -= logMultisetCoefficient(vTermAfter, eTermBefore) - logMultisetCoefficient(vTermBefore, eTermBefore);
+                logLikelihoodRatio -= logMultisetCoefficient(vTermAfter, neighbor.label) - logMultisetCoefficient(vTermBefore, neighbor.label);
             }
         // if adding new label in last layer
         } else {
             nr = getNestedVertexCounts(move.level).size() + 1;
-            logLikelihoodRatio -= logMultisetCoefficient(nr * (nr + 1) / 2, 2 * getEdgeCount());
+            logLikelihoodRatio -= logMultisetCoefficient(nr * (nr + 1) / 2, getEdgeCount());
         }
     }
     return logLikelihoodRatio;

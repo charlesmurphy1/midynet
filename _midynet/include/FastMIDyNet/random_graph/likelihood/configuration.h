@@ -5,6 +5,7 @@
 #include "FastMIDyNet/random_graph/likelihood/likelihood.hpp"
 #include "FastMIDyNet/random_graph/prior/degree.h"
 #include "FastMIDyNet/utility/maps.hpp"
+#include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 
 namespace FastMIDyNet{
@@ -12,6 +13,9 @@ namespace FastMIDyNet{
 class ConfigurationModelLikelihood: public GraphLikelihoodModel{
 public:
 
+    const MultiGraph sample() const override {
+        return generateCM((*m_degreePriorPtrPtr)->getState());
+    }
     const double getLogLikelihood() const override ;
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override ;
     DegreePrior** m_degreePriorPtrPtr = nullptr;

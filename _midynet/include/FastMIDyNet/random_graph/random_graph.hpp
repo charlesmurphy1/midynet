@@ -14,28 +14,29 @@
 namespace FastMIDyNet{
 
 class RandomGraph: public NestedRandomVariable{
-private:
-
 protected:
     GraphLikelihoodModel* m_likelihoodModelPtr = nullptr;
     size_t m_size;
-    MultiGraph m_graph;
+    MultiGraph m_state;
     virtual void _applyGraphMove(const GraphMove&);
     virtual const double _getLogPrior() const { return 0; }
     virtual const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
     virtual void _samplePrior() { };
     virtual void setUpLikelihood() {
-        m_likelihoodModelPtr->m_graphPtr = &m_graph;
+        m_likelihoodModelPtr->m_statePtr = &m_state;
     }
 public:
-    RandomGraph(size_t size, GraphLikelihoodModel& likelihoodModel):
-        m_size(size), m_graph(size), m_likelihoodModelPtr(&likelihoodModel) { }
-    virtual ~RandomGraph() {}
-    
-    const MultiGraph& getGraph() const { return m_graph; }
+    RandomGraph(size_t size):
+        m_size(size), m_state(size) { }
 
-    virtual void setGraph(const MultiGraph state) {
-        m_graph = state;
+    RandomGraph(size_t size, GraphLikelihoodModel& likelihoodModel):
+        m_size(size), m_state(size), m_likelihoodModelPtr(&likelihoodModel) { }
+    virtual ~RandomGraph() {}
+
+    const MultiGraph& getState() const { return m_state; }
+
+    virtual void setState(const MultiGraph state) {
+        m_state = state;
     }
     const size_t getSize() const { return m_size; }
     void setSize(const size_t size) { m_size = size; }
@@ -50,7 +51,10 @@ public:
         samplePrior();
         sampleState();
     }
-    virtual void sampleState() = 0;
+    void sampleState() {
+        setState(m_likelihoodModelPtr->sample());
+        computationFinished();
+    };
     void samplePrior() {  processRecursiveFunction([&](){ _samplePrior(); }); };
 
     const double getLogLikelihood() const { return m_likelihoodModelPtr->getLogLikelihood(); }
@@ -92,12 +96,13 @@ public:
 
 template <typename Label>
 class VertexLabeledRandomGraph: public RandomGraph{
-private:
-    VertexLabeledGraphLikelihoodModel<Label>* m_vertexLabeledlikelihoodModelPtr = nullptr;
 protected:
     virtual void _applyLabelMove(const LabelMove<Label>&) { };
     virtual const double _getLogPriorRatioFromLabelMove (const LabelMove<Label>& move) const { return 0; }
+    VertexLabeledGraphLikelihoodModel<Label>* m_vertexLabeledlikelihoodModelPtr = nullptr;
 public:
+    VertexLabeledRandomGraph(size_t size):
+        RandomGraph(size){ }
     VertexLabeledRandomGraph(size_t size, VertexLabeledGraphLikelihoodModel<Label>& likelihoodModel):
         RandomGraph(size, likelihoodModel), m_vertexLabeledlikelihoodModelPtr(&likelihoodModel){ }
     virtual const std::vector<Label>& getLabels() const = 0;

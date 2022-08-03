@@ -28,7 +28,8 @@ protected:
     }
     void _samplePrior() override { m_edgeCountPriorPtr->sample(); }
     void setUpLikelihood() {
-        m_likelihoodModel.m_graphPtr = &m_graph;
+        m_likelihoodModel.m_statePtr = &m_state;
+        m_likelihoodModel.m_graphSizePtr = &m_size;
         m_likelihoodModel.m_edgeCountPriorPtrPtr = &m_edgeCountPriorPtr;
         m_likelihoodModel.m_withSelfLoopsPtr = &m_withSelfLoops;
         m_likelihoodModel.m_withParallelEdgesPtr = &m_withParallelEdges;
@@ -45,14 +46,11 @@ public:
         m_edgeCountPriorPtr(&edgeCountPrior){ setUpLikelihood(); }
 
     const size_t getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }
-    void sampleState() {
-        size_t E = getEdgeCount();
-        const auto& generator = (m_withParallelEdges) ? generateMultiGraphErdosRenyi : generateErdosRenyi;
-        setGraph(generator(m_size, E, m_withSelfLoops));
-    }
 
     const EdgeCountPrior& getEdgeCountPrior(){ return *m_edgeCountPriorPtr; }
     void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){ m_edgeCountPriorPtr = &edgeCountPrior; }
+    const bool withSelfLoops() const { return m_withSelfLoops; }
+    const bool withParallelEdges() const { return m_withParallelEdges; }
 
     const bool isCompatible(const MultiGraph& graph) const override{
         return RandomGraph::isCompatible(graph) and graph.getTotalEdgeNumber() == getEdgeCount();

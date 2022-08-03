@@ -19,11 +19,11 @@ class TestSingleEdgeUniformProposer: public::testing::Test {
         BaseGraph::Edge doubleEdge = {0, 3};
         void SetUp() {
             randomGraph.sample();
-            graph = randomGraph.getGraph();
+            graph = randomGraph.getState();
             graph.setEdgeMultiplicityIdx(inexistentEdge, 0);
             graph.setEdgeMultiplicityIdx(singleEdge, 1);
             graph.setEdgeMultiplicityIdx(doubleEdge, 2);
-            randomGraph.setGraph(graph);
+            randomGraph.setState(graph);
             proposer.setUp(graph);
             proposer.checkSafety();
         }
@@ -65,12 +65,12 @@ class TestSingleEdgeDegreeProposer: public::testing::Test {
         BaseGraph::Edge doubleEdge = {0, 3};
         void SetUp() {
             randomGraph.sample();
-            graph = randomGraph.getGraph();
+            graph = randomGraph.getState();
 
             graph.setEdgeMultiplicityIdx(inexistentEdge, 0);
             graph.setEdgeMultiplicityIdx(singleEdge, 1);
             graph.setEdgeMultiplicityIdx(doubleEdge, 2);
-            randomGraph.setGraph(graph);
+            randomGraph.setState(graph);
             proposer.setUp(graph);
             proposer.checkSafety();
         }

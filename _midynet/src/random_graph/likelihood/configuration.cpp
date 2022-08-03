@@ -7,9 +7,9 @@ const double ConfigurationModelLikelihood::getLogLikelihood() const{
     const auto& degrees =  (*m_degreePriorPtrPtr)->getState();
     double logLikelihood = logDoubleFactorial(2 * E) - logFactorial(2 * E);
 
-    for (auto vertex : *m_graphPtr){
+    for (auto vertex : *m_statePtr){
         logLikelihood += logFactorial(degrees[vertex]);
-        for (auto neighbor : m_graphPtr->getNeighboursOfIdx(vertex)){
+        for (auto neighbor : m_statePtr->getNeighboursOfIdx(vertex)){
             if (vertex > neighbor.vertexIndex)
                 continue;
             logLikelihood -= (neighbor.vertexIndex == vertex) ? logDoubleFactorial(2 * neighbor.label) : logFactorial(neighbor.label);
@@ -47,7 +47,7 @@ const double ConfigurationModelLikelihood::getLogLikelihoodRatioFromGraphMove (c
     }
 
     for (auto diff : edgeMultDiffMap){
-        size_t edgeMult = m_graphPtr->getEdgeMultiplicityIdx(diff.first);
+        size_t edgeMult = m_statePtr->getEdgeMultiplicityIdx(diff.first);
         int factor = (diff.first.first == diff.first.second) ? 2 : 1;
         auto factFunc = (diff.first.first == diff.first.second) ? logDoubleFactorial : logFactorial;
 
