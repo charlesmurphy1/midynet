@@ -29,6 +29,8 @@ public:
         m_vertexDistribution = std::uniform_int_distribution<BaseGraph::VertexIndex>(0, graphPrior.getSize() - 1);
     }
     const double getLogProposalProbRatio(const LabelMove<Label>& move) const {
+        if (move.prevLabel == move.nextLabel)
+            return 0.;
         return getLogProposalProb(move, true) - getLogProposalProb(move);
     }
     virtual const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const = 0;
@@ -65,7 +67,7 @@ protected:
 public:
     GibbsLabelProposer(double sampleLabelCountProb=0.1, double labelCreationProb=0.5):
         LabelProposer<Label>(sampleLabelCountProb), m_labelCreationProb(labelCreationProb) {}
-    const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
+    virtual const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
         if ( m_uniform01(rng) < m_labelCreationProb )
             return {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), m_graphPriorPtr->getLabelCount(), 1};
         else
@@ -102,7 +104,7 @@ protected:
 
 public:
     using LabelProposer<Label>::LabelProposer;
-    const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
+    virtual const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
         Label prevLabel = m_graphPriorPtr->getLabelOfIdx(vertex);
         Label nextLabel = *sampleUniformlyFrom(m_emptyLabels.begin(), m_emptyLabels.end());
         LabelMove<Label> move = {vertex, prevLabel, nextLabel};

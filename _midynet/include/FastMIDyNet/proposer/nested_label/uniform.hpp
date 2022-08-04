@@ -23,9 +23,13 @@ public:
     const double getLogProposalProbForMove(const LabelMove<Label>& move) const override { return -log(m_nestedGraphPriorPtr->getNestedLabelCount()[move.level]); }
     const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override { return -log(m_nestedGraphPriorPtr->getNestedLabelCount()[move.level] + move.addedLabels); }
     const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex& vertex) const override {
-        Level level = sampleLevel(vertex);
-        Label nextLabel = std::uniform_int_distribution<Label>(0, m_nestedGraphPriorPtr->getNestedLabelCount()[level]-1)(rng);
-        return {vertex, m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), nextLabel};
+        Level level = sampleLevel();
+        Label nextLabel;
+        if (m_nestedGraphPriorPtr->getNestedLabelCount()[level] == 1)
+            nextLabel = 0;
+        else
+            nextLabel = std::uniform_int_distribution<Label>(0, m_nestedGraphPriorPtr->getNestedLabelCount()[level]-1)(rng);
+        return {vertex, m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), nextLabel, 0, level};
     }
 
 };
@@ -42,15 +46,16 @@ protected:
 public:
     using RestrictedNestedLabelProposer<Label>::RestrictedNestedLabelProposer;
     const double getLogProposalProbForMove(const LabelMove<Label>& move) const override {
-        return -log(m_availableLabels[move.level].size());
+        return -log(m_availableLabels[move.level].size()) - log(m_nestedGraphPriorPtr->getDepth());
     }
     const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override {
-        return -log(m_availableLabels[move.level].size() + move.addedLabels);
+        int dL = (move.level == m_nestedGraphPriorPtr->getDepth() - 1 and move.addedLabels == 1) ? 1 : 0;
+        return -log(m_availableLabels[move.level].size() + move.addedLabels) - log(m_nestedGraphPriorPtr->getDepth() + dL);
     }
     const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex& vertex) const override {
-        Level level = sampleLevel(vertex);
+        Level level = sampleLevel();
         Label nextLabel = *sampleUniformlyFrom(m_availableLabels[level].begin(), m_availableLabels[level].end());
-        LabelMove<Label> move = {vertex, m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), nextLabel};
+        LabelMove<Label> move = {vertex, m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), nextLabel, 0, level};
         move.addedLabels = -(int) RestrictedNestedLabelProposer<Label>::destroyingLabel(move);
         return move;
     }

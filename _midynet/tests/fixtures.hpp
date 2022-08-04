@@ -11,6 +11,7 @@
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/random_graph/prior/nested_block.h"
 #include "FastMIDyNet/random_graph/sbm.h"
+#include "FastMIDyNet/random_graph/hsbm.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 
 #include "FastMIDyNet/dynamics/sis.hpp"
@@ -127,6 +128,20 @@ public:
     using StochasticBlockModelBase::sample;
 };
 
+class DummyNestedSBMGraph: public NestedStochasticBlockModelBase{
+    size_t size;
+    size_t edgeCount;
+    size_t blockCount;
+
+    EdgeCountDeltaPrior edgeCountPrior;
+    LabelGraphErdosRenyiPrior labelGraphPrior;
+
+public:
+    DummyNestedSBMGraph(size_t size=10, size_t edgeCount=25):
+    NestedStochasticBlockModelBase(size),
+    edgeCountPrior(edgeCount) { setEdgeCountPrior(edgeCountPrior); }
+};
+
 class DummyDynamics: public Dynamics<RandomGraph>{
 public:
     DummyDynamics(RandomGraph& graphPrior, size_t numStates=2, double numSteps = 10):
@@ -157,6 +172,7 @@ public:
     DummyLabeledSISDynamics(VertexLabeledRandomGraph<BlockIndex>& graphPrior, size_t numSteps=10, double infection = 0.1):
     SISDynamics<VertexLabeledRandomGraph<BlockIndex>>(graphPrior, numSteps, infection){}
 };
+
 
 class DummyMCMC: public MCMC{
 public:
