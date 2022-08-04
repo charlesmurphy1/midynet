@@ -100,13 +100,13 @@ public:
 
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override { return 0; }
     virtual const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const = 0;
-    bool creatingNewBlock(const BlockMove& move) const {
+    virtual bool creatingNewBlock(const BlockMove& move) const {
         return m_vertexCounts.get(move.nextLabel) == 0;
     };
-    bool destroyingBlock(const BlockMove& move) const {
+    virtual bool destroyingBlock(const BlockMove& move) const {
         return move.prevLabel != move.nextLabel and m_vertexCounts.get(move.prevLabel) == 1 ;
     }
-    const int getAddedBlocks(const BlockMove& move) const {
+    virtual const int getAddedBlocks(const BlockMove& move) const {
         return (int) creatingNewBlock(move) - (int) destroyingBlock(move);
     }
 
@@ -130,6 +130,7 @@ public:
         }
     }
 
+    bool isValidBlockMove(const BlockMove& move) const;
     bool isSafe() const override {
         return (m_size != 0) and (m_blockCountPriorPtr != nullptr) and (m_blockCountPriorPtr->isSafe());
     }

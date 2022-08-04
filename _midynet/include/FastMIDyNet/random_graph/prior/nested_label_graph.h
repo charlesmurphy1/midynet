@@ -18,6 +18,11 @@ protected:
 
     void applyGraphMoveToState(const GraphMove& move) override ;
     void applyLabelMoveToState(const BlockMove& move) override ;
+
+    void destroyBlock(const BlockMove& move) override {
+        recomputeStateFromGraph();
+    }
+
     void recomputeStateFromGraph() override ;
     std::vector<CounterMap<BlockIndex>> computeNestedEdgeCountsFromNestedState(
         const std::vector<MultiGraph>& nestedState
@@ -70,8 +75,12 @@ public:
     }
     void setNestedState(const std::vector<LabelGraph>& nestedState) {
         m_nestedState = nestedState;
-        setState(nestedState[0]);
+        m_nestedEdgeCounts = computeNestedEdgeCountsFromNestedState(nestedState);
+        m_state = nestedState[0];
+        m_edgeCounts = m_nestedEdgeCounts[0];
+        m_edgeCountPriorPtr->setState(m_state.getTotalEdgeNumber());
     }
+    // void setGraph(const MultiGraph& graph) override;
 
     const NestedBlockPrior& getNestedBlockPrior() const{ return *m_nestedBlockPriorPtr; }
     NestedBlockPrior& getNestedBlockPriorRef() const{ return *m_nestedBlockPriorPtr; }

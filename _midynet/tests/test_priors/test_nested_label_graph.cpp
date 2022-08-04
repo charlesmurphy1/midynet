@@ -75,7 +75,7 @@ class TestNestedLabelGraphPrior: public ::testing::Test {
 };
 
 TEST_F(TestNestedLabelGraphPrior, sampleState_noThrow){
-    EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
+    EXPECT_NO_THROW(prior.checkConsistency());
 }
 
 TEST_F(TestNestedLabelGraphPrior, getLogLikelihood_returnSumOfLogLikelihoodAtEaclLevel){
@@ -120,9 +120,8 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihood_forAnyLevelOtherThanLast_retu
 
 TEST_F(TestNestedLabelGraphPrior, setGraph_noThrow){
     EXPECT_EQ(prior.getGraph(), graph);
-    EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
+    EXPECT_NO_THROW(prior.checkConsistency());
 }
-
 
 TEST_F(TestNestedLabelGraphPrior, applyGraphMove_forAddedEdge_noThrow){
     GraphMove move = {{}, {{0, 1}}};
@@ -131,7 +130,7 @@ TEST_F(TestNestedLabelGraphPrior, applyGraphMove_forAddedEdge_noThrow){
     prior.applyGraphMove(move);
     auto stateAfter = prior.getNestedState(0);
     EXPECT_EQ(stateBefore.getEdgeMultiplicityIdx(r, s), stateAfter.getEdgeMultiplicityIdx(r, s) - 1);
-    EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
+    EXPECT_NO_THROW(prior.checkConsistency());
 }
 
 TEST_F(TestNestedLabelGraphPrior, applyGraphMove_forAddedSelfLoop_noThrow){
@@ -141,14 +140,14 @@ TEST_F(TestNestedLabelGraphPrior, applyGraphMove_forAddedSelfLoop_noThrow){
     prior.applyGraphMove(move);
     auto stateAfter = prior.getNestedState(0);
     EXPECT_EQ(stateBefore.getEdgeMultiplicityIdx(r, r), stateAfter.getEdgeMultiplicityIdx(r, r) - 1);
-    EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
+    EXPECT_NO_THROW(prior.checkConsistency());
 }
 
 TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forIdentityMoveAtAnyLevel_doNothing){
     for(Level level=0; level < prior.getDepth(); ++level){
         BlockMove move = {0, prior.getBlockOfIdx(0, level), prior.getBlockOfIdx(0, level), 0, level};
         prior.applyLabelMove(move);
-        EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
+        EXPECT_NO_THROW(prior.checkConsistency());
     }
 }
 
@@ -159,7 +158,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveNotChangingBlockCountAtA
         BlockMove move = proposeNestedBlockMove(0, level, depth);
         prior.applyLabelMove(move);
         EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
-        EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
+        EXPECT_NO_THROW(prior.checkConsistency());
     }
 
 }
@@ -170,16 +169,8 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveChangingBlockCountAtAnyL
         BlockMove move = proposeNestedBlockMove(0, level, depth, true);
         prior.applyLabelMove(move);
         EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
-        EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
+        EXPECT_NO_THROW(prior.checkConsistency());
     }
-}
-
-TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveChangingBlockCountAtAnyLevel_noThrow2){
-    size_t depth = 4;
-    BlockMove move = proposeNestedBlockMove(0, 2, depth, true);
-    prior.applyLabelMove(move);
-    EXPECT_EQ(prior.getBlockOfIdx(move.vertexIndex, move.level), move.nextLabel);
-    EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
 }
 
 TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveIncreasingDepth_noThrow){
@@ -190,7 +181,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveIncreasingDepth_noThrow)
 
     prior.applyLabelMove(move);
     EXPECT_EQ(prior.getDepth(), depth + 1);
-    EXPECT_NO_THROW(prior.checkSelfConsistencyBetweenLevels());
+    EXPECT_NO_THROW(prior.checkConsistency());
 }
 
 TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectValue){

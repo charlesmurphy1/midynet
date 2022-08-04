@@ -173,6 +173,12 @@ public:
     SISDynamics<VertexLabeledRandomGraph<BlockIndex>>(graphPrior, numSteps, infection){}
 };
 
+class DummyNestedSISDynamics: public SISDynamics<NestedVertexLabeledRandomGraph<BlockIndex>>{
+public:
+    DummyNestedSISDynamics(NestedVertexLabeledRandomGraph<BlockIndex>& graphPrior, size_t numSteps=10, double infection = 0.1):
+    SISDynamics<NestedVertexLabeledRandomGraph<BlockIndex>>(graphPrior, numSteps, infection){}
+};
+
 
 class DummyMCMC: public MCMC{
 public:

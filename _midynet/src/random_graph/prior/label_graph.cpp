@@ -48,13 +48,11 @@ void LabelGraphPrior::setState(const MultiGraph& labelGraph) {
 }
 
 void LabelGraphPrior::applyLabelMoveToState(const BlockMove& move) {
-    if (move.prevLabel == move.nextLabel)
-        return;
+    const auto& blockSeq = m_blockPriorPtr->getState();
+    const auto& degree = m_graphPtr->getDegreeOfIdx(move.vertexIndex);
 
     if (m_state.getSize() <= move.nextLabel)
         m_state.resize(move.nextLabel + 1);
-    const auto& blockSeq = m_blockPriorPtr->getState();
-    const auto& degree = m_graphPtr->getDegreeOfIdx(move.vertexIndex);
 
     m_edgeCounts.decrement(move.prevLabel, degree);
     m_edgeCounts.increment(move.nextLabel, degree);
@@ -94,8 +92,7 @@ void LabelGraphPrior::checkSelfConsistency() const {
     m_edgeCountPriorPtr->checkSelfConsistency();
 
     for (BlockIndex r : m_state) {
-        size_t actualEdgeCounts = m_state.getDegreeOfIdx(r);
-        if (actualEdgeCounts != m_edgeCounts[r])
+        if (m_state.getDegreeOfIdx(r) != m_edgeCounts[r])
             throw ConsistencyError(
                 "LabelGraphPrior",
                 "m_state.degree", std::to_string(m_state.getDegreeOfIdx(r)),

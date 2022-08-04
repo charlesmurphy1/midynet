@@ -21,6 +21,10 @@ CounterMap<size_t> BlockPrior::computeVertexCounts(const BlockSequence& state) {
     return vertexCount;
 }
 
+bool BlockPrior::isValidBlockMove(const BlockMove& move) const {
+    return m_vertexCounts.size() + getAddedBlocks(move) > m_blockCountPriorPtr->getState() + move.addedLabels;
+}
+
 void BlockPrior::checkBlockSequenceConsistencyWithVertexCounts(
     std::string prefix, const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCounts
 ) {
@@ -63,7 +67,7 @@ const double BlockUniformPrior::getLogLikelihood() const {
 }
 
 const double BlockUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
-    if (m_vertexCounts.size() + getAddedBlocks(move) > m_blockCountPriorPtr->getState() + move.addedLabels)
+    if ( isValidBlockMove(move) )
         return -INFINITY;
     size_t prevNumBlocks = m_blockCountPriorPtr->getState();
     size_t newNumBlocks = prevNumBlocks + move.addedLabels;

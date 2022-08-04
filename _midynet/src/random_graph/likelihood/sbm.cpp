@@ -113,6 +113,8 @@ const double StubLabeledStochasticBlockModelLikelihood::getLogLikelihoodRatioFro
 }
 
 const double StubLabeledStochasticBlockModelLikelihood::getLogLikelihoodRatioFromLabelMove (const BlockMove& move) const {
+    if (move.prevLabel == move.nextLabel or move.level > 0)
+        return 0;
     const BlockSequence& blockSeq = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getState();
     const MultiGraph& edgeMat = (*m_labelGraphPriorPtrPtr)->getState();
     const CounterMap<size_t>& edgeCounts = (*m_labelGraphPriorPtrPtr)->getEdgeCounts();
@@ -120,8 +122,6 @@ const double StubLabeledStochasticBlockModelLikelihood::getLogLikelihoodRatioFro
     const size_t& degree = m_statePtr->getDegreeOfIdx(move.vertexIndex);
     double logLikelihoodRatio = 0;
 
-    if (move.prevLabel == move.nextLabel)
-        return 0;
 
     IntMap<std::pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
 
@@ -130,16 +130,17 @@ const double StubLabeledStochasticBlockModelLikelihood::getLogLikelihoodRatioFro
     for (auto diff : diffEdgeMatMap){
         auto r = diff.first.first, s = diff.first.second;
         size_t ers = (r >= edgeMat.getSize() or s >= edgeMat.getSize()) ? 0 : edgeMat.getEdgeMultiplicityIdx(r, s);
+        if (ers == 0 and diff.second < 0)
+            throw std::logic_error("StubLabeledStochasticBlockModelLikelihood: at r=" + std::to_string(r) + " s=" + std::to_string(s) + ", `ers` is zero and `diff` is non-zero.");
         logLikelihoodRatio += (r == s) ? logDoubleFactorial(2 * ers + 2 * diff.second) : logFactorial(ers + diff.second);
         logLikelihoodRatio -= (r == s) ? logDoubleFactorial(2 * ers) : logFactorial(ers);
     }
 
     logLikelihoodRatio += edgeCounts[move.prevLabel] * log(vertexCounts[move.prevLabel]) ;
-    logLikelihoodRatio -= (edgeCounts[move.prevLabel] == degree) ? 0: (edgeCounts[move.prevLabel] - degree) * log(vertexCounts[move.prevLabel] - 1);
+    logLikelihoodRatio -= (vertexCounts.get(move.prevLabel) == 1) ? 0: (edgeCounts[move.prevLabel] - degree) * log(vertexCounts[move.prevLabel] - 1);
 
-    logLikelihoodRatio += (edgeCounts[move.nextLabel] == 0) ? 0: edgeCounts[move.nextLabel] * log(vertexCounts[move.nextLabel]);
+    logLikelihoodRatio += (vertexCounts.get(move.nextLabel) == 0) ? 0: edgeCounts[move.nextLabel] * log(vertexCounts[move.nextLabel]);
     logLikelihoodRatio -= (edgeCounts[move.nextLabel] + degree) * log(vertexCounts[move.nextLabel] + 1) ;
-
     return logLikelihoodRatio;
 }
 
@@ -197,14 +198,14 @@ const double UniformStochasticBlockModelLikelihood::getLogLikelihoodRatioFromGra
 }
 
 const double UniformStochasticBlockModelLikelihood::getLogLikelihoodRatioFromLabelMove (const BlockMove& move) const {
+    if (move.prevLabel == move.nextLabel or move.level > 0)
+        return 0;
     const MultiGraph& labelGraph = (*m_labelGraphPriorPtrPtr)->getState();
     const CounterMap<size_t>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
     const auto& likelihoodFunction = (*m_withParallelEdgesPtr) ? logMultisetCoefficient: logBinomialCoefficient;
 
     double logLikelihoodRatio = 0;
 
-    if (move.prevLabel == move.nextLabel)
-        return 0;
 
 
     IntMap<BlockIndex> vDiffMap;

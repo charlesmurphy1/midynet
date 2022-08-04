@@ -156,6 +156,21 @@ public:
 using CollectPartitionOnSweepForReconstruction = CollectPartitionOnSweep<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
 using CollectPartitionOnSweepForCommunity = CollectPartitionOnSweep<VertexLabelMCMC<BlockIndex>>;
 
+
+template<typename GraphMCMC>
+class CollectNestedPartitionOnSweep: public SweepCollector<GraphMCMC>{
+private:
+    std::vector<std::vector<std::vector<BlockIndex>>> m_partitions;
+public:
+    using BaseClass = SweepCollector<GraphMCMC>;
+    void collect() override { m_partitions.push_back(BaseClass::m_mcmcPtr.getNestedLabels()); }
+    void clear() override { m_partitions.clear(); }
+    const std::vector<BlockSequence>& getData() const { return m_partitions; }
+};
+
+using CollectNestedPartitionOnSweepForReconstruction = CollectNestedPartitionOnSweep<GraphReconstructionMCMC<NestedVertexLabeledRandomGraph<BlockIndex>>>;
+using CollectNestedPartitionOnSweepForCommunity = CollectNestedPartitionOnSweep<NestedVertexLabelMCMC<BlockIndex>>;
+
 class CollectLikelihoodOnSweep: public SweepCollector<MCMC>{
 private:
     std::vector<double> m_collectedLikelihoods;

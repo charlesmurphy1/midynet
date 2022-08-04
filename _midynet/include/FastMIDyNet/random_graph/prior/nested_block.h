@@ -125,11 +125,11 @@ public:
     const double getLogLikelihood() const override;
     virtual const double getLogLikelihoodAtLevel(Level level) const = 0;
 
-    bool creatingNewBlock(const BlockMove& move) const {
+    bool creatingNewBlock(const BlockMove& move) const override {
         return creatingNewLevel(move) or m_nestedVertexCounts[move.level].get(move.nextLabel) == 0;
     }
 
-    bool destroyingBlock(const BlockMove& move) const {
+    bool destroyingBlock(const BlockMove& move) const override {
         return move.prevLabel != move.nextLabel and not creatingNewLevel(move) and m_nestedVertexCounts[move.level].get(move.prevLabel) == 1;
     }
     bool creatingNewLevel(const BlockMove& move) const {
@@ -137,9 +137,6 @@ public:
     }
     virtual void createNewBlock(const BlockMove& move) ;
     virtual void destroyBlock(const BlockMove& move) { };
-    const int getAddedBlocks(const BlockMove& move) const {
-        return (int) creatingNewBlock(move) - (int) destroyingBlock(move);
-    }
 
     /* Consistency methods */
     void computationFinished() const override {
@@ -184,6 +181,18 @@ public:
     void checkSelfConsistency() const override {
         m_nestedBlockCountPriorPtr->checkConsistency();
         checkNestedStateConsistencyWithAbsVertexCounts();
+
+        if (m_nestedState[0] != m_state)
+            throw ConsistencyError( "NestedBlockPrior (level=0)", "m_nestedState[0]", "m_state");
+        for (const auto& nr : m_nestedVertexCounts[0])
+            if (nr.second != m_vertexCounts[nr.first])
+                throw ConsistencyError(
+                    "NestedBlockPrior (level=0)",
+                    "m_nestedVertexCounts[0]", std::to_string(nr.second),
+                    "m_vertexCounts", std::to_string(m_vertexCounts[nr.first]),
+                    "r=" + std::to_string(nr.first)
+                );
+
         for (Level l=0; l<getDepth()-1; ++l){
             std::string prefix = "NestedBlockPrior (l=" + std::to_string(l) + ")";
             checkBlockSequenceConsistencyWithVertexCounts(prefix, m_nestedState[l], m_nestedVertexCounts[l]);

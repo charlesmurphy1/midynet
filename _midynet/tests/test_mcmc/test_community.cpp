@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "FastMIDyNet/proposer/label/uniform.hpp"
+#include "FastMIDyNet/proposer/nested_label/uniform.hpp"
 #include "FastMIDyNet/mcmc/community.hpp"
 #include "FastMIDyNet/mcmc/callbacks/action.h"
 #include "FastMIDyNet/rng.h"
@@ -52,6 +53,39 @@ TEST_F(TestVertexLabelMCMC, setLabels_noThrow){
     mcmc.setLabels(newLabels);
     EXPECT_EQ(mcmc.getLabels(), newLabels);
     EXPECT_NO_THROW(mcmc.checkConsistency());
+}
+
+
+class TestNestedVertexLabelMCMC: public::testing::Test{
+    size_t numSteps=10;
+public:
+    DummyNestedSBMGraph randomGraph = DummyNestedSBMGraph();
+    RestrictedUniformNestedBlockProposer proposer = RestrictedUniformNestedBlockProposer();
+    NestedVertexLabelMCMC<BlockIndex> mcmc = NestedVertexLabelMCMC<BlockIndex>(randomGraph, proposer);
+    CheckConsistencyOnStep callback;
+    bool expectConsistencyError = false;
+    void SetUp(){
+        // seed(2);
+        seedWithTime();
+        randomGraph.sample();
+
+        mcmc.insertCallBack("check_consistency", callback);
+        mcmc.setUp();
+        mcmc.checkSafety();
+    }
+    void TearDown(){
+        if (not expectConsistencyError)
+            mcmc.checkConsistency();
+        mcmc.tearDown();
+    }
+};
+
+TEST_F(TestNestedVertexLabelMCMC, doMetropolisHastingsStep){
+    mcmc.doMetropolisHastingsStep();
+}
+
+TEST_F(TestNestedVertexLabelMCMC, doMHSweep){
+    mcmc.doMHSweep(1000);
 }
 
 }

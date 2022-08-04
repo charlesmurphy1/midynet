@@ -143,14 +143,13 @@ public:
         if ( move.addedLabels==1 ){
             m_availableLabels[move.level].insert(move.nextLabel);
             m_emptyLabels[move.level].erase(move.nextLabel);
+            if (move.level == m_availableLabels.size() - 1){
+                m_emptyLabels.push_back({1});
+                m_availableLabels.push_back({0});
+            }
         }
         if (m_emptyLabels[move.level].size() == 0)
             m_emptyLabels[move.level].insert(m_nestedGraphPriorPtr->getNestedLabelCount()[move.level]);
-
-        if ( move.addedLabels==1 and move.level == m_nestedGraphPriorPtr->getDepth() - 1){
-            m_emptyLabels.push_back({1});
-            m_availableLabels.push_back({0});
-        }
     }
 
 

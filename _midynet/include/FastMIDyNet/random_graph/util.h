@@ -13,13 +13,21 @@
 namespace FastMIDyNet{
 
 MultiGraph getLabelGraphFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq);
-void checkGraphConsistencyWithLabelGraph( std::string namePrefix, const MultiGraph& graph, const BlockSequence& blockSeq, const MultiGraph& expectedEdgeMat);
-void checkGraphConsistencyWithDegreeSequence(std::string namePrefix, const MultiGraph& graph, const DegreeSequence& expectedDegreeSeq);
+void checkGraphConsistencyWithLabelGraph(
+    std::string namePrefix,
+    const MultiGraph& graph,
+    const BlockSequence& blockSeq,
+    const MultiGraph& expectedEdgeMat
+);
+void checkGraphConsistencyWithDegreeSequence(
+    std::string namePrefix,
+    const MultiGraph& graph,
+    const DegreeSequence& expectedDegreeSeq
+);
 EdgeCountPrior* makeEdgeCountPrior(double edgeCount, bool canonical=false);
 BlockPrior* makeBlockPrior(size_t size, BlockCountPrior& blockCountPrior, bool hyperPrior=false);
 DegreePrior* makeDegreePrior(size_t size, EdgeCountPrior& prior, bool hyperPrior=false);
 VertexLabeledDegreePrior* makeVertexLabeledDegreePrior(LabelGraphPrior& prior, bool hyperPrior=false);
-
 StochasticBlockModelLikelihood* makeSBMLikelihood(bool stubLabeled=true);
 
 }

@@ -4,7 +4,7 @@
 namespace FastMIDyNet{
 
 void NestedBlockPrior::_applyLabelMove(const BlockMove& move) {
-    if (move.prevLabel == move.nextLabel or not isValidBlockMove(move))
+    if (move.prevLabel == move.nextLabel)
         return;
     BlockIndex nestedIndex = getBlockOfIdx(move.vertexIndex, move.level-1);
     m_nestedState[move.level][nestedIndex] = move.nextLabel;
@@ -22,15 +22,13 @@ void NestedBlockPrior::_applyLabelMove(const BlockMove& move) {
     m_nestedAbsVertexCounts[move.level].decrement(move.prevLabel, nr);
     m_nestedAbsVertexCounts[move.level].increment(move.nextLabel, nr);
 
-    if (move.addedLabels == -1)
-        destroyBlock(move);
-
-
     if (move.level == 0){
         m_vertexCounts.decrement(move.prevLabel);
         m_vertexCounts.increment(move.nextLabel);
         m_state[move.vertexIndex] = move.nextLabel;
     }
+    if (move.addedLabels == -1)
+        destroyBlock(move);
 }
 
 

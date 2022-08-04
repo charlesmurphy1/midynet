@@ -33,27 +33,24 @@ void NestedLabelGraphPrior::applyGraphMoveToState(const GraphMove& move) {
 }
 
 void NestedLabelGraphPrior::applyLabelMoveToState(const BlockMove& move) {
-    // identity move
-    if (move.prevLabel == move.nextLabel)
+    if (m_nestedBlockPriorPtr->destroyingBlock(move))
         return;
-    LabelGraphPrior::applyLabelMoveToState(move);
 
-    // move creating new layer
-    if (move.addedLabels == 1 and move.level == m_nestedState.size() - 1){
-        m_nestedState.push_back({});
-        m_nestedState[move.level + 1].resize(1);
-        m_nestedState[move.level + 1].addMultiedgeIdx(0, 0, getEdgeCount());
+    if (move.level == 0)
+        LabelGraphPrior::applyLabelMoveToState(move);
 
-        m_nestedEdgeCounts.push_back({});
-        m_nestedEdgeCounts[move.level + 1].increment(0, 2 * getEdgeCount());
-    }
+        // move creating new label
+    if (m_nestedState[move.level].getSize() <= move.nextLabel){
+        if (move.level == m_nestedState.size() - 1){
+            m_nestedState.push_back({});
+            m_nestedState[move.level + 1].resize(1);
+            m_nestedState[move.level + 1].addMultiedgeIdx(0, 0, getEdgeCount());
 
-
-    // move creating new label
-    if (m_nestedState[move.level].getSize() <= move.nextLabel)
+            m_nestedEdgeCounts.push_back({});
+            m_nestedEdgeCounts[move.level + 1].increment(0, 2 * getEdgeCount());
+        }
         m_nestedState[move.level].resize(move.nextLabel + 1);
-
-
+    }
 
     BlockIndex vertexIndex = getBlockOfIdx(move.vertexIndex, move.level-1);
     const LabelGraph& graph = getNestedState(move.level-1);
@@ -82,26 +79,29 @@ void NestedLabelGraphPrior::recomputeConsistentState() {
     for (Level l=0; l<getDepth(); ++l)
         for (auto r : m_nestedState[l])
             m_nestedEdgeCounts[l].set(r, m_nestedState[l].getDegreeOfIdx(r));
+    m_edgeCounts = m_nestedEdgeCounts[0];
     m_edgeCountPriorPtr->setState(m_state.getTotalEdgeNumber());
 }
 
 void NestedLabelGraphPrior::recomputeStateFromGraph() {
     BlockIndex r, s;
+    const LabelGraph* graphPtr = nullptr;
+    std::vector<LabelGraph> nestedState;
     for (Level l=0; l<getDepth(); ++l){
-        m_nestedState[l] = MultiGraph(m_nestedBlockPriorPtr->getNestedMaxBlockCount(l));
-        const LabelGraph& graph = getNestedState(l - 1);
-        for (const auto& vertex: graph){
-            for (const auto& neighbor: graph.getNeighboursOfIdx(vertex)){
+        nestedState.push_back(MultiGraph(m_nestedBlockPriorPtr->getNestedMaxBlockCount(l)));
+        graphPtr = (l == 0) ? m_graphPtr : &nestedState[l-1];
+        for (const auto& vertex: *graphPtr){
+            for (const auto& neighbor: graphPtr->getNeighboursOfIdx(vertex)){
                 if (vertex > neighbor.vertexIndex)
                     continue;
                 r = m_nestedBlockPriorPtr->getNestedState(l)[vertex];
                 s = m_nestedBlockPriorPtr->getNestedState(l)[neighbor.vertexIndex];
-                m_nestedState[l].addMultiedgeIdx(r, s, neighbor.label);
+                nestedState[l].addMultiedgeIdx(r, s, neighbor.label);
             }
         }
     }
 
-    setNestedState(m_nestedState);
+    setNestedState(nestedState);
 }
 
 void NestedLabelGraphPrior::updateNestedEdgeDiffFromEdge(
@@ -136,8 +136,18 @@ void NestedLabelGraphPrior::checkSelfConsistencyBetweenLevels() const{
     LabelGraph graph, actualLabelGraph;
     BlockIndex r, s;
     std::string prefix;
-
-
+    if (m_nestedState[0] != m_state )
+        ConsistencyError(
+            "NestedLabelGraphPrior", "m_nestedState[0]", "m_state"
+        );
+    for (const auto& er : m_nestedEdgeCounts[0]){
+        if (er.second != m_edgeCounts[er.first] )
+            ConsistencyError(
+                "NestedLabelGraphPrior", "m_nestedEdgeCounts[0]", std::to_string(er.second),
+                "m_edgeCounts", std::to_string(m_edgeCounts[er.first]),
+                "r=" + std::to_string(er.second)
+            );
+    }
     for (Level l=1; l<getDepth(); ++l){
         graph = getNestedState(l - 1);
         actualLabelGraph = LabelGraph(m_nestedBlockPriorPtr->getNestedMaxBlockCount(l));
@@ -218,6 +228,7 @@ const LabelGraph NestedStochasticBlockLabelGraphPrior::sampleState(Level level) 
     }
     return graph;
 }
+
 const double NestedStochasticBlockLabelGraphPrior::getLogLikelihoodAtLevel(Level level) const {
     double logLikelihood = 0;
     size_t nr, ns, label;

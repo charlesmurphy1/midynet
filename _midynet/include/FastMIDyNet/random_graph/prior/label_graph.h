@@ -30,9 +30,19 @@ class LabelGraphPrior: public BlockLabeledPrior< LabelGraph >{
             applyGraphMoveToState(move);
         }
         void _applyLabelMove(const BlockMove& move) override {
-            m_blockPriorPtr->applyLabelMove(move);
+            if (move.prevLabel == move.nextLabel)
+                return;
+
             applyLabelMoveToState(move);
+            m_blockPriorPtr->applyLabelMove(move);
+
+            if (move.addedLabels==-1){
+                destroyBlock(move);
+            }
+
         }
+
+        virtual void destroyBlock(const BlockMove&move){ }
 
         const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override {
             return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move) + m_blockPriorPtr->getLogJointRatioFromGraphMove(move);

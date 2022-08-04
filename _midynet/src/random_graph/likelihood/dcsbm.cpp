@@ -129,13 +129,13 @@ const double DegreeCorrectedStochasticBlockModelLikelihood::getLogLikelihoodRati
 }
 
 const double DegreeCorrectedStochasticBlockModelLikelihood::getLogLikelihoodRatioFromLabelMove (const BlockMove& move) const {
+    if (move.prevLabel == move.nextLabel or move.level > 0)
+        return 0;
     const BlockSequence& blockSeq = (*m_degreePriorPtrPtr)->getBlockPrior().getState();
     const MultiGraph& edgeMat = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getState();
     const CounterMap<size_t>& edgesInBlock = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getEdgeCounts();
     double logLikelihoodRatio = 0;
 
-    if (move.prevLabel == move.nextLabel)
-        return 0;
 
     IntMap<std::pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
     IntMap<BlockIndex> diffEdgesInBlockMap;

@@ -6,6 +6,7 @@
 #include "FastMIDyNet/dynamics/sis.hpp"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "FastMIDyNet/proposer/label/uniform.hpp"
+#include "FastMIDyNet/proposer/nested_label/uniform.hpp"
 #include "FastMIDyNet/mcmc/reconstruction.hpp"
 #include "FastMIDyNet/rng.h"
 #include "../fixtures.hpp"
@@ -40,7 +41,7 @@ TEST_F(TestGraphReconstructionMCMC, doMetropolisHastingsStep){
 }
 
 TEST_F(TestGraphReconstructionMCMC, doMHSweep){
-    mcmc.doMHSweep(10);
+    mcmc.doMHSweep(1000);
 }
 
 class TestVertexLabeledGraphReconstructionMCMC: public::testing::Test{
@@ -70,8 +71,39 @@ TEST_F(TestVertexLabeledGraphReconstructionMCMC, doMetropolisHastingsStep){
 }
 
 TEST_F(TestVertexLabeledGraphReconstructionMCMC, doMHSweep){
-    mcmc.doMHSweep(10);
+    mcmc.doMHSweep(1000);
 }
+
+
+class TestNestedVertexLabeledGraphReconstructionMCMC: public::testing::Test{
+    size_t numSteps=10;
+public:
+    DummyNestedSBMGraph graphPrior = DummyNestedSBMGraph();
+    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
+    RestrictedUniformNestedBlockProposer blockProposer = RestrictedUniformNestedBlockProposer();
+    DummyNestedSISDynamics dynamics = DummyNestedSISDynamics(graphPrior);
+    NestedVertexLabeledGraphReconstructionMCMC<BlockIndex> mcmc = NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>(dynamics, edgeProposer, blockProposer);
+    bool expectConsistencyError = false;
+    void SetUp(){
+        seedWithTime();
+        dynamics.sample();
+        mcmc.setUp();
+        mcmc.checkSafety();
+    }
+    void TearDown(){
+        if (not expectConsistencyError)
+            mcmc.checkConsistency();
+        mcmc.tearDown();
+    }
+};
+
+// TEST_F(TestNestedVertexLabeledGraphReconstructionMCMC, doMetropolisHastingsStep){
+//     mcmc.doMetropolisHastingsStep();
+// }
+//
+// TEST_F(TestNestedVertexLabeledGraphReconstructionMCMC, doMHSweep){
+//     mcmc.doMHSweep(10);
+// }
 
 
 } // FastMIDyNet
