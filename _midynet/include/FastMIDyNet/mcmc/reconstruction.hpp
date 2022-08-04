@@ -271,12 +271,9 @@ const double VertexLabeledGraphReconstructionMCMC<Label>::getLogAcceptanceProbFr
     return BaseClass::template processRecursiveConstFunction<double>(
         [&](){
             double logLikelihoodRatio = (BaseClass::m_betaLikelihood == 0) ? 0 : BaseClass::m_betaLikelihood * BaseClass::m_dynamicsPtr->getGraphPrior().getLogLikelihoodRatioFromLabelMove(move);
-            std::cout << "\t\tlogLikelihoodRatio: " << logLikelihoodRatio << std::endl;
             double logPriorRatio = (BaseClass::m_betaPrior == 0) ? 0 : BaseClass::m_betaPrior * BaseClass::m_dynamicsPtr->getGraphPrior().getLogPriorRatioFromLabelMove(move);
-            std::cout << "\t\tlogPriorRatio: " << logPriorRatio << std::endl;
             BaseClass::m_lastLogJointRatio = logPriorRatio + logLikelihoodRatio;
             double logProposalProbRatio = m_labelProposerPtr->getLogProposalProbRatio(move);
-            std::cout << "\t\tlogProposalProbRatio: " << logProposalProbRatio << std::endl;
             return logProposalProbRatio + BaseClass::m_lastLogJointRatio;
         }, 0);
 }
@@ -287,20 +284,14 @@ bool VertexLabeledGraphReconstructionMCMC<Label>::doMetropolisHastingsStep() {
     if ( not m_lastMoveWasLabelMove)
         return BaseClass::doMetropolisHastingsStep();
     LabelMove<Label> move = m_labelProposerPtr->proposeMove();
-    std::cout << "begin" << std::endl;
-    std::cout << "\t" << move << std::endl;
-    displayVector(getLabels(), "\tb", true);
     if (move.prevLabel == move.nextLabel and move.addedLabels == 0)
         return BaseClass::m_isLastAccepted = true;
     BaseClass::m_lastLogAcceptance = getLogAcceptanceProbFromLabelMove(move);
-    std::cout << "\tdS=" << BaseClass::m_lastLogAcceptance << std::endl;
     BaseClass::m_isLastAccepted = false;
     if (BaseClass::m_uniform(rng) < exp(BaseClass::m_lastLogAcceptance)){
         BaseClass::m_isLastAccepted = true;
         applyLabelMove(move);
-        std::cout << "\taccepted" << std::endl;
     }
-    std::cout << "end" << std::endl;
     return BaseClass::m_isLastAccepted;
 }
 

@@ -130,8 +130,6 @@ const double StubLabeledStochasticBlockModelLikelihood::getLogLikelihoodRatioFro
     for (auto diff : diffEdgeMatMap){
         auto r = diff.first.first, s = diff.first.second;
         size_t ers = (r >= edgeMat.getSize() or s >= edgeMat.getSize()) ? 0 : edgeMat.getEdgeMultiplicityIdx(r, s);
-        if (ers == 0 and diff.second < 0)
-            throw std::logic_error("StubLabeledStochasticBlockModelLikelihood: at r=" + std::to_string(r) + " s=" + std::to_string(s) + ", `ers` is zero and `diff` is non-zero.");
         logLikelihoodRatio += (r == s) ? logDoubleFactorial(2 * ers + 2 * diff.second) : logFactorial(ers + diff.second);
         logLikelihoodRatio -= (r == s) ? logDoubleFactorial(2 * ers) : logFactorial(ers);
     }

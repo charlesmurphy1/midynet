@@ -41,7 +41,7 @@ TEST_F(TestGraphReconstructionMCMC, doMetropolisHastingsStep){
 }
 
 TEST_F(TestGraphReconstructionMCMC, doMHSweep){
-    mcmc.doMHSweep(1000);
+    mcmc.doMHSweep(10);
 }
 
 class TestVertexLabeledGraphReconstructionMCMC: public::testing::Test{
@@ -71,7 +71,7 @@ TEST_F(TestVertexLabeledGraphReconstructionMCMC, doMetropolisHastingsStep){
 }
 
 TEST_F(TestVertexLabeledGraphReconstructionMCMC, doMHSweep){
-    mcmc.doMHSweep(1000);
+    mcmc.doMHSweep(10);
 }
 
 
