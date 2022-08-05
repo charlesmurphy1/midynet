@@ -133,7 +133,8 @@ public:
             int dL = (reverse and move.level==m_nestedGraphPriorPtr->getDepth() - 2 and m_nestedGraphPriorPtr->getNestedVertexCounts(move.level).size() == 2) ? -1 : 0;
             return log(m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth() + dL);
         }
-        return log(1 - m_sampleLabelCountProb) + ((reverse) ? getLogProposalProbForReverseMove(move) :  getLogProposalProbForMove(move));
+
+        return log(1 - m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth()) + ((reverse) ? getLogProposalProbForReverseMove(move) :  getLogProposalProbForMove(move));
     }
 
     void applyLabelMove(const LabelMove<Label>& move) override {

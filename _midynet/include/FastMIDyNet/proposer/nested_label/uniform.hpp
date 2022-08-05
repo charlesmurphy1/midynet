@@ -46,11 +46,10 @@ protected:
 public:
     using RestrictedNestedLabelProposer<Label>::RestrictedNestedLabelProposer;
     const double getLogProposalProbForMove(const LabelMove<Label>& move) const override {
-        return -log(m_availableLabels[move.level].size()) - log(m_nestedGraphPriorPtr->getDepth());
+        return -log(m_availableLabels[move.level].size());
     }
     const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override {
-        int dL = (move.level == m_nestedGraphPriorPtr->getDepth() - 1 and move.addedLabels == 1) ? 1 : 0;
-        return -log(m_availableLabels[move.level].size() + move.addedLabels) - log(m_nestedGraphPriorPtr->getDepth() + dL);
+        return -log(m_availableLabels[move.level].size() + move.addedLabels);
     }
     const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex& vertex) const override {
         Level level = sampleLevel();
