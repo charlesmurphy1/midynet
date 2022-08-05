@@ -15,6 +15,7 @@ template<typename Label>
 class NestedLabelProposer: public LabelProposer<Label> {
 protected:
     const NestedVertexLabeledRandomGraph<Label>* m_nestedGraphPriorPtr = nullptr;
+    using LabelProposer<Label>::m_sampleLabelCountProb;
 public:
     NestedLabelProposer(double sampleLabelCountProb=0.1):
         LabelProposer<Label>(sampleLabelCountProb) { }
@@ -26,6 +27,20 @@ public:
         std::uniform_int_distribution<Level> dist(0, m_nestedGraphPriorPtr->getDepth() - 1);
         return dist(rng);
     }
+
+    const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const override {
+        int dL;
+        if ( move.addedLabels == ((reverse) ? -1 : 1) ){
+            dL = (reverse and move.level == m_nestedGraphPriorPtr->getDepth() - 2 and m_nestedGraphPriorPtr->getNestedVertexCounts(move.level).size() == 2) ? -1 : 0;
+            return log(m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth() + dL);
+        }
+        dL = (reverse and move.level == m_nestedGraphPriorPtr->getDepth() - 1 and move.addedLabels == 1) ? 1 : 0;
+        return log(1 - m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth() + dL) + ((reverse) ? getLogProposalProbForReverseMove(move) : getLogProposalProbForMove(move));
+    }
+
+    virtual const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const = 0;
+    virtual const double getLogProposalProbForMove(const LabelMove<Label>& move) const = 0;
+
     void checkSelfSafety() const override{
         LabelProposer<Label>::checkSelfSafety();
         if (m_nestedGraphPriorPtr == nullptr)
@@ -43,9 +58,6 @@ protected:
     using BaseClass::m_uniform01;
     using BaseClass::m_vertexDistribution;
     using BaseClass::m_sampleLabelCountProb;
-
-    virtual const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const = 0;
-    virtual const double getLogProposalProbForMove(const LabelMove<Label>& move) const = 0;
     bool creatingNewLevel(const LabelMove<Label>& move) const {
         return move.addedLabels==1 and move.level==m_nestedGraphPriorPtr->getDepth()-1;
     }
@@ -62,14 +74,6 @@ public:
             return {vertex, m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), m_nestedGraphPriorPtr->getNestedLabelCount()[level], 1, level};
         else
             return {vertex, m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), -1, level};
-    }
-
-    const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const override {
-        if ( move.addedLabels != 0){
-            int dL = (reverse and move.level == m_nestedGraphPriorPtr->getDepth() - 1 and move.addedLabels==1) ? 1 : 0;
-            return log(m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth() + dL);
-        }
-        return log(1 - m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth()) + ((reverse) ? getLogProposalProbForReverseMove(move) :  getLogProposalProbForMove(move));
     }
 };
 
@@ -101,8 +105,6 @@ protected:
     using BaseClass::m_uniform01;
     using BaseClass::m_vertexDistribution;
     using BaseClass::m_sampleLabelCountProb;
-    virtual const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const = 0;
-    virtual const double getLogProposalProbForMove(const LabelMove<Label>& move) const = 0;
 //
 public:
     using NestedLabelProposer<Label>::NestedLabelProposer;
@@ -126,15 +128,6 @@ public:
             for (const auto& nr: graphPrior.getNestedVertexCounts(l))
                 m_availableLabels[l].insert(nr.first);
         }
-    }
-
-    const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const override {
-        if ( move.addedLabels == ((reverse) ? -1 : 1) ){
-            int dL = (reverse and move.level==m_nestedGraphPriorPtr->getDepth() - 2 and m_nestedGraphPriorPtr->getNestedVertexCounts(move.level).size() == 2) ? -1 : 0;
-            return log(m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth() + dL);
-        }
-
-        return log(1 - m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth()) + ((reverse) ? getLogProposalProbForReverseMove(move) :  getLogProposalProbForMove(move));
     }
 
     void applyLabelMove(const LabelMove<Label>& move) override {

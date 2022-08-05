@@ -19,16 +19,7 @@ protected:
     const VertexLabeledRandomGraph<Label>** m_graphPriorPtrPtr = nullptr;
     mutable std::uniform_real_distribution<double> m_uniform01 = std::uniform_real_distribution<double>(0, 1);
 
-    Label sampleNeighborLabel(BaseGraph::VertexIndex vertex) const {
-        size_t degree = (*m_graphPriorPtrPtr)->getState().getDegreeOfIdx(vertex);
-        size_t counter = std::uniform_int_distribution<size_t>(0, degree-1)(rng);
-        for (const auto& neighbor : (*m_graphPriorPtrPtr)->getState().getNeighboursOfIdx(vertex)){
-            counter -= neighbor.label;
-            if (counter < 0)
-                return (*m_graphPriorPtrPtr)->getLabelOfIdx(neighbor.vertexIndex);
-        }
-        return  (*m_graphPriorPtrPtr)->getLabelOfIdx(vertex);
-    }
+    const Label sampleNeighborLabel(BaseGraph::VertexIndex vertex) const ;
 
     virtual const Label sampleLabelUniformly() const = 0;
 
@@ -51,6 +42,21 @@ protected:
 
     const double getShift() const { return m_shift; }
 };
+
+template<typename Label>
+const Label MixedSampler<Label>::sampleNeighborLabel(BaseGraph::VertexIndex vertex) const {
+    const MultiGraph& graph = (*m_graphPriorPtrPtr)->getState();
+    size_t degree = graph.getDegreeOfIdx(vertex) - 2 * graph.getEdgeMultiplicityIdx(vertex, vertex);
+    size_t counter = std::uniform_int_distribution<size_t>(0, degree-1)(rng);
+    for (const auto& neighbor : graph.getNeighboursOfIdx(vertex)){
+        if (vertex == neighbor.vertexIndex)
+            continue;
+        counter -= neighbor.label;
+        if (counter < 0)
+            return (*m_graphPriorPtrPtr)->getLabelOfIdx(neighbor.vertexIndex);
+    }
+    return  (*m_graphPriorPtrPtr)->getLabelOfIdx(vertex);
+}
 
 template<typename Label>
 const Label MixedSampler<Label>::sampleLabelPreferentially(const Label neighborLabel) const {

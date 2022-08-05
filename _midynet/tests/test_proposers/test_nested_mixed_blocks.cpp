@@ -1,94 +1,17 @@
 #include "gtest/gtest.h"
-#include "FastMIDyNet/proposer/nested_label/uniform.hpp"
+#include "FastMIDyNet/proposer/nested_label/mixed.hpp"
 #include "FastMIDyNet/types.h"
 #include "../fixtures.hpp"
 
 
 namespace FastMIDyNet{
 
-class TestGibbsUniformNestedBlockProposer: public::testing::Test {
+
+class DummyRestrictedMixedNestedBlockProposer: public RestrictedMixedNestedBlockProposer{
 public:
-    size_t SIZE=10, EDGECOUNT=25;
-    double SAMPLE_LABEL_PROB=0.1, LABEL_CREATION_PROB=0.5;
-    size_t numSamples = 10;
-    DummyNestedSBMGraph graphPrior = DummyNestedSBMGraph(SIZE, EDGECOUNT);
-    GibbsUniformNestedBlockProposer proposer = GibbsUniformNestedBlockProposer(SAMPLE_LABEL_PROB, LABEL_CREATION_PROB);
-    void SetUp(){
-        seedWithTime();
-        graphPrior.sample();
-        proposer.setUp(graphPrior);
-        proposer.checkSafety();
-    }
-    void TearDown(){
-        proposer.checkConsistency();
-    }
-};
-
-// TEST_F(TestGibbsUniformNestedBlockProposer, proposeLabelMove_returnValidMove){
-//     for (size_t i=0; i<numSamples; ++i){
-//         auto move = proposer.proposeLabelMove(0);
-//         EXPECT_EQ(graphPrior.getLabelOfIdx(move.vertexIndex, move.level), move.prevLabel);
-//     }
-// }
-//
-// TEST_F(TestGibbsUniformNestedBlockProposer, proposeNewLabelMove_returnValidMove){
-//     for (size_t i = 0; i < numSamples; i++) {
-//         auto move = proposer.proposeNewLabelMove(0);
-//         EXPECT_EQ(graphPrior.getLabelOfIdx(move.vertexIndex, move.level), move.prevLabel);
-//         EXPECT_TRUE(move.addedLabels != 0);
-//     }
-// }
-//
-// TEST_F(TestGibbsUniformNestedBlockProposer, getLogProposalProb_forStandardBlockMove_returnCorrectProb){
-//     for (size_t i = 0; i < numSamples; i++) {
-//         auto move = proposer.proposeLabelMove(0);
-//         double logProb = proposer.getLogProposalProb(move, false);
-//         EXPECT_NEAR(logProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getNestedLabelCount(move.level)) - log(graphPrior.getDepth()), 1e-6) ;
-//     }
-// }
-//
-// TEST_F(TestGibbsUniformNestedBlockProposer, getLogReverseProposalProb_forStandardBlockMove_returnCorrectProb){
-//
-//     for (size_t i = 0; i < numSamples; i++) {
-//         auto move = proposer.proposeLabelMove(0);
-//         double logProb = proposer.getLogProposalProb(move, true);
-//         EXPECT_NEAR(logProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getNestedLabelCount(move.level)) - log(graphPrior.getDepth()), 1e-6) ;
-//     }
-// }
-//
-// TEST_F(TestGibbsUniformNestedBlockProposer, applyLabelMove_forStandardBlockMove_doNothing){
-//     auto move = proposer.proposeLabelMove(0);
-//     proposer.applyLabelMove(move);
-// }
-//
-// TEST_F(TestGibbsUniformNestedBlockProposer, getLogProposalProb_forBlockMoveChangingBlockCount_returnCorrectProb){
-//     for (size_t i = 0; i < numSamples; i++) {
-//         auto move = proposer.proposeNewLabelMove(0);
-//         double logProb = proposer.getLogProposalProb(move, false);
-//         EXPECT_NEAR(logProb, log(SAMPLE_LABEL_PROB) - log(graphPrior.getDepth()), 1e-6) ;
-//     }
-// }
-//
-// TEST_F(TestGibbsUniformNestedBlockProposer, getLogReverseProposalProb_forBlockMoveChangingBlockCount_returnCorrectProb){
-//     for (size_t i = 0; i < numSamples; i++) {
-//         auto move = proposer.proposeNewLabelMove(0);
-//         double logProb = proposer.getLogProposalProb(move, true);
-//         int dL = (move.level == graphPrior.getDepth() - 1 and move.addedLabels==1) ? 1 : 0;
-//         EXPECT_NEAR(logProb, log(SAMPLE_LABEL_PROB) - log(graphPrior.getDepth() + dL), 1e-6) ;
-//     }
-// }
-//
-// TEST_F(TestGibbsUniformNestedBlockProposer, applyLabelMove_forBlockMoveChangingBlockCount_doNothing){
-//     auto move = proposer.proposeNewLabelMove(0);
-//     proposer.applyLabelMove(move);
-// }
-
-
-class DummyRestrictedUniformNestedBlockProposer: public RestrictedUniformNestedBlockProposer{
-public:
-    using RestrictedUniformNestedBlockProposer::RestrictedUniformNestedBlockProposer;
-    const std::vector<std::set<BlockIndex>>& getEmptyLabels() { return m_emptyLabels; }
-    const std::vector<std::set<BlockIndex>>& getAvailableLabels() { return m_availableLabels; }
+    using RestrictedMixedNestedBlockProposer::RestrictedMixedNestedBlockProposer;
+    const std::vector<std::set<BlockIndex>>& getEmptyLabels() { return RestrictedMixedNestedBlockProposer::m_emptyLabels; }
+    const std::vector<std::set<BlockIndex>>& getAvailableLabels() { return RestrictedMixedNestedBlockProposer::m_availableLabels; }
 
     void printAvails(){
         std::cout << "avails: ";
@@ -117,13 +40,13 @@ public:
     }
 };
 
-class TestRestrictedUniformNestedBlockProposer: public::testing::Test {
+class TestRestrictedMixedNestedBlockProposer: public::testing::Test {
 public:
     size_t SIZE=10, EDGECOUNT=20;
     double SAMPLE_LABEL_PROB=0.1;
     size_t numSamples = 10;
     DummyNestedSBMGraph graphPrior = DummyNestedSBMGraph(SIZE, EDGECOUNT);
-    DummyRestrictedUniformNestedBlockProposer proposer = DummyRestrictedUniformNestedBlockProposer(SAMPLE_LABEL_PROB);
+    DummyRestrictedMixedNestedBlockProposer proposer = DummyRestrictedMixedNestedBlockProposer(SAMPLE_LABEL_PROB);
     void SetUp(){
         seedWithTime();
         graphPrior.sample();
@@ -135,14 +58,14 @@ public:
     }
 };
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, proposeLabelMove_returnValidMove){
+TEST_F(TestRestrictedMixedNestedBlockProposer, proposeLabelMove_returnValidMove){
     for (size_t i=0; i<numSamples; ++i){
         auto move = proposer.proposeLabelMove(0);
         EXPECT_EQ(graphPrior.getLabelOfIdx(move.vertexIndex, move.level), move.prevLabel);
     }
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, proposeNewLabelMove_returnValidMove){
+TEST_F(TestRestrictedMixedNestedBlockProposer, proposeNewLabelMove_returnValidMove){
     auto move = proposer.proposeNewLabelMove(0);
     if (move.prevLabel != move.nextLabel){
         EXPECT_TRUE(move.addedLabels == 1);
@@ -151,7 +74,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, proposeNewLabelMove_returnValid
     }
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, proposeLabelMove_forMoveDestroyingLabel_returnValidMove){
+TEST_F(TestRestrictedMixedNestedBlockProposer, proposeLabelMove_forMoveDestroyingLabel_returnValidMove){
     auto move = proposer.proposeLabelMove(0);
     while(graphPrior.getNestedVertexCounts(move.level).get(move.prevLabel) != 1){
         graphPrior.sample();
@@ -162,17 +85,17 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, proposeLabelMove_forMoveDestroy
     EXPECT_EQ(move.addedLabels, (move.prevLabel != move.nextLabel) ? -1 : 0);
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, getLogProposalProb_forStandardBlockMove_returnCorrectProb){
+TEST_F(TestRestrictedMixedNestedBlockProposer, getLogProposalProb_forStandardBlockMove_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         graphPrior.sample();
         proposer.setUp(graphPrior);
         auto move = proposer.proposeLabelMove(0);
         double logProb = proposer.getLogProposalProb(move, false);
-        EXPECT_NEAR(logProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getDepth()) - log(proposer.getAvailableLabels()[move.level].size()), 1e-6) ;
+        EXPECT_LE(logProb, 0) ;
     }
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, getLogProposalProb_forBlockMoveAddingLabel_returnCorrectProb){
+TEST_F(TestRestrictedMixedNestedBlockProposer, getLogProposalProb_forBlockMoveAddingLabel_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         auto move = proposer.proposeNewLabelMove(0);
         double logProb = proposer.getLogProposalProb(move, false);
@@ -181,7 +104,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogProposalProb_forBlockMove
     }
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, getLogProposalProb_forBlockMoveDestroyingLabel_returnCorrectProb){
+TEST_F(TestRestrictedMixedNestedBlockProposer, getLogProposalProb_forBlockMoveDestroyingLabel_returnCorrectProb){
     proposer.setUp(graphPrior);
     auto move = proposer.proposeLabelMove(0);
     while(graphPrior.getNestedVertexCounts(move.level).get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
@@ -190,52 +113,52 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogProposalProb_forBlockMove
         move = proposer.proposeLabelMove(0);
     }
     double logProb = proposer.getLogProposalProb(move, false);
-    EXPECT_NEAR(logProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getDepth()) - log(proposer.getAvailableLabels()[move.level].size()), 1e-6) ;
+    EXPECT_LE(logProb, 0) ;
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forStandardBlockMove_returnCorrectProb){
+TEST_F(TestRestrictedMixedNestedBlockProposer, getLogReverseProposalProb_forStandardBlockMove_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         graphPrior.sample();
         proposer.setUp(graphPrior);
         auto move = proposer.proposeLabelMove(0);
-        while (move.addedLabels != 0)
-            move = proposer.proposeLabelMove(0);
-        double actualLogProb = proposer.getLogProposalProb(move, true);
-        EXPECT_NEAR(actualLogProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getDepth()) - log(proposer.getAvailableLabels()[move.level].size()), 1e-6) ;
-        graphPrior.applyLabelMove(move);
-        auto reversedMove = move;
-        reversedMove.prevLabel = move.nextLabel;
-        reversedMove.nextLabel = move.prevLabel;
-        double expectedLogProb = proposer.getLogProposalProb(move);
-        EXPECT_NEAR(actualLogProb, expectedLogProb, 1e-6);
-    }
-}
-
-TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBlockMoveAddingLabelNotInLastLevel_returnCorrectProb){
-    for (size_t i = 0; i < numSamples; i++) {
-        graphPrior.sample();
-        proposer.setUp(graphPrior);
-        BlockMove move = proposer.proposeNewLabelMove(0);
-        while (move.addedLabels != 1 or move.level == graphPrior.getDepth() - 1){
+        while (move.addedLabels != 0 or move.prevLabel == move.nextLabel or not graphPrior.isValidLabelMove(move)){
             graphPrior.sample();
             proposer.setUp(graphPrior);
-            move = proposer.proposeNewLabelMove(0);
+            move = proposer.proposeLabelMove(0);
         }
         double actualLogProb = proposer.getLogProposalProb(move, true);
-        EXPECT_NEAR(actualLogProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getDepth()) - log(proposer.getAvailableLabels()[move.level].size() + 1), 1e-6) ;
-
-        proposer.applyLabelMove(move);
         graphPrior.applyLabelMove(move);
-
-        BlockMove reversedMove = {move.vertexIndex, move.nextLabel, move.prevLabel, -move.addedLabels, move.level};
+        proposer.applyLabelMove(move);
+        BlockMove reversedMove = {move.vertexIndex, move.nextLabel, move.prevLabel, move.addedLabels, move.level};
         double expectedLogProb = proposer.getLogProposalProb(reversedMove);
         EXPECT_NEAR(actualLogProb, expectedLogProb, 1e-6);
     }
 }
 
+TEST_F(TestRestrictedMixedNestedBlockProposer, getLogReverseProposalProb_forBlockMoveAddingLabelNotInLastLevel_returnCorrectProb){
+    for (size_t i = 0; i < numSamples; i++) {
+        graphPrior.sample();
+        proposer.setUp(graphPrior);
+        BlockMove move = proposer.proposeNewLabelMove(0);
+        while (move.addedLabels != 1 or move.level == graphPrior.getDepth() - 1 or not graphPrior.isValidLabelMove(move)){
+            graphPrior.sample();
+            proposer.setUp(graphPrior);
+            move = proposer.proposeNewLabelMove(0);
+        }
 
+        double actualLogProb = proposer.getLogProposalProb(move, true);
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBlockMoveAddingLabelInLastLevel_returnCorrectProb){
+        proposer.applyLabelMove(move);
+        graphPrior.applyLabelMove(move);
+
+        BlockMove reversedMove = {move.vertexIndex, move.nextLabel, move.prevLabel, -move.addedLabels, move.level};
+
+        double expectedLogProb = proposer.getLogProposalProb(reversedMove);
+        EXPECT_NEAR(actualLogProb, expectedLogProb, 1e-6);
+    }
+}
+
+TEST_F(TestRestrictedMixedNestedBlockProposer, getLogReverseProposalProb_forBlockMoveAddingLabelInLastLevel_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         graphPrior.sample();
         proposer.setUp(graphPrior);
@@ -246,7 +169,6 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBl
             move = proposer.proposeNewLabelMove(0);
         }
         double actualLogProb = proposer.getLogProposalProb(move, true);
-        EXPECT_NEAR(actualLogProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getDepth() + 1) - log(proposer.getAvailableLabels()[move.level].size() + 1), 1e-6) ;
 
         graphPrior.applyLabelMove(move);
         proposer.applyLabelMove(move);
@@ -257,7 +179,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBl
     }
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBlockMoveDestroyingLabelNotInLastLevel_returnCorrectProb){
+TEST_F(TestRestrictedMixedNestedBlockProposer, getLogReverseProposalProb_forBlockMoveDestroyingLabelNotInLastLevel_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         graphPrior.sample();
         proposer.setUp(graphPrior);
@@ -272,7 +194,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBl
     }
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBlockMoveDestroyingLabelInLastLevel_returnCorrectProb){
+TEST_F(TestRestrictedMixedNestedBlockProposer, getLogReverseProposalProb_forBlockMoveDestroyingLabelInLastLevel_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         graphPrior.sample();
         proposer.setUp(graphPrior);
@@ -283,11 +205,18 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBl
             move = proposer.proposeLabelMove(0);
         }
         double actualLogProb = proposer.getLogProposalProb(move, true);
-        EXPECT_NEAR(actualLogProb, log(SAMPLE_LABEL_PROB) - log(graphPrior.getDepth() - (int)(graphPrior.getNestedVertexCounts(move.level).size() == 2)), 1e-6) ;
+        
+        graphPrior.applyLabelMove(move);
+        proposer.applyLabelMove(move);
+
+        BlockMove reversedMove = {move.vertexIndex, move.nextLabel, move.prevLabel, -move.addedLabels, move.level};
+        double expectedLogProb = proposer.getLogProposalProb(reversedMove);
+        EXPECT_NEAR(actualLogProb, expectedLogProb, 1e-6);
+
     }
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forStandardBlockMove_doNothing){
+TEST_F(TestRestrictedMixedNestedBlockProposer, applyLabelMove_forStandardBlockMove_doNothing){
     graphPrior.sample();
     proposer.setUp(graphPrior);
     auto move = proposer.proposeLabelMove(0);
@@ -306,7 +235,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forStandardBlock
     EXPECT_EQ(avails, proposer.getAvailableLabels());
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveAddingLabelNotInLastLevel){
+TEST_F(TestRestrictedMixedNestedBlockProposer, applyLabelMove_forBlockMoveAddingLabelNotInLastLevel){
     graphPrior.sample();
     proposer.setUp(graphPrior);
     auto move = proposer.proposeNewLabelMove(0);
@@ -326,7 +255,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveAddi
     EXPECT_EQ(avails[move.level].size() + 1, proposer.getAvailableLabels()[move.level].size());
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveAddingLabelInLastLevel){
+TEST_F(TestRestrictedMixedNestedBlockProposer, applyLabelMove_forBlockMoveAddingLabelInLastLevel){
     graphPrior.sample();
     proposer.setUp(graphPrior);
     auto move = proposer.proposeNewLabelMove(0);
@@ -348,7 +277,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveAddi
     EXPECT_EQ(avails.size() + 1, proposer.getAvailableLabels().size());
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveDestroyingLabelNotInLastLevel){
+TEST_F(TestRestrictedMixedNestedBlockProposer, applyLabelMove_forBlockMoveDestroyingLabelNotInLastLevel){
     graphPrior.sample();
     proposer.setUp(graphPrior);
     auto move = proposer.proposeLabelMove(0);
@@ -371,7 +300,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveDest
     EXPECT_EQ(avails.size(), proposer.getAvailableLabels().size());
 }
 
-TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveDestroyingLabelInLastLevel){
+TEST_F(TestRestrictedMixedNestedBlockProposer, applyLabelMove_forBlockMoveDestroyingLabelInLastLevel){
     graphPrior.sample();
     proposer.setUp(graphPrior);
     auto move = proposer.proposeLabelMove(0);
