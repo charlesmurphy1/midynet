@@ -16,7 +16,7 @@ public:
     void SetUp(){
         seedWithTime();
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         proposer.checkSafety();
     }
     void TearDown(){
@@ -127,7 +127,7 @@ public:
     void SetUp(){
         seedWithTime();
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         proposer.checkSafety();
     }
     void TearDown(){
@@ -155,7 +155,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, proposeLabelMove_forMoveDestroy
     auto move = proposer.proposeLabelMove(0);
     while(graphPrior.getNestedVertexCounts(move.level).get(move.prevLabel) != 1){
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         move = proposer.proposeLabelMove(0);
     }
     EXPECT_EQ(move.prevLabel, graphPrior.getLabelOfIdx(0, move.level));
@@ -165,7 +165,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, proposeLabelMove_forMoveDestroy
 TEST_F(TestRestrictedUniformNestedBlockProposer, getLogProposalProb_forStandardBlockMove_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         auto move = proposer.proposeLabelMove(0);
         double logProb = proposer.getLogProposalProb(move, false);
         EXPECT_NEAR(logProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getDepth()) - log(proposer.getAvailableLabels()[move.level].size()), 1e-6) ;
@@ -182,11 +182,11 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogProposalProb_forBlockMove
 }
 
 TEST_F(TestRestrictedUniformNestedBlockProposer, getLogProposalProb_forBlockMoveDestroyingLabel_returnCorrectProb){
-    proposer.setUp(graphPrior);
+    proposer.setUpWithNestedPrior(graphPrior);
     auto move = proposer.proposeLabelMove(0);
     while(graphPrior.getNestedVertexCounts(move.level).get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         move = proposer.proposeLabelMove(0);
     }
     double logProb = proposer.getLogProposalProb(move, false);
@@ -196,7 +196,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogProposalProb_forBlockMove
 TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forStandardBlockMove_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         auto move = proposer.proposeLabelMove(0);
         while (move.addedLabels != 0)
             move = proposer.proposeLabelMove(0);
@@ -214,11 +214,11 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forSt
 TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBlockMoveAddingLabelNotInLastLevel_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         BlockMove move = proposer.proposeNewLabelMove(0);
         while (move.addedLabels != 1 or move.level == graphPrior.getDepth() - 1){
             graphPrior.sample();
-            proposer.setUp(graphPrior);
+            proposer.setUpWithNestedPrior(graphPrior);
             move = proposer.proposeNewLabelMove(0);
         }
         double actualLogProb = proposer.getLogProposalProb(move, true);
@@ -238,11 +238,11 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBl
 TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBlockMoveAddingLabelInLastLevel_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         auto move = proposer.proposeNewLabelMove(0);
         while (move.addedLabels != 1 or move.level != graphPrior.getDepth() - 1 or not graphPrior.isValidLabelMove(move)){
             graphPrior.sample();
-            proposer.setUp(graphPrior);
+            proposer.setUpWithNestedPrior(graphPrior);
             move = proposer.proposeNewLabelMove(0);
         }
         double actualLogProb = proposer.getLogProposalProb(move, true);
@@ -260,11 +260,11 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBl
 TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBlockMoveDestroyingLabelNotInLastLevel_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         auto move = proposer.proposeLabelMove(0);
         while (move.addedLabels != -1 or move.level >= graphPrior.getDepth() - 2 or not graphPrior.isValidLabelMove(move)){
             graphPrior.sample();
-            proposer.setUp(graphPrior);
+            proposer.setUpWithNestedPrior(graphPrior);
             move = proposer.proposeLabelMove(0);
         }
         double actualLogProb = proposer.getLogProposalProb(move, true);
@@ -275,11 +275,11 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBl
 TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBlockMoveDestroyingLabelInLastLevel_returnCorrectProb){
     for (size_t i = 0; i < numSamples; i++) {
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         auto move = proposer.proposeLabelMove(0);
         while (move.addedLabels != -1 or move.level != graphPrior.getDepth() - 2 or not graphPrior.isValidLabelMove(move)){
             graphPrior.sample();
-            proposer.setUp(graphPrior);
+            proposer.setUpWithNestedPrior(graphPrior);
             move = proposer.proposeLabelMove(0);
         }
         double actualLogProb = proposer.getLogProposalProb(move, true);
@@ -289,14 +289,14 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, getLogReverseProposalProb_forBl
 
 TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forStandardBlockMove_doNothing){
     graphPrior.sample();
-    proposer.setUp(graphPrior);
+    proposer.setUpWithNestedPrior(graphPrior);
     auto move = proposer.proposeLabelMove(0);
     while (
         move.addedLabels != 0 or
         not graphPrior.isValidLabelMove(move)
     ){
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         move = proposer.proposeLabelMove(0);
     }
 
@@ -308,7 +308,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forStandardBlock
 
 TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveAddingLabelNotInLastLevel){
     graphPrior.sample();
-    proposer.setUp(graphPrior);
+    proposer.setUpWithNestedPrior(graphPrior);
     auto move = proposer.proposeNewLabelMove(0);
     while (
         move.addedLabels != 1 or
@@ -316,7 +316,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveAddi
         not graphPrior.isValidLabelMove(move)
     ){
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         move = proposer.proposeNewLabelMove(0);
     }
     const auto empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();
@@ -328,7 +328,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveAddi
 
 TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveAddingLabelInLastLevel){
     graphPrior.sample();
-    proposer.setUp(graphPrior);
+    proposer.setUpWithNestedPrior(graphPrior);
     auto move = proposer.proposeNewLabelMove(0);
     while (
         move.addedLabels != 1 or
@@ -336,7 +336,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveAddi
         not graphPrior.isValidLabelMove(move)
     ){
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         move = proposer.proposeNewLabelMove(0);
     }
     const auto empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();
@@ -350,7 +350,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveAddi
 
 TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveDestroyingLabelNotInLastLevel){
     graphPrior.sample();
-    proposer.setUp(graphPrior);
+    proposer.setUpWithNestedPrior(graphPrior);
     auto move = proposer.proposeLabelMove(0);
     while (
         move.addedLabels != -1 or
@@ -358,7 +358,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveDest
         not graphPrior.isValidLabelMove(move)
     ){
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         move = proposer.proposeLabelMove(0);
     }
     const auto empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();
@@ -373,7 +373,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveDest
 
 TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveDestroyingLabelInLastLevel){
     graphPrior.sample();
-    proposer.setUp(graphPrior);
+    proposer.setUpWithNestedPrior(graphPrior);
     auto move = proposer.proposeLabelMove(0);
     while (
         move.addedLabels != -1 or
@@ -382,7 +382,7 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveDest
         not graphPrior.isValidLabelMove(move)
     ){
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithNestedPrior(graphPrior);
         move = proposer.proposeLabelMove(0);
     }
     const auto empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();

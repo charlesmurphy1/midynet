@@ -16,11 +16,14 @@ class NestedLabelProposer: public LabelProposer<Label> {
 protected:
     const NestedVertexLabeledRandomGraph<Label>* m_nestedGraphPriorPtr = nullptr;
     using LabelProposer<Label>::m_sampleLabelCountProb;
+    using LabelProposer<Label>::isCreatingLabelMove;
+    using LabelProposer<Label>::getLogProposalProbForReverseMove;
+    using LabelProposer<Label>::getLogProposalProbForMove;
 public:
     NestedLabelProposer(double sampleLabelCountProb=0.1):
         LabelProposer<Label>(sampleLabelCountProb) { }
-    virtual void setUp(const NestedVertexLabeledRandomGraph<Label>& graphPrior) {
-        LabelProposer<Label>::setUp(graphPrior);
+    virtual void setUpWithNestedPrior(const NestedVertexLabeledRandomGraph<Label>& graphPrior) {
+        LabelProposer<Label>::setUpWithPrior(graphPrior);
         m_nestedGraphPriorPtr = &graphPrior;
     }
     const Level sampleLevel() const {
@@ -30,16 +33,13 @@ public:
 
     const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const override {
         int dL;
-        if ( move.addedLabels == ((reverse) ? -1 : 1) ){
+        if ( isCreatingLabelMove(move, reverse) ){
             dL = (reverse and move.level == m_nestedGraphPriorPtr->getDepth() - 2 and m_nestedGraphPriorPtr->getNestedVertexCounts(move.level).size() == 2) ? -1 : 0;
             return log(m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth() + dL);
         }
         dL = (reverse and move.level == m_nestedGraphPriorPtr->getDepth() - 1 and move.addedLabels == 1) ? 1 : 0;
         return log(1 - m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth() + dL) + ((reverse) ? getLogProposalProbForReverseMove(move) : getLogProposalProbForMove(move));
     }
-
-    virtual const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const = 0;
-    virtual const double getLogProposalProbForMove(const LabelMove<Label>& move) const = 0;
 
     void checkSelfSafety() const override{
         LabelProposer<Label>::checkSelfSafety();
@@ -63,6 +63,9 @@ protected:
     }
     bool destroyingLevel(const LabelMove<Label>& move) const {
         return move.addedLabels==-1 and move.level==m_nestedGraphPriorPtr->getDepth()-1;
+    }
+    bool isCreatingLabelMove(const LabelMove<Label>& move, bool reverse) const override {
+        return move.addedLabels != 0;
     }
 
 public:
@@ -98,6 +101,9 @@ protected:
     int getAddedLabels(const LabelMove<Label>& move) const {
         return (int) creatingNewLabel(move) - (int) destroyingLabel(move);
     }
+    bool isCreatingLabelMove(const LabelMove<Label>& move, bool reverse) const override {
+        return move.addedLabels == ((reverse) ? -1 : 1);
+    }
     using BaseClass = LabelProposer<Label>;
     using NestedBaseClass = NestedLabelProposer<Label>;
     using NestedBaseClass::m_nestedGraphPriorPtr;
@@ -118,8 +124,8 @@ public:
         move.addedLabels = 1;
         return move;
     }
-    void setUp(const NestedVertexLabeledRandomGraph<Label>& graphPrior) override {
-        NestedBaseClass::setUp(graphPrior);
+    void setUpWithNestedPrior(const NestedVertexLabeledRandomGraph<Label>& graphPrior) override {
+        NestedBaseClass::setUpWithNestedPrior(graphPrior);
         m_emptyLabels.clear();
         m_availableLabels.clear();
         for (Level l=0; l<m_nestedGraphPriorPtr->getDepth(); ++l){
@@ -133,7 +139,7 @@ public:
     void applyLabelMove(const LabelMove<Label>& move) override {
         // graph prior must be updated before proposer
         if ( move.addedLabels==-1 and move.prevLabel != move.nextLabel )
-            setUp(*m_nestedGraphPriorPtr);
+            setUpWithNestedPrior(*m_nestedGraphPriorPtr);
         if ( move.addedLabels==1 ){
             m_availableLabels[move.level].insert(move.nextLabel);
             m_emptyLabels[move.level].erase(move.nextLabel);

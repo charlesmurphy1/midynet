@@ -67,7 +67,7 @@ public:
     using RandomGraph::RandomGraph;
     DummyRandomGraph(size_t size): RandomGraph(size, likelihood) { }
 
-    void setState(const MultiGraph state) override{
+    void setState(const MultiGraph& state) override{
         RandomGraph::setState(state);
         m_edgeCount = state.getTotalEdgeNumber();
     }

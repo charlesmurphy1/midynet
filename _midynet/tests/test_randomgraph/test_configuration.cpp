@@ -20,7 +20,7 @@ class TestConfigurationModelBase: public::testing::Test{
         size_t NUM_VERTICES = 50;
         EdgeCountPoissonPrior edgeCountPrior = {AVG_NUM_EDGES};
         DegreeUniformPrior degreePrior = {NUM_VERTICES, edgeCountPrior};
-        ConfigurationModelBase randomGraph = ConfigurationModelBase(NUM_VERTICES, edgeCountPrior, degreePrior);
+        ConfigurationModelBase randomGraph = ConfigurationModelBase(NUM_VERTICES, degreePrior);
         void SetUp() {
             randomGraph.sample();
         }

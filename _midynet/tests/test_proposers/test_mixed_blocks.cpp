@@ -18,7 +18,7 @@ public:
     void SetUp(){
         seedWithTime();
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithPrior(graphPrior);
         proposer.checkSafety();
     }
 
@@ -77,7 +77,7 @@ public:
     void SetUp(){
         seedWithTime();
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithPrior(graphPrior);
         proposer.checkSafety();
     }
 

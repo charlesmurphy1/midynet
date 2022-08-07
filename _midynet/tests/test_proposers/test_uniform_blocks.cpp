@@ -15,7 +15,7 @@ public:
     void SetUp(){
         seedWithTime();
         graphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithPrior(graphPrior);
         proposer.checkSafety();
     }
     void TearDown(){
@@ -119,7 +119,7 @@ public:
         seedWithTime();
         graphPrior.sample();
         smallGraphPrior.sample();
-        proposer.setUp(graphPrior);
+        proposer.setUpWithPrior(graphPrior);
         proposer.checkSafety();
     }
     void TearDown(){
@@ -150,11 +150,11 @@ TEST_F(TestRestrictedUniformBlockProposer, proposeNewLabelMove_returnValidMove){
 }
 
 TEST_F(TestRestrictedUniformBlockProposer, proposeLabelMove_forMoveDestroyingLabel_returnValidMove){
-    proposer.setUp(smallGraphPrior);
+    proposer.setUpWithPrior(smallGraphPrior);
     auto move = proposer.proposeLabelMove(0);
     while(smallGraphPrior.getVertexCounts().get(move.prevLabel) != 1){
         smallGraphPrior.sample();
-        proposer.setUp(smallGraphPrior);
+        proposer.setUpWithPrior(smallGraphPrior);
         move = proposer.proposeLabelMove(0);
     }
     EXPECT_EQ(move.prevLabel, smallGraphPrior.getLabelOfIdx(0));
@@ -179,11 +179,11 @@ TEST_F(TestRestrictedUniformBlockProposer, getLogProposalProb_forBlockMoveAdding
 }
 
 TEST_F(TestRestrictedUniformBlockProposer, getLogProposalProb_forBlockMoveDestroyingLabel_returnCorrectProb){
-    proposer.setUp(smallGraphPrior);
+    proposer.setUpWithPrior(smallGraphPrior);
     auto move = proposer.proposeLabelMove(0);
     while(smallGraphPrior.getVertexCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
         smallGraphPrior.sample();
-        proposer.setUp(smallGraphPrior);
+        proposer.setUpWithPrior(smallGraphPrior);
         move = proposer.proposeLabelMove(0);
     }
     double logProb = proposer.getLogProposalProb(move, false);
@@ -208,11 +208,11 @@ TEST_F(TestRestrictedUniformBlockProposer, getLogReverseProposalProb_forBlockMov
 }
 
 TEST_F(TestRestrictedUniformBlockProposer, getLogReverseProposalProb_forBlockMoveDestroyingLabel_returnCorrectProb){
-    proposer.setUp(smallGraphPrior);
+    proposer.setUpWithPrior(smallGraphPrior);
     auto move = proposer.proposeLabelMove(0);
     while(smallGraphPrior.getVertexCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
         smallGraphPrior.sample();
-        proposer.setUp(smallGraphPrior);
+        proposer.setUpWithPrior(smallGraphPrior);
         move = proposer.proposeLabelMove(0);
     }
     double logProb = proposer.getLogProposalProb(move, true);
@@ -239,12 +239,12 @@ TEST_F(TestRestrictedUniformBlockProposer, applyLabelMove_forBlockMoveAddingLabe
 }
 
 TEST_F(TestRestrictedUniformBlockProposer, applyLabelMove_forBlockMoveDestroyingLabel){
-    proposer.setUp(smallGraphPrior);
+    proposer.setUpWithPrior(smallGraphPrior);
     auto empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();
     auto move = proposer.proposeLabelMove(0);
     while(smallGraphPrior.getVertexCounts().get(move.prevLabel) != 1 or move.prevLabel == move.nextLabel){
         smallGraphPrior.sample();
-        proposer.setUp(smallGraphPrior);
+        proposer.setUpWithPrior(smallGraphPrior);
         empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();
         move = proposer.proposeLabelMove(0);
     }

@@ -25,6 +25,7 @@ class TestDegreeCorrectedStochasticBlockModelBase: public::testing::Test{
         EdgeCountPoissonPrior edgeCountPrior = {AVG_NUM_EDGES};
         LabelGraphErdosRenyiPrior labelGraphPrior = {edgeCountPrior, blockPrior};
         VertexLabeledDegreeUniformPrior degreePrior = {labelGraphPrior};
+        DegreeCorrectedStochasticBlockModelBase randomGraph = DegreeCorrectedStochasticBlockModelBase(NUM_VERTICES, degreePrior);
 
         BaseGraph::VertexIndex vertexIdx = 4;
 
@@ -49,9 +50,8 @@ class TestDegreeCorrectedStochasticBlockModelBase: public::testing::Test{
             else return blockIdx + 1;
         }
 
-        DegreeCorrectedStochasticBlockModelBase randomGraph = DegreeCorrectedStochasticBlockModelBase(NUM_VERTICES);
         void SetUp() {
-            randomGraph.setDegreePrior(degreePrior);
+            randomGraph.checkSafety();
             randomGraph.sample();
         }
 };
