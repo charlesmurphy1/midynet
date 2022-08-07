@@ -11,7 +11,7 @@
 #include "random_graph/init.h"
 #include "dynamics/init.h"
 #include "proposer/init.h"
-// #include "mcmc/init.h"
+#include "mcmc/init.h"
 
 namespace py = pybind11;
 namespace FastMIDyNet{
@@ -43,8 +43,8 @@ PYBIND11_MODULE(_midynet, m) {
     py::module proposer = m.def_submodule("proposer");
     initProposer( proposer );
 
-    // py::module mcmc = m.def_submodule("mcmc");
-    // initMCMC( mcmc );
+    py::module mcmc = m.def_submodule("mcmc");
+    initMCMC( mcmc );
 }
 
 }

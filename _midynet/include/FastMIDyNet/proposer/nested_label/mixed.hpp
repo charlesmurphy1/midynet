@@ -179,13 +179,13 @@ IntMap<Label> MixedNestedSampler<Label>::getEdgeCountsDiff(const LabelMove<Label
 }
 
 template<typename Label>
-class GibbsMixedNestedLabelProposer: public GibbsLabelProposer<Label>, public MixedNestedSampler<Label>{
+class GibbsMixedNestedLabelProposer: public GibbsNestedLabelProposer<Label>, public MixedNestedSampler<Label>{
 protected:
     const Label sampleLabelUniformlyAtLevel(Level level) const override {
         return std::uniform_int_distribution<size_t>(0, getAvailableLabelCountAtLevel(level) - 2)(rng);
     }
     const size_t getAvailableLabelCountAtLevel(Level level) const override {
-        return m_graphPriorPtr->getNestedLabelCount(level);
+        return m_nestedGraphPriorPtr->getNestedLabelCount(level);
     }
     const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override {
         return _getLogProposalProbForReverseMove(move);
@@ -193,20 +193,21 @@ protected:
     const double getLogProposalProbForMove(const LabelMove<Label>& move) const override {
         return _getLogProposalProbForMove(move);
     }
-    using GibbsLabelProposer<Label>::m_graphPriorPtr;
+    using GibbsNestedLabelProposer<Label>::m_nestedGraphPriorPtr;
+    using MixedNestedSampler<Label>::m_nestedGraphPriorPtrPtr;
 public:
-    using GibbsLabelProposer<Label>::sampleLevel;
-    using MixedNestedSampler<Label>::_proposeLabelMove;
+    using GibbsNestedLabelProposer<Label>::sampleLevel;
+    using MixedNestedSampler<Label>::_proposeLabelMoveAtLevel;
     using MixedNestedSampler<Label>::_getLogProposalProbForMove;
     using MixedNestedSampler<Label>::_getLogProposalProbForReverseMove;
 
     GibbsMixedNestedLabelProposer(double sampleLabelCountProb=0.5, double labelCreationProb=0.1, double shift=1):
-        GibbsLabelProposer<Label>(sampleLabelCountProb, labelCreationProb),
-        MixedNestedSampler<Label>(shift) { this->m_nestedGraphPriorPtrPtr = &this->m_graphPriorPtr; }
+        GibbsNestedLabelProposer<Label>(sampleLabelCountProb, labelCreationProb),
+        MixedNestedSampler<Label>(shift) { m_nestedGraphPriorPtrPtr = &m_nestedGraphPriorPtr; }
 
     const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex& vertex) const override {
         Level level = sampleLevel();
-        return _proposeLabelMove(vertex, level);
+        return _proposeLabelMoveAtLevel(vertex, level);
     }
 };
 

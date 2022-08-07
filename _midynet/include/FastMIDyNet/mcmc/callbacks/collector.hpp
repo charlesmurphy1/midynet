@@ -20,8 +20,10 @@ public:
 };
 
 using BlockCollector = Collector<BlockLabelMCMC>;
+using NestedBlockCollector = Collector<NestedBlockLabelMCMC>;
 using GraphReconstructionCollector = Collector<GraphReconstructionMCMC<RandomGraph>>;
-using BlockLabeledGraphReconstructionCollector = Collector<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
+using BlockLabeledGraphReconstructionCollector = Collector<VertexLabeledGraphReconstructionMCMC<BlockIndex>>;
+using NestedBlockLabeledGraphReconstructionCollector = Collector<NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>>;
 
 template<typename MCMCType>
 class SweepCollector: public Collector<MCMCType>{
@@ -30,8 +32,10 @@ public:
 };
 
 using BlockSweepCollector = SweepCollector<BlockLabelMCMC>;
+using NestedBlockSweepCollector = SweepCollector<NestedBlockLabelMCMC>;
 using GraphReconstructionSweepCollector = SweepCollector<GraphReconstructionMCMC<RandomGraph>>;
-using BlockLabeledGraphReconstructionSweepCollector = SweepCollector<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
+using BlockLabeledGraphReconstructionSweepCollector = SweepCollector<VertexLabeledGraphReconstructionMCMC<BlockIndex>>;
+using NestedBlockLabeledGraphReconstructionSweepCollector = SweepCollector<NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>>;
 
 template<typename MCMCType>
 class StepCollector: public Collector<MCMCType>{
@@ -40,8 +44,10 @@ public:
 };
 
 using BlockStepCollector = StepCollector<BlockLabelMCMC>;
+using NestedBlockStepCollector = StepCollector<NestedBlockLabelMCMC>;
 using GraphReconstructionStepCollector = StepCollector<GraphReconstructionMCMC<RandomGraph>>;
-using BlockLabeledGraphReconstructionStepCollector = StepCollector<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
+using BlockLabeledGraphReconstructionStepCollector = StepCollector<VertexLabeledGraphReconstructionMCMC<BlockIndex>>;
+using NestedBlockLabeledGraphReconstructionStepCollector = StepCollector<NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>>;
 
 template<typename GraphMCMC>
 class CollectGraphOnSweep: public SweepCollector<GraphMCMC>{
@@ -54,7 +60,8 @@ public:
     const std::vector<MultiGraph>& getData() const { return m_collectedGraphs; }
 };
 
-using CollectBlockLabeledGraphOnSweep = CollectGraphOnSweep<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
+using CollectBlockLabeledGraphOnSweep = CollectGraphOnSweep<VertexLabeledGraphReconstructionMCMC<BlockIndex>>;
+using CollectNestedBlockLabeledGraphOnSweep = CollectGraphOnSweep<NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>>;
 
 template<typename GraphMCMC>
 class CollectEdgeMultiplicityOnSweep: public SweepCollector<GraphMCMC>{
@@ -78,7 +85,8 @@ public:
 
 };
 
-using CollectBlockLabeledEdgeMultiplicityOnSweep = CollectEdgeMultiplicityOnSweep<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
+using CollectBlockLabeledEdgeMultiplicityOnSweep = CollectEdgeMultiplicityOnSweep<VertexLabeledGraphReconstructionMCMC<BlockIndex>>;
+using CollectNestedBlockLabeledEdgeMultiplicityOnSweep = CollectEdgeMultiplicityOnSweep<NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>>;
 
 template<typename GraphMCMC>
 void CollectEdgeMultiplicityOnSweep<GraphMCMC>::collect(){
@@ -153,22 +161,22 @@ public:
     const std::vector<BlockSequence>& getData() const { return m_partitions; }
 };
 
-using CollectPartitionOnSweepForReconstruction = CollectPartitionOnSweep<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>;
+using CollectPartitionOnSweepForReconstruction = CollectPartitionOnSweep<VertexLabeledGraphReconstructionMCMC<BlockIndex>>;
 using CollectPartitionOnSweepForCommunity = CollectPartitionOnSweep<VertexLabelMCMC<BlockIndex>>;
 
 
 template<typename GraphMCMC>
 class CollectNestedPartitionOnSweep: public SweepCollector<GraphMCMC>{
 private:
-    std::vector<std::vector<std::vector<BlockIndex>>> m_partitions;
+    std::vector<std::vector<BlockSequence>> m_nestedPartitions;
 public:
     using BaseClass = SweepCollector<GraphMCMC>;
-    void collect() override { m_partitions.push_back(BaseClass::m_mcmcPtr.getNestedLabels()); }
-    void clear() override { m_partitions.clear(); }
-    const std::vector<BlockSequence>& getData() const { return m_partitions; }
+    void collect() override { m_nestedPartitions.push_back(BaseClass::m_mcmcPtr->getGraphPrior().getNestedLabels()); }
+    void clear() override { m_nestedPartitions.clear(); }
+    const std::vector<std::vector<BlockSequence>>& getData() const { return m_nestedPartitions; }
 };
 
-using CollectNestedPartitionOnSweepForReconstruction = CollectNestedPartitionOnSweep<GraphReconstructionMCMC<NestedVertexLabeledRandomGraph<BlockIndex>>>;
+using CollectNestedPartitionOnSweepForReconstruction = CollectNestedPartitionOnSweep<NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>>;
 using CollectNestedPartitionOnSweepForCommunity = CollectNestedPartitionOnSweep<NestedVertexLabelMCMC<BlockIndex>>;
 
 class CollectLikelihoodOnSweep: public SweepCollector<MCMC>{

@@ -59,7 +59,7 @@ public:
     void setUp() override {
         MCMC::setUp();
         m_labelCallBacks.setUp(this);
-        m_labelProposerPtr->setUp(*m_graphPriorPtr);
+        m_labelProposerPtr->setUpWithPrior(*m_graphPriorPtr);
     }
     void tearDown() override {
         MCMC::tearDown();
@@ -215,7 +215,7 @@ public:
     void setUp() override {
         MCMC::setUp();
         m_labelCallBacks.setUp(this);
-        m_labelProposerPtr->setUp(*m_graphPriorPtr);
+        m_labelProposerPtr->setUpWithNestedPrior(*m_graphPriorPtr);
     }
     void tearDown() override {
         MCMC::tearDown();

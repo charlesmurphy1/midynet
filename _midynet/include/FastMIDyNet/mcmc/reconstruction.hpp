@@ -226,7 +226,7 @@ public:
 
     virtual void setUp() override {
         BaseClass::setUp();
-        m_labelProposerPtr->setUp(BaseClass::m_dynamicsPtr->getGraphPrior());
+        m_labelProposerPtr->setUpWithPrior(BaseClass::m_dynamicsPtr->getGraphPrior());
     }
 
     const double getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const ;
@@ -337,7 +337,7 @@ public:
     }
 
     const std::vector<std::vector<Label>>& getNestedLabels() const {
-        return BaseClass::m_dynamicsPtr->getGraphPrior().getLabels();
+        return BaseClass::m_dynamicsPtr->getGraphPrior().getNestedLabels();
     }
     void setNestedLabels(const std::vector<std::vector<Label>>& labels) {
         BaseClass::m_dynamicsPtr->getGraphPriorRef().setNestedLabels(labels);
@@ -346,7 +346,7 @@ public:
 
     virtual void setUp() override {
         BaseClass::setUp();
-        m_labelProposerPtr->setUp(BaseClass::m_dynamicsPtr->getGraphPrior());
+        m_labelProposerPtr->setUpWithNestedPrior(BaseClass::m_dynamicsPtr->getGraphPrior());
     }
 
     const double getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const ;
