@@ -79,7 +79,7 @@ public:
         m_nestedLabelGraphPrior.samplePartition();
     }
 
-    void setState(const MultiGraph state) override{
+    void setState(const MultiGraph& state) override{
         RandomGraph::setState(state);
         m_nestedLabelGraphPrior.setGraph(m_state);
     }

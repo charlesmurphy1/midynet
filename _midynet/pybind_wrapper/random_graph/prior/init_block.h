@@ -1,14 +1,14 @@
-#ifndef FAST_MIDYNET_PYWRAPPER_INIT_SBMPRIOR_BLOCK_H
-#define FAST_MIDYNET_PYWRAPPER_INIT_SBMPRIOR_BLOCK_H
+#ifndef FAST_MIDYNET_PYWRAPPER_PRIOR_INIT_BLOCK_H
+#define FAST_MIDYNET_PYWRAPPER_PRIOR_INIT_BLOCK_H
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <vector>
 
-#include "FastMIDyNet/prior/python/prior.hpp"
-#include "FastMIDyNet/prior/sbm/block_count.h"
-#include "FastMIDyNet/prior/sbm/block.h"
-#include "FastMIDyNet/prior/sbm/python/block.hpp"
+#include "FastMIDyNet/random_graph/prior/python/prior.hpp"
+#include "FastMIDyNet/random_graph/prior/block_count.h"
+#include "FastMIDyNet/random_graph/prior/block.h"
+#include "FastMIDyNet/random_graph/prior/python/block.hpp"
 
 
 namespace py = pybind11;

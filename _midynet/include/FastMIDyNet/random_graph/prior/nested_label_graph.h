@@ -64,11 +64,6 @@ public:
     virtual const double getLogLikelihoodAtLevel(Level) const = 0;
     const double getLogLikelihood() const override;
 
-    // virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override = 0;
-    // virtual const double getLogLikelihoodRatioFromLabelMoveAtLevel( const BlockMove& move ) const = 0;
-    // const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const override;
-
-
     const std::vector<LabelGraph>& getNestedState() const { return m_nestedState; }
     const LabelGraph& getNestedState(Level level) const {
         return (level==-1) ? *m_graphPtr : m_nestedState[level];
@@ -122,8 +117,8 @@ public:
         throw DepletedMethodError("NestedLabelGraphPrior", "setPartition", "setNestedPartition");
     }
 
-    void reduceHierarchy() {
-        m_nestedBlockPriorPtr->reduceHierarchy();
+    void reduceHierarchy(Level minLevel=0) {
+        m_nestedBlockPriorPtr->reduceHierarchy(minLevel);
         recomputeStateFromGraph();
     }
 

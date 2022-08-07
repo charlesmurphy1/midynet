@@ -196,6 +196,7 @@ public:
         return logLikelihood;
     }
 
+    const size_t getGraphSize() const { return m_graphSize; }
     void setGraphSize(size_t size) { m_graphSize = size; }
     void checkSelfSafety() const override {
         if (m_graphSize<0)

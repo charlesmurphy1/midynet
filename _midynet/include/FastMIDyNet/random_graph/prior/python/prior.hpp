@@ -6,7 +6,7 @@
 
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/python/rv.hpp"
-#include "FastMIDyNet/prior/prior.hpp"
+#include "FastMIDyNet/random_graph/prior/prior.hpp"
 #include "FastMIDyNet/proposer/movetypes.h"
 
 
@@ -20,15 +20,16 @@ public:
     ~PyPrior() override = default;
     /* Pure abstract methods */
     void sampleState() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleState, ); }
-    void samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePriors, ); }
-    void setState(const StateType& state) override { PYBIND11_OVERRIDE(void, BaseClass, setState, state); }
     cdouble getLogLikelihood() const override  { PYBIND11_OVERRIDE_PURE(cdouble, BaseClass, getLogLikelihood, ); }
-    cdouble getLogPrior() const override { PYBIND11_OVERRIDE_PURE(cdouble, BaseClass, getLogPrior, ); }
+    cdouble getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override  { PYBIND11_OVERRIDE_PURE(cdouble, BaseClass, getLogLikelihoodRatioFromGraphMove, move); }
 
     /* Abstract methods */
+    void setState(const StateType& state) override { PYBIND11_OVERRIDE(void, BaseClass, setState, state); }
 protected:
+    void _samplePriors() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, _samplePriors, ); }
     void _applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, _applyGraphMove, move); }
-    cdouble _getLogJointRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(cdouble, BaseClass, _getLogJointRatioFromGraphMove, move); }
+    cdouble _getLogPrior() const override { PYBIND11_OVERRIDE_PURE(cdouble, BaseClass, _getLogPrior, ); }
+    cdouble _getLogPriorRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(cdouble, BaseClass, _getLogPriorRatioFromGraphMove, move); }
 };
 
 
@@ -37,11 +38,12 @@ class PyVertexLabeledPrior: public PyPrior<StateType, BaseClass>{
 public:
     using PyPrior<StateType, BaseClass>::PyPrior;
     ~PyVertexLabeledPrior() override = default;
+    const double getLogLikelihoodRatioFromLabelMove(const LabelMove<Label>& move) const override  { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromLabelMove, move); }
 
     /* Pure abstract methods */
 protected:
     void _applyLabelMove(const LabelMove<Label>& move) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, _applyLabelMove, move); }
-    const double _getLogJointRatioFromLabelMove(const LabelMove<Label>& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, _getLogJointRatioFromLabelMove, move); }
+    const double _getLogPriorRatioFromLabelMove(const LabelMove<Label>& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, _getLogPriorRatioFromLabelMove, move); }
 
     /* Abstract methods */
 };

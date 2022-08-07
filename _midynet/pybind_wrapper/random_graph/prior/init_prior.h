@@ -6,9 +6,8 @@
 #include <vector>
 
 #include "FastMIDyNet/rv.hpp"
-#include "FastMIDyNet/prior/prior.hpp"
-#include "FastMIDyNet/prior/python/prior.hpp"
-#include "sbm/init.h"
+#include "FastMIDyNet/random_graph/prior/prior.hpp"
+#include "FastMIDyNet/random_graph/prior/python/prior.hpp"
 
 
 namespace py = pybind11;
@@ -42,7 +41,7 @@ declareVertexLabeledPriorBaseClass(py::module& m, std::string pyName){
         ;
 }
 
-void initPrior(pybind11::module& m){
+void initPriorBaseClass(pybind11::module& m){
     declarePriorBaseClass<size_t>(m, "UnIntPrior");
     declareVertexLabeledPriorBaseClass<size_t, BlockIndex>(m, "UnIntVertexLabeledPrior");
 
@@ -51,9 +50,6 @@ void initPrior(pybind11::module& m){
 
     declarePriorBaseClass<MultiGraph>(m, "MultigraphPrior");
     declareVertexLabeledPriorBaseClass<MultiGraph, BlockIndex>(m, "MultigraphVertexLabeledPrior");
-
-    pybind11::module sbm = m.def_submodule("sbm");
-    initSBMPriors(sbm);
 }
 
 }

@@ -5,20 +5,28 @@
 #include <pybind11/stl.h>
 
 #include "FastMIDyNet/types.h"
-#include "FastMIDyNet/prior/prior.hpp"
-#include "FastMIDyNet/prior/python/prior.hpp"
-#include "FastMIDyNet/prior/sbm/block_count.h"
+#include "FastMIDyNet/random_graph/prior/prior.hpp"
+#include "FastMIDyNet/random_graph/prior/python/prior.hpp"
+#include "FastMIDyNet/random_graph/prior/block_count.h"
 
 
 
 namespace FastMIDyNet{
 
 template <typename BaseClass = BlockCountPrior>
-class PyBlockCountPrior: public PyVertexLabeledPrior<size_t, BlockIndex, BaseClass> {
+class PyBlockCountPrior: public PyVertexLabeledPrior<BlockIndex, BlockIndex, BaseClass> {
 public:
-    using PyVertexLabeledPrior<size_t, BlockIndex, BaseClass>::PyVertexLabeledPrior;
+    using PyVertexLabeledPrior<BlockIndex, BlockIndex, BaseClass>::PyVertexLabeledPrior;
     /* Pure abstract methods */
     const double getLogLikelihoodFromState(const size_t& state) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodFromState, state); }
+};
+
+template <typename BaseClass = NestedBlockCountPrior>
+class PyNestedBlockCountPrior: public PyBlockCountPrior<BaseClass> {
+public:
+    using PyBlockCountPrior<BaseClass>::PyBlockCountPrior;
+    /* Pure abstract methods */
+    const double getLogLikelihoodFromNestedState(const std::vector<size_t>& state) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodFromState, state); }
 };
 
 }

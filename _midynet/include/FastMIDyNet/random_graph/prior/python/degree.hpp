@@ -7,22 +7,19 @@
 
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/maps.hpp"
-#include "FastMIDyNet/prior/python/prior.hpp"
-#include "FastMIDyNet/prior/sbm/degree.h"
+#include "FastMIDyNet/random_graph/prior/python/prior.hpp"
+#include "FastMIDyNet/random_graph/prior/degree.h"
 
 
 namespace FastMIDyNet{
 
 template <typename DegreePriorBaseClass = DegreePrior>
-class PyDegreePrior: public PyVertexLabeledPrior<std::vector<size_t>, BlockIndex, DegreePriorBaseClass> {
+class PyDegreePrior: public PyPrior<std::vector<size_t>, DegreePriorBaseClass> {
 public:
-    using PyVertexLabeledPrior<std::vector<size_t>, BlockIndex, DegreePriorBaseClass>::PyVertexLabeledPrior;
+    using PyPrior<std::vector<size_t>, DegreePriorBaseClass>::PyPrior;
     /* Pure abstract methods */
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override {
         PYBIND11_OVERRIDE_PURE(const double, DegreePriorBaseClass, getLogLikelihoodRatioFromGraphMove, move);
-    }
-    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const override {
-        PYBIND11_OVERRIDE_PURE(const double, DegreePriorBaseClass, getLogLikelihoodRatioFromLabelMove, move);
     }
 
     /* Overloaded abstract methods */
@@ -32,14 +29,11 @@ public:
     const DegreeCountsMap& getDegreeCounts() const override {
         PYBIND11_OVERRIDE(const DegreeCountsMap&, DegreePriorBaseClass, getDegreeCounts, );
     }
-    const double getLogPriorRatioFromGraphMove(const GraphMove& move) const override {
-        PYBIND11_OVERRIDE_PURE(const double, DegreePriorBaseClass, getLogPriorRatioFromGraphMove, move);
+    void checkSelfSafety() const override {
+        PYBIND11_OVERRIDE_PURE(void, DegreePriorBaseClass, checkSelfSafety, );
     }
-    const double getLogPriorRatioFromLabelMove(const BlockMove& move) const override {
-        PYBIND11_OVERRIDE_PURE(const double, DegreePriorBaseClass, getLogPriorRatioFromLabelMove, move);
-    }
-    void checkSelfConsistency() const override {
-        PYBIND11_OVERRIDE_PURE(void, DegreePriorBaseClass, checkSelfConsistency, );
+    void computationFinished() const override {
+        PYBIND11_OVERRIDE_PURE(void, DegreePriorBaseClass, computationFinished, );
     }
 };
 

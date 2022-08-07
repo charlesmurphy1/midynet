@@ -70,7 +70,7 @@ public:
         m_degreePriorPtr->samplePartition();
     }
 
-    void setState(const MultiGraph state) override{
+    void setState(const MultiGraph& state) override{
         RandomGraph::setState(state);
         m_degreePriorPtr->setGraph(m_state);
     }
@@ -87,7 +87,7 @@ public:
     const NestedLabelGraphPrior& getNestedLabelGraphPrior() const { return m_nestedLabelGraphPrior; }
 
     void setEdgeCountPrior(EdgeCountPrior& prior) { m_nestedLabelGraphPrior.setEdgeCountPrior(prior); }
-    const VertexLabeledDegreePrior& getDegreeCountPrior() const { return *m_degreePriorPtr; }
+    const VertexLabeledDegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
     void setDegreePrior(VertexLabeledDegreePrior& prior) {
         m_degreePriorPtr = &prior;
         m_degreePriorPtr->setLabelGraphPrior(m_nestedLabelGraphPrior);
@@ -124,10 +124,10 @@ public:
 
 };
 
-class NestedNestedDegreeCorrectedStochasticBlockModelFamily: public NestedDegreeCorrectedStochasticBlockModelBase{
+class NestedDegreeCorrectedStochasticBlockModelFamily: public NestedDegreeCorrectedStochasticBlockModelBase{
     EdgeCountPrior* m_edgeCountPriorPtr;
 public:
-    NestedNestedDegreeCorrectedStochasticBlockModelFamily(size_t size, double edgeCount, bool useHyperPrior=true, bool canonical=false):
+    NestedDegreeCorrectedStochasticBlockModelFamily(size_t size, double edgeCount, bool useHyperPrior=true, bool canonical=false):
         NestedDegreeCorrectedStochasticBlockModelBase(size){
             m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
             m_nestedLabelGraphPrior = NestedStochasticBlockLabelGraphPrior(size, *m_edgeCountPriorPtr);
@@ -135,7 +135,7 @@ public:
             checkSafety();
             sample();
     }
-    virtual ~NestedNestedDegreeCorrectedStochasticBlockModelFamily(){
+    virtual ~NestedDegreeCorrectedStochasticBlockModelFamily(){
         delete m_edgeCountPriorPtr;
         delete m_degreePriorPtr;
     }

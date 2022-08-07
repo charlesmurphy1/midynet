@@ -15,14 +15,6 @@ protected:
     void _applyLabelMove(const BlockMove& move) override ;
     const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override ;
 
-    // void remapBlockIndex(const std::map<size_t, size_t> indexMap){
-    //     auto newBlocks = m_state;
-    //     for (size_t v=0; v<m_size; ++v){
-    //         newBlocks[v] = indexMap.at(m_state[v]);
-    //     }
-    //     setState(newBlocks);
-    // }
-
 public:
     /* Constructors */
     NestedBlockPrior() {}
@@ -52,9 +44,6 @@ public:
     }
 
     /* Accessors & mutators of attributes */
-    const size_t getSize() const { return m_size; }
-    virtual void setSize(size_t size) override { m_size = size; }
-
     const size_t getDepth() const { return m_nestedBlockCountPriorPtr->getDepth(); }
 
     /* Accessors & mutators of accessory states */

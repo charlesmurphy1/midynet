@@ -35,7 +35,7 @@ public:
 
     const MultiGraph& getState() const { return m_state; }
 
-    virtual void setState(const MultiGraph state) {
+    virtual void setState(const MultiGraph& state) {
         m_state = state;
     }
     const size_t getSize() const { return m_size; }

@@ -204,7 +204,7 @@ public:
             throw SafetyError("LabelGraphDeltaPrior", "m_labelGraph", "empty");
     }
 
-    virtual void computationFinished() const override { m_isProcessed = false; }
+    void computationFinished() const override { m_isProcessed = false; }
 };
 
 class LabelGraphErdosRenyiPrior: public LabelGraphPrior {

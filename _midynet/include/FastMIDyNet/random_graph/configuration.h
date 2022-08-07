@@ -35,21 +35,14 @@ protected:
 public:
     ConfigurationModelBase(size_t graphSize):
         RandomGraph(graphSize, m_likelihoodModel){ setUpLikelihood(); }
-    ConfigurationModelBase(size_t graphSize, EdgeCountPrior& edgeCountPrior, DegreePrior& degreePrior):
+    ConfigurationModelBase(size_t graphSize, DegreePrior& degreePrior):
         RandomGraph(graphSize, m_likelihoodModel), m_degreePriorPtr(&degreePrior){
             setUpLikelihood();
             m_degreePriorPtr->isRoot(false);
             m_degreePriorPtr->setSize(m_size);
-            setEdgeCountPrior(edgeCountPrior);
         }
 
-    const EdgeCountPrior& getEdgeCountPrior() const { return m_degreePriorPtr->getEdgeCountPrior(); }
-    void setEdgeCountPrior(EdgeCountPrior& prior) {
-        if (m_degreePriorPtr == nullptr)
-            throw SafetyError("ConfigurationModelBase", "degree prior");
-        m_degreePriorPtr->setEdgeCountPrior(prior);
-    }
-
+    DegreePrior& getDegreePriorRef() const { return *m_degreePriorPtr; }
     const DegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
     void setDegreePrior(DegreePrior& prior) {
         m_degreePriorPtr = &prior;
