@@ -32,7 +32,7 @@ protected:
         m_likelihoodModel.m_statePtr = &m_state;
         m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
     }
-public:
+
     ConfigurationModelBase(size_t graphSize):
         RandomGraph(graphSize, m_likelihoodModel){ setUpLikelihood(); }
     ConfigurationModelBase(size_t graphSize, DegreePrior& degreePrior):
@@ -41,6 +41,7 @@ public:
             m_degreePriorPtr->isRoot(false);
             m_degreePriorPtr->setSize(m_size);
         }
+public:
 
     DegreePrior& getDegreePriorRef() const { return *m_degreePriorPtr; }
     const DegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
@@ -69,34 +70,43 @@ public:
 };
 
 class ConfigurationModel : public ConfigurationModelBase{
+    std::unique_ptr<DegreePrior> m_degreePriorUPtr = nullptr;
+    std::unique_ptr<EdgeProposer> m_edgeProposerUPtr = nullptr;
 public:
     ConfigurationModel(const DegreeSequence& degrees):
         ConfigurationModelBase(degrees.size()) {
-            m_degreePriorPtr = new DegreeDeltaPrior(degrees);
+            m_degreePriorUPtr = std::unique_ptr<DegreePrior>(new DegreeDeltaPrior(degrees));
+            m_degreePriorPtr = m_degreePriorUPtr.get();
+            m_degreePriorPtr->isRoot(false);
+
+            m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(makeEdgeProposer("degree", false, true, true, true));
+            m_edgeProposerPtr = m_edgeProposerUPtr.get();
+            m_edgeProposerPtr->isRoot(false);
+
             checkSafety();
             sample();
-
         }
-    virtual ~ConfigurationModel(){
-        delete m_degreePriorPtr;
-    }
 };
 
 class ConfigurationModelFamily : public ConfigurationModelBase{
-    EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
+    std::unique_ptr<EdgeCountPrior> m_edgeCountPriorUPtr = nullptr;
+    std::unique_ptr<DegreePrior> m_degreePriorUPtr = nullptr;
+    std::unique_ptr<EdgeProposer> m_edgeProposerUPtr = nullptr;
 public:
-    ConfigurationModelFamily(size_t size, double edgeCount, bool useHyperPrior=true, bool canonical=false):
+    ConfigurationModelFamily(
+        size_t size, double edgeCount, bool useHyperPrior=true, bool canonical=false, std::string edgeProposerType="degree"
+    ):
         ConfigurationModelBase(size) {
-            m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
-            m_degreePriorPtr = makeDegreePrior(size, *m_edgeCountPriorPtr, useHyperPrior);
-            setDegreePrior(*m_degreePriorPtr);
+            m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
+            m_degreePriorUPtr = std::unique_ptr<DegreePrior>(makeDegreePrior(size, *m_edgeCountPriorUPtr, useHyperPrior));
+            setDegreePrior(*m_degreePriorUPtr);
+
+            m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(makeEdgeProposer(edgeProposerType, canonical, true, true, true));
+            setEdgeProposer(*m_edgeProposerUPtr);
+
             checkSafety();
             sample();
         }
-    virtual ~ConfigurationModelFamily(){
-        delete m_edgeCountPriorPtr;
-        delete m_degreePriorPtr;
-    }
 };
 
 }// end FastMIDyNet

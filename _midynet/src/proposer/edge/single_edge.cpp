@@ -27,7 +27,7 @@ const GraphMove SingleEdgeProposer::proposeRawMove() const {
     return {{proposedEdge}, {}};
 }
 
-void SingleEdgeProposer::setUp(const MultiGraph& graph) {
+void SingleEdgeProposer::setUpWithGraph(const MultiGraph& graph) {
     m_graphPtr = &graph;
     for (auto vertex : graph){
         m_vertexSamplerPtr->onVertexInsertion(vertex);

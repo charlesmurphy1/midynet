@@ -29,7 +29,6 @@ protected:
     const LabelMove<Label> _proposeLabelMove(const BaseGraph::VertexIndex&) const ;
     IntMap<std::pair<Label, Label>> getEdgeMatrixDiff(const LabelMove<Label>& move) const ;
     IntMap<Label> getEdgeCountsDiff(const LabelMove<Label>& move) const ;
-    virtual const size_t getAvailableLabelCount() const = 0;
 
     bool creatingNewLabel(const LabelMove<Label>& move) const {
         return (*m_graphPriorPtrPtr)->getVertexCounts().get(move.nextLabel) == 0;
@@ -39,6 +38,7 @@ protected:
     }
  public:
      MixedSampler(double shift=1): m_shift(shift) {}
+     virtual const size_t getAvailableLabelCount() const = 0;
 
     const double getShift() const { return m_shift; }
 };
@@ -169,7 +169,6 @@ protected:
     const Label sampleLabelUniformly() const override {
         return std::uniform_int_distribution<size_t>(0, getAvailableLabelCount() - 2)(rng);
     }
-    const size_t getAvailableLabelCount() const override { return GibbsLabelProposer<Label>::m_graphPriorPtr->getLabelCount(); }
     const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override {
         return MixedSampler<Label>::_getLogProposalProbForReverseMove(move);
     }
@@ -184,6 +183,7 @@ public:
     const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex&vertex) const override {
         return MixedSampler<Label>::_proposeLabelMove(vertex);
     }
+    const size_t getAvailableLabelCount() const override { return GibbsLabelProposer<Label>::m_graphPriorPtr->getLabelCount(); }
 };
 
 using GibbsMixedBlockProposer = GibbsMixedLabelProposer<BlockIndex>;
@@ -192,7 +192,6 @@ template<typename Label>
 class RestrictedMixedLabelProposer: public RestrictedLabelProposer<Label>, public MixedSampler<Label>{
 protected:
     const Label sampleLabelUniformly() const override { return *sampleUniformlyFrom(m_availableLabels.begin(), m_availableLabels.end()); }
-    const size_t getAvailableLabelCount() const override { return m_availableLabels.size(); }
     const double getLogProposalProbForReverseMove(const LabelMove<Label>& move) const override {
         return MixedSampler<Label>::_getLogProposalProbForReverseMove(move);
     }
@@ -210,6 +209,7 @@ public:
     const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex&vertex) const override {
         return MixedSampler<Label>::_proposeLabelMove(vertex);
     }
+    const size_t getAvailableLabelCount() const override { return m_availableLabels.size(); }
 };
 using RestrictedMixedBlockProposer = RestrictedMixedLabelProposer<BlockIndex>;
 

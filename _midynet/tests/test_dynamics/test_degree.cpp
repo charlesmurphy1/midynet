@@ -15,8 +15,7 @@ public:
     const double C = 10.;
     const std::list<std::vector<VertexState>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}, {2, 0}};
     const size_t NUM_STEPS=20;
-    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph(10, 10);
-    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
+    ErdosRenyiModel randomGraph = ErdosRenyiModel(10, 10);
     FastMIDyNet::DegreeDynamics<RandomGraph> dynamics = FastMIDyNet::DegreeDynamics<RandomGraph>(randomGraph, NUM_STEPS, C);
 };
 
@@ -58,8 +57,7 @@ TEST_F(TestDegreeDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
 
 TEST_F(TestDegreeDynamics, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
     dynamics.sample();
-    edgeProposer.setUp(dynamics.getGraph());
-    auto graphMove = edgeProposer.proposeMove();
+    auto graphMove = randomGraph.proposeGraphMove();
     double ratio = dynamics.getLogLikelihoodRatioFromGraphMove(graphMove);
     double logLikelihoodBefore = dynamics.getLogLikelihood();
     dynamics.applyGraphMove(graphMove);

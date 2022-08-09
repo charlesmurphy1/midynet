@@ -12,17 +12,16 @@ namespace FastMIDyNet{
 template <typename MCMCType>
 class CallBack{
 protected:
-    MCMCType* m_mcmcPtr;
+    const MCMCType* m_mcmcPtr;
 public:
-    virtual void setUp(MCMCType* mcmcPtr) { m_mcmcPtr = mcmcPtr; }
-    virtual void tearDown() { }
-    virtual void onBegin() { };
-    virtual void onEnd() { };
-    virtual void onStepBegin() { };
-    virtual void onStepEnd() { };
-    virtual void onSweepBegin() { };
-    virtual void onSweepEnd() { };
-    virtual void clear() { };
+    void setMCMC(const MCMCType& mcmc) { m_mcmcPtr = &mcmc; }
+    virtual void onBegin() { }
+    virtual void onEnd() { }
+    virtual void onStepBegin() { }
+    virtual void onStepEnd() { }
+    virtual void onSweepBegin() { }
+    virtual void onSweepEnd() { }
+    virtual void clear() { }
 
 };
 
@@ -30,13 +29,13 @@ template <typename MCMCType>
 class CallBackMap{
 private:
     std::map<std::string, CallBack<MCMCType>*> m_callbacksMap;
+    const MCMCType* m_mcmcPtr = nullptr;
 public:
     CallBackMap() {}
-    CallBackMap(std::map<std::string, CallBack<MCMCType>*> callBacks): m_callbacksMap(callBacks) {}
+    CallBackMap(const MCMCType& mcmc): m_mcmcPtr(&mcmc) {}
     CallBackMap(const CallBackMap& callBacks): m_callbacksMap(callBacks.m_callbacksMap) {}
 
-    void setUp(MCMCType* mcmcPtr) { for(auto c : m_callbacksMap) c.second->setUp(mcmcPtr); }
-    void tearDown() { for(auto c : m_callbacksMap) c.second->tearDown(); }
+    void reset() { for(auto c : m_callbacksMap) c.second->reset(); }
     void onBegin() { for(auto c : m_callbacksMap) c.second->onBegin(); }
     void onEnd() { for(auto c : m_callbacksMap) c.second->onEnd(); }
     void onStepBegin() { for(auto c : m_callbacksMap) c.second->onStepBegin(); }
@@ -46,8 +45,12 @@ public:
     void clear() { for(auto c : m_callbacksMap) c.second->clear(); }
 
 
+    void setMCMC(const MCMCType& mcmc) { m_mcmcPtr = &mcmc; }
     const CallBack<MCMCType>& get(std::string key) const { return *m_callbacksMap.at(key); }
-    void insert(std::pair<std::string, CallBack<MCMCType>*> pair) { m_callbacksMap.insert(pair); }
+    void insert(std::pair<std::string, CallBack<MCMCType>*> pair) {
+        m_callbacksMap.insert(pair);
+        m_callbacksMap.at(pair.first)->setMCMC(*m_mcmcPtr);
+    }
     void insert(std::string key, CallBack<MCMCType>& callback) { insert({key, &callback}); }
     void remove(std::string key) { m_callbacksMap.erase(key); }
     size_t size() const { return m_callbacksMap.size(); }

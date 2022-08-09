@@ -18,21 +18,18 @@ namespace FastMIDyNet{
 class TestGraphReconstructionMCMC: public::testing::Test{
     size_t numSteps=10;
 public:
-    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph();
-    HingeFlipUniformProposer proposer = HingeFlipUniformProposer();
+    ErdosRenyiModel randomGraph = ErdosRenyiModel(10, 10);
     DummySISDynamics dynamics = DummySISDynamics(randomGraph);
-    GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics, proposer);
+    GraphReconstructionMCMC<RandomGraph> mcmc = GraphReconstructionMCMC<RandomGraph>(dynamics);
     bool expectConsistencyError = false;
     void SetUp(){
         seed(1);
         dynamics.sample();
-        mcmc.setUp();
         mcmc.checkSafety();
     }
     void TearDown(){
         if (not expectConsistencyError)
             mcmc.checkConsistency();
-        mcmc.tearDown();
     }
 };
 
@@ -47,22 +44,18 @@ TEST_F(TestGraphReconstructionMCMC, doMHSweep){
 class TestVertexLabeledGraphReconstructionMCMC: public::testing::Test{
     size_t numSteps=10;
 public:
-    DummySBMGraph graphPrior = DummySBMGraph();
-    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    GibbsUniformLabelProposer<BlockIndex> blockProposer = GibbsUniformLabelProposer<BlockIndex>();
+    StochasticBlockModelFamily graphPrior = StochasticBlockModelFamily(10, 10, 3);
     DummyLabeledSISDynamics dynamics = DummyLabeledSISDynamics(graphPrior);
-    VertexLabeledGraphReconstructionMCMC<BlockIndex> mcmc = VertexLabeledGraphReconstructionMCMC<BlockIndex>(dynamics, edgeProposer, blockProposer);
+    VertexLabeledGraphReconstructionMCMC<BlockIndex> mcmc = VertexLabeledGraphReconstructionMCMC<BlockIndex>(dynamics);
     bool expectConsistencyError = false;
     void SetUp(){
         seedWithTime();
         dynamics.sample();
-        mcmc.setUp();
         mcmc.checkSafety();
     }
     void TearDown(){
         if (not expectConsistencyError)
             mcmc.checkConsistency();
-        mcmc.tearDown();
     }
 };
 
@@ -78,32 +71,28 @@ TEST_F(TestVertexLabeledGraphReconstructionMCMC, doMHSweep){
 class TestNestedVertexLabeledGraphReconstructionMCMC: public::testing::Test{
     size_t numSteps=10;
 public:
-    DummyNestedSBMGraph graphPrior = DummyNestedSBMGraph();
-    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
-    RestrictedUniformNestedBlockProposer blockProposer = RestrictedUniformNestedBlockProposer();
+    NestedStochasticBlockModelFamily graphPrior = NestedStochasticBlockModelFamily(10, 10);
     DummyNestedSISDynamics dynamics = DummyNestedSISDynamics(graphPrior);
-    NestedVertexLabeledGraphReconstructionMCMC<BlockIndex> mcmc = NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>(dynamics, edgeProposer, blockProposer);
+    NestedVertexLabeledGraphReconstructionMCMC<BlockIndex> mcmc = NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>(dynamics);
     bool expectConsistencyError = false;
     void SetUp(){
         seedWithTime();
         dynamics.sample();
-        mcmc.setUp();
         mcmc.checkSafety();
     }
     void TearDown(){
         if (not expectConsistencyError)
             mcmc.checkConsistency();
-        mcmc.tearDown();
     }
 };
 
-// TEST_F(TestNestedVertexLabeledGraphReconstructionMCMC, doMetropolisHastingsStep){
-//     mcmc.doMetropolisHastingsStep();
-// }
-//
-// TEST_F(TestNestedVertexLabeledGraphReconstructionMCMC, doMHSweep){
-//     mcmc.doMHSweep(10);
-// }
+TEST_F(TestNestedVertexLabeledGraphReconstructionMCMC, doMetropolisHastingsStep){
+    mcmc.doMetropolisHastingsStep();
+}
+
+TEST_F(TestNestedVertexLabeledGraphReconstructionMCMC, doMHSweep){
+    mcmc.doMHSweep(10);
+}
 
 
 } // FastMIDyNet

@@ -8,10 +8,13 @@ namespace FastMIDyNet{
 
 class TestGibbsUniformNestedBlockProposer: public::testing::Test {
 public:
-    size_t SIZE=10, EDGECOUNT=25;
+    const size_t SIZE=10, EDGECOUNT=25;
+    const bool canonical = false, stubLabeled = false;
     double SAMPLE_LABEL_PROB=0.1, LABEL_CREATION_PROB=0.5;
     size_t numSamples = 10;
-    DummyNestedSBMGraph graphPrior = DummyNestedSBMGraph(SIZE, EDGECOUNT);
+    NestedStochasticBlockModelFamily graphPrior = NestedStochasticBlockModelFamily(
+        SIZE, EDGECOUNT, canonical, stubLabeled
+    );
     GibbsUniformNestedBlockProposer proposer = GibbsUniformNestedBlockProposer(SAMPLE_LABEL_PROB, LABEL_CREATION_PROB);
     void SetUp(){
         seedWithTime();
@@ -119,10 +122,13 @@ public:
 
 class TestRestrictedUniformNestedBlockProposer: public::testing::Test {
 public:
-    size_t SIZE=10, EDGECOUNT=20;
-    double SAMPLE_LABEL_PROB=0.1;
+    const size_t SIZE=10, EDGECOUNT=25;
+    const bool canonical = false, stubLabeled = false;
+    double SAMPLE_LABEL_PROB=0.1, LABEL_CREATION_PROB=0.5;
     size_t numSamples = 10;
-    DummyNestedSBMGraph graphPrior = DummyNestedSBMGraph(SIZE, EDGECOUNT);
+    NestedStochasticBlockModelFamily graphPrior = NestedStochasticBlockModelFamily(
+        SIZE, EDGECOUNT, canonical, stubLabeled
+    );
     DummyRestrictedUniformNestedBlockProposer proposer = DummyRestrictedUniformNestedBlockProposer(SAMPLE_LABEL_PROB);
     void SetUp(){
         seedWithTime();

@@ -30,6 +30,7 @@ public:
     }
 
     /* Abstract methods */
+    void setUp() override { PYBIND11_OVERRIDE(void, BaseClass, setUp, ); }
     void setState(const MultiGraph& state) override { PYBIND11_OVERRIDE(void, BaseClass, setState, state); }
     const bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
     bool isSafe() const override { PYBIND11_OVERRIDE(bool, BaseClass, isSafe, ); }

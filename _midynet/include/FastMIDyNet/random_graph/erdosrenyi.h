@@ -34,7 +34,6 @@ protected:
         m_likelihoodModel.m_withSelfLoopsPtr = &m_withSelfLoops;
         m_likelihoodModel.m_withParallelEdgesPtr = &m_withParallelEdges;
     }
-public:
     ErdosRenyiModelBase(size_t graphSize, bool withSelfLoops=true, bool withParallelEdges=true):
         RandomGraph(graphSize, m_likelihoodModel),
         m_withSelfLoops(withSelfLoops),
@@ -44,6 +43,7 @@ public:
         m_withSelfLoops(withSelfLoops),
         m_withParallelEdges(withParallelEdges),
         m_edgeCountPriorPtr(&edgeCountPrior){ setUpLikelihood(); }
+public:
 
     const size_t getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }
 
@@ -68,15 +68,28 @@ public:
 };
 
 class ErdosRenyiModel: public ErdosRenyiModelBase{
+    std::unique_ptr<EdgeCountPrior> m_edgeCountPriorUPtr = nullptr;
+    std::unique_ptr<EdgeProposer> m_edgeProposerUPtr = nullptr;
 public:
-    ErdosRenyiModel(size_t size, double edgeCount, bool withSelfLoops=true, bool withParallelEdges=true, bool canonical=false):
+    ErdosRenyiModel(
+        size_t size,
+        double edgeCount,
+        bool withSelfLoops=true,
+        bool withParallelEdges=true,
+        bool canonical=false,
+        std::string edgeProposerType="uniform"):
         ErdosRenyiModelBase(size) {
-            m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
-            setEdgeCountPrior(*m_edgeCountPriorPtr);
+            m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
+            setEdgeCountPrior(*m_edgeCountPriorUPtr);
+
+            m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(
+                makeEdgeProposer(edgeProposerType, canonical, false, withSelfLoops, withParallelEdges)
+            );
+            setEdgeProposer(*m_edgeProposerUPtr);
+
             checkSafety();
             sample();
         }
-    ~ErdosRenyiModel(){ delete m_edgeCountPriorPtr; }
 };
 
 

@@ -51,37 +51,98 @@ void checkGraphConsistencyWithDegreeSequence(std::string namePrefix, const Multi
 
 EdgeCountPrior* makeEdgeCountPrior(double edgeCount, bool canonical){
     if (canonical)
-        return new EdgeCountExponentialPrior(edgeCount);
+        return new EdgeCountExponentialPrior(edgeCount) ;
     else
-        return new EdgeCountDeltaPrior((size_t) edgeCount);
+        return new EdgeCountDeltaPrior((size_t) edgeCount) ;
 }
 
 BlockPrior* makeBlockPrior(size_t size, BlockCountPrior& blockCountPrior, bool hyperPrior){
     if (hyperPrior)
-        return new BlockUniformHyperPrior(size, blockCountPrior);
+        return new BlockUniformHyperPrior(size, blockCountPrior) ;
     else
-        return new BlockUniformPrior(size, blockCountPrior);
+        return new BlockUniformPrior(size, blockCountPrior) ;
 }
 
 DegreePrior* makeDegreePrior(size_t size, EdgeCountPrior& prior, bool hyperPrior){
     if (hyperPrior)
-        return new DegreeUniformHyperPrior(size, prior);
+        return new DegreeUniformHyperPrior(size, prior) ;
     else
-        return new DegreeUniformPrior(size, prior);
+        return new DegreeUniformPrior(size, prior) ;
 }
 
 VertexLabeledDegreePrior* makeVertexLabeledDegreePrior(LabelGraphPrior& prior, bool hyperPrior){
     if (hyperPrior)
-        return new VertexLabeledDegreeUniformHyperPrior(prior);
+        return new VertexLabeledDegreeUniformHyperPrior(prior) ;
     else
-        return new VertexLabeledDegreeUniformPrior(prior);
+        return new VertexLabeledDegreeUniformPrior(prior) ;
 }
 
 StochasticBlockModelLikelihood* makeSBMLikelihood(bool stubLabeled){
     if (stubLabeled)
-        return new StubLabeledStochasticBlockModelLikelihood();
+        return new StubLabeledStochasticBlockModelLikelihood() ;
     else
-        return new UniformStochasticBlockModelLikelihood();
+        return new UniformStochasticBlockModelLikelihood() ;
+}
+
+EdgeProposer* makeEdgeProposer(
+    std::string proposerType,
+    bool canonical,
+    bool degreeConstrained,
+    // bool labelConstrained=false,
+    bool withSelfLoops,
+    bool withParallelEdges){
+    if ( canonical ){
+        if ( proposerType == "uniform" )
+            return new SingleEdgeUniformProposer(withSelfLoops, withParallelEdges);
+        else if ( proposerType == "degree" )
+                return new SingleEdgeUniformProposer(withSelfLoops, withParallelEdges);
+        else
+            throw std::runtime_error("makeEdgeProposer: invalid proposer type `" + proposerType + "`.");
+    } else if ( not degreeConstrained ){
+        if ( proposerType == "uniform" )
+            return new HingeFlipUniformProposer(withSelfLoops, withParallelEdges);
+        else if ( proposerType == "degree" )
+                return new HingeFlipUniformProposer(withSelfLoops, withParallelEdges);
+        else
+            throw std::runtime_error("makeEdgeProposer: invalid proposer type `" + proposerType + "`.");
+    } else
+        return new DoubleEdgeSwapProposer(withSelfLoops, withParallelEdges);
+}
+
+LabelProposer<BlockIndex>* makeBlockProposer(
+    std::string proposerType, bool restricted, double shift, double sampleLabelCountProb, double labelCreationProb
+){
+    if (proposerType == "uniform"){
+        if (restricted)
+            return new RestrictedUniformBlockProposer(sampleLabelCountProb);
+        else
+            return new GibbsUniformBlockProposer(sampleLabelCountProb, labelCreationProb);
+    } else if (proposerType == "mixed"){
+        if (restricted)
+            return new RestrictedMixedBlockProposer(sampleLabelCountProb, shift);
+        else
+            return new GibbsMixedBlockProposer(sampleLabelCountProb, labelCreationProb, shift);
+    }
+    else
+        throw std::runtime_error("makeBlockProposer: invalid proposer type `" + proposerType + "`.");
+}
+
+NestedLabelProposer<BlockIndex>* makeNestedBlockProposer(
+    std::string proposerType, bool restricted, double shift, double sampleLabelCountProb, double labelCreationProb
+){
+    if (proposerType == "uniform"){
+        if (restricted)
+            return new RestrictedUniformNestedBlockProposer(sampleLabelCountProb);
+        else
+            return new GibbsUniformNestedBlockProposer(sampleLabelCountProb, labelCreationProb);
+    } else if (proposerType == "mixed"){
+        if (restricted)
+            return new RestrictedMixedNestedBlockProposer(sampleLabelCountProb, shift);
+        else
+            return new GibbsMixedNestedBlockProposer(sampleLabelCountProb, labelCreationProb, shift);
+    }
+    else
+        throw std::runtime_error("makeNestedBlockProposer: invalid proposer type `" + proposerType + "`.");
 }
 
 

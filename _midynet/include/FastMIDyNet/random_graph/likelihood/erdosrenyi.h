@@ -16,6 +16,8 @@ protected:
     const double getLogLikelihoodFromEdgeCount(size_t edgeCount) const {
         size_t N = *m_graphSizePtr;
         size_t A = (*m_withSelfLoopsPtr) ? N * (N + 1) / 2 : N * (N - 1) / 2;
+        if (A > edgeCount and not *m_withParallelEdgesPtr)
+            return -INFINITY;
         return (*m_withParallelEdgesPtr) ? logMultisetCoefficient(A, edgeCount) : logBinomialCoefficient(A, edgeCount);
     };
 public:

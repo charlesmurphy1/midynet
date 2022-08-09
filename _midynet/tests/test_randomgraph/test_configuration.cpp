@@ -14,27 +14,24 @@ using namespace std;
 using namespace FastMIDyNet;
 
 
-class TestConfigurationModelBase: public::testing::Test{
+class TestConfigurationModelFamily: public::testing::Test{
     public:
-        double AVG_NUM_EDGES = 100;
-        size_t NUM_VERTICES = 50;
-        EdgeCountPoissonPrior edgeCountPrior = {AVG_NUM_EDGES};
-        DegreeUniformPrior degreePrior = {NUM_VERTICES, edgeCountPrior};
-        ConfigurationModelBase randomGraph = ConfigurationModelBase(NUM_VERTICES, degreePrior);
+        const size_t NUM_VERTICES = 50, NUM_EDGES = 100;
+        ConfigurationModelFamily randomGraph = ConfigurationModelFamily(NUM_VERTICES, NUM_EDGES);
         void SetUp() {
             randomGraph.sample();
         }
 };
 
-TEST_F(TestConfigurationModelBase, sample_getStateWithCorrectNumberOfEdges){
+TEST_F(TestConfigurationModelFamily, sample_getStateWithCorrectNumberOfEdges){
     EXPECT_EQ(randomGraph.getState().getTotalEdgeNumber(), randomGraph.getEdgeCount());
 }
 
-TEST_F(TestConfigurationModelBase, getLogLikelihood_returnNonPositiveValue){
+TEST_F(TestConfigurationModelFamily, getLogLikelihood_returnNonPositiveValue){
     EXPECT_LE(randomGraph.getLogLikelihood(), 0);
 }
 
-TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectValue){
+TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectValue){
     GraphMove move = {{}, {{0, 1}}};
 
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -45,7 +42,7 @@ TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forAddedEd
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
-TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forAddedSelfLoop_returnCorrectValue){
+TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forAddedSelfLoop_returnCorrectValue){
     GraphMove move = {{}, {{0, 0}}};
 
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -58,7 +55,7 @@ TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forAddedSe
 
 
 
-TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forRemovedEdge_returnCorrectValue){
+TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forRemovedEdge_returnCorrectValue){
     GraphMove move = {{{0, 1}}, {}};
     randomGraph.applyGraphMove({{}, {{0, 1}}});
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -69,7 +66,7 @@ TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forRemoved
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
-TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forRemovedSelfLoop_returnCorrectValue){
+TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forRemovedSelfLoop_returnCorrectValue){
     GraphMove move = {{{0, 0}}, {}};
     randomGraph.applyGraphMove({{}, {{0, 0}}});
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -80,18 +77,18 @@ TEST_F(TestConfigurationModelBase, getLogLikelihoodRatioFromGraphMove_forRemoved
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
-TEST_F(TestConfigurationModelBase, isCompatible_forGraphSampledFromSBM_returnTrue){
+TEST_F(TestConfigurationModelFamily, isCompatible_forGraphSampledFromSBM_returnTrue){
     randomGraph.sample();
     auto g = randomGraph.getState();
     EXPECT_TRUE(randomGraph.isCompatible(g));
 }
 
-TEST_F(TestConfigurationModelBase, isCompatible_forEmptyGraph_returnFalse){
+TEST_F(TestConfigurationModelFamily, isCompatible_forEmptyGraph_returnFalse){
     MultiGraph g(0);
     EXPECT_FALSE(randomGraph.isCompatible(g));
 }
 
-TEST_F(TestConfigurationModelBase, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
+TEST_F(TestConfigurationModelFamily, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
     randomGraph.sample();
     auto g = randomGraph.getState();
     for (auto vertex: g){

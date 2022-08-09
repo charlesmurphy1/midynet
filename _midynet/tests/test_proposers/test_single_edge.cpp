@@ -11,7 +11,7 @@ namespace FastMIDyNet{
 
 class TestSingleEdgeUniformProposer: public::testing::Test {
     public:
-        DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph(10, 10);
+        ErdosRenyiModel randomGraph = ErdosRenyiModel(10, 10);
         SingleEdgeUniformProposer proposer;
         MultiGraph graph;
         BaseGraph::Edge inexistentEdge = {0, 1};
@@ -24,7 +24,7 @@ class TestSingleEdgeUniformProposer: public::testing::Test {
             graph.setEdgeMultiplicityIdx(singleEdge, 1);
             graph.setEdgeMultiplicityIdx(doubleEdge, 2);
             randomGraph.setState(graph);
-            proposer.setUp(graph);
+            proposer.setUpWithGraph(graph);
             proposer.checkSafety();
         }
         void TearDown() {
@@ -57,7 +57,7 @@ TEST_F(TestSingleEdgeUniformProposer, getLogProposalProbRatio_removeEdgeWithMult
 class TestSingleEdgeDegreeProposer: public::testing::Test {
     public:
         EdgeCountDeltaPrior edgeCountPrior = {10};
-        DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph(10, 10);
+        ErdosRenyiModel randomGraph = ErdosRenyiModel(10, 10);
         SingleEdgeDegreeProposer proposer;
         MultiGraph graph;
         BaseGraph::Edge inexistentEdge = {0, 1};
@@ -71,7 +71,7 @@ class TestSingleEdgeDegreeProposer: public::testing::Test {
             graph.setEdgeMultiplicityIdx(singleEdge, 1);
             graph.setEdgeMultiplicityIdx(doubleEdge, 2);
             randomGraph.setState(graph);
-            proposer.setUp(graph);
+            proposer.setUpWithGraph(graph);
             proposer.checkSafety();
         }
         void TearDown() {

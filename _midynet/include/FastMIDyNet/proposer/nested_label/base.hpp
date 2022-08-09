@@ -4,12 +4,14 @@
 
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/proposer/label/base.hpp"
-#include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/rng.h"
 #include "FastMIDyNet/exceptions.h"
 
 
 namespace FastMIDyNet {
+
+template<typename Label>
+class NestedVertexLabeledRandomGraph;
 
 template<typename Label>
 class NestedLabelProposer: public LabelProposer<Label> {

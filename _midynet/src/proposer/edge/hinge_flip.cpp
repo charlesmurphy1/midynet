@@ -37,7 +37,7 @@ const GraphMove HingeFlipProposer::proposeRawMove() const {
     return {{edge}, {newEdge}};
 };
 
-void HingeFlipProposer::setUp(const MultiGraph& graph){
+void HingeFlipProposer::setUpWithGraph(const MultiGraph& graph){
     m_edgeSampler.clear();
     m_vertexSamplerPtr->clear();
 

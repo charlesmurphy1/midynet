@@ -11,20 +11,24 @@ namespace FastMIDyNet{
 
 void initDegreeCorrectedStochasticBlockModel(py::module& m){
     py::class_<DegreeCorrectedStochasticBlockModelBase, BlockLabeledRandomGraph>(m, "DegreeCorrectedStochasticBlockModelBase")
-        .def(
-            py::init<size_t, VertexLabeledDegreePrior&>(), py::arg("size"), py::arg("degree_prior")
-        )
+        // .def( py::init<size_t, VertexLabeledDegreePrior&>(), py::arg("size"), py::arg("degree_prior") )
         .def("get_degree_prior", &DegreeCorrectedStochasticBlockModelBase::getDegreePrior)
         .def("set_degree_prior", &DegreeCorrectedStochasticBlockModelBase::setDegreePrior, py::arg("prior"))
         ;
 
     py::class_<DegreeCorrectedStochasticBlockModelFamily, DegreeCorrectedStochasticBlockModelBase>(m, "DegreeCorrectedStochasticBlockModelFamily")
         .def(
-            py::init<size_t, double, bool, bool>(),
+            py::init<size_t, double, size_t, bool, bool, std::string, std::string, double, double, double>(),
             py::arg("size"),
             py::arg("edge_count"),
+            py::arg("block_count")=0,
             py::arg("hyperprior")=true,
-            py::arg("canonical")=false
+            py::arg("canonical")=false,
+            py::arg("edge_proposer_type")="degree",
+            py::arg("block_proposer_type")="degree",
+            py::arg("sample_label_prob")=0.1,
+            py::arg("label_creation_prob")=0.5,
+            py::arg("shift")=1
         )
         ;
 }

@@ -26,7 +26,7 @@ const GraphMove DoubleEdgeSwapProposer::proposeRawMove() const {
     return move;
 }
 
-void DoubleEdgeSwapProposer::setUp( const MultiGraph& graph ) {
+void DoubleEdgeSwapProposer::setUpWithGraph( const MultiGraph& graph ) {
     m_edgeSampler.clear();
     m_graphPtr = &graph;
     for (auto vertex : graph)

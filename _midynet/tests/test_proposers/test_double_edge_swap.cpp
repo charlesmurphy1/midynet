@@ -18,7 +18,7 @@ public:
     MultiGraph toyGraph = getToyMultiGraph();
     DummyDoubleEdgeSwapProposer proposer;
     void SetUp() {
-        proposer.setUp(graph);
+        proposer.setUpWithGraph(graph);
         proposer.checkSafety();
     }
     void TearDown() {
@@ -104,7 +104,7 @@ TEST_F(TestDoubleEdgeSwapProposer, applyGraphMove_removeAllEdges_edgeRemovedFrom
 }
 
 TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forNormalGraphMove_returnCorrectValue) {
-    proposer.setUp(toyGraph);
+    proposer.setUpWithGraph(toyGraph);
     GraphMove move;
 
     move = {{{0, 2}, {1, 3}}, {{0, 1}, {2, 3}}};
@@ -118,7 +118,7 @@ TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forNormalGraphMove_re
 }
 
 TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forDoubleLoopyGraphMove_returnCorrectValue) {
-    proposer.setUp(toyGraph);
+    proposer.setUpWithGraph(toyGraph);
     GraphMove move;
 
     move = {{{1, 1}, {3, 3}}, {{1, 3}, {1, 3}}};
@@ -130,7 +130,7 @@ TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forDoubleLoopyGraphMo
 }
 
 TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forSingleLoopyGraphMove_returnCorrectValue) {
-    proposer.setUp(toyGraph);
+    proposer.setUpWithGraph(toyGraph);
     GraphMove move;
 
     move = {{{1, 1}, {0, 2}}, {{0, 1}, {1, 2}}};
@@ -140,7 +140,7 @@ TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forSingleLoopyGraphMo
 }
 
 TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forDoubleEdgeGraphMove_returnCorrectValue) {
-    proposer.setUp(toyGraph);
+    proposer.setUpWithGraph(toyGraph);
     GraphMove move;
 
     move = {{{0, 1}, {0, 1}}, {{0, 1}, {0, 1}}};
@@ -153,7 +153,7 @@ TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forDoubleEdgeGraphMov
 }
 
 TEST_F(TestDoubleEdgeSwapProposer, getLogProposalProbRatio_forHingeGraphMove_returnCorrectValue) {
-    proposer.setUp(toyGraph);
+    proposer.setUpWithGraph(toyGraph);
     GraphMove move;
 
     move = {{{1, 3}, {2, 3}}, {{1, 3}, {2, 3}}};

@@ -14,8 +14,7 @@ public:
     const double COUPLING_CONSTANT = 2.;
     const std::list<std::vector<VertexState>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}};
     const size_t NUM_STEPS=20;
-    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph(10, 10);
-    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
+    ErdosRenyiModel randomGraph = ErdosRenyiModel(10, 10);
     FastMIDyNet::GlauberDynamics<RandomGraph> dynamics = FastMIDyNet::GlauberDynamics<RandomGraph>(randomGraph, NUM_STEPS, COUPLING_CONSTANT, 0, 0, false, -1);
 };
 
@@ -61,8 +60,7 @@ TEST_F(TestGlauberDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
 
 TEST_F(TestGlauberDynamics, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
     dynamics.sample();
-    edgeProposer.setUp(dynamics.getGraph());
-    auto graphMove = edgeProposer.proposeMove();
+    auto graphMove = randomGraph.proposeGraphMove();
     double ratio = dynamics.getLogLikelihoodRatioFromGraphMove(graphMove);
     double logLikelihoodBefore = dynamics.getLogLikelihood();
     dynamics.applyGraphMove(graphMove);

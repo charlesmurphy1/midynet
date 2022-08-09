@@ -11,8 +11,8 @@ namespace FastMIDyNet{
 
 void initConfiguration(py::module& m){
     py::class_<ConfigurationModelBase, RandomGraph>(m, "ConfigurationModelBase")
-        .def(py::init<size_t>(), py::arg("size"))
-        .def(py::init<size_t, DegreePrior&>(), py::arg("size"), py::arg("degree_prior"))
+        // .def(py::init<size_t>(), py::arg("size"))
+        // .def(py::init<size_t, DegreePrior&>(), py::arg("size"), py::arg("degree_prior"))
         .def("get_degree_prior", &ConfigurationModelBase::getDegreePrior)
         .def("set_degree_prior", &ConfigurationModelBase::setDegreePrior, py::arg("prior"))
         ;
@@ -23,11 +23,12 @@ void initConfiguration(py::module& m){
 
     py::class_<ConfigurationModelFamily, ConfigurationModelBase>(m, "ConfigurationModelFamily")
         .def(
-            py::init<size_t, double, bool, bool>(),
+            py::init<size_t, double, bool, bool, std::string>(),
             py::arg("size"),
             py::arg("edge_count"),
-            py::arg("hyperprior"),
-            py::arg("canonical")
+            py::arg("hyperprior")=true,
+            py::arg("canonical")=false,
+            py::arg("edge_proposer_type")="degree"
         )
         ;
 }

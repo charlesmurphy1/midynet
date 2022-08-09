@@ -15,7 +15,6 @@ namespace FastMIDyNet{
 template<typename MCMCType>
 class Collector: public CallBack<MCMCType>{
 public:
-    virtual void onBegin() override { CallBack<MCMCType>::clear(); }
     virtual void collect() = 0;
 };
 

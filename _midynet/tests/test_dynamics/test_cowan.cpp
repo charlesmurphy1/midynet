@@ -16,8 +16,7 @@ public:
     const double A = 1., NU = 7., MU = 1., ETA = 0.5;
     const size_t NUM_STEPS=20;
     const std::list<std::vector<VertexState>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}, {2, 0}};
-    DummyErdosRenyiGraph randomGraph = DummyErdosRenyiGraph(10, 10);
-    HingeFlipUniformProposer edgeProposer = HingeFlipUniformProposer();
+    ErdosRenyiModel randomGraph = ErdosRenyiModel(10, 10);
     FastMIDyNet::CowanDynamics<RandomGraph> dynamics = FastMIDyNet::CowanDynamics<RandomGraph>(randomGraph, NUM_STEPS, NU, A, MU, ETA, 0, 0, false, -1);
 };
 
@@ -55,8 +54,7 @@ TEST_F(TestWilsonCowan, getLogLikelihood_returnCorrectLogLikelikehood){
 
 TEST_F(TestWilsonCowan, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
     dynamics.sample();
-    edgeProposer.setUp(dynamics.getGraph());
-    auto graphMove = edgeProposer.proposeMove();
+    auto graphMove = randomGraph.proposeGraphMove();
     double ratio = dynamics.getLogLikelihoodRatioFromGraphMove(graphMove);
     double logLikelihoodBefore = dynamics.getLogLikelihood();
     dynamics.applyGraphMove(graphMove);

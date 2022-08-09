@@ -8,10 +8,11 @@
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/exceptions.h"
-#include "FastMIDyNet/random_graph/random_graph.hpp"
 
 
 namespace FastMIDyNet{
+
+class RandomGraph;
 
 class EdgeProposer: public Proposer<GraphMove>{
 protected:
@@ -34,7 +35,8 @@ public:
         return {move.addedEdges, move.removedEdges};
     }
     // virtual void setUp( const RandomGraph& randomGraph ) { clear(); setUpFromGraph(randomGraph.getGraph()); }
-    virtual void setUp( const MultiGraph& graph ) { clear(); m_graphPtr = &graph; }
+    virtual void setUpWithGraph( const MultiGraph& graph ) { clear(); m_graphPtr = &graph; }
+    virtual void setUpWithPrior( const RandomGraph& prior );
     virtual void applyGraphMove(const GraphMove& move) {};
     // virtual void applyBlockMove(const BlockMove& move) {};
     const bool& allowSelfLoops() const { return m_allowSelfLoops; }

@@ -12,7 +12,10 @@ class TestGibbsMixedBlockProposer: public::testing::Test{
 public:
     double SAMPLE_LABEL_PROB=0.1, LABEL_CREATION_PROB=0.5, SHIFT=1;
     size_t numSamples = 100;
-    DummySBMGraph graphPrior = DummySBMGraph(100, 250, 3);
+    const size_t NUM_VERTICES = 100, NUM_EDGES = 250;
+    const bool useHyperPrior = false, canonical = false, stubLabeled = false;
+
+    StochasticBlockModelFamily graphPrior = StochasticBlockModelFamily(100, 250, 3, useHyperPrior, canonical, stubLabeled);
     GibbsMixedBlockProposer proposer = GibbsMixedBlockProposer(SAMPLE_LABEL_PROB, LABEL_CREATION_PROB, SHIFT);
 
     void SetUp(){
@@ -71,7 +74,10 @@ class TestRestrictedMixedBlockProposer: public::testing::Test{
 public:
     double SAMPLE_LABEL_PROB=0.1, LABEL_CREATION_PROB=0.5, SHIFT=1;
     size_t numSamples = 100;
-    DummySBMGraph graphPrior = DummySBMGraph(100, 250, 3);
+    const size_t NUM_VERTICES = 100, NUM_EDGES = 250;
+    const bool useHyperPrior = true, canonical = false, stubLabeled = false;
+
+    StochasticBlockModelFamily graphPrior = StochasticBlockModelFamily(100, 250, 3, useHyperPrior, canonical, stubLabeled);
     RestrictedMixedBlockProposer proposer = RestrictedMixedBlockProposer(SAMPLE_LABEL_PROB, SHIFT);
 
     void SetUp(){
@@ -98,19 +104,23 @@ TEST_F(TestRestrictedMixedBlockProposer, proposeNewLabelMove_returnValidMove){
     for(size_t i=0; i<numSamples; ++i){
         auto move = proposer.proposeNewLabelMove(0);
         EXPECT_EQ(move.prevLabel, graphPrior.getLabelOfIdx(0));
-        EXPECT_EQ(move.addedLabels, 1);
+        if (move.prevLabel != move.nextLabel)
+            EXPECT_EQ(move.addedLabels, 1);
     }
 }
 
 TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forSomeLabelMove_returnCorrectProb){
     for(size_t i=0; i<10; ++i){
         auto move = proposer.proposeLabelMove(0);
-        while (move.prevLabel == move.nextLabel)
+        while (move.prevLabel == move.nextLabel or graphPrior.getVertexCounts().get(move.prevLabel) == 1)
             move = proposer.proposeLabelMove(0);
+        std::cout << "[BEFORE] proposer.getAvailableLabelCount()=" << proposer.getAvailableLabelCount() << std::endl;
+        std::cout << graphPrior.getVertexCounts().get(move.prevLabel) << std::endl;
         LabelMove<BlockIndex> reverseMove = {move.vertexIndex, move.nextLabel, move.prevLabel};
         double logProb = proposer.getLogProposalProb(move, false);
         proposer.applyLabelMove(move);
         graphPrior.applyLabelMove(move);
+        std::cout << "[AFTER] proposer.getAvailableLabelCount()=" << proposer.getAvailableLabelCount() << std::endl;
         double revLogProb = proposer.getLogProposalProb(reverseMove, true);
         EXPECT_EQ(logProb, revLogProb);
     }

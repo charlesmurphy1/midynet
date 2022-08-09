@@ -15,6 +15,8 @@ template<typename Label>
 py::class_<VertexLabeledRandomGraph<Label>, RandomGraph, PyVertexLabeledRandomGraph<Label>> declareVertexLabeledRandomGraph(py::module& m, std::string pyName){
     return py::class_<VertexLabeledRandomGraph<Label>, RandomGraph, PyVertexLabeledRandomGraph<Label>>(m, pyName.c_str())
         .def(py::init<size_t>(), py::arg("size"))
+        .def("get_label_proposer", &VertexLabeledRandomGraph<Label>::getLabelProposer)
+        .def("set_label_proposer", &VertexLabeledRandomGraph<Label>::setLabelProposer, py::arg("proposer"))
         .def("get_labels", &VertexLabeledRandomGraph<Label>::getLabels)
         .def("get_label_count", &VertexLabeledRandomGraph<Label>::getLabelCount)
         .def("get_vertex_counts", &VertexLabeledRandomGraph<Label>::getVertexCounts)
@@ -27,6 +29,7 @@ py::class_<VertexLabeledRandomGraph<Label>, RandomGraph, PyVertexLabeledRandomGr
         .def("get_log_prior_ratio_from_label_move", &VertexLabeledRandomGraph<Label>::getLogPriorRatioFromLabelMove, py::arg("move"))
         .def("get_log_joint_ratio_from_label_move", &VertexLabeledRandomGraph<Label>::getLogJointRatioFromLabelMove, py::arg("move"))
         .def("apply_label_move", &VertexLabeledRandomGraph<Label>::applyLabelMove, py::arg("move"))
+        .def("propose_label_move", &VertexLabeledRandomGraph<Label>::proposeLabelMove)
         .def("is_valid_label_move", &VertexLabeledRandomGraph<Label>::isValidLabelMove, py::arg("move"))
         ;
 }
@@ -35,6 +38,8 @@ template<typename Label>
 py::class_<NestedVertexLabeledRandomGraph<Label>, VertexLabeledRandomGraph<Label>, PyNestedVertexLabeledRandomGraph<Label>> declareNestedVertexLabeledRandomGraph(py::module& m, std::string pyName){
     return py::class_<NestedVertexLabeledRandomGraph<Label>, VertexLabeledRandomGraph<Label>, PyNestedVertexLabeledRandomGraph<Label>>(m, pyName.c_str())
         .def(py::init<size_t>(), py::arg("size"))
+        .def("get_nested_label_proposer", &NestedVertexLabeledRandomGraph<Label>::getNestedLabelProposer)
+        .def("set_nested_label_proposer", &NestedVertexLabeledRandomGraph<Label>::setNestedLabelProposer, py::arg("proposer"))
         .def("set_nested_labels", &NestedVertexLabeledRandomGraph<Label>::setNestedLabels, py::arg("nested_labels"))
         .def("get_depth", &NestedVertexLabeledRandomGraph<Label>::getDepth)
         .def("get_label_of_idx", [](const NestedVertexLabeledRandomGraph<Label>& self, BaseGraph::VertexIndex vertex, Level level) { return self.getLabelOfIdx(vertex, level); }, py::arg("vertex"), py::arg("level"))
@@ -61,6 +66,9 @@ void initRandomGraphBaseClass(py::module& m){
         .def("set_size", &RandomGraph::setSize)
         .def("get_edge_count", &RandomGraph::getEdgeCount)
         .def("get_average_degree", &RandomGraph::getAverageDegree)
+        .def("get_edge_proposer", &RandomGraph::getEdgeProposer)
+        .def("set_edge_proposer", &RandomGraph::setEdgeProposer, py::arg("proposer"))
+        // .def("set_up", &RandomGraph::setUp)
         .def("sample", &RandomGraph::sample)
         .def("sample_state", &RandomGraph::sampleState)
         .def("sample_prior", &RandomGraph::samplePrior)
@@ -71,6 +79,7 @@ void initRandomGraphBaseClass(py::module& m){
         .def("get_log_prior_ratio_from_graph_move", &RandomGraph::getLogPriorRatioFromGraphMove, py::arg("move"))
         .def("get_log_joint_ratio_from_graph_move", &RandomGraph::getLogJointRatioFromGraphMove, py::arg("move"))
         .def("apply_graph_move", &RandomGraph::applyGraphMove, py::arg("move"))
+        .def("propose_graph_move", &RandomGraph::proposeGraphMove)
         .def("is_compatible", &RandomGraph::isCompatible)
         .def("is_valid_graph_move", &RandomGraph::isValidGraphMove, py::arg("move"))
         ;

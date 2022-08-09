@@ -4,6 +4,7 @@
 
 #include "FastMIDyNet/exceptions.h"
 #include "util.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "edge_proposer.h"
 #include "FastMIDyNet/proposer/sampler/vertex_sampler.h"
 #include "FastMIDyNet/proposer/sampler/edge_sampler.h"
@@ -28,7 +29,7 @@ protected:
 public:
     using EdgeProposer::EdgeProposer;
     const GraphMove proposeRawMove() const override;
-    void setUp(const MultiGraph&) override;
+    void setUpWithGraph(const MultiGraph&) override;
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     void applyGraphMove(const GraphMove& move) override;
     // void applyBlockMove(const BlockMove& move) override { };

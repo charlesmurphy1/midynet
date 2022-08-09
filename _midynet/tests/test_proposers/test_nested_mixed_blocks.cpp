@@ -42,10 +42,13 @@ public:
 
 class TestRestrictedMixedNestedBlockProposer: public::testing::Test {
 public:
-    size_t SIZE=10, EDGECOUNT=20;
+    const size_t SIZE=10, EDGECOUNT=20;
+    const bool canonical = false, stubLabeled = false;
     double SAMPLE_LABEL_PROB=0.1;
     size_t numSamples = 10;
-    DummyNestedSBMGraph graphPrior = DummyNestedSBMGraph(SIZE, EDGECOUNT);
+    NestedStochasticBlockModelFamily graphPrior = NestedStochasticBlockModelFamily(
+        SIZE, EDGECOUNT, canonical, stubLabeled
+    );
     DummyRestrictedMixedNestedBlockProposer proposer = DummyRestrictedMixedNestedBlockProposer(SAMPLE_LABEL_PROB);
     void SetUp(){
         seedWithTime();

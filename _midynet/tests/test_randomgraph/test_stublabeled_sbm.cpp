@@ -15,16 +15,11 @@ using namespace std;
 using namespace FastMIDyNet;
 
 
-class TestStubLabeledStochasticBlockModelBase: public::testing::Test{
+class TestStubLabeledStochasticBlockModelFamily: public::testing::Test{
     public:
-        const size_t NUM_BLOCKS = 3;
-        const size_t NUM_EDGES = 100;
-        const size_t NUM_VERTICES = 50;
-        BlockCountDeltaPrior blockCountPrior = {NUM_BLOCKS};
-        BlockUniformPrior blockPrior = {NUM_VERTICES, blockCountPrior};
-        EdgeCountDeltaPrior edgeCountPrior = {NUM_EDGES};
-        LabelGraphErdosRenyiPrior labelGraphPrior = {edgeCountPrior, blockPrior};
-        StochasticBlockModelBase randomGraph = StochasticBlockModelBase(NUM_VERTICES, true);
+        const size_t NUM_VERTICES = 50, NUM_EDGES = 100, NUM_BLOCKS=3;
+        const bool useHyperPrior = true, canonical = false, stubLabeled = true;
+        StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(NUM_VERTICES, NUM_EDGES, NUM_BLOCKS, useHyperPrior, canonical, stubLabeled);
 
         BaseGraph::VertexIndex vertex = 4;
 
@@ -51,13 +46,13 @@ class TestStubLabeledStochasticBlockModelBase: public::testing::Test{
 
 
         void SetUp() {
-            randomGraph.setLabelGraphPrior(labelGraphPrior);
-            randomGraph.sample();
+            while(randomGraph.getLabelCount() > 30 or randomGraph.getLabelCount() == 1)
+                randomGraph.sample();
         }
 };
 
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, sampleState_graphChanges){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, sampleState_graphChanges){
     for (size_t i = 0; i < 10; i++) {
         auto prevGraph = randomGraph.getState();
         randomGraph.sample();
@@ -66,7 +61,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, sampleState_graphChanges){
     }
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, sample_graphChanges){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, sample_graphChanges){
     for (size_t i = 0; i < 10; i++) {
         auto prevGraph = randomGraph.getState();
         randomGraph.sample();
@@ -75,11 +70,11 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, sample_graphChanges){
     }
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihood_returnNonZeroValue){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, getLogLikelihood_returnNonZeroValue){
     EXPECT_TRUE(randomGraph.getLogLikelihood() < 0);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forAddedEdge){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, applyMove_forAddedEdge){
     BaseGraph::Edge addedEdge = {0, 2};
     size_t addedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
     FastMIDyNet::GraphMove move = {{}, {addedEdge}};
@@ -88,7 +83,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forAddedEdge){
     EXPECT_EQ(addedEdgeMultAfter - 1, addedEdgeMultBefore);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forAddedSelfLoop){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, applyMove_forAddedSelfLoop){
     BaseGraph::Edge addedEdge = {0, 0};
     size_t addedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
     FastMIDyNet::GraphMove move = {{}, {addedEdge}};
@@ -97,7 +92,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forAddedSelfLoop){
     EXPECT_EQ(addedEdgeMultAfter - 1, addedEdgeMultBefore);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forRemovedEdge){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, applyMove_forRemovedEdge){
     BaseGraph::Edge removedEdge = findEdge();
     size_t removedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
     FastMIDyNet::GraphMove move = {{removedEdge}, {}};
@@ -106,7 +101,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forRemovedEdge){
     EXPECT_EQ(removedEdgeMultAfter + 1, removedEdgeMultBefore);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forRemovedEdgeAndAddedEdge){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, applyMove_forRemovedEdgeAndAddedEdge){
     BaseGraph::Edge addedEdge = {10, 11};
     BaseGraph::Edge removedEdge = findEdge();
     size_t removedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
@@ -120,12 +115,12 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forRemovedEdgeAndAdded
 
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forNoEdgesAddedOrRemoved){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, applyMove_forNoEdgesAddedOrRemoved){
     FastMIDyNet::GraphMove move = {{}, {}};
     randomGraph.applyGraphMove(move);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forIdentityBlockMove_doNothing){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, applyMove_forIdentityBlockMove_doNothing){
     FastMIDyNet::BlockIndex prevLabel = randomGraph.getLabelOfIdx(vertex);
     FastMIDyNet::BlockIndex nextLabel = prevLabel;
 
@@ -133,7 +128,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forIdentityBlockMove_d
     randomGraph.applyLabelMove(move);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forBlockMoveWithNoBlockCreation_changeBlockIdx){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, applyMove_forBlockMoveWithNoBlockCreation_changeBlockIdx){
     FastMIDyNet::BlockIndex prevLabel = randomGraph.getLabelOfIdx(vertex);
     FastMIDyNet::BlockIndex nextLabel = findBlockMove(vertex);
 
@@ -143,7 +138,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forBlockMoveWithNoBloc
     EXPECT_EQ(randomGraph.getLabelOfIdx(vertex), nextLabel);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forBlockMoveWithBlockCreation_changeBlockIdxAndBlockCount){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, applyMove_forBlockMoveWithBlockCreation_changeBlockIdxAndBlockCount){
     FastMIDyNet::BlockIndex prevLabel = randomGraph.getLabelOfIdx(vertex);
     FastMIDyNet::BlockIndex nextLabel = randomGraph.getVertexCounts().size();
     FastMIDyNet::BlockMove move = {vertex, prevLabel, nextLabel};
@@ -152,7 +147,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forBlockMoveWithBlockC
     EXPECT_EQ(randomGraph.getLabelOfIdx(vertex), nextLabel);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forBlockMoveWithBlockDestruction_changeBlockIdxAndBlockCount){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, applyMove_forBlockMoveWithBlockDestruction_changeBlockIdxAndBlockCount){
     FastMIDyNet::BlockIndex prevLabel = randomGraph.getVertexCounts().size();
     FastMIDyNet::BlockIndex nextLabel = randomGraph.getLabelOfIdx(vertex);
     FastMIDyNet::BlockMove move = {vertex, nextLabel, prevLabel};
@@ -163,7 +158,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, applyMove_forBlockMoveWithBlockD
     EXPECT_NE(randomGraph.getLabelOfIdx(vertex), prevLabel);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forAddedSelfLoop_returnCorrectLogLikelihoodRatio){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, getLogLikelihoodRatio_forAddedSelfLoop_returnCorrectLogLikelihoodRatio){
     FastMIDyNet::GraphMove move = {{}, {{0, 0}}};
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBefore = randomGraph.getLogLikelihood();
@@ -173,7 +168,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forAddedSe
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forRemovedSelfLoop_returnCorrectLogLikelihoodRatio){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, getLogLikelihoodRatio_forRemovedSelfLoop_returnCorrectLogLikelihoodRatio){
     randomGraph.applyGraphMove({{}, {{0, 0}}});
     FastMIDyNet::GraphMove move = {{{0, 0}}, {}};
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -184,7 +179,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forRemoved
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forAddedEdge_returnCorrectLogLikelihoodRatio){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, getLogLikelihoodRatio_forAddedEdge_returnCorrectLogLikelihoodRatio){
     FastMIDyNet::GraphMove move = {{}, {{0, 2}}};
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBefore = randomGraph.getLogLikelihood();
@@ -194,7 +189,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forAddedEd
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forRemovedEdge_returnCorrectLogLikelihoodRatio){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, getLogLikelihoodRatio_forRemovedEdge_returnCorrectLogLikelihoodRatio){
     randomGraph.applyGraphMove({{}, {{0, 2}}});
     FastMIDyNet::GraphMove move = {{{0, 2}}, {}};
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -205,7 +200,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forRemoved
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forRemovedAndAddedEdges_returnCorrectLogLikelihoodRatio){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, getLogLikelihoodRatio_forRemovedAndAddedEdges_returnCorrectLogLikelihoodRatio){
     randomGraph.applyGraphMove({{}, {{0, 2}}});
     FastMIDyNet::GraphMove move = {{{0, 2}}, {{0,0}}};
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -216,7 +211,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forRemoved
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forIdentityBlockMove_return0){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, getLogLikelihoodRatio_forIdentityBlockMove_return0){
 
     FastMIDyNet::BlockIndex prevLabel = randomGraph.getLabelOfIdx(vertex);
     FastMIDyNet::BlockIndex nextLabel = prevLabel;
@@ -226,7 +221,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forIdentit
     EXPECT_NEAR(randomGraph.getLogLikelihoodRatioFromLabelMove(move), 0, 1E-6);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forBlockMove_returnCorrectLogLikelihoodRatio){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, getLogLikelihoodRatio_forBlockMove_returnCorrectLogLikelihoodRatio){
     FastMIDyNet::BlockIndex prevLabel = randomGraph.getLabelOfIdx(vertex);
     FastMIDyNet::BlockIndex nextLabel = findBlockMove(vertex);
     FastMIDyNet::BlockMove move = {vertex, prevLabel, nextLabel};
@@ -238,7 +233,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forBlockMo
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forBlockMoveWithBlockCreation_returnCorrectLogLikelihoodRatio){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, getLogLikelihoodRatio_forBlockMoveWithBlockCreation_returnCorrectLogLikelihoodRatio){
 
     FastMIDyNet::BlockIndex prevLabel = randomGraph.getLabelOfIdx(vertex);
     FastMIDyNet::BlockIndex nextLabel = randomGraph.getVertexCounts().size();
@@ -252,7 +247,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forBlockMo
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forBlockMoveWithBlockDestruction_returnCorrectLogLikelihoodRatio){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, getLogLikelihoodRatio_forBlockMoveWithBlockDestruction_returnCorrectLogLikelihoodRatio){
 
     FastMIDyNet::BlockIndex prevLabel = randomGraph.getLabelOfIdx(vertex);
     FastMIDyNet::BlockIndex nextLabel = randomGraph.getVertexCounts().size();
@@ -272,18 +267,18 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, getLogLikelihoodRatio_forBlockMo
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1E-6);
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, isCompatible_forGraphSampledFromSBM_returnTrue){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, isCompatible_forGraphSampledFromSBM_returnTrue){
     randomGraph.sample();
     auto g = randomGraph.getState();
     EXPECT_TRUE(randomGraph.isCompatible(g));
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, isCompatible_forEmptyGraph_returnFalse){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, isCompatible_forEmptyGraph_returnFalse){
     MultiGraph g(0);
     EXPECT_FALSE(randomGraph.isCompatible(g));
 }
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
     randomGraph.sample();
     auto g = randomGraph.getState();
     for (auto vertex: g){
@@ -296,7 +291,7 @@ TEST_F(TestStubLabeledStochasticBlockModelBase, isCompatible_forGraphWithOneEdge
 }
 
 
-TEST_F(TestStubLabeledStochasticBlockModelBase, setLabels_forSomeRandomLabels_returnConsistentState){
+TEST_F(TestStubLabeledStochasticBlockModelFamily, setLabels_forSomeRandomLabels_returnConsistentState){
     size_t N = randomGraph.getSize();
     size_t B = randomGraph.getLabelCount();
     std::vector<BlockIndex> newLabels(N);

@@ -4,14 +4,18 @@
 
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/proposer/proposer.hpp"
-#include "FastMIDyNet/random_graph/random_graph.hpp"
+// #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/rng.h"
+#include "FastMIDyNet/rv.hpp"
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/utility/functions.h"
 
 
 namespace FastMIDyNet {
+
+template<typename Label>
+class VertexLabeledRandomGraph;
 
 template<typename Label>
 class LabelProposer: public Proposer<LabelMove<Label>> {
@@ -44,6 +48,10 @@ public:
 
     const double getSampleLabelCountProb() const { return m_sampleLabelCountProb; }
     virtual void applyLabelMove(const LabelMove<Label>& move) { };
+
+    const VertexLabeledRandomGraph<Label>& getGraphPrior() {
+        return *m_graphPriorPtr;
+    };
 
 
     const LabelMove<Label> proposeMove() const {

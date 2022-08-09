@@ -38,14 +38,16 @@ protected:
         m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
     }
 
-public:
+    
     DegreeCorrectedStochasticBlockModelBase(size_t graphSize):
-        VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel) { setUpLikelihood(); }
+    VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel) { }
     DegreeCorrectedStochasticBlockModelBase(size_t graphSize, VertexLabeledDegreePrior& degreePrior):
-        VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel), m_degreePriorPtr(&degreePrior){
-            setUpLikelihood();
-            m_degreePriorPtr->isRoot(false);
-        }
+    VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel){
+        setDegreePrior(degreePrior);
+        m_degreePriorPtr->isRoot(false);
+    }
+
+public:
 
     void sampleLabels() override {
         m_degreePriorPtr->samplePartition();
@@ -65,6 +67,7 @@ public:
     void setDegreePrior(VertexLabeledDegreePrior& prior) {
         prior.isRoot(false);
         m_degreePriorPtr = &prior;
+        setUpLikelihood();
     }
 
     const BlockSequence& getLabels() const override {
@@ -113,27 +116,53 @@ public:
 };
 
 class DegreeCorrectedStochasticBlockModelFamily: public DegreeCorrectedStochasticBlockModelBase{
-    BlockCountUniformPrior m_blockCountPrior;
+    std::unique_ptr<BlockCountPrior> m_blockCountPriorUPtr;
     LabelGraphErdosRenyiPrior m_labelGraphPrior;
 
-    BlockPrior* m_blockPriorPtr;
-    EdgeCountPrior* m_edgeCountPriorPtr;
+    std::unique_ptr<BlockPrior> m_blockPriorUPtr;
+    std::unique_ptr<EdgeCountPrior> m_edgeCountPriorUPtr;
+    std::unique_ptr<VertexLabeledDegreePrior> m_degreePriorUPtr;
+    std::unique_ptr<EdgeProposer> m_edgeProposerUPtr;
+    std::unique_ptr<LabelProposer<BlockIndex>> m_labelProposerUPtr;
 public:
-    DegreeCorrectedStochasticBlockModelFamily(size_t size, double edgeCount, bool useHyperPrior=false, bool canonical=false):
+    DegreeCorrectedStochasticBlockModelFamily(
+        size_t size,
+        double edgeCount,
+        size_t blockCount=0,
+        bool useHyperPrior=false,
+        bool canonical=false,
+        std::string edgeProposerType="degree",
+        std::string blockProposerType="degree",
+        double sampleLabelCountProb=0.1,
+        double labelCreationProb=0.5,
+        double shift=1
+    ):
         DegreeCorrectedStochasticBlockModelBase(size),
-        m_blockCountPrior(1, size-1),
         m_labelGraphPrior(){
-            m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
-            m_blockPriorPtr = makeBlockPrior(size, m_blockCountPrior, useHyperPrior);
-            m_labelGraphPrior = LabelGraphErdosRenyiPrior(*m_edgeCountPriorPtr, *m_blockPriorPtr);
-            m_degreePriorPtr = makeVertexLabeledDegreePrior(m_labelGraphPrior);
+            if (blockCount == 0)
+                m_blockCountPriorUPtr = std::unique_ptr<BlockCountPrior>(new BlockCountUniformPrior(1, size-1));
+            else{
+                m_blockCountPriorUPtr = std::unique_ptr<BlockCountPrior>(new BlockCountDeltaPrior(blockCount));
+                sampleLabelCountProb = 0;
+            }
+            m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
+            m_blockPriorUPtr = std::unique_ptr<BlockPrior>(makeBlockPrior(size, *m_blockCountPriorUPtr, useHyperPrior));
+            m_labelGraphPrior = LabelGraphErdosRenyiPrior(*m_edgeCountPriorUPtr, *m_blockPriorUPtr);
+            m_degreePriorUPtr = std::unique_ptr<VertexLabeledDegreePrior>(makeVertexLabeledDegreePrior(m_labelGraphPrior));
+            setDegreePrior(*m_degreePriorUPtr);
+
+            m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(
+                makeEdgeProposer(edgeProposerType, canonical, false, true, true)
+            );
+            setEdgeProposer(*m_edgeProposerUPtr);
+
+            m_labelProposerUPtr = std::unique_ptr<LabelProposer<BlockIndex>>(
+                makeBlockProposer(blockProposerType, useHyperPrior, sampleLabelCountProb, labelCreationProb, shift)
+            );
+            setLabelProposer(*m_labelProposerUPtr);
+
             checkSafety();
             sample();
-    }
-    virtual ~DegreeCorrectedStochasticBlockModelFamily(){
-        delete m_edgeCountPriorPtr;
-        delete m_blockPriorPtr;
-        delete m_degreePriorPtr;
     }
 };
 

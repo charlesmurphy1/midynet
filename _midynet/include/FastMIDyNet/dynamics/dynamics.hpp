@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <map>
+#include <memory>
 #include <iostream>
 
 #include "BaseGraph/types.h"

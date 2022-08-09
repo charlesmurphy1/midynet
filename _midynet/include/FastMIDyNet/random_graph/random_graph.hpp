@@ -11,11 +11,24 @@
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/random_graph/likelihood/likelihood.hpp"
 
+#include "FastMIDyNet/proposer/edge/edge_proposer.h"
+#include "FastMIDyNet/proposer/label/base.hpp"
+#include "FastMIDyNet/proposer/nested_label/base.hpp"
+
 namespace FastMIDyNet{
+
+// class EdgeProposer;
+//
+// template<typename Label>
+// class LabelProposer;
+//
+// template<typename Label>
+// class NestedLabelProposer;
 
 class RandomGraph: public NestedRandomVariable{
 protected:
     GraphLikelihoodModel* m_likelihoodModelPtr = nullptr;
+    EdgeProposer* m_edgeProposerPtr = nullptr;
     size_t m_size;
     MultiGraph m_state;
     virtual void _applyGraphMove(const GraphMove&);
@@ -25,18 +38,20 @@ protected:
     virtual void setUpLikelihood() {
         m_likelihoodModelPtr->m_statePtr = &m_state;
     }
+    virtual void setUp();
+
 public:
     RandomGraph(size_t size):
         m_size(size), m_state(size) { }
 
     RandomGraph(size_t size, GraphLikelihoodModel& likelihoodModel):
         m_size(size), m_state(size), m_likelihoodModelPtr(&likelihoodModel) { }
-    virtual ~RandomGraph() {}
 
     const MultiGraph& getState() const { return m_state; }
 
     virtual void setState(const MultiGraph& state) {
         m_state = state;
+        setUp();
     }
     const size_t getSize() const { return m_size; }
     void setSize(const size_t size) { m_size = size; }
@@ -47,9 +62,21 @@ public:
         return avgDegree;
     }
 
+    void setEdgeProposer(EdgeProposer& proposer) {
+        proposer.isRoot(false);
+        m_edgeProposerPtr = &proposer;
+    }
+    const EdgeProposer& getEdgeProposer() {
+        return *m_edgeProposerPtr;
+    }
+    EdgeProposer& getEdgeProposerRef() {
+        return *m_edgeProposerPtr;
+    }
+
     void sample() {
         samplePrior();
         sampleState();
+        setUp();
     }
     void sampleState() {
         setState(m_likelihoodModelPtr->sample());
@@ -59,6 +86,7 @@ public:
 
     const double getLogLikelihood() const { return m_likelihoodModelPtr->getLogLikelihood(); }
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const { return m_likelihoodModelPtr->getLogLikelihoodRatioFromGraphMove(move); }
+    const double getLogProposalRatioFromGraphMove (const GraphMove& move) const;
 
     const double getLogPrior() const {
         return processRecursiveFunction<double>([&](){ return _getLogPrior();}, 0);
@@ -74,18 +102,16 @@ public:
         return getLogPriorRatioFromGraphMove(move) + getLogLikelihoodRatioFromGraphMove(move);
     }
 
-    void applyGraphMove(const GraphMove& move){
-        processRecursiveFunction([&](){ _applyGraphMove(move); });
-        #if DEBUG
-        checkConsistency();
-        #endif
-    }
+    void applyGraphMove(const GraphMove& move) ;
+    const GraphMove proposeGraphMove() const ;
 
     virtual const bool isCompatible(const MultiGraph& graph) const { return graph.getSize() == m_size; }
     virtual bool isSafe() const override { return m_likelihoodModelPtr and m_likelihoodModelPtr->isSafe(); }
     virtual void checkSelfSafety() const override {
-        if (not m_likelihoodModelPtr)
+        if (m_likelihoodModelPtr == nullptr)
             throw SafetyError("RandomGraph", "m_likelihoodModelPtr");
+        if (m_edgeProposerPtr == nullptr)
+            throw SafetyError("RandomGraph", "m_edgeProposerPtr");
     }
     virtual void checkSelfConsistency() const override {
         m_likelihoodModelPtr->checkConsistency();
@@ -97,9 +123,14 @@ public:
 template <typename Label>
 class VertexLabeledRandomGraph: public RandomGraph{
 protected:
+    LabelProposer<Label>* m_labelProposerPtr = nullptr;
     virtual void _applyLabelMove(const LabelMove<Label>&) { };
     virtual const double _getLogPriorRatioFromLabelMove (const LabelMove<Label>& move) const { return 0; }
     VertexLabeledGraphLikelihoodModel<Label>* m_vertexLabeledlikelihoodModelPtr = nullptr;
+
+    using RandomGraph::m_edgeProposerPtr;
+    virtual void setUp() override ;
+
 public:
     VertexLabeledRandomGraph(size_t size):
         RandomGraph(size){ }
@@ -115,6 +146,19 @@ public:
     virtual void setLabels(const std::vector<Label>&) = 0;
     virtual void sampleLabels() = 0;
 
+
+
+    void setLabelProposer(LabelProposer<Label>& proposer) {
+        proposer.isRoot(false);
+        m_labelProposerPtr = &proposer;
+    }
+    const LabelProposer<Label>& getLabelProposer() {
+        return *m_labelProposerPtr;
+    }
+    LabelProposer<Label>& getLabelProposerRef() {
+        return *m_labelProposerPtr;
+    }
+
     const double getLogLikelihoodRatioFromLabelMove (const LabelMove<Label>& move) const {
         return m_vertexLabeledlikelihoodModelPtr->getLogLikelihoodRatioFromLabelMove(move);
     }
@@ -124,13 +168,16 @@ public:
     const double getLogJointRatioFromLabelMove (const LabelMove<Label>& move) const{
         return getLogPriorRatioFromLabelMove(move) + getLogLikelihoodRatioFromLabelMove(move);
     }
-    void applyLabelMove(const LabelMove<Label>& move) {
-        processRecursiveFunction([&](){ _applyLabelMove(move); });
-        #if DEBUG
-        checkConsistency();
-        #endif
-    }
+    const double getLogProposalRatioFromLabelMove (const LabelMove<Label>& move) const;
+
+    void applyLabelMove(const LabelMove<Label>& move) ;
+    const LabelMove<Label> proposeLabelMove() const;
     virtual bool isValidLabelMove(const LabelMove<Label>& move) const { return true; }
+    virtual void checkSelfSafety() const override {
+        RandomGraph::checkSelfSafety();
+        if (m_labelProposerPtr == nullptr)
+            throw SafetyError("RandomGraph", "m_labelProposerPtr");
+    }
 };
 
 using BlockLabeledRandomGraph = VertexLabeledRandomGraph<BlockIndex>;
@@ -138,6 +185,12 @@ using BlockLabeledRandomGraph = VertexLabeledRandomGraph<BlockIndex>;
 
 template <typename Label>
 class NestedVertexLabeledRandomGraph: public VertexLabeledRandomGraph<Label>{
+protected:
+    NestedLabelProposer<Label>* m_nestedLabelProposerPtr = nullptr;
+    using VertexLabeledRandomGraph<Label>::m_state;
+    using VertexLabeledRandomGraph<Label>::m_edgeProposerPtr;
+    using VertexLabeledRandomGraph<Label>::m_labelProposerPtr;
+    virtual void setUp() override ;
 public:
     using VertexLabeledRandomGraph<Label>::VertexLabeledRandomGraph;
 
@@ -161,6 +214,18 @@ public:
     virtual const std::vector<MultiGraph>& getNestedLabelGraph() const = 0;
     virtual const MultiGraph& getNestedLabelGraph(Level ) const = 0;
 
+    void setNestedLabelProposer(NestedLabelProposer<Label>& proposer) {
+        proposer.isRoot(false);
+        m_labelProposerPtr = &proposer;
+        m_nestedLabelProposerPtr = &proposer;
+    }
+    const NestedLabelProposer<Label>& getNestedLabelProposer() {
+        return *m_nestedLabelProposerPtr;
+    }
+    NestedLabelProposer<Label>& getNestedLabelProposerRef() {
+        return *m_nestedLabelProposerPtr;
+    }
+
     using VertexLabeledRandomGraph<Label>::getLabelOfIdx;
     const std::vector<Label>& getLabels() const override { return getNestedLabels()[0]; }
     const size_t getLabelCount() const override { return getNestedLabelCount()[0]; }
@@ -169,6 +234,39 @@ public:
     const MultiGraph& getLabelGraph() const override { return getNestedLabelGraph()[0]; }
 };
 using NestedBlockLabeledRandomGraph = NestedVertexLabeledRandomGraph<BlockIndex>;
+
+
+template<typename Label>
+void VertexLabeledRandomGraph<Label>::setUp() {
+    m_edgeProposerPtr->setUpWithPrior(*this);
+    m_labelProposerPtr->setUpWithPrior(*this);
+}
+
+template<typename Label>
+const double VertexLabeledRandomGraph<Label>::getLogProposalRatioFromLabelMove (const LabelMove<Label>& move) const{
+    return m_labelProposerPtr->getLogProposalProbRatio(move);
+}
+
+template<typename Label>
+void VertexLabeledRandomGraph<Label>::applyLabelMove(const LabelMove<Label>& move) {
+    processRecursiveFunction([&](){ _applyLabelMove(move); });
+    m_labelProposerPtr->applyLabelMove(move);
+    #if DEBUG
+    checkConsistency();
+    #endif
+}
+
+template<typename Label>
+const LabelMove<Label> VertexLabeledRandomGraph<Label>::proposeLabelMove() const {
+    return m_labelProposerPtr->proposeMove();
+}
+
+
+template<typename Label>
+void NestedVertexLabeledRandomGraph<Label>::setUp() {
+    m_edgeProposerPtr->setUpWithPrior(*this);
+    m_nestedLabelProposerPtr->setUpWithNestedPrior(*this);
+}
 
 } // namespace FastMIDyNet
 

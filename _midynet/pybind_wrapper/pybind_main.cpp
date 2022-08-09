@@ -9,8 +9,8 @@
 #include "init_generator.h"
 #include "init_rng.h"
 #include "random_graph/init.h"
-#include "dynamics/init.h"
 #include "proposer/init.h"
+#include "dynamics/init.h"
 #include "mcmc/init.h"
 
 namespace py = pybind11;
@@ -34,14 +34,15 @@ PYBIND11_MODULE(_midynet, m) {
         .def("is_safe", &NestedRandomVariable::isSafe)
         ;
 
+
+    py::module proposer = m.def_submodule("proposer");
+    initProposer( proposer );
+
     py::module random_graph = m.def_submodule("random_graph");
     initRandomGraph( random_graph );
 
     py::module dynamics = m.def_submodule("dynamics");
     initDynamics( dynamics );
-
-    py::module proposer = m.def_submodule("proposer");
-    initProposer( proposer );
 
     py::module mcmc = m.def_submodule("mcmc");
     initMCMC( mcmc );

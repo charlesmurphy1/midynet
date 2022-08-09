@@ -38,13 +38,12 @@ public:
     NestedDegreeCorrectedStochasticBlockModelBase(size_t graphSize):
         NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel),
         m_nestedLabelGraphPrior(graphSize),
-        m_likelihoodModel() { setUpLikelihood(); }
+        m_likelihoodModel() { }
     NestedDegreeCorrectedStochasticBlockModelBase(size_t graphSize, EdgeCountPrior& EdgeCountPrior, VertexLabeledDegreePrior& degreePrior):
         NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel),
         m_likelihoodModel(),
         m_nestedLabelGraphPrior(graphSize, EdgeCountPrior){
             setDegreePrior(degreePrior);
-            setUpLikelihood();
         }
 
 
@@ -92,6 +91,7 @@ public:
         m_degreePriorPtr = &prior;
         m_degreePriorPtr->setLabelGraphPrior(m_nestedLabelGraphPrior);
         m_degreePriorPtr->isRoot(false);
+        setUpLikelihood();
     }
 
     void checkSelfConsistency() const override {
@@ -100,15 +100,12 @@ public:
     }
     const bool isCompatible(const MultiGraph& graph) const override{
         if (not VertexLabeledRandomGraph<BlockIndex>::isCompatible(graph)){
-            // std::cout << "CODE 1" << std::endl;
             return false;
         }
         if (getLabelGraphFromGraph(graph, getLabels()) != getLabelGraph()){
-            std::cout << "CODE 2" << std::endl;
             return false;
         }
         if (m_degreePriorPtr->getState() != graph.getDegrees()){
-            // std::cout << "CODE 3" << std::endl;
             return false;
         }
         return true;
@@ -125,19 +122,40 @@ public:
 };
 
 class NestedDegreeCorrectedStochasticBlockModelFamily: public NestedDegreeCorrectedStochasticBlockModelBase{
-    EdgeCountPrior* m_edgeCountPriorPtr;
+    std::unique_ptr<EdgeCountPrior> m_edgeCountPriorUPtr;
+    std::unique_ptr<VertexLabeledDegreePrior> m_degreePriorUPtr;
+    std::unique_ptr<EdgeProposer> m_edgeProposerUPtr;
+    std::unique_ptr<NestedLabelProposer<BlockIndex>> m_nestedLabelProposerUPtr;
 public:
-    NestedDegreeCorrectedStochasticBlockModelFamily(size_t size, double edgeCount, bool useHyperPrior=true, bool canonical=false):
+    NestedDegreeCorrectedStochasticBlockModelFamily(
+        size_t size,
+        double edgeCount,
+        bool useHyperPrior=false,
+        bool canonical=false,
+        std::string edgeProposerType="uniform",
+        std::string blockProposerType="uniform",
+        double sampleLabelCountProb=0.1,
+        double labelCreationProb=0.5,
+        double shift=1
+    ):
         NestedDegreeCorrectedStochasticBlockModelBase(size){
-            m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
-            m_nestedLabelGraphPrior = NestedStochasticBlockLabelGraphPrior(size, *m_edgeCountPriorPtr);
-            m_degreePriorPtr = makeVertexLabeledDegreePrior(m_nestedLabelGraphPrior, useHyperPrior);
+            m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
+            m_nestedLabelGraphPrior.setEdgeCountPrior(*m_edgeCountPriorUPtr);
+            m_degreePriorUPtr = std::unique_ptr<VertexLabeledDegreePrior>(makeVertexLabeledDegreePrior(m_nestedLabelGraphPrior, useHyperPrior));
+            setDegreePrior(*m_degreePriorUPtr);
+
+            m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(
+                makeEdgeProposer(edgeProposerType, canonical, false, true, true)
+            );
+            setEdgeProposer(*m_edgeProposerUPtr);
+
+            m_nestedLabelProposerUPtr = std::unique_ptr<NestedLabelProposer<BlockIndex>>(
+                makeNestedBlockProposer(blockProposerType, true, sampleLabelCountProb, labelCreationProb, shift)
+            );
+            setNestedLabelProposer(*m_nestedLabelProposerUPtr);
+
             checkSafety();
             sample();
-    }
-    virtual ~NestedDegreeCorrectedStochasticBlockModelFamily(){
-        delete m_edgeCountPriorPtr;
-        delete m_degreePriorPtr;
     }
 };
 

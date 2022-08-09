@@ -10,7 +10,10 @@ class TestGibbsUniformBlockProposer: public::testing::Test {
 public:
     double SAMPLE_LABEL_PROB=0.1, LABEL_CREATION_PROB=0.5;
     size_t numSamples = 1000;
-    DummySBMGraph graphPrior;
+    const size_t NUM_VERTICES = 100, NUM_EDGES = 250;
+    const bool useHyperPrior = false, canonical = false, stubLabeled = false;
+
+    StochasticBlockModelFamily graphPrior = StochasticBlockModelFamily(100, 250, 3, useHyperPrior, canonical, stubLabeled);
     GibbsUniformBlockProposer proposer = GibbsUniformBlockProposer(SAMPLE_LABEL_PROB, LABEL_CREATION_PROB);
     void SetUp(){
         seedWithTime();
@@ -112,8 +115,11 @@ class TestRestrictedUniformBlockProposer: public::testing::Test {
 public:
     double SAMPLE_LABEL_PROB=0.1;
     size_t numSamples = 10;
-    DummyRestrictedSBMGraph graphPrior;
-    DummyRestrictedSBMGraph smallGraphPrior = DummyRestrictedSBMGraph(5);
+    const size_t NUM_VERTICES = 100, NUM_EDGES = 250;
+    const bool useHyperPrior = true, canonical = false, stubLabeled = false;
+
+    StochasticBlockModelFamily graphPrior = StochasticBlockModelFamily(100, 250, 3, useHyperPrior, canonical, stubLabeled);
+    StochasticBlockModelFamily smallGraphPrior = StochasticBlockModelFamily(5, 5, 3, useHyperPrior, canonical, stubLabeled);
     DummyRestrictedUniformBlockProposer proposer = DummyRestrictedUniformBlockProposer(SAMPLE_LABEL_PROB);
     void SetUp(){
         seedWithTime();
@@ -165,7 +171,7 @@ TEST_F(TestRestrictedUniformBlockProposer, getLogProposalProb_forStandardBlockMo
     for (size_t i = 0; i < numSamples; i++) {
         auto move = proposer.proposeLabelMove(0);
         double logProb = proposer.getLogProposalProb(move, false);
-        EXPECT_EQ(logProb, log(1 - SAMPLE_LABEL_PROB) - log(graphPrior.getLabelCount())) ;
+        EXPECT_EQ(logProb, log(1 - SAMPLE_LABEL_PROB) - log(proposer.getAvailableLabels().size())) ;
     }
 }
 

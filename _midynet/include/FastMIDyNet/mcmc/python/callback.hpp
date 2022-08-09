@@ -19,8 +19,6 @@ public:
     /* Pure abstract methods */
 
     /* Abstract methods */
-    void setUp(MCMCType* mcmcPtr) override { PYBIND11_OVERRIDE(void, BaseClass, setUp, mcmcPtr); }
-    void tearDown() override { PYBIND11_OVERRIDE(void, BaseClass, tearDown, ); }
     void onBegin() override { PYBIND11_OVERRIDE(void, BaseClass, onBegin, ); }
     void onEnd() override { PYBIND11_OVERRIDE(void, BaseClass, onEnd, ); }
     void onStepBegin() override { PYBIND11_OVERRIDE(void, BaseClass, onStepBegin, ); }

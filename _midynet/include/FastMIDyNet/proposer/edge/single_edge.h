@@ -19,7 +19,7 @@ protected:
 public:
     using EdgeProposer::EdgeProposer;
     const GraphMove proposeRawMove() const override;
-    void setUp(const MultiGraph&) override;
+    void setUpWithGraph(const MultiGraph&) override;
     void setVertexSampler(VertexSampler& vertexSampler){ m_vertexSamplerPtr = &vertexSampler; }
     virtual void applyGraphMove(const GraphMove& move) override { };
     // void applyBlockMove(const BlockMove& move) override { };

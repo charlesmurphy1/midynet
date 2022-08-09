@@ -61,11 +61,14 @@ public:
 
 class DummyRandomGraph: public RandomGraph{
     size_t m_edgeCount;
+    HingeFlipUniformProposer m_edgeProposer;
     DummyGraphLikelihood likelihood;
     void setUpLikelihood() override { likelihood.m_sizePtr = &m_size; likelihood.m_edgeCountPtr = &m_edgeCount; }
 public:
     using RandomGraph::RandomGraph;
-    DummyRandomGraph(size_t size): RandomGraph(size, likelihood) { }
+    DummyRandomGraph(size_t size): RandomGraph(size, likelihood) {
+        setEdgeProposer(m_edgeProposer);
+    }
 
     void setState(const MultiGraph& state) override{
         RandomGraph::setState(state);
@@ -75,72 +78,72 @@ public:
     const size_t getEdgeCount() const override { return m_edgeCount; }
 };
 
-class DummyErdosRenyiGraph: public ErdosRenyiModelBase{
-public:
-    EdgeCountDeltaPrior prior;
-    DummyErdosRenyiGraph(size_t size=10, size_t edgeCount=25):
-    ErdosRenyiModelBase(size), prior(edgeCount) { setEdgeCountPrior(prior); }
-};
+// class DummyErdosRenyiGraph: public ErdosRenyiModelBase{
+// public:
+//     EdgeCountDeltaPrior prior;
+//     DummyErdosRenyiGraph(size_t size=10, size_t edgeCount=25):
+//     ErdosRenyiModelBase(size), prior(edgeCount) { setEdgeCountPrior(prior); }
+// };
+//
+// class DummySBMGraph: public StochasticBlockModelBase{
+//     size_t size;
+//     size_t edgeCount;
+//     size_t blockCount;
+//
+//     BlockCountDeltaPrior blockCountPrior;
+//     BlockUniformPrior blockPrior;
+//     EdgeCountDeltaPrior edgeCountPrior;
+//     LabelGraphErdosRenyiPrior labelGraphPrior;
+//
+// public:
+//     DummySBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
+//     StochasticBlockModelBase(size),
+//     blockCountPrior(blockCount),
+//     blockPrior(size, blockCountPrior),
+//     edgeCountPrior(edgeCount),
+//     labelGraphPrior(edgeCountPrior, blockPrior)
+//      {
+//         setLabelGraphPrior(labelGraphPrior);
+//     }
+//     using StochasticBlockModelBase::sample;
+// };
 
-class DummySBMGraph: public StochasticBlockModelBase{
-    size_t size;
-    size_t edgeCount;
-    size_t blockCount;
+// class DummyRestrictedSBMGraph: public StochasticBlockModelBase{
+//     size_t size;
+//     size_t edgeCount;
+//     size_t blockCount;
+//
+//     BlockCountDeltaPrior blockCountPrior;
+//     BlockUniformHyperPrior blockPrior;
+//     EdgeCountDeltaPrior edgeCountPrior;
+//     LabelGraphErdosRenyiPrior labelGraphPrior;
+//
+// public:
+//     DummyRestrictedSBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
+//     StochasticBlockModelBase(size),
+//     blockCountPrior(blockCount),
+//     blockPrior(size, blockCountPrior),
+//     edgeCountPrior(edgeCount),
+//     labelGraphPrior(edgeCountPrior, blockPrior)
+//      {
+//         setLabelGraphPrior(labelGraphPrior);
+//     }
+//     using StochasticBlockModelBase::sample;
+// };
 
-    BlockCountDeltaPrior blockCountPrior;
-    BlockUniformPrior blockPrior;
-    EdgeCountDeltaPrior edgeCountPrior;
-    LabelGraphErdosRenyiPrior labelGraphPrior;
-
-public:
-    DummySBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
-    StochasticBlockModelBase(size),
-    blockCountPrior(blockCount),
-    blockPrior(size, blockCountPrior),
-    edgeCountPrior(edgeCount),
-    labelGraphPrior(edgeCountPrior, blockPrior)
-     {
-        setLabelGraphPrior(labelGraphPrior);
-    }
-    using StochasticBlockModelBase::sample;
-};
-
-class DummyRestrictedSBMGraph: public StochasticBlockModelBase{
-    size_t size;
-    size_t edgeCount;
-    size_t blockCount;
-
-    BlockCountDeltaPrior blockCountPrior;
-    BlockUniformHyperPrior blockPrior;
-    EdgeCountDeltaPrior edgeCountPrior;
-    LabelGraphErdosRenyiPrior labelGraphPrior;
-
-public:
-    DummyRestrictedSBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
-    StochasticBlockModelBase(size),
-    blockCountPrior(blockCount),
-    blockPrior(size, blockCountPrior),
-    edgeCountPrior(edgeCount),
-    labelGraphPrior(edgeCountPrior, blockPrior)
-     {
-        setLabelGraphPrior(labelGraphPrior);
-    }
-    using StochasticBlockModelBase::sample;
-};
-
-class DummyNestedSBMGraph: public NestedStochasticBlockModelBase{
-    size_t size;
-    size_t edgeCount;
-    size_t blockCount;
-
-    EdgeCountDeltaPrior edgeCountPrior;
-    LabelGraphErdosRenyiPrior labelGraphPrior;
-
-public:
-    DummyNestedSBMGraph(size_t size=10, size_t edgeCount=25):
-    NestedStochasticBlockModelBase(size),
-    edgeCountPrior(edgeCount) { setEdgeCountPrior(edgeCountPrior); }
-};
+// class DummyNestedSBMGraph: public NestedStochasticBlockModelBase{
+//     size_t size;
+//     size_t edgeCount;
+//     size_t blockCount;
+//
+//     EdgeCountDeltaPrior edgeCountPrior;
+//     LabelGraphErdosRenyiPrior labelGraphPrior;
+//
+// public:
+//     DummyNestedSBMGraph(size_t size=10, size_t edgeCount=25):
+//     NestedStochasticBlockModelBase(size),
+//     edgeCountPrior(edgeCount) { setEdgeCountPrior(edgeCountPrior); }
+// };
 
 class DummyDynamics: public Dynamics<RandomGraph>{
 public:

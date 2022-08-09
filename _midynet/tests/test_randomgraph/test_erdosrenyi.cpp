@@ -12,25 +12,23 @@
 using namespace std;
 using namespace FastMIDyNet;
 
-static const int NUM_EDGES = 50;
-static const int NUM_VERTICES = 50;
 
-class TestErdosRenyiModelBase: public::testing::Test{
+class TestErdosRenyiModel: public::testing::Test{
     public:
-        EdgeCountDeltaPrior edgeCountPrior = {NUM_EDGES};
-        ErdosRenyiModelBase randomGraph = ErdosRenyiModelBase(NUM_VERTICES, edgeCountPrior);
+        const size_t NUM_VERTICES = 50, NUM_EDGES = 50;
+        ErdosRenyiModel randomGraph = ErdosRenyiModel(NUM_VERTICES, NUM_EDGES);
         void SetUp() {
             randomGraph.sample();
         }
 };
 
-TEST_F(TestErdosRenyiModelBase, sample_getGraphWithCorrectNumberOfEdges){
+TEST_F(TestErdosRenyiModel, sample_getGraphWithCorrectNumberOfEdges){
     randomGraph.sample();
     EXPECT_EQ(randomGraph.getState().getTotalEdgeNumber(), randomGraph.getEdgeCount());
 }
 
 
-TEST_F(TestErdosRenyiModelBase, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectLogLikelihoodRatio){
+TEST_F(TestErdosRenyiModel, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectLogLikelihoodRatio){
     auto graph = randomGraph.getState();
 
     GraphMove move = {};
@@ -49,7 +47,7 @@ TEST_F(TestErdosRenyiModelBase, getLogLikelihoodRatioFromGraphMove_forAddedEdge_
 
 }
 
-TEST_F(TestErdosRenyiModelBase, getLogLikelihoodRatioFromGraphMove_forRemovedEdge_returnCorrectLogLikelihoodRatio){
+TEST_F(TestErdosRenyiModel, getLogLikelihoodRatioFromGraphMove_forRemovedEdge_returnCorrectLogLikelihoodRatio){
     auto graph = randomGraph.getState();
 
     GraphMove move = {};
@@ -66,18 +64,18 @@ TEST_F(TestErdosRenyiModelBase, getLogLikelihoodRatioFromGraphMove_forRemovedEdg
 
 }
 
-TEST_F(TestErdosRenyiModelBase, isCompatible_forGraphSampledFromSBM_returnTrue){
+TEST_F(TestErdosRenyiModel, isCompatible_forGraphSampledFromSBM_returnTrue){
     randomGraph.sample();
     auto g = randomGraph.getState();
     EXPECT_TRUE(randomGraph.isCompatible(g));
 }
 
-TEST_F(TestErdosRenyiModelBase, isCompatible_forEmptyGraph_returnFalse){
+TEST_F(TestErdosRenyiModel, isCompatible_forEmptyGraph_returnFalse){
     MultiGraph g(0);
     EXPECT_FALSE(randomGraph.isCompatible(g));
 }
 
-TEST_F(TestErdosRenyiModelBase, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
+TEST_F(TestErdosRenyiModel, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
     randomGraph.sample();
     auto g = randomGraph.getState();
     for (auto vertex: g){

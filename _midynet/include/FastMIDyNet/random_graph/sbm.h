@@ -2,6 +2,7 @@
 #define FAST_MIDYNET_SBM_H
 
 #include <map>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -11,6 +12,7 @@
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/random_graph/util.h"
 #include "FastMIDyNet/random_graph/likelihood/sbm.h"
+#include "FastMIDyNet/proposer/edge/edge_proposer.h"
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
@@ -19,7 +21,7 @@ namespace FastMIDyNet{
 
 class StochasticBlockModelBase: public BlockLabeledRandomGraph{
 protected:
-    StochasticBlockModelLikelihood* m_sbmLikelihoodModelPtr = nullptr;
+    std::unique_ptr<StochasticBlockModelLikelihood> m_sbmLikelihoodModelUPtr = nullptr;
     LabelGraphPrior* m_labelGraphPriorPtr = nullptr;
     bool m_withSelfLoops, m_withParallelEdges, m_stubLabeled;
 
@@ -37,32 +39,33 @@ protected:
     }
     void _samplePrior() override { m_labelGraphPriorPtr->sample(); }
     void setUpLikelihood() override {
-        m_sbmLikelihoodModelPtr->m_statePtr = &m_state;
-        m_sbmLikelihoodModelPtr->m_withSelfLoopsPtr = &m_withSelfLoops;
-        m_sbmLikelihoodModelPtr->m_withParallelEdgesPtr = &m_withParallelEdges;
-        m_sbmLikelihoodModelPtr->m_labelGraphPriorPtrPtr = &m_labelGraphPriorPtr;
+        m_sbmLikelihoodModelUPtr->m_statePtr = &m_state;
+        m_sbmLikelihoodModelUPtr->m_withSelfLoopsPtr = &m_withSelfLoops;
+        m_sbmLikelihoodModelUPtr->m_withParallelEdgesPtr = &m_withParallelEdges;
+        m_sbmLikelihoodModelUPtr->m_labelGraphPriorPtrPtr = &m_labelGraphPriorPtr;
     }
 
-public:
     using BlockLabeledRandomGraph::BlockLabeledRandomGraph;
+
     StochasticBlockModelBase(size_t graphSize, bool stubLabeled=true, bool withSelfLoops=true, bool withParallelEdges=true):
-        VertexLabeledRandomGraph<BlockIndex>(graphSize),
-        m_stubLabeled(stubLabeled),
-        m_withSelfLoops(withSelfLoops),
-        m_withParallelEdges(withParallelEdges){
-                m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelPtr = makeSBMLikelihood(stubLabeled);
-                setUpLikelihood();
-            }
+    VertexLabeledRandomGraph<BlockIndex>(graphSize),
+    m_stubLabeled(stubLabeled),
+    m_withSelfLoops(withSelfLoops),
+    m_withParallelEdges(withParallelEdges){
+        m_sbmLikelihoodModelUPtr = std::unique_ptr<StochasticBlockModelLikelihood>(makeSBMLikelihood(stubLabeled));
+        m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelUPtr.get();
+    }
+    
     StochasticBlockModelBase(size_t graphSize, LabelGraphPrior& prior, bool stubLabeled=true, bool withSelfLoops=true, bool withParallelEdges=true):
-        VertexLabeledRandomGraph<BlockIndex>(graphSize),
-        m_stubLabeled(stubLabeled),
-        m_withSelfLoops(withSelfLoops),
-        m_withParallelEdges(withParallelEdges){
-                m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelPtr = makeSBMLikelihood(stubLabeled);
-                setLabelGraphPrior(prior);
-                setUpLikelihood();
-            }
-    virtual ~StochasticBlockModelBase() { delete m_sbmLikelihoodModelPtr; }
+    VertexLabeledRandomGraph<BlockIndex>(graphSize),
+    m_stubLabeled(stubLabeled),
+    m_withSelfLoops(withSelfLoops),
+    m_withParallelEdges(withParallelEdges){
+        m_sbmLikelihoodModelUPtr = std::unique_ptr<StochasticBlockModelLikelihood>(makeSBMLikelihood(stubLabeled));
+        m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelUPtr.get();
+        setLabelGraphPrior(prior);
+    }
+public:
 
     void sampleLabels() override {
         m_labelGraphPriorPtr->samplePartition();
@@ -80,6 +83,8 @@ public:
     void setLabelGraphPrior(LabelGraphPrior& labelGraphPrior) {
         m_labelGraphPriorPtr = &labelGraphPrior;
         m_labelGraphPriorPtr->isRoot(false);
+        setUpLikelihood();
+
     }
 
     const BlockSequence& getLabels() const override { return m_labelGraphPriorPtr->getBlockPrior().getState(); }
@@ -116,43 +121,88 @@ public:
 class StochasticBlockModel: public StochasticBlockModelBase{
     BlockDeltaPrior m_blockPrior;
     LabelGraphDeltaPrior m_labelGraphPrior;
-
+    std::unique_ptr<EdgeProposer> m_edgeProposerUPtr = nullptr;
+    std::unique_ptr<LabelProposer<BlockIndex>> m_labelProposerUPtr;
 public:
-    StochasticBlockModel(const BlockSequence& blocks, const LabelGraph& labelGraph, bool stubLabeled=true, bool withSelfLoops=true, bool withParallelEdges=true):
+    StochasticBlockModel(
+        const BlockSequence& blocks,
+        const LabelGraph& labelGraph,
+        bool stubLabeled=true,
+        bool withSelfLoops=true,
+        bool withParallelEdges=true,
+        std::string edgeProposerType="uniform"):
         StochasticBlockModelBase(blocks.size(), stubLabeled, withSelfLoops, withParallelEdges),
         m_blockPrior(blocks),
         m_labelGraphPrior(labelGraph){
+                m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(makeEdgeProposer(edgeProposerType, false, false, withSelfLoops, withSelfLoops));
+                m_edgeProposerPtr = m_edgeProposerUPtr.get();
+                m_edgeProposerPtr->isRoot(false);
+
+                m_labelProposerUPtr = std::unique_ptr<LabelProposer<BlockIndex>>( makeBlockProposer("uniform") );
+                m_labelProposerPtr = m_labelProposerUPtr.get();
+                m_labelProposerPtr->isRoot(false);
+
                 checkSafety();
                 sample();
             }
 };
 
 class StochasticBlockModelFamily: public StochasticBlockModelBase{
-    BlockCountUniformPrior m_blockCountPrior;
-    BlockPrior* m_blockPriorPtr;
-    EdgeCountPrior* m_edgeCountPriorPtr;
+    std::unique_ptr<BlockCountPrior> m_blockCountPriorUPtr = nullptr;
+    std::unique_ptr<BlockPrior> m_blockPriorUPtr = nullptr;
+    std::unique_ptr<EdgeCountPrior> m_edgeCountPriorUPtr = nullptr;
+    std::unique_ptr<LabelGraphPrior> m_labelGraphPriorUPtr = nullptr;
+    std::unique_ptr<EdgeProposer> m_edgeProposerUPtr = nullptr;
+    std::unique_ptr<LabelProposer<BlockIndex>> m_labelProposerUPtr = nullptr;
 public:
-    StochasticBlockModelFamily(size_t size, double edgeCount, bool useHyperPrior=true, bool canonical=false, bool stubLabeled=true, bool withSelfLoops=true, bool withParallelEdges=true):
-        StochasticBlockModelBase(size, stubLabeled, withSelfLoops, withParallelEdges),
-        m_blockCountPrior(1, size-1){
-            m_edgeCountPriorPtr = makeEdgeCountPrior(edgeCount, canonical);
-            m_blockPriorPtr = makeBlockPrior(size, m_blockCountPrior);
-            m_labelGraphPriorPtr = new LabelGraphErdosRenyiPrior(*m_edgeCountPriorPtr, *m_blockPriorPtr);
+    StochasticBlockModelFamily(
+        size_t size,
+        double edgeCount,
+        size_t blockCount=0,
+        bool useHyperPrior=true,
+        bool canonical=false,
+        bool stubLabeled=true,
+        bool withSelfLoops=true,
+        bool withParallelEdges=true,
+        std::string edgeProposerType="uniform",
+        std::string blockProposerType="uniform",
+        double sampleLabelCountProb=0.1,
+        double labelCreationProb=0.5,
+        double shift=1
+    ):
+        StochasticBlockModelBase(size, stubLabeled, withSelfLoops, withParallelEdges){
+            if (blockCount < 1 or blockCount > size-1)
+                m_blockCountPriorUPtr = std::unique_ptr<BlockCountPrior>(new BlockCountUniformPrior(1, size-1));
+            else {
+                m_blockCountPriorUPtr = std::unique_ptr<BlockCountPrior>(new BlockCountDeltaPrior(blockCount));
+                sampleLabelCountProb = 0;
+            }
+            if (stubLabeled)
+                withSelfLoops = withParallelEdges = true;
+
+            m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
+            m_blockPriorUPtr = std::unique_ptr<BlockPrior>(makeBlockPrior(size, *m_blockCountPriorUPtr));
+            m_labelGraphPriorUPtr = std::unique_ptr<LabelGraphPrior>(
+                new LabelGraphErdosRenyiPrior(*m_edgeCountPriorUPtr, *m_blockPriorUPtr)
+            );
+            setLabelGraphPrior(*m_labelGraphPriorUPtr);
+
+            m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(
+                makeEdgeProposer(edgeProposerType, canonical, false, withSelfLoops, withParallelEdges)
+            );
+            setEdgeProposer(*m_edgeProposerUPtr);
+
+            m_labelProposerUPtr = std::unique_ptr<LabelProposer<BlockIndex>>(
+                makeBlockProposer(blockProposerType, useHyperPrior, sampleLabelCountProb, labelCreationProb, shift)
+            );
+            setLabelProposer(*m_labelProposerUPtr);
+
             checkSafety();
             sample();
-    }
-    virtual ~StochasticBlockModelFamily(){
-        delete m_labelGraphPriorPtr;
-        delete m_blockPriorPtr;
-        delete m_edgeCountPriorPtr;
     }
 };
 
 class PlantedPartitionModel: public StochasticBlockModelBase{
-
-};
-
-class PlantedPartitionModelFamily: public StochasticBlockModelBase{
 
 };
 
