@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Set
+from typing import Set, Any
 from _midynet.dynamics import (
     Dynamics,
     CowanDynamics,
@@ -11,44 +11,18 @@ from _midynet.dynamics import (
     BlockLabeledDegreeDynamics,
     BlockLabeledSISDynamics,
     BlockLabeledGlauberDynamics,
+    NestedBlockLabeledCowanDynamics,
+    NestedBlockLabeledDegreeDynamics,
+    NestedBlockLabeledSISDynamics,
+    NestedBlockLabeledGlauberDynamics,
 )
 from .config import Config
 from .factory import Factory
 
-__all__ = ("DynamicsConfig", "DynamicsFactory", "BlockLabeledDynamicsFactory")
+__all__ = ("DataModelConfig", "DataModelFactory")
 
 
-class DynamicsConfig(Config):
-    requirements: Set[str] = {"num_steps"}
-
-    def set_coupling(self, coupling: float) -> None:
-        if self.name == "sis":
-            self.set_value("infection_prob", coupling)
-        elif self.name == "glauber" or self.name == "ising":
-            self.set_value("coupling", coupling)
-        elif self.name == "cowan":
-            self.set_value("nu", coupling)
-        else:
-            message = (
-                f"Invalid entry {self.name} for dynamics,"
-                + "expected ['sis', 'glauber', 'ising', 'cowan']."
-            )
-            raise ValueError(message)
-
-    def get_coupling(self):
-        if self.name == "sis":
-            return self.infection_prob
-        elif self.name == "glauber" or self.name == "ising":
-            return self.coupling
-        elif self.name == "cowan":
-            return self.nu
-        else:
-            message = (
-                f"Invalid entry {self.name} for dynamics,"
-                + "expected ['sis', 'glauber', 'ising', 'cowan']."
-            )
-            raise ValueError(message)
-
+class DataModelConfig(Config):
     @classmethod
     def glauber(
         cls,
@@ -156,24 +130,30 @@ class DynamicsConfig(Config):
         )
 
 
-class DynamicsFactory(Factory):
-    dynamics: Dict[str, Dynamics] = {
+class DataModelFactory(Factory):
+    data_model: Dict[str, Any] = {
         "cowan": CowanDynamics,
         "degree": DegreeDynamics,
         "glauber": GlauberDynamics,
         "sis": SISDynamics,
     }
-    labeled_dynamics: Dict[str, BlockLabeledDynamics] = {
+    labeled_data_model: Dict[str, Any] = {
         "cowan": BlockLabeledCowanDynamics,
         "degree": BlockLabeledDegreeDynamics,
         "glauber": BlockLabeledGlauberDynamics,
         "sis": BlockLabeledSISDynamics,
     }
+    nested_data_model: Dict[str, Any] = {
+        "cowan": NestedBlockLabeledCowanDynamics,
+        "degree": NestedBlockLabeledDegreeDynamics,
+        "glauber": NestedBlockLabeledGlauberDynamics,
+        "sis": NestedBlockLabeledSISDynamics,
+    }
 
     @classmethod
     def build(cls, config: Config, constructors=None) -> Any:
         constructors = (
-            DynamicsFactory.dynamics if constructors is None else constructors
+            DataModelFactory.data_model if constructors is None else constructors
         )
         if config.unmet_requirements():
             raise MissingRequirementsError(config)
@@ -188,10 +168,14 @@ class DynamicsFactory(Factory):
 
     @classmethod
     def build_labeled(cls, config: Config):
-        return cls.build(config, DynamicsFactory.labeled_dynamics)
+        return cls.build(config, DataModelFactory.labeled_data_model)
+
+    @classmethod
+    def build_nested(cls, config: Config):
+        return cls.build(config, DataModelFactory.nested_data_model)
 
     @staticmethod
-    def build_glauber(config: DynamicsConfig, constructor=GlauberDynamics):
+    def build_glauber(config: DataModelConfig, constructor=GlauberDynamics):
         return constructor(
             config.num_steps,
             config.coupling,
@@ -202,7 +186,7 @@ class DynamicsFactory(Factory):
         )
 
     @staticmethod
-    def build_sis(config: DynamicsConfig, constructor=SISDynamics):
+    def build_sis(config: DataModelConfig, constructor=SISDynamics):
         return constructor(
             config.num_steps,
             config.infection_prob,
@@ -214,7 +198,7 @@ class DynamicsFactory(Factory):
         )
 
     @staticmethod
-    def build_cowan(config: DynamicsConfig, constructor=CowanDynamics):
+    def build_cowan(config: DataModelConfig, constructor=CowanDynamics):
         return constructor(
             config.num_steps,
             config.nu,
@@ -228,5 +212,5 @@ class DynamicsFactory(Factory):
         )
 
     @staticmethod
-    def build_degree(config: DynamicsConfig, constructor=CowanDynamics):
+    def build_degree(config: DataModelConfig, constructor=DegreeDynamics):
         return constructor(config.num_steps, config.C)

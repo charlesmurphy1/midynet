@@ -7,45 +7,41 @@ from midynet.config import (
     DataModelFactory,
     ReconstructionMCMC,
 )
-from .metrics import Metrics
 from .multiprocess import Expectation
+from .metrics import Metrics
 from .statistics import Statistics
-from .util import get_log_posterior
+from .util import get_log_evidence
 
-__all__ = ("Reconstructability", "ReconstructabilityMetrics")
+__all__ = ("DataEntropy", "DataEntropyMetrics")
 
 
 @dataclass
-class Reconstructability(Expectation):
+class DataEntropy(Expectation):
     config: Config = field(repr=False, default_factory=Config)
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-
         graph = RandomGraphFactory.build(config.graph)
-        data_model = DataModelFactory.build(config.data_model)
-        data_model.set_graph_prior(graph)
-        mcmc = ReconstructionMCMC(data_model, graph)
+        data = DataModelFactory.build(config.data)
+        data.set_graph_prior(graph)
+        mcmc = ReconstructionMCMC(data, graph)
         mcmc.sample()
-
-        hg = -mcmc.get_log_prior()
-        hgx = -get_log_posterior(mcmc, self.config.metrics.reconstructability)
-
-        return (hg - hgx) / hg
+        hx = -get_log_evidence(mcmc, self.config.metrics.data_entropy)
+        return hx
 
 
-class ReconstructabilityMetrics(Metrics):
+class DataEntropyMetrics(Metrics):
     def eval(self, config: Config):
-        reconstructability = Reconstructability(
+        data_entropy = DataEntropy(
             config=config,
             num_procs=config.get_value("num_procs", 1),
             seed=config.get_value("seed", int(time.time())),
         )
-        samples = reconstructability.compute(
-            config.metrics.reconstructability.get_value("num_samples", 10)
+        samples = data_entropy.compute(
+            config.metrics.data_entropy.get_value("num_samples", 10)
         )
         return Statistics.compute(
-            samples, error_type=config.metrics.reconstructability.error_type
+            samples, error_type=config.metrics.data_entropy.error_type
         )
 
 

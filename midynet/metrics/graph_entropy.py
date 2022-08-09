@@ -2,7 +2,10 @@ import time
 
 from dataclasses import dataclass, field
 from _midynet import utility
-from midynet.config import Config, RandomGraphFactory
+from midynet.config import (
+    Config,
+    RandomGraphFactory,
+)
 from .metrics import Metrics
 from .multiprocess import Expectation
 from .statistics import Statistics

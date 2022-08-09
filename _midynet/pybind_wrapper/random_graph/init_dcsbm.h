@@ -26,7 +26,7 @@ void initDegreeCorrectedStochasticBlockModel(py::module& m){
             py::arg("canonical")=false,
             py::arg("edge_proposer_type")="degree",
             py::arg("block_proposer_type")="degree",
-            py::arg("sample_label_prob")=0.1,
+            py::arg("sample_label_count_prob")=0.1,
             py::arg("label_creation_prob")=0.5,
             py::arg("shift")=1
         )

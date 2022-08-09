@@ -22,9 +22,9 @@ void initErdosRenyi(py::module& m){
         .def(
             py::init<size_t, double, bool, bool, bool, std::string>(),
             py::arg("size"), py::arg("edge_count"),
+            py::arg("canonical")=false,
             py::arg("with_self_loops")=true,
             py::arg("with_parallel_edges")=true,
-            py::arg("canonical")=false,
             py::arg("edge_proposer_type")="uniform"
         )
         ;

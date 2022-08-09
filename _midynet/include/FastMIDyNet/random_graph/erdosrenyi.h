@@ -74,9 +74,9 @@ public:
     ErdosRenyiModel(
         size_t size,
         double edgeCount,
+        bool canonical=false,
         bool withSelfLoops=true,
         bool withParallelEdges=true,
-        bool canonical=false,
         std::string edgeProposerType="uniform"):
         ErdosRenyiModelBase(size) {
             m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));

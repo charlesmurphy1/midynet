@@ -6,7 +6,7 @@ from typing import List, Optional, Union
 
 from midynet.config import (
     Config,
-    DynamicsConfig,
+    DataModelConfig,
     RandomGraphConfig,
     MetricsCollectionConfig,
 )
@@ -17,7 +17,7 @@ __all__ = ("ExperimentConfig",)
 class ExperimentConfig(Config):
     requirements: set[str] = {
         "name",
-        "dynamics",
+        "data_model",
         "graph",
         "metrics",
         "path",
@@ -29,20 +29,20 @@ class ExperimentConfig(Config):
     def reconstruction(
         cls,
         name: str,
-        dynamics: str,
+        data_model: str,
         graph: str,
         metrics: Optional[List[str]] = None,
         path: Union[str, pathlib.Path] = ".",
         num_procs: int = 1,
         num_async_process: int = 1,
         seed: Optional[int] = None,
-        dynamics_params=None,
+        data_model_params=None,
         graph_params=None,
     ) -> ExperimentConfig:
-        dynamics_params = {} if dynamics_params is None else dynamics_params
+        data_model_params = {} if data_model_params is None else data_model_params
         graph_params = {} if graph_params is None else graph_params
         obj = cls(name=name)
-        obj.insert("dynamics", DynamicsConfig.auto(dynamics, **dynamics_params))
+        obj.insert("data_model", DataModelConfig.auto(data_model, **data_model_params))
         obj.insert("graph", RandomGraphConfig.auto(graph, **graph_params))
         obj.insert(
             "metrics",

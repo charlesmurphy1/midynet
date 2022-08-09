@@ -73,6 +73,14 @@ class BlockProposerConfig(Config):
     def restricted_mixed(cls):
         return cls(name="restricted_mixed", sample_label_count_prob=0.1, shift=1)
 
+    @classmethod
+    def nested_uniform(cls):
+        return cls(name="nested_uniform", sample_label_count_prob=0.1)
+
+    @classmethod
+    def nested_mixed(cls):
+        return cls(name="nested_mixed", sample_label_count_prob=0.1, shift=1)
+
 
 class EdgeProposerFactory(Factory):
     @staticmethod
@@ -153,5 +161,21 @@ class BlockProposerFactory(Factory):
         config: BlockProposerConfig,
     ) -> proposer.label.RestrictedMixedBlockProposer:
         return proposer.label.RestrictedMixedBlockProposer(
+            config.sample_label_count_prob, config.shift
+        )
+
+    @staticmethod
+    def build_nested_uniform(
+        config: BlockProposerConfig,
+    ) -> proposer.label.RestrictedUniformNestedBlockProposer:
+        return proposer.label.RestrictedUniformNestedBlockProposer(
+            config.sample_label_count_prob
+        )
+
+    @staticmethod
+    def build_nested_mixed(
+        config: BlockProposerConfig,
+    ) -> proposer.label.RestrictedMixedNestedBlockProposer:
+        return proposer.label.RestrictedMixedNestedBlockProposer(
             config.sample_label_count_prob, config.shift
         )

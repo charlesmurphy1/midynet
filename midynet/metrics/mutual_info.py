@@ -4,7 +4,12 @@ import numpy as np
 from dataclasses import dataclass, field
 from collections import defaultdict
 from _midynet import utility
-from midynet.config import Config, MCMCFactory
+from midynet.config import (
+    Config,
+    RandomGraphFactory,
+    DataModelFactory,
+    ReconstructionMCMC,
+)
 from .metrics import Metrics
 from .multiprocess import Expectation
 from .statistics import Statistics
@@ -19,9 +24,12 @@ class MutualInformation(Expectation):
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-        mcmc = MCMCFactory.build_reconstruction(self.config)
+        graph = RandomGraphFactory.build(config.graph)
+        data_model = DataModelFactory.build(config.data_model)
+        data_model.set_graph_prior(graph)
+        mcmc = ReconstructionMCMC(data_model, graph)
         mcmc.sample()
-        mcmc.set_up()
+
         hxg = -mcmc.get_log_likelihood() / np.log(2)
         hg = -mcmc.get_log_prior() / np.log(2)
         hx = -get_log_evidence(

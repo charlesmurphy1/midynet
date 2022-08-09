@@ -48,7 +48,7 @@ void initStochasticBlockModel(py::module& m){
             py::arg("with_parallel_edges")=false,
             py::arg("edge_proposer_type")="uniform",
             py::arg("block_proposer_type")="uniform",
-            py::arg("sample_label_prob")=0.1,
+            py::arg("sample_label_count_prob")=0.1,
             py::arg("label_creation_prob")=0.5,
             py::arg("shift")=1
         )
