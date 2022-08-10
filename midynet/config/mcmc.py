@@ -6,7 +6,7 @@ from _midynet.random_graph import (
     BlockLabeledRandomGraph,
     NestedBlockLabeledRandomGraph,
 )
-from _midynet.dynamics import Dynamics, BlockLabeledDynamics, NestedBlockLabeledDynamics
+from _midynet.data import DataModel, BlockLabeledDataModel, NestedBlockLabeledDataModel
 from _midynet.mcmc import (
     GraphReconstructionMCMC,
     BlockLabeledGraphReconstructionMCMC,
@@ -25,11 +25,11 @@ __all__ = ("ReconstructionMCMC", "PartitionMCMC", "MCMCVerboseFactory")
 class ReconstructionMCMC(Wrapper):
     def __init__(self, data_model, graph_prior, **kwargs):
         data_model.set_graph_prior(graph_prior)
-        if issubclass(data_model.__class__, Dynamics):
+        if issubclass(data_model.__class__, DataModel):
             mcmc = GraphReconstructionMCMC(data_model, **kwargs)
-        elif issubclass(data_model.__class__, BlockLabeledDynamics):
+        elif issubclass(data_model.__class__, BlockLabeledDataModel):
             mcmc = BlockLabeledGraphReconstructionMCMC(data_model, **kwargs)
-        elif issubclass(data_model.__class__, NestedBlockLabeledDynamics):
+        elif issubclass(data_model.__class__, NestedBlockLabeledDataModel):
             mcmc = NestedBlockLabeledGraphReconstructionMCMC(data_model, **kwargs)
         else:
             raise TypeError(f"ReconstructionMCMC: wrong type `{data_model.__class__}`.")

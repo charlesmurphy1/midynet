@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Set, Any
-from _midynet.dynamics import (
+from _midynet.data.dynamics import (
     Dynamics,
     CowanDynamics,
     DegreeDynamics,
@@ -30,6 +30,7 @@ class DataModelConfig(Config):
         coupling: float = 1.0,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
+        async_mode: bool = True,
         normalize: bool = True,
         num_active: int = 2**31 - 1,
     ) -> DynamicsConfig:
@@ -39,6 +40,7 @@ class DataModelConfig(Config):
             coupling=coupling,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
+            async_mode=async_mode,
             normalize=normalize,
             num_active=num_active,
         )
@@ -57,6 +59,7 @@ class DataModelConfig(Config):
         recovery_prob: float = 0.1,
         auto_activation_prob=0.001,
         auto_deactivation_prob=0,
+        async_mode: bool = True,
         normalize: bool = True,
         num_active: int = 1,
     ) -> DynamicsConfig:
@@ -67,6 +70,7 @@ class DataModelConfig(Config):
             recovery_prob=recovery_prob,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
+            async_mode=async_mode,
             normalize=normalize,
             num_active=num_active,
         )
@@ -81,6 +85,7 @@ class DataModelConfig(Config):
         eta: float = 0.5,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
+        async_mode: bool = True,
         normalize: bool = True,
         num_active: int = 1,
     ) -> DynamicsConfig:
@@ -93,6 +98,7 @@ class DataModelConfig(Config):
             eta=eta,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
+            async_mode=async_mode,
             normalize=normalize,
             num_active=num_active,
         )
@@ -116,7 +122,6 @@ class DataModelConfig(Config):
         C: float = 1.0,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
-        normalize: bool = True,
         num_active: int = 2**31 - 1,
     ) -> DynamicsConfig:
         return cls(
@@ -125,7 +130,6 @@ class DataModelConfig(Config):
             C=C,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
-            normalize=normalize,
             num_active=num_active,
         )
 
@@ -181,6 +185,7 @@ class DataModelFactory(Factory):
             config.coupling,
             config.auto_activation_prob,
             config.auto_deactivation_prob,
+            config.async_mode,
             config.normalize,
             config.num_active,
         )
@@ -193,6 +198,7 @@ class DataModelFactory(Factory):
             config.recovery_prob,
             config.auto_activation_prob,
             config.auto_deactivation_prob,
+            config.async_mode,
             config.normalize,
             config.num_active,
         )
@@ -207,6 +213,7 @@ class DataModelFactory(Factory):
             config.eta,
             config.auto_activation_prob,
             config.auto_deactivation_prob,
+            config.async_mode,
             config.normalize,
             config.num_active,
         )

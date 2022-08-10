@@ -45,7 +45,7 @@ def get_log_evidence_harmonic(
         mcmc.insert_callback("verbose", verboseCallback.get_wrap())
 
     g = mcmc.get_graph()
-    burn = config.burn_per_vertex * mcmc.get_dynamics().get_size()
+    burn = config.burn_per_vertex * mcmc.get_data_model().get_size()
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
     for i in range(config.num_sweeps):
         s, f = mcmc.do_MH_sweep(burn=burn)
@@ -82,7 +82,7 @@ def get_log_evidence_annealed(
 
     original_graph = mcmc.get_graph()
 
-    burn = config.burn_per_vertex * mcmc.get_dynamics().get_size()
+    burn = config.burn_per_vertex * mcmc.get_data_model().get_size()
     logp = []
 
     beta_k = np.linspace(0, 1, config.num_betas + 1) ** (1 / config.exp_betas)
@@ -93,12 +93,12 @@ def get_log_evidence_annealed(
         if config.start_from_original:
             mcmc.set_graph(original_graph)
         else:
-            mcmc.get_dynamics().sample_graph()
+            mcmc.get_data_model().sample_prior()
 
         # if config.start_from_original:
         #     mcmc.set_graph(original_graph)
         # else:
-        #     mcmc.get_dynamics().sample_graph()
+        #     mcmc.get_data_model().sample_prior()
         #     mcmc.set_graph(mcmc.get_graph())
         s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
         for i in range(config.num_sweeps):
@@ -119,7 +119,7 @@ def get_log_evidence_annealed(
 def get_log_evidence_exact(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
     logevidence = []
     original_graph = mcmc.get_graph()
-    size = mcmc.get_dynamics().get_size()
+    size = mcmc.get_data_model().get_size()
     graph = mcmc.get_graph_prior()
     edge_count = graph.get_edge_count()
     allow_self_loops = mcmc.graph_prior.with_self_loops()
@@ -193,12 +193,12 @@ def get_log_posterior_meanfield(
     original_graph = mcmc.get_graph()
     graph_callback.collect()
     # if not config.start_from_original:
-    #     mcmc.get_dynamics().sample_graph()
+    #     mcmc.get_data_model().sample_prior()
     #     mcmc.set_graph(mcmc.get_graph())
     # if not config.start_from_original:
-    #     mcmc.get_dynamics().sample_graph()
+    #     mcmc.get_data_model().sample_prior()
     #
-    burn = config.burn_per_vertex * mcmc.get_dynamics().get_size()
+    burn = config.burn_per_vertex * mcmc.get_data_model().get_size()
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
 
     for i in range(config.num_sweeps):
@@ -233,7 +233,7 @@ def get_log_posterior_exact_meanfield(
     mcmc: GraphReconstructionMCMC, config: Config, **kwargs
 ):
     original_graph = mcmc.get_graph()
-    size = mcmc.get_dynamics().get_size()
+    size = mcmc.get_data_model().get_size()
     graph = mcmc.get_graph_prior()
     edge_count = graph.get_edge_count()
     allow_self_loops = mcmc.graph_prior.with_self_loops()
@@ -246,7 +246,7 @@ def get_log_posterior_exact_meanfield(
     for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
         if graph.is_compatible(g):
             i += 1
-            mcmc.get_dynamics().set_graph(g)
+            mcmc.get_data_model().set_graph(g)
             weight = mcmc.get_log_joint() - evidence
             for e, w in get_weighted_edge_list(g).items():
                 edge_weights[e][w].append(weight)

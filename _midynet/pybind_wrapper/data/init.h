@@ -54,8 +54,7 @@ void initDataModels(py::module& m){
     declareDataModel<NestedBlockLabeledRandomGraph>(m, "NestedBlockLabeledDataModel");
 
     py::module dynamics = m.def_submodule("dynamics");
-
-    initDynamics(m);
+    initDynamics(dynamics);
 }
 
 
