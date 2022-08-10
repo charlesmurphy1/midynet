@@ -15,8 +15,6 @@ void initErdosRenyi(py::module& m){
         // .def(py::init<size_t, EdgeCountPrior&, bool, bool>(), py::arg("size"), py::arg("edge_count_prior"), py::arg("with_self_loops")=true, py::arg("with_parallel_edges")=true)
         .def("get_edge_count_prior", &ErdosRenyiModelBase::getEdgeCountPrior)
         .def("set_edge_count_prior", &ErdosRenyiModelBase::setEdgeCountPrior, py::arg("prior"))
-        .def("with_self_loops", &ErdosRenyiModelBase::withSelfLoops)
-        .def("with_parallel_edges", &ErdosRenyiModelBase::withParallelEdges)
         ;
     py::class_<ErdosRenyiModel, ErdosRenyiModelBase>(m, "ErdosRenyiModel")
         .def(

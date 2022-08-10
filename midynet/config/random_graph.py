@@ -128,7 +128,7 @@ class RandomGraphConfig(Config):
     @classmethod
     def planted_partition(
         cls,
-        sizes: list[int] = [100, 100],
+        sizes: list[int] = [50, 50],
         edge_count: int = 250,
         assortativity: float = 0.5,
         stub_labeled: bool = False,
@@ -190,7 +190,7 @@ class RandomGraphFactory(Factory):
         DegreeCorrectedStochasticBlockModelFamily,
         NestedDegreeCorrectedStochasticBlockModelFamily,
     ]:
-
+        print(config.format())
         if config.likelihood_type == "degree_corrected":
             if (
                 config.prior_type == "nested"

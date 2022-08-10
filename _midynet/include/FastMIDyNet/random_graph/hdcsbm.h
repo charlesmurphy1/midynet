@@ -33,18 +33,18 @@ protected:
         m_likelihoodModel.m_statePtr = &m_state;
         m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
     }
-public:
-
     NestedDegreeCorrectedStochasticBlockModelBase(size_t graphSize):
-        NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel),
+        NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel, true, true),
         m_nestedLabelGraphPrior(graphSize),
         m_likelihoodModel() { }
     NestedDegreeCorrectedStochasticBlockModelBase(size_t graphSize, EdgeCountPrior& EdgeCountPrior, VertexLabeledDegreePrior& degreePrior):
-        NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel),
+        NestedBlockLabeledRandomGraph(graphSize, m_likelihoodModel, true, true),
         m_likelihoodModel(),
         m_nestedLabelGraphPrior(graphSize, EdgeCountPrior){
             setDegreePrior(degreePrior);
         }
+public:
+
 
 
     const size_t getEdgeCount() const { return m_nestedLabelGraphPrior.getEdgeCount(); }

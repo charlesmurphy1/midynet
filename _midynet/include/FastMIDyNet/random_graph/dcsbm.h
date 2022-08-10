@@ -38,14 +38,14 @@ protected:
         m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
     }
 
-    
+
     DegreeCorrectedStochasticBlockModelBase(size_t graphSize):
-    VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel) { }
+        VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel, true, true) { }
     DegreeCorrectedStochasticBlockModelBase(size_t graphSize, VertexLabeledDegreePrior& degreePrior):
-    VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel){
-        setDegreePrior(degreePrior);
-        m_degreePriorPtr->isRoot(false);
-    }
+        VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel, true, true){
+            setDegreePrior(degreePrior);
+            m_degreePriorPtr->isRoot(false);
+        }
 
 public:
 
@@ -132,7 +132,7 @@ public:
         bool useHyperPrior=false,
         bool canonical=false,
         std::string edgeProposerType="degree",
-        std::string blockProposerType="degree",
+        std::string blockProposerType="uniform",
         double sampleLabelCountProb=0.1,
         double labelCreationProb=0.5,
         double shift=1

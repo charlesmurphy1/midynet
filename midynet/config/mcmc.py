@@ -23,16 +23,17 @@ __all__ = ("ReconstructionMCMC", "PartitionMCMC", "MCMCVerboseFactory")
 
 
 class ReconstructionMCMC(Wrapper):
-    def __init__(self, dynamics, graph_prior, **kwargs):
-        if issubclass(dynamics.__class__, Dynamics):
-            mcmc = GraphReconstructionMCMC(dynamics, **kwargs)
-        elif issubclass(dynamics.__class__, BlockLabeledDynamics):
-            mcmc = BlockLabeledGraphReconstructionMCMC(dynamics, **kwargs)
-        elif issubclass(dynamics.__class__, NestedBlockLabeledDynamics):
-            mcmc = NestedBlockLabeledGraphReconstructionMCMC(dynamics, **kwargs)
+    def __init__(self, data_model, graph_prior, **kwargs):
+        data_model.set_graph_prior(graph_prior)
+        if issubclass(data_model.__class__, Dynamics):
+            mcmc = GraphReconstructionMCMC(data_model, **kwargs)
+        elif issubclass(data_model.__class__, BlockLabeledDynamics):
+            mcmc = BlockLabeledGraphReconstructionMCMC(data_model, **kwargs)
+        elif issubclass(data_model.__class__, NestedBlockLabeledDynamics):
+            mcmc = NestedBlockLabeledGraphReconstructionMCMC(data_model, **kwargs)
         else:
-            raise TypeError(f"ReconstructionMCMC: wrong type `{dynamics.__class__}`.")
-        super().__init__(mcmc, dynamics=dynamics, graph_prior=graph_prior, **kwargs)
+            raise TypeError(f"ReconstructionMCMC: wrong type `{data_model.__class__}`.")
+        super().__init__(mcmc, data_model=data_model, graph_prior=graph_prior, **kwargs)
 
 
 class PartitionMCMC(Wrapper):

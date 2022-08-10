@@ -14,7 +14,7 @@ namespace FastMIDyNet{
 template<typename Label>
 py::class_<VertexLabeledRandomGraph<Label>, RandomGraph, PyVertexLabeledRandomGraph<Label>> declareVertexLabeledRandomGraph(py::module& m, std::string pyName){
     return py::class_<VertexLabeledRandomGraph<Label>, RandomGraph, PyVertexLabeledRandomGraph<Label>>(m, pyName.c_str())
-        .def(py::init<size_t>(), py::arg("size"))
+        .def(py::init<size_t, bool, bool>(), py::arg("size"), py::arg("with_self_loops")=true, py::arg("with_parallel_edges")=true)
         .def("get_label_proposer", &VertexLabeledRandomGraph<Label>::getLabelProposer)
         .def("set_label_proposer", &VertexLabeledRandomGraph<Label>::setLabelProposer, py::arg("proposer"))
         .def("get_labels", &VertexLabeledRandomGraph<Label>::getLabels)
@@ -37,7 +37,7 @@ py::class_<VertexLabeledRandomGraph<Label>, RandomGraph, PyVertexLabeledRandomGr
 template<typename Label>
 py::class_<NestedVertexLabeledRandomGraph<Label>, VertexLabeledRandomGraph<Label>, PyNestedVertexLabeledRandomGraph<Label>> declareNestedVertexLabeledRandomGraph(py::module& m, std::string pyName){
     return py::class_<NestedVertexLabeledRandomGraph<Label>, VertexLabeledRandomGraph<Label>, PyNestedVertexLabeledRandomGraph<Label>>(m, pyName.c_str())
-        .def(py::init<size_t>(), py::arg("size"))
+        .def(py::init<size_t, bool, bool>(), py::arg("size"), py::arg("with_self_loops")=true, py::arg("with_parallel_edges")=true)
         .def("get_nested_label_proposer", &NestedVertexLabeledRandomGraph<Label>::getNestedLabelProposer)
         .def("set_nested_label_proposer", &NestedVertexLabeledRandomGraph<Label>::setNestedLabelProposer, py::arg("proposer"))
         .def("set_nested_labels", &NestedVertexLabeledRandomGraph<Label>::setNestedLabels, py::arg("nested_labels"))
@@ -59,7 +59,7 @@ py::class_<NestedVertexLabeledRandomGraph<Label>, VertexLabeledRandomGraph<Label
 
 void initRandomGraphBaseClass(py::module& m){
     py::class_<RandomGraph, NestedRandomVariable, PyRandomGraph<>>(m, "RandomGraph")
-        .def(py::init<size_t>(), py::arg("size"))
+        .def(py::init<size_t, bool, bool>(), py::arg("size"), py::arg("with_self_loops")=true, py::arg("with_parallel_edges")=true)
         .def("get_state", &RandomGraph::getState)
         .def("set_state", &RandomGraph::setState, py::arg("state"))
         .def("get_size", &RandomGraph::getSize)
@@ -68,7 +68,10 @@ void initRandomGraphBaseClass(py::module& m){
         .def("get_average_degree", &RandomGraph::getAverageDegree)
         .def("get_edge_proposer", &RandomGraph::getEdgeProposer)
         .def("set_edge_proposer", &RandomGraph::setEdgeProposer, py::arg("proposer"))
-        // .def("set_up", &RandomGraph::setUp)
+        .def("with_self_loops", [](const RandomGraph& self) { return self.withSelfLoops(); })
+        .def("with_self_loops", [](RandomGraph& self, bool condition) { return self.withSelfLoops(condition); })
+        .def("with_parallel_edges", [](const RandomGraph& self) { return self.withParallelEdges(); })
+        .def("with_parallel_edges", [](RandomGraph& self, bool condition) { return self.withParallelEdges(condition); })
         .def("sample", &RandomGraph::sample)
         .def("sample_state", &RandomGraph::sampleState)
         .def("sample_prior", &RandomGraph::samplePrior)

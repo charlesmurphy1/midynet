@@ -29,13 +29,15 @@ public:
     virtual const size_t getSize() const = 0;
     virtual void checkSafety() const {}
     virtual void clear() {}
+    void setUpWithGraph(const MultiGraph& graph) ;
 };
 
 class VertexUniformSampler: public VertexSampler{
 protected:
-    sset::SamplableSet<BaseGraph::VertexIndex> m_vertexSampler = sset::SamplableSet<BaseGraph::VertexIndex>(1, 100);
+    sset::SamplableSet<BaseGraph::VertexIndex> m_vertexSampler;
 public:
-    VertexUniformSampler(){}
+    VertexUniformSampler(double minWeight=1, double maxWeight=100):
+        m_vertexSampler(minWeight, maxWeight) { }
     VertexUniformSampler(const VertexUniformSampler& other):
         m_vertexSampler(other.m_vertexSampler){ }
     virtual ~VertexUniformSampler() {}
@@ -80,7 +82,7 @@ public:
 
 class VertexDegreeSampler: public VertexSampler{
 protected:
-    sset::SamplableSet<BaseGraph::VertexIndex> m_vertexSampler = sset::SamplableSet<BaseGraph::VertexIndex>(1, 100);
+    sset::SamplableSet<BaseGraph::VertexIndex> m_vertexSampler;
     EdgeSampler m_edgeSampler;
     mutable std::bernoulli_distribution m_vertexChoiceDistribution = std::bernoulli_distribution(.5);
     mutable std::uniform_real_distribution<double> m_uniform01 = std::uniform_real_distribution<double>(0, 1);
@@ -88,7 +90,9 @@ protected:
     double m_totalEdgeWeight;
     std::unordered_map<BaseGraph::VertexIndex, double> m_weights;
 public:
-    VertexDegreeSampler(double shift=1):m_shift(shift){};
+    VertexDegreeSampler(double shift=1, double minWeight=1, double maxWeight=100):
+        m_shift(shift), m_edgeSampler(minWeight, maxWeight),
+        m_vertexSampler(minWeight, maxWeight){};
     VertexDegreeSampler(const VertexDegreeSampler& other):
         m_vertexSampler(other.m_vertexSampler), m_edgeSampler(other.m_edgeSampler),
         m_totalEdgeWeight(other.m_totalEdgeWeight), m_shift(other.m_shift){}

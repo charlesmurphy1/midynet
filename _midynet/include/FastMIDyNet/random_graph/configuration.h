@@ -34,9 +34,9 @@ protected:
     }
 
     ConfigurationModelBase(size_t graphSize):
-        RandomGraph(graphSize, m_likelihoodModel){ setUpLikelihood(); }
+        RandomGraph(graphSize, m_likelihoodModel, true, true){ setUpLikelihood(); }
     ConfigurationModelBase(size_t graphSize, DegreePrior& degreePrior):
-        RandomGraph(graphSize, m_likelihoodModel), m_degreePriorPtr(&degreePrior){
+        RandomGraph(graphSize, m_likelihoodModel, true, true), m_degreePriorPtr(&degreePrior){
             setUpLikelihood();
             m_degreePriorPtr->isRoot(false);
             m_degreePriorPtr->setSize(m_size);

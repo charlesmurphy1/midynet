@@ -17,7 +17,6 @@ class ErdosRenyiModelBase: public RandomGraph{
 protected:
     EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
     ErdosRenyiLikelihood m_likelihoodModel;
-    bool m_withSelfLoops, m_withParallelEdges;
     void _applyGraphMove (const GraphMove& move) override {
         m_edgeCountPriorPtr->applyGraphMove(move);
         RandomGraph::_applyGraphMove(move);
@@ -35,13 +34,10 @@ protected:
         m_likelihoodModel.m_withParallelEdgesPtr = &m_withParallelEdges;
     }
     ErdosRenyiModelBase(size_t graphSize, bool withSelfLoops=true, bool withParallelEdges=true):
-        RandomGraph(graphSize, m_likelihoodModel),
-        m_withSelfLoops(withSelfLoops),
-        m_withParallelEdges(withParallelEdges){ setUpLikelihood(); }
+        RandomGraph(graphSize, m_likelihoodModel, withSelfLoops, withParallelEdges)
+        { setUpLikelihood(); }
     ErdosRenyiModelBase(size_t graphSize, EdgeCountPrior& edgeCountPrior, bool withSelfLoops=true, bool withParallelEdges=true):
-        RandomGraph(graphSize, m_likelihoodModel),
-        m_withSelfLoops(withSelfLoops),
-        m_withParallelEdges(withParallelEdges),
+        RandomGraph(graphSize, m_likelihoodModel, withSelfLoops, withParallelEdges),
         m_edgeCountPriorPtr(&edgeCountPrior){ setUpLikelihood(); }
 public:
 
@@ -49,8 +45,6 @@ public:
 
     const EdgeCountPrior& getEdgeCountPrior(){ return *m_edgeCountPriorPtr; }
     void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){ m_edgeCountPriorPtr = &edgeCountPrior; }
-    const bool withSelfLoops() const { return m_withSelfLoops; }
-    const bool withParallelEdges() const { return m_withParallelEdges; }
 
     const bool isCompatible(const MultiGraph& graph) const override{
         return RandomGraph::isCompatible(graph) and graph.getTotalEdgeNumber() == getEdgeCount();
@@ -78,7 +72,7 @@ public:
         bool withSelfLoops=true,
         bool withParallelEdges=true,
         std::string edgeProposerType="uniform"):
-        ErdosRenyiModelBase(size) {
+        ErdosRenyiModelBase(size, withSelfLoops, withParallelEdges) {
             m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
             setEdgeCountPrior(*m_edgeCountPriorUPtr);
 

@@ -23,7 +23,7 @@ class StochasticBlockModelBase: public BlockLabeledRandomGraph{
 protected:
     std::unique_ptr<StochasticBlockModelLikelihood> m_sbmLikelihoodModelUPtr = nullptr;
     LabelGraphPrior* m_labelGraphPriorPtr = nullptr;
-    bool m_withSelfLoops, m_withParallelEdges, m_stubLabeled;
+    bool m_stubLabeled;
 
     void _applyGraphMove (const GraphMove& move) override {
         m_labelGraphPriorPtr->applyGraphMove(move);
@@ -48,23 +48,19 @@ protected:
     using BlockLabeledRandomGraph::BlockLabeledRandomGraph;
 
     StochasticBlockModelBase(size_t graphSize, bool stubLabeled=true, bool withSelfLoops=true, bool withParallelEdges=true):
-    VertexLabeledRandomGraph<BlockIndex>(graphSize),
-    m_stubLabeled(stubLabeled),
-    m_withSelfLoops(withSelfLoops),
-    m_withParallelEdges(withParallelEdges){
-        m_sbmLikelihoodModelUPtr = std::unique_ptr<StochasticBlockModelLikelihood>(makeSBMLikelihood(stubLabeled));
-        m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelUPtr.get();
-    }
-    
+        VertexLabeledRandomGraph<BlockIndex>(graphSize, withSelfLoops, withParallelEdges),
+        m_stubLabeled(stubLabeled){
+            m_sbmLikelihoodModelUPtr = std::unique_ptr<StochasticBlockModelLikelihood>(makeSBMLikelihood(stubLabeled));
+            m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelUPtr.get();
+        }
+
     StochasticBlockModelBase(size_t graphSize, LabelGraphPrior& prior, bool stubLabeled=true, bool withSelfLoops=true, bool withParallelEdges=true):
-    VertexLabeledRandomGraph<BlockIndex>(graphSize),
-    m_stubLabeled(stubLabeled),
-    m_withSelfLoops(withSelfLoops),
-    m_withParallelEdges(withParallelEdges){
-        m_sbmLikelihoodModelUPtr = std::unique_ptr<StochasticBlockModelLikelihood>(makeSBMLikelihood(stubLabeled));
-        m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelUPtr.get();
-        setLabelGraphPrior(prior);
-    }
+        VertexLabeledRandomGraph<BlockIndex>(graphSize, withSelfLoops, withParallelEdges),
+        m_stubLabeled(stubLabeled){
+            m_sbmLikelihoodModelUPtr = std::unique_ptr<StochasticBlockModelLikelihood>(makeSBMLikelihood(stubLabeled));
+            m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelUPtr.get();
+            setLabelGraphPrior(prior);
+        }
 public:
 
     void sampleLabels() override {

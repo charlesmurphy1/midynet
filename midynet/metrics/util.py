@@ -26,7 +26,7 @@ def get_log_evidence_arithmetic(
     for k in range(config.K):
         logp_k = []
         for m in range(config.num_sweeps):
-            mcmc.get_dynamics().sample_graph()
+            mcmc.sample_prior()
             logp_k.append(mcmc.get_log_likelihood())
         logp.append(log_mean_exp(logp_k))
     mcmc.set_graph(g)
@@ -120,11 +120,10 @@ def get_log_evidence_exact(mcmc: GraphReconstructionMCMC, config: Config, **kwar
     logevidence = []
     original_graph = mcmc.get_graph()
     size = mcmc.get_dynamics().get_size()
-    edge_proposer = mcmc.get_edge_proposer()
     graph = mcmc.get_graph_prior()
     edge_count = graph.get_edge_count()
-    allow_self_loops = edge_proposer.allow_self_loops()
-    allow_multiedges = edge_proposer.allow_multiedges()
+    allow_self_loops = mcmc.graph_prior.with_self_loops()
+    allow_multiedges = mcmc.graph_prior.with_parallel_edges()
 
     counter = 0
     for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
@@ -235,11 +234,10 @@ def get_log_posterior_exact_meanfield(
 ):
     original_graph = mcmc.get_graph()
     size = mcmc.get_dynamics().get_size()
-    edge_proposer = mcmc.get_edge_proposer()
     graph = mcmc.get_graph_prior()
     edge_count = graph.get_edge_count()
-    allow_self_loops = edge_proposer.allow_self_loops()
-    allow_multiedges = edge_proposer.allow_multiedges()
+    allow_self_loops = mcmc.graph_prior.with_self_loops()
+    allow_multiedges = mcmc.graph_prior.with_parallel_edges()
 
     i = 0
     edge_weights = defaultdict(lambda: defaultdict(list))

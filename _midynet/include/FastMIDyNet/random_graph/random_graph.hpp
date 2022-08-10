@@ -29,6 +29,7 @@ class RandomGraph: public NestedRandomVariable{
 protected:
     GraphLikelihoodModel* m_likelihoodModelPtr = nullptr;
     EdgeProposer* m_edgeProposerPtr = nullptr;
+    bool m_withSelfLoops, m_withParallelEdges;
     size_t m_size;
     MultiGraph m_state;
     virtual void _applyGraphMove(const GraphMove&);
@@ -41,11 +42,20 @@ protected:
     virtual void setUp();
 
 public:
-    RandomGraph(size_t size):
-        m_size(size), m_state(size) { }
+    RandomGraph(size_t size, bool withSelfLoops=true, bool withParallelEdges=true):
+        m_size(size), m_state(size),
+        m_withSelfLoops(withSelfLoops),
+        m_withParallelEdges(withParallelEdges) { }
 
-    RandomGraph(size_t size, GraphLikelihoodModel& likelihoodModel):
-        m_size(size), m_state(size), m_likelihoodModelPtr(&likelihoodModel) { }
+    RandomGraph(
+        size_t size,
+        GraphLikelihoodModel& likelihoodModel,
+        bool withSelfLoops=true,
+        bool withParallelEdges=true):
+            m_size(size), m_state(size),
+            m_likelihoodModelPtr(&likelihoodModel),
+            m_withSelfLoops(withSelfLoops),
+            m_withParallelEdges(withParallelEdges) { }
 
     const MultiGraph& getState() const { return m_state; }
 
@@ -61,6 +71,10 @@ public:
         avgDegree /= (double) getSize();
         return avgDegree;
     }
+    const bool withSelfLoops() const { return m_withSelfLoops; }
+    const bool withSelfLoops(bool condition) { return m_withSelfLoops = condition; }
+    const bool withParallelEdges() const { return m_withParallelEdges; }
+    const bool withParallelEdges(bool condition) { return m_withParallelEdges = condition; }
 
     void setEdgeProposer(EdgeProposer& proposer) {
         proposer.isRoot(false);
@@ -132,10 +146,13 @@ protected:
     virtual void setUp() override ;
 
 public:
-    VertexLabeledRandomGraph(size_t size):
-        RandomGraph(size){ }
-    VertexLabeledRandomGraph(size_t size, VertexLabeledGraphLikelihoodModel<Label>& likelihoodModel):
-        RandomGraph(size, likelihoodModel), m_vertexLabeledlikelihoodModelPtr(&likelihoodModel){ }
+    VertexLabeledRandomGraph(size_t size, bool withSelfLoops=true, bool withParallelEdges=true):
+        RandomGraph(size, withSelfLoops, withParallelEdges){ }
+    VertexLabeledRandomGraph(
+        size_t size, VertexLabeledGraphLikelihoodModel<Label>& likelihoodModel,
+        bool withSelfLoops=true, bool withParallelEdges=true):
+            RandomGraph(size, likelihoodModel, withSelfLoops, withParallelEdges),
+            m_vertexLabeledlikelihoodModelPtr(&likelihoodModel){ }
     virtual const std::vector<Label>& getLabels() const = 0;
     virtual const size_t getLabelCount() const = 0;
     virtual const CounterMap<Label>& getVertexCounts() const = 0;

@@ -13,7 +13,7 @@ protected:
     std::unique_ptr<StochasticBlockModelLikelihood> m_sbmLikelihoodModelUPtr = nullptr;
     NestedStochasticBlockLabelGraphPrior m_nestedLabelGraphPrior;
     LabelGraphPrior* m_labelGraphPriorPtr = &m_nestedLabelGraphPrior;
-    bool m_withSelfLoops, m_withParallelEdges, m_stubLabeled;
+    bool m_stubLabeled;
 
     void _applyGraphMove (const GraphMove& move) override {
         m_nestedLabelGraphPrior.applyGraphMove(move);
@@ -35,22 +35,18 @@ protected:
         m_sbmLikelihoodModelUPtr->m_labelGraphPriorPtrPtr = &m_labelGraphPriorPtr;
     }
     NestedStochasticBlockModelBase(size_t graphSize, bool stubLabeled=true, bool withSelfLoops=true, bool withParallelEdges=true):
-        NestedBlockLabeledRandomGraph(graphSize),
+        NestedBlockLabeledRandomGraph(graphSize, withSelfLoops, withParallelEdges),
         m_nestedLabelGraphPrior(graphSize),
-        m_stubLabeled(stubLabeled),
-        m_withSelfLoops(withSelfLoops),
-        m_withParallelEdges(withParallelEdges){
+        m_stubLabeled(stubLabeled){
             m_sbmLikelihoodModelUPtr = std::unique_ptr<StochasticBlockModelLikelihood>(makeSBMLikelihood(stubLabeled));
             m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelUPtr.get();
             setUpLikelihood();
 
         }
     NestedStochasticBlockModelBase(size_t graphSize, EdgeCountPrior& edgeCountPrior, bool stubLabeled=true, bool withSelfLoops=true, bool withParallelEdges=true):
-        NestedBlockLabeledRandomGraph(graphSize),
+        NestedBlockLabeledRandomGraph(graphSize, withSelfLoops, withParallelEdges),
         m_nestedLabelGraphPrior(graphSize, edgeCountPrior),
-        m_stubLabeled(stubLabeled),
-        m_withSelfLoops(withSelfLoops),
-        m_withParallelEdges(withParallelEdges){
+        m_stubLabeled(stubLabeled){
             m_sbmLikelihoodModelUPtr = std::unique_ptr<StochasticBlockModelLikelihood>(makeSBMLikelihood(stubLabeled));
             m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelUPtr.get();
             setUpLikelihood();

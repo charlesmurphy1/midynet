@@ -13,6 +13,7 @@
 namespace FastMIDyNet {
 
 void RandomGraph::_applyGraphMove(const GraphMove& move){
+    m_edgeProposerPtr->applyGraphMove(move);
     for (auto edge: move.addedEdges){
         auto v = edge.first, u = edge.second;
         m_state.addEdgeIdx(v, u);
@@ -29,6 +30,7 @@ void RandomGraph::_applyGraphMove(const GraphMove& move){
 
 
 void RandomGraph::setUp() {
+    m_edgeProposerPtr->clear();
     m_edgeProposerPtr->setUpWithPrior(*this);
 }
 
@@ -39,7 +41,6 @@ const double RandomGraph::getLogProposalRatioFromGraphMove (const GraphMove& mov
 
 void RandomGraph::applyGraphMove(const GraphMove& move) {
     processRecursiveFunction([&](){ _applyGraphMove(move); });
-    m_edgeProposerPtr->applyGraphMove(move);
     #if DEBUG
     checkConsistency();
     #endif

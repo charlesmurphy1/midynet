@@ -38,20 +38,9 @@ const GraphMove HingeFlipProposer::proposeRawMove() const {
 };
 
 void HingeFlipProposer::setUpWithGraph(const MultiGraph& graph){
-    m_edgeSampler.clear();
-    m_vertexSamplerPtr->clear();
-
+    m_edgeSampler.setUpWithGraph(graph);
+    m_vertexSamplerPtr->setUpWithGraph(graph);
     m_graphPtr = &graph;
-    for (auto vertex : *m_graphPtr)
-        m_vertexSamplerPtr->onVertexInsertion(vertex);
-    for (auto vertex : *m_graphPtr){
-        for (auto neighbor : m_graphPtr->getNeighboursOfIdx(vertex)){
-            if (vertex <= neighbor.vertexIndex){
-                m_vertexSamplerPtr->onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
-                m_edgeSampler.onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
-            }
-        }
-    }
 }
 
 void HingeFlipProposer::applyGraphMove(const GraphMove& move) {

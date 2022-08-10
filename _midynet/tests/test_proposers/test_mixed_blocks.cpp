@@ -114,13 +114,10 @@ TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forSomeLabelMove_ret
         auto move = proposer.proposeLabelMove(0);
         while (move.prevLabel == move.nextLabel or graphPrior.getVertexCounts().get(move.prevLabel) == 1)
             move = proposer.proposeLabelMove(0);
-        std::cout << "[BEFORE] proposer.getAvailableLabelCount()=" << proposer.getAvailableLabelCount() << std::endl;
-        std::cout << graphPrior.getVertexCounts().get(move.prevLabel) << std::endl;
         LabelMove<BlockIndex> reverseMove = {move.vertexIndex, move.nextLabel, move.prevLabel};
         double logProb = proposer.getLogProposalProb(move, false);
         proposer.applyLabelMove(move);
         graphPrior.applyLabelMove(move);
-        std::cout << "[AFTER] proposer.getAvailableLabelCount()=" << proposer.getAvailableLabelCount() << std::endl;
         double revLogProb = proposer.getLogProposalProb(reverseMove, true);
         EXPECT_EQ(logProb, revLogProb);
     }

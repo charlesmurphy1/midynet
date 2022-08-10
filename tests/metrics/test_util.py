@@ -35,6 +35,8 @@ def metrics_config():
 def mcmc(config):
     graph = RandomGraphFactory.build(config.graph)
     dynamics = DataModelFactory.build(config.data_model)
+    dynamics.set_graph_prior(graph)
+    print(dynamics)
     mcmc = ReconstructionMCMC(dynamics, graph)
     mcmc.sample()
     return mcmc
