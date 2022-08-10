@@ -19,7 +19,7 @@ from .config import Config
 from .factory import Factory, OptionError, MissingRequirementsError
 from .wrapper import Wrapper
 
-__all__ = "MCMCVerboseFactory"
+__all__ = ("ReconstructionMCMC", "PartitionMCMC", "MCMCVerboseFactory")
 
 
 class ReconstructionMCMC(Wrapper):

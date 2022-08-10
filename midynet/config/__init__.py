@@ -22,7 +22,7 @@ __all__ = (
     "OptionError",
     "UnavailableOption",
     "RandomGraphConfig",
-    "DynamicsConfig",
+    "DataModelConfig",
     "MetricsConfig",
     "MetricsCollectionConfig",
     "ExperimentConfig",

@@ -13,16 +13,16 @@ def experiment():
     config = ExperimentConfig.reconstruction(
         "test",
         "sis",
-        "er",
-        metrics=["dynamics_prediction_entropy", "graph_entropy"],
+        "erdosrenyi",
+        metrics=["data_prediction_entropy", "graph_entropy"],
         path="./testing/experiments/test-dir",
         num_procs=4,
         seed=1,
     )
     coupling = np.linspace(0, 0.5, 2).tolist()
-    config.set_value("dynamics.infection_prob", coupling)
-    config.set_value("dynamics.recovery_prob", 0.5)
-    config.set_value("dynamics.num_steps", 100)
+    config.set_value("data_model.infection_prob", coupling)
+    config.set_value("data_model.recovery_prob", 0.5)
+    config.set_value("data_model.num_steps", 100)
     config.set_value("graph.size", 10)
     config.set_value("graph.edge_count.state", [0, 5])
     config.set_value("metrics.dynamics_prediction_entropy.num_samples", 5)

@@ -6,6 +6,7 @@ from .utilities import (
     to_batch,
     delete_path,
     enumerate_all_graphs,
+    enumerate_all_partitions,
 )
 from .degree_sequences import (
     generate_degseq,
@@ -24,6 +25,7 @@ __all__ = (
     "to_batch",
     "delete_path",
     "enumerate_all_graphs",
+    "enumerate_all_partitions",
     "generate_degseq",
     "bnbinomial",
     "poisson_degreeseq",

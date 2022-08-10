@@ -236,19 +236,19 @@ def test_baseconfig_load(m_config):
 
 
 def test_metrics_config_auto():
-    metrics = MetricsConfig.auto("dynamics_entropy")
+    metrics = MetricsConfig.auto("data_entropy")
     assert len(metrics.sequence()) == 1
 
 
 def test_metrics_collection_config_auto():
-    metrics_config = MetricsCollectionConfig.auto("dynamics_entropy")
-    assert "dynamics_entropy" in metrics_config
-    assert "dynamics_entropy" in metrics_config.metrics_names
+    metrics_config = MetricsCollectionConfig.auto("data_entropy")
+    assert "data_entropy" in metrics_config
+    assert "data_entropy" in metrics_config.metrics_names
 
-    metrics_config = MetricsCollectionConfig.auto(["dynamics_entropy", "graph_entropy"])
-    assert "dynamics_entropy" in metrics_config
+    metrics_config = MetricsCollectionConfig.auto(["data_entropy", "graph_entropy"])
+    assert "data_entropy" in metrics_config
     assert "graph_entropy" in metrics_config
-    assert "dynamics_entropy" in metrics_config.metrics_names
+    assert "data_entropy" in metrics_config.metrics_names
     assert "graph_entropy" in metrics_config.metrics_names
     assert not metrics_config.is_sequenced()
     assert len(metrics_config.sequence()) == 1
@@ -258,11 +258,11 @@ def test_experiment_config_reconstruction():
     exp = ExperimentConfig.reconstruction(
         "test",
         "sis",
-        "uniform_sbm",
-        metrics=["dynamics_entropy", "graph_entropy"],
+        "erdosrenyi",
+        metrics=["data_entropy", "graph_entropy"],
     )
     assert "name" in exp
-    assert "dynamics" in exp
+    assert "data_model" in exp
     assert "graph" in exp
     assert "metrics" in exp
     assert "path" in exp

@@ -17,7 +17,7 @@ from _midynet.dynamics import (
     NestedBlockLabeledGlauberDynamics,
 )
 from .config import Config
-from .factory import Factory
+from .factory import Factory, OptionError
 
 __all__ = ("DataModelConfig", "DataModelFactory")
 

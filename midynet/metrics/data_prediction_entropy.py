@@ -20,8 +20,8 @@ class DataPredictionEntropy(Expectation):
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-        graph = RandomGraphFactory.build(config.graph)
-        data_model = DataModelFactory.build(config.data_model)
+        graph = RandomGraphFactory.build(self.config.graph)
+        data_model = DataModelFactory.build(self.config.data_model)
         data_model.set_graph_prior(graph)
         mcmc = ReconstructionMCMC(data_model, graph)
         mcmc.sample()

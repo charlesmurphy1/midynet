@@ -12,6 +12,7 @@ __all__ = (
     "to_batch",
     "delete_path",
     "enumerate_all_graphs",
+    "enumerate_all_partitions",
 )
 
 
@@ -41,7 +42,7 @@ def log_mean_exp(x):
 
 def to_batch(x, size):
     for i in range(0, len(x), size):
-        yield x[i:i+size]
+        yield x[i : i + size]
 
 
 def delete_path(path: pathlib.Path):
@@ -58,9 +59,7 @@ def delete_path(path: pathlib.Path):
     path.rmdir()
 
 
-def get_all_edges(
-    size: int, allow_self_loops: bool = False
-) -> list[tuple[int, int]]:
+def get_all_edges(size: int, allow_self_loops: bool = False) -> list[tuple[int, int]]:
     if allow_self_loops:
         return list(itertools.combinations_with_replacement(range(size), 2))
     else:
@@ -102,6 +101,10 @@ def enumerate_all_graphs(
         for u, v in edge_list:
             g.add_edge_idx(u, v)
         yield g
+
+
+def enumerate_all_partitions(size: int):
+    return
 
 
 if __name__ == "__main__":

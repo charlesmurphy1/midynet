@@ -21,8 +21,8 @@ class DataEntropy(Expectation):
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-        graph = RandomGraphFactory.build(config.graph)
-        data = DataModelFactory.build(config.data)
+        graph = RandomGraphFactory.build(self.config.graph)
+        data = DataModelFactory.build(self.config.data_model)
         data.set_graph_prior(graph)
         mcmc = ReconstructionMCMC(data, graph)
         mcmc.sample()

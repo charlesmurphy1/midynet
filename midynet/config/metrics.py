@@ -29,15 +29,15 @@ class MetricsConfig(Config):
         return obj
 
     @classmethod
-    def dynamics_entropy(cls):
+    def data_entropy(cls):
         obj = cls.mcmc()
-        obj.set_value("name", "dynamics_entropy")
+        obj.set_value("name", "data_entropy")
         return obj
 
     @classmethod
-    def dynamics_prediction_entropy(cls):
+    def data_prediction_entropy(cls):
         obj = cls.monte_carlo()
-        obj.set_value("name", "dynamics_prediction_entropy")
+        obj.set_value("name", "data_prediction_entropy")
         return obj
 
     @classmethod
@@ -121,12 +121,12 @@ class MetricsFactory(Factory):
             raise TypeError(message)
 
     @staticmethod
-    def build_dynamics_entropy(config: MetricsCollectionConfig):
-        return midynet.metrics.DynamicsEntropyMetrics(config)
+    def build_data_entropy(config: MetricsCollectionConfig):
+        return midynet.metrics.DataEntropyMetrics(config)
 
     @staticmethod
-    def build_dynamics_prediction_entropy(config: MetricsCollectionConfig):
-        return midynet.metrics.DynamicsPredictionEntropyMetrics(config)
+    def build_data_prediction_entropy(config: MetricsCollectionConfig):
+        return midynet.metrics.DataPredictionEntropyMetrics(config)
 
     @staticmethod
     def build_predictability(config: MetricsCollectionConfig):
