@@ -6,7 +6,7 @@
 #include <map>
 #include <cmath>
 
-#include "FastMIDyNet/dynamics/binary_dynamics.hpp"
+#include "FastMIDyNet/data/dynamics/binary_dynamics.hpp"
 
 
 namespace FastMIDyNet{
@@ -22,12 +22,14 @@ public:
             double recoveryProb=0.5,
             double autoActivationProb=1e-6,
             double autoDeactivationProb=0,
+            bool async=false,
             bool normalizeCoupling=true,
             size_t numInitialActive=1) :
         BaseClass(
             numSteps,
             autoActivationProb,
             autoDeactivationProb,
+            async,
             normalizeCoupling,
             numInitialActive),
         m_infectionProb(infectionProb),
@@ -39,6 +41,7 @@ public:
             double recoveryProb=0.5,
             double autoActivationProb=1e-6,
             double autoDeactivationProb=0,
+            bool async=false,
             bool normalizeCoupling=true,
             size_t numInitialActive=1) :
         BaseClass(
@@ -46,6 +49,7 @@ public:
             numSteps,
             autoActivationProb,
             autoDeactivationProb,
+            async,
             normalizeCoupling,
             numInitialActive),
         m_infectionProb(infectionProb),

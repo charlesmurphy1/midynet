@@ -2,7 +2,7 @@
 #include <list>
 #include <cmath>
 
-#include "FastMIDyNet/dynamics/sis.hpp"
+#include "FastMIDyNet/data/dynamics/sis.hpp"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "../fixtures.hpp"
@@ -15,7 +15,7 @@ class TestSISDynamics: public::testing::Test{
 public:
     const double INFECTION_PROB = 0.7, RECOVERY_PROB = 0.3, AUTO_ACTIVATION_PROB = 1e-6 , AUTO_DEACTIVATION_PROB = 1e-6;
     const size_t NUM_INITIAL_ACTIVE = 3;
-    const bool NORMALIZE_COUPLING = false;
+    const bool NORMALIZE_COUPLING = false, ASYNC = false;
     const std::list<std::vector<VertexState>> neighbor_states = {{1, 3}, {2, 2}, {3, 1}};
     const size_t NUM_STEPS=20;
     ErdosRenyiModel randomGraph = ErdosRenyiModel(10, 10);
@@ -23,7 +23,7 @@ public:
     FastMIDyNet::SISDynamics<RandomGraph> dynamics = FastMIDyNet::SISDynamics<RandomGraph>(
         randomGraph, NUM_STEPS, INFECTION_PROB, RECOVERY_PROB,
         AUTO_ACTIVATION_PROB, AUTO_DEACTIVATION_PROB,
-        NORMALIZE_COUPLING, NUM_INITIAL_ACTIVE);
+        NORMALIZE_COUPLING, ASYNC, NUM_INITIAL_ACTIVE);
 };
 
 TEST_F(TestSISDynamics, getRandomState_forGivenInitialActives_returnCorrectState) {

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <list>
 
-#include "FastMIDyNet/dynamics/glauber.hpp"
+#include "FastMIDyNet/data/dynamics/glauber.hpp"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "../fixtures.hpp"
@@ -15,7 +15,7 @@ public:
     const std::list<std::vector<VertexState>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}};
     const size_t NUM_STEPS=20;
     ErdosRenyiModel randomGraph = ErdosRenyiModel(10, 10);
-    FastMIDyNet::GlauberDynamics<RandomGraph> dynamics = FastMIDyNet::GlauberDynamics<RandomGraph>(randomGraph, NUM_STEPS, COUPLING_CONSTANT, 0, 0, false, -1);
+    FastMIDyNet::GlauberDynamics<RandomGraph> dynamics = FastMIDyNet::GlauberDynamics<RandomGraph>(randomGraph, NUM_STEPS, COUPLING_CONSTANT, 0, 0, false, false, -1);
 };
 
 

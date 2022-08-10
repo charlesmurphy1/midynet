@@ -1,4 +1,4 @@
-#include "FastMIDyNet/dynamics/sis.hpp"
+#include "FastMIDyNet/data/dynamics/sis.hpp"
 
 namespace FastMIDyNet{
 

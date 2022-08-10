@@ -3,7 +3,7 @@
 #include <random>
 #include <time.h>
 
-#include "FastMIDyNet/dynamics/sis.hpp"
+#include "FastMIDyNet/data/dynamics/sis.hpp"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "FastMIDyNet/proposer/label/uniform.hpp"
 #include "FastMIDyNet/proposer/nested_label/uniform.hpp"

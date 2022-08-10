@@ -10,7 +10,7 @@
 #include "init_rng.h"
 #include "random_graph/init.h"
 #include "proposer/init.h"
-#include "dynamics/init.h"
+#include "data/init.h"
 #include "mcmc/init.h"
 
 namespace py = pybind11;
@@ -41,8 +41,8 @@ PYBIND11_MODULE(_midynet, m) {
     py::module random_graph = m.def_submodule("random_graph");
     initRandomGraph( random_graph );
 
-    py::module dynamics = m.def_submodule("dynamics");
-    initDynamics( dynamics );
+    py::module data = m.def_submodule("data");
+    initDataModels( data );
 
     py::module mcmc = m.def_submodule("mcmc");
     initMCMC( mcmc );

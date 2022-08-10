@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "FastMIDyNet/dynamics/dynamics.hpp"
+#include "FastMIDyNet/data/dynamics/dynamics.hpp"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "BaseGraph/types.h"
@@ -43,18 +43,18 @@ class TestDynamicsBaseClass: public::testing::Test{
         }
 };
 
-TEST_F(TestDynamicsBaseClass, getCurrentState_returnCurrentState){
-    auto x = dynamics.getCurrentState();
+TEST_F(TestDynamicsBaseClass, getState_returnState){
+    auto x = dynamics.getState();
     EXPECT_EQ(x, STATE);
 }
 
-TEST_F(TestDynamicsBaseClass, getCurrentNeighborsState_returnCurrentState){
+TEST_F(TestDynamicsBaseClass, getNeighborsState_returnState){
 
-    auto n = dynamics.getCurrentNeighborsState();
+    auto n = dynamics.getNeighborsState();
     EXPECT_EQ(n, dynamics.computeNeighborsState(STATE));
 }
 
-TEST_F(TestDynamicsBaseClass, getGraph_returnCurrentGraph){
+TEST_F(TestDynamicsBaseClass, getGraph_returnGraph){
     auto g = dynamics.getGraph();
     EXPECT_EQ(g, GRAPH);
 }
@@ -108,8 +108,8 @@ TEST_F(TestDynamicsBaseClass, getTransitionProbs_forEachVertexState_returnTransi
 
 TEST_F(TestDynamicsBaseClass, sampleState_forSomeNumSteps_returnNothing){
     dynamics.sampleState();
-    auto n = dynamics.getCurrentNeighborsState();
-    EXPECT_EQ(n, dynamics.computeNeighborsState(dynamics.getCurrentState()));
+    auto n = dynamics.getNeighborsState();
+    EXPECT_EQ(n, dynamics.computeNeighborsState(dynamics.getState()));
 
 }
 
@@ -155,7 +155,7 @@ TEST_F(TestDynamicsBaseClass, applyMove_forSomeGraphMove_expectChangesInTheGraph
                 EXPECT_EQ(expected[vertex][t][s], actual[s]);
         }
     }
-    EXPECT_EQ(dynamics.getCurrentNeighborsState(), dynamics.computeNeighborsState(dynamics.getCurrentState()));
+    EXPECT_EQ(dynamics.getNeighborsState(), dynamics.computeNeighborsState(dynamics.getState()));
 }
 
 TEST_F(TestDynamicsBaseClass, updateNeighborsStateFromEdgeMove_fromAddedEdge_expectCorrectionInNeighborState){

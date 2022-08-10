@@ -93,8 +93,8 @@ py::class_<GraphReconstructionMCMC<GraphPrior>, MCMC> declareGraphReconstruction
         .def(py::init<Dynamics<GraphPrior>&, double, double>(),
             py::arg("dynamics"), py::arg("beta_prior")=1, py::arg("beta_likelihood")=1)
         .def(py::init<double, double>(), py::arg("beta_prior")=1, py::arg("beta_likelihood")=1)
-        .def("set_dynamics", &GraphReconstructionMCMC<GraphPrior>::setDynamics, py::arg("dynamics"))
-        .def("get_dynamics", &GraphReconstructionMCMC<GraphPrior>::getDynamics)
+        .def("set_data_model", &GraphReconstructionMCMC<GraphPrior>::setDataModel, py::arg("data_model"))
+        .def("get_data_model", &GraphReconstructionMCMC<GraphPrior>::getDataModel)
         .def("get_graph_prior", &GraphReconstructionMCMC<GraphPrior>::getGraphPrior)
         .def("get_graph", &GraphReconstructionMCMC<GraphPrior>::getGraph)
         .def("set_graph", &GraphReconstructionMCMC<GraphPrior>::setGraph, py::arg("graph"))

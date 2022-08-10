@@ -2,8 +2,8 @@
 #define FAST_MIDYNET_WILSON_COWAN_H
 
 
-#include "FastMIDyNet/dynamics/binary_dynamics.hpp"
-#include "FastMIDyNet/dynamics/util.h"
+#include "FastMIDyNet/data/dynamics/binary_dynamics.hpp"
+#include "FastMIDyNet/data/util.h"
 
 
 namespace FastMIDyNet{
@@ -27,12 +27,14 @@ public:
             double eta=0.5,
             double autoActivationProb=1e-6,
             double autoDeactivationProb=0,
+            bool async=true,
             bool normalizeCoupling=true,
             size_t numInitialActive=1):
         BaseClass(
             numSteps,
             autoActivationProb,
             autoDeactivationProb,
+            async,
             normalizeCoupling,
             numInitialActive),
         m_a(a),
@@ -48,6 +50,7 @@ public:
             double eta=0.5,
             double autoActivationProb=1e-6,
             double autoDeactivationProb=0,
+            bool async=false,
             bool normalizeCoupling=true,
             size_t numInitialActive=1):
         BaseClass(
@@ -55,6 +58,7 @@ public:
             numSteps,
             autoActivationProb,
             autoDeactivationProb,
+            async,
             normalizeCoupling,
             numInitialActive),
         m_a(a),

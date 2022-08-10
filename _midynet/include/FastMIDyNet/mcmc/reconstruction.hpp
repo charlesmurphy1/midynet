@@ -1,7 +1,7 @@
 #ifndef FAST_MIDYNET_RECONSTRUCTION_H
 #define FAST_MIDYNET_RECONSTRUCTION_H
 
-#include "FastMIDyNet/dynamics/dynamics.hpp"
+#include "FastMIDyNet/data/data_model.hpp"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/mcmc/mcmc.h"
 #include "FastMIDyNet/mcmc/callbacks/callback.hpp"
@@ -9,25 +9,26 @@
 #include "FastMIDyNet/proposer/label/base.hpp"
 #include "FastMIDyNet/proposer/nested_label/base.hpp"
 #include "FastMIDyNet/utility/maps.hpp"
+#include "FastMIDyNet/data/types.h"
 
 namespace FastMIDyNet{
 
 template<typename GraphPriorType=RandomGraph>
 class GraphReconstructionMCMC: public MCMC{
 protected:
-    Dynamics<GraphPriorType>* m_dynamicsPtr = nullptr;
+    DataModel<GraphPriorType>* m_dataModelPtr = nullptr;
     GraphPriorType* m_graphPriorPtr = nullptr;
     CallBackMap<GraphReconstructionMCMC<GraphPriorType>> m_graphCallBacks;
 
     double _getLogAcceptanceProbFromGraphMove(const GraphMove& move) const;
 public:
     GraphReconstructionMCMC(
-        Dynamics<GraphPriorType>& dynamics,
+        DataModel<GraphPriorType>& dataModel,
         double betaLikelihood=1,
         double betaPrior=1):
     MCMC(betaLikelihood, betaPrior){
             m_graphCallBacks.setMCMC(*this);
-            setDynamics(dynamics);
+            setDataModel(dataModel);
         }
     GraphReconstructionMCMC(
         double betaLikelihood=1,
@@ -35,26 +36,26 @@ public:
     MCMC(betaLikelihood, betaPrior){ m_graphCallBacks.setMCMC(*this); }
 
     // Accessors and mutators
-    const Dynamics<GraphPriorType>& getDynamics() const { return *m_dynamicsPtr; }
-    Dynamics<GraphPriorType>& getDynamicsRef() const { return *m_dynamicsPtr; }
-    void setDynamics(Dynamics<GraphPriorType>& dynamics) {
-        m_dynamicsPtr = &dynamics;
-        m_graphPriorPtr = &m_dynamicsPtr->getGraphPriorRef();
+    const DataModel<GraphPriorType>& getDataModel() const { return *m_dataModelPtr; }
+    DataModel<GraphPriorType>& getDataModelRef() const { return *m_dataModelPtr; }
+    void setDataModel(DataModel<GraphPriorType>& dataModel) {
+        m_dataModelPtr = &dataModel;
+        m_graphPriorPtr = &m_dataModelPtr->getGraphPriorRef();
     }
     const GraphPriorType& getGraphPrior() const { return *m_graphPriorPtr; }
 
-    const MultiGraph& getGraph() const { return m_dynamicsPtr->getGraph(); }
-    void setGraph(const MultiGraph& graph) { m_dynamicsPtr->setGraph(graph); }
+    const MultiGraph& getGraph() const { return m_dataModelPtr->getGraph(); }
+    void setGraph(const MultiGraph& graph) { m_dataModelPtr->setGraph(graph); }
 
     void sample() override {
-        m_dynamicsPtr->sample();
+        m_dataModelPtr->sample();
     }
     void samplePrior() override {
-        m_dynamicsPtr->sampleGraph();
+        m_dataModelPtr->samplePrior();
     }
-    const double getLogLikelihood() const override { return m_dynamicsPtr->getLogLikelihood(); }
-    const double getLogPrior() const override { return m_dynamicsPtr->getLogPrior(); }
-    const double getLogJoint() const override { return m_dynamicsPtr->getLogJoint(); }
+    const double getLogLikelihood() const override { return m_dataModelPtr->getLogLikelihood(); }
+    const double getLogPrior() const override { return m_dataModelPtr->getLogPrior(); }
+    const double getLogJoint() const override { return m_dataModelPtr->getLogJoint(); }
 
     // Callbacks related
 
@@ -93,52 +94,52 @@ public:
     // Debug related
     virtual bool isSafe() const override {
         return MCMC::isSafe()
-        and (m_dynamicsPtr != nullptr) and (m_dynamicsPtr->isSafe());
+        and (m_dataModelPtr != nullptr) and (m_dataModelPtr->isSafe());
     }
 
     virtual void checkSelfSafety() const override {
         MCMC::checkSelfSafety();
 
-        if (m_dynamicsPtr == nullptr)
-            throw SafetyError("GraphReconstructionMCMC, m_dynamicsPtr");
-        m_dynamicsPtr->checkSafety();
+        if (m_dataModelPtr == nullptr)
+            throw SafetyError("GraphReconstructionMCMC", "m_dataModelPtr");
+        m_dataModelPtr->checkSafety();
     }
     virtual void checkSelfConsistency() const override {
         MCMC::checkSelfConsistency();
-        if (m_dynamicsPtr != nullptr)
-            m_dynamicsPtr->checkConsistency();
+        if (m_dataModelPtr != nullptr)
+            m_dataModelPtr->checkConsistency();
     }
     virtual void computationFinished() const override {
         m_isProcessed = false;
         MCMC::computationFinished();
-        m_dynamicsPtr->computationFinished();
+        m_dataModelPtr->computationFinished();
     }
 };
 
-using BaseBlockLabeledGraphReconstructionMCMC = GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>;
+using ReconstructionFromDynamicsMCMC = GraphReconstructionMCMC<std::vector<VertexState>>;
 
 template<typename GraphPriorType>
 double GraphReconstructionMCMC<GraphPriorType>::_getLogAcceptanceProbFromGraphMove(const GraphMove& move) const {
-    double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_dynamicsPtr->getLogLikelihoodRatioFromGraphMove(move);
-    double logPriorRatio = (m_betaPrior == 0) ? 0 : m_betaPrior * m_dynamicsPtr->getLogPriorRatioFromGraphMove(move);
+    double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_dataModelPtr->getLogLikelihoodRatioFromGraphMove(move);
+    double logPriorRatio = (m_betaPrior == 0) ? 0 : m_betaPrior * m_dataModelPtr->getLogPriorRatioFromGraphMove(move);
     if (logLikelihoodRatio == -INFINITY or logPriorRatio == -INFINITY){
         m_lastLogJointRatio = -INFINITY;
         return -INFINITY;
     }
     m_lastLogJointRatio = logLikelihoodRatio + logPriorRatio;
-    return m_dynamicsPtr->getGraphPrior().getLogProposalRatioFromGraphMove(move) + m_lastLogJointRatio;
+    return m_dataModelPtr->getGraphPrior().getLogProposalRatioFromGraphMove(move) + m_lastLogJointRatio;
 }
 
 template<typename GraphPriorType>
 bool GraphReconstructionMCMC<GraphPriorType>::doMetropolisHastingsStep() {
-    GraphMove move = m_dynamicsPtr->getGraphPrior().proposeGraphMove();
+    GraphMove move = m_dataModelPtr->getGraphPrior().proposeGraphMove();
     if (move.addedEdges == move.removedEdges)
         return m_isLastAccepted = true;
     m_lastLogAcceptance = getLogAcceptanceProbFromGraphMove(move);
     m_isLastAccepted = false;
     if (m_uniform(rng) < exp(m_lastLogAcceptance)){
         m_isLastAccepted = true;
-        m_dynamicsPtr->applyGraphMove(move);
+        m_dataModelPtr->applyGraphMove(move);
     }
     return m_isLastAccepted;
 }
@@ -151,18 +152,18 @@ protected:
     bool m_lastMoveWasLabelMove;
     using GraphPriorType = VertexLabeledRandomGraph<Label>;
     using BaseClass = GraphReconstructionMCMC<VertexLabeledRandomGraph<Label>>;
-    using BaseClass::m_dynamicsPtr;
+    using BaseClass::m_dataModelPtr;
     using BaseClass::m_betaLikelihood;
     using BaseClass::m_betaPrior;
     using BaseClass::m_lastLogJointRatio;
 public:
 
     VertexLabeledGraphReconstructionMCMC(
-        Dynamics<GraphPriorType>& dynamics,
+        DataModel<GraphPriorType>& dataModel,
         double sampleLabelProb=0.5,
         double betaLikelihood=1,
         double betaPrior=1):
-    BaseClass(dynamics, betaLikelihood, betaPrior),
+    BaseClass(dataModel, betaLikelihood, betaPrior),
     m_sampleLabelProb(sampleLabelProb){ }
     VertexLabeledGraphReconstructionMCMC(
         double sampleLabelProb=0.5,
@@ -172,10 +173,10 @@ public:
     m_sampleLabelProb(sampleLabelProb){ }
 
     const std::vector<Label>& getLabels() const {
-        return m_dynamicsPtr->getGraphPrior().getLabels();
+        return m_dataModelPtr->getGraphPrior().getLabels();
     }
     void setLabels(const std::vector<Label>&labels) {
-        m_dynamicsPtr->getGraphPriorRef().setLabels(labels);
+        m_dataModelPtr->getGraphPriorRef().setLabels(labels);
     }
 
     const double getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const ;
@@ -192,9 +193,9 @@ template<typename Label>
 const double VertexLabeledGraphReconstructionMCMC<Label>::getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const {
     return BaseClass::template processRecursiveConstFunction<double>(
         [&](){
-            double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_dynamicsPtr->getGraphPrior().getLogLikelihoodRatioFromLabelMove(move);
-            double logPriorRatio = (m_betaPrior == 0) ? 0 : m_betaPrior * m_dynamicsPtr->getGraphPrior().getLogPriorRatioFromLabelMove(move);
-            double logProposalRatio = m_dynamicsPtr->getGraphPrior().getLogProposalRatioFromLabelMove(move);
+            double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_dataModelPtr->getGraphPrior().getLogLikelihoodRatioFromLabelMove(move);
+            double logPriorRatio = (m_betaPrior == 0) ? 0 : m_betaPrior * m_dataModelPtr->getGraphPrior().getLogPriorRatioFromLabelMove(move);
+            double logProposalRatio = m_dataModelPtr->getGraphPrior().getLogProposalRatioFromLabelMove(move);
             m_lastLogJointRatio = logPriorRatio + logLikelihoodRatio;
             return logProposalRatio + m_lastLogJointRatio;
         }, 0);
@@ -205,14 +206,14 @@ bool VertexLabeledGraphReconstructionMCMC<Label>::doMetropolisHastingsStep() {
     m_lastMoveWasLabelMove = BaseClass::m_uniform(rng) < m_sampleLabelProb;
     if ( not m_lastMoveWasLabelMove)
         return BaseClass::doMetropolisHastingsStep();
-    LabelMove<Label> move = m_dynamicsPtr->getGraphPrior().proposeLabelMove();
+    LabelMove<Label> move = m_dataModelPtr->getGraphPrior().proposeLabelMove();
     if (move.prevLabel == move.nextLabel and move.addedLabels == 0)
         return BaseClass::m_isLastAccepted = true;
     BaseClass::m_lastLogAcceptance = getLogAcceptanceProbFromLabelMove(move);
     BaseClass::m_isLastAccepted = false;
     if (BaseClass::m_uniform(rng) < exp(BaseClass::m_lastLogAcceptance)){
         BaseClass::m_isLastAccepted = true;
-        m_dynamicsPtr->getGraphPriorRef().applyLabelMove(move);
+        m_dataModelPtr->getGraphPriorRef().applyLabelMove(move);
     }
     return BaseClass::m_isLastAccepted;
 }
@@ -226,18 +227,18 @@ protected:
 
     using GraphPriorType = NestedVertexLabeledRandomGraph<Label>;
     using BaseClass = GraphReconstructionMCMC<NestedVertexLabeledRandomGraph<Label>>;
-    using BaseClass::m_dynamicsPtr;
+    using BaseClass::m_dataModelPtr;
     using BaseClass::m_betaLikelihood;
     using BaseClass::m_betaPrior;
     using BaseClass::m_lastLogJointRatio;
 public:
 
     NestedVertexLabeledGraphReconstructionMCMC(
-        Dynamics<GraphPriorType>& dynamics,
+        DataModel<GraphPriorType>& dataModel,
         double sampleLabelProb=0.5,
         double betaLikelihood=1,
         double betaPrior=1):
-    BaseClass(dynamics, betaLikelihood, betaPrior),
+    BaseClass(dataModel, betaLikelihood, betaPrior),
     m_sampleLabelProb(sampleLabelProb){ }
     NestedVertexLabeledGraphReconstructionMCMC(
         double sampleLabelProb=0.5,
@@ -247,14 +248,14 @@ public:
     m_sampleLabelProb(sampleLabelProb){ }
 
     const std::vector<Label>& getLabels() const {
-        return m_dynamicsPtr->getGraphPrior().getLabels();
+        return m_dataModelPtr->getGraphPrior().getLabels();
     }
 
     const std::vector<std::vector<Label>>& getNestedLabels() const {
-        return m_dynamicsPtr->getGraphPrior().getNestedLabels();
+        return m_dataModelPtr->getGraphPrior().getNestedLabels();
     }
     void setNestedLabels(const std::vector<std::vector<Label>>& labels) {
-        m_dynamicsPtr->getGraphPriorRef().setNestedLabels(labels);
+        m_dataModelPtr->getGraphPriorRef().setNestedLabels(labels);
     }
 
     const double getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const ;
@@ -265,15 +266,16 @@ public:
     // Debug related
 };
 
+
 using NestedBlockLabeledGraphReconstructionMCMC = NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>;
 
 template<typename Label>
 const double NestedVertexLabeledGraphReconstructionMCMC<Label>::getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const {
     return BaseClass::template processRecursiveConstFunction<double>(
         [&](){
-            double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_dynamicsPtr->getGraphPrior().getLogLikelihoodRatioFromLabelMove(move);
-            double logPriorRatio = (m_betaPrior == 0) ? 0 : m_betaPrior * m_dynamicsPtr->getGraphPrior().getLogPriorRatioFromLabelMove(move);
-            double logProposalRatio = m_dynamicsPtr->getGraphPrior().getLogProposalRatioFromLabelMove(move);
+            double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_dataModelPtr->getGraphPrior().getLogLikelihoodRatioFromLabelMove(move);
+            double logPriorRatio = (m_betaPrior == 0) ? 0 : m_betaPrior * m_dataModelPtr->getGraphPrior().getLogPriorRatioFromLabelMove(move);
+            double logProposalRatio = m_dataModelPtr->getGraphPrior().getLogProposalRatioFromLabelMove(move);
             m_lastLogJointRatio = logPriorRatio + logLikelihoodRatio;
             return logProposalRatio + m_lastLogJointRatio;
         }, 0);
@@ -284,14 +286,14 @@ bool NestedVertexLabeledGraphReconstructionMCMC<Label>::doMetropolisHastingsStep
     m_lastMoveWasLabelMove = BaseClass::m_uniform(rng) < m_sampleLabelProb;
     if ( not m_lastMoveWasLabelMove)
         return BaseClass::doMetropolisHastingsStep();
-    LabelMove<Label> move = m_dynamicsPtr->getGraphPrior().proposeLabelMove();
+    LabelMove<Label> move = m_dataModelPtr->getGraphPrior().proposeLabelMove();
     if (move.prevLabel == move.nextLabel and move.addedLabels == 0)
         return BaseClass::m_isLastAccepted = true;
     BaseClass::m_lastLogAcceptance = getLogAcceptanceProbFromLabelMove(move);
     BaseClass::m_isLastAccepted = false;
     if (BaseClass::m_uniform(rng) < exp(BaseClass::m_lastLogAcceptance)){
         BaseClass::m_isLastAccepted = true;
-        m_dynamicsPtr->getGraphPriorRef().applyLabelMove(move);
+        m_dataModelPtr->getGraphPriorRef().applyLabelMove(move);
     }
     return BaseClass::m_isLastAccepted;
 }

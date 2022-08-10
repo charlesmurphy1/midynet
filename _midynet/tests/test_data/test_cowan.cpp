@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 #include <list>
 
-#include "FastMIDyNet/dynamics/cowan.hpp"
-#include "FastMIDyNet/dynamics/types.h"
+#include "FastMIDyNet/data/dynamics/cowan.hpp"
+#include "FastMIDyNet/data/types.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "../fixtures.hpp"
@@ -11,32 +11,33 @@
 namespace FastMIDyNet {
 
 
-class TestWilsonCowan: public::testing::Test{
+class TestCowanDynamics: public::testing::Test{
 public:
     const double A = 1., NU = 7., MU = 1., ETA = 0.5;
     const size_t NUM_STEPS=20;
     const std::list<std::vector<VertexState>> NEIGHBOR_STATES = {{1, 3}, {2, 2}, {3, 1}, {2, 0}};
     ErdosRenyiModel randomGraph = ErdosRenyiModel(10, 10);
-    FastMIDyNet::CowanDynamics<RandomGraph> dynamics = FastMIDyNet::CowanDynamics<RandomGraph>(randomGraph, NUM_STEPS, NU, A, MU, ETA, 0, 0, false, -1);
+    FastMIDyNet::CowanDynamics<RandomGraph> dynamics = FastMIDyNet::CowanDynamics<RandomGraph>(randomGraph, NUM_STEPS, NU, A, MU, ETA, 0, 0, false, false, -1);
 };
 
 
-TEST_F(TestWilsonCowan, getActivationProb_forEachStateTransition_returnCorrectProbability) {
+TEST_F(TestCowanDynamics, getActivationProb_forEachStateTransition_returnCorrectProbability) {
+    std::cout << "A=" << A << ", NU=" << NU << ", MU=" << MU << std::endl;
     for (const auto& neighbor_state: NEIGHBOR_STATES)
         EXPECT_EQ(sigmoid(A*(NU*neighbor_state[1] - MU)), dynamics.getActivationProb(neighbor_state));
 }
 
-TEST_F(TestWilsonCowan, getDeactivationProb_forEachStateTransition_returnCorrectProbability) {
+TEST_F(TestCowanDynamics, getDeactivationProb_forEachStateTransition_returnCorrectProbability) {
     for (auto neighbor_state: NEIGHBOR_STATES)
         EXPECT_EQ(ETA, dynamics.getDeactivationProb(neighbor_state));
 }
 
-TEST_F(TestWilsonCowan, afterSample_getCorrectNeighborState){
+TEST_F(TestCowanDynamics, afterSample_getCorrectNeighborState){
     dynamics.sample();
     dynamics.checkConsistency();
 }
 
-TEST_F(TestWilsonCowan, getLogLikelihood_returnCorrectLogLikelikehood){
+TEST_F(TestCowanDynamics, getLogLikelihood_returnCorrectLogLikelikehood){
     dynamics.sample();
     auto past = dynamics.getPastStates();
     auto future = dynamics.getFutureStates();
@@ -52,7 +53,7 @@ TEST_F(TestWilsonCowan, getLogLikelihood_returnCorrectLogLikelikehood){
     EXPECT_NEAR(expected, actual, 1E-6);
 }
 
-TEST_F(TestWilsonCowan, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
+TEST_F(TestCowanDynamics, getLogLikelihoodRatio_forSomeGraphMove_returnLogJointRatio){
     dynamics.sample();
     auto graphMove = randomGraph.proposeGraphMove();
     double ratio = dynamics.getLogLikelihoodRatioFromGraphMove(graphMove);

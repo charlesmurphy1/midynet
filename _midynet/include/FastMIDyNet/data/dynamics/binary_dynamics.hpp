@@ -6,7 +6,7 @@
 #include <map>
 
 #include "FastMIDyNet/random_graph/random_graph.hpp"
-#include "FastMIDyNet/dynamics/dynamics.hpp"
+#include "FastMIDyNet/data/dynamics/dynamics.hpp"
 #include "FastMIDyNet/types.h"
 
 
@@ -24,9 +24,10 @@ public:
             size_t numSteps,
             double autoActivationProb=0.0,
             double autoDeactivationProb=0.0,
+            bool async=false,
             bool normalizeCoupling=true,
             size_t numInitialActive=-1):
-        BaseClass(2, numSteps, normalizeCoupling),
+        BaseClass(2, numSteps, async, normalizeCoupling),
         m_autoActivationProb(autoActivationProb),
         m_autoDeactivationProb(autoDeactivationProb),
         m_numInitialActive(numInitialActive) { }
@@ -35,16 +36,16 @@ public:
             size_t numSteps,
             double autoActivationProb=0.0,
             double autoDeactivationProb=0.0,
+            bool async=false,
             bool normalizeCoupling=true,
             size_t numInitialActive=-1):
-        BaseClass(randomGraph, 2, numSteps, normalizeCoupling),
+        BaseClass(randomGraph, 2, numSteps, async, normalizeCoupling),
         m_autoActivationProb(autoActivationProb),
         m_autoDeactivationProb(autoDeactivationProb),
         m_numInitialActive(numInitialActive) { }
-    const double getTransitionProb(VertexState prevVertexState,
-                        VertexState nextVertexState,
-                        VertexNeighborhoodState neighborhoodState
-                    ) const override;
+    const double getTransitionProb(
+        const VertexState& prevVertexState, const VertexState& nextVertexState, const VertexNeighborhoodState& neighborhoodState
+    ) const override;
 
     const size_t getNumInitialActive() const { return m_numInitialActive; }
     void setNumInitialActive(size_t numInitialActive) {m_numInitialActive = numInitialActive; }
@@ -73,8 +74,8 @@ const State BinaryDynamics<GraphPriorType>::getRandomState() const {
 };
 
 template <typename GraphPriorType>
-const double BinaryDynamics<GraphPriorType>::getTransitionProb(VertexState prevVertexState, VertexState nextVertexState,
-        VertexNeighborhoodState neighborhoodState) const {
+const double BinaryDynamics<GraphPriorType>::getTransitionProb(
+    const VertexState& prevVertexState, const VertexState& nextVertexState, const VertexNeighborhoodState& neighborhoodState) const {
     double p;
     double transProb;
     if ( prevVertexState == 0 ) {

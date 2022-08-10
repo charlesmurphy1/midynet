@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <list>
 
-#include "FastMIDyNet/dynamics/degree.hpp"
+#include "FastMIDyNet/data/dynamics/degree.hpp"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "../fixtures.hpp"

@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "FastMIDyNet/dynamics/sis.hpp"
+#include "FastMIDyNet/data/dynamics/sis.hpp"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/proposer/label/uniform.hpp"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"

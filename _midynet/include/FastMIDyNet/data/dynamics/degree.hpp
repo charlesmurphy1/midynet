@@ -2,7 +2,7 @@
 #define FASTMIDYNET_DEGREE_DYNAMICS_H
 
 
-#include "FastMIDyNet/dynamics/binary_dynamics.hpp"
+#include "FastMIDyNet/data/dynamics/binary_dynamics.hpp"
 
 
 namespace FastMIDyNet{
@@ -17,7 +17,7 @@ class DegreeDynamics: public BinaryDynamics<GraphPriorType> {
         DegreeDynamics(size_t numSteps, double C):
                 BaseClass(numSteps, 0, 0, false, -1), m_C(C) {}
         DegreeDynamics(GraphPriorType& graphPrior, size_t numSteps, double C):
-                BaseClass(graphPrior, numSteps, 0, 0, false, -1), m_C(C) { }
+                BaseClass(graphPrior, numSteps, 0, 0, false, false, -1), m_C(C) { }
 
         const double getActivationProb(const VertexNeighborhoodState& vertexNeighborState) const override {
             return (vertexNeighborState[0] + vertexNeighborState[1]) / m_C;

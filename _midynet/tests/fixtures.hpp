@@ -14,7 +14,7 @@
 #include "FastMIDyNet/random_graph/hsbm.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 
-#include "FastMIDyNet/dynamics/sis.hpp"
+#include "FastMIDyNet/data/dynamics/sis.hpp"
 
 #include "FastMIDyNet/mcmc/mcmc.h"
 

@@ -2,8 +2,8 @@
 #define FAST_MIDYNET_ISING_MODEL_H
 
 
-#include "FastMIDyNet/dynamics/binary_dynamics.hpp"
-#include "FastMIDyNet/dynamics/util.h"
+#include "FastMIDyNet/data/dynamics/binary_dynamics.hpp"
+#include "FastMIDyNet/data/util.h"
 
 
 namespace FastMIDyNet{
@@ -21,12 +21,14 @@ class GlauberDynamics: public BinaryDynamics<GraphPriorType> {
                 double couplingConstant,
                 double autoActivationProb=0,
                 double autoDeactivationProb=0,
+                bool async=false,
                 bool normalizeCoupling=true,
                 size_t numInitialActive=-1):
             BaseClass(
                 numSteps,
                 autoActivationProb,
                 autoDeactivationProb,
+                async,
                 normalizeCoupling,
                 numInitialActive),
             m_couplingConstant(couplingConstant) {}
@@ -36,6 +38,7 @@ class GlauberDynamics: public BinaryDynamics<GraphPriorType> {
                 double couplingConstant,
                 double autoActivationProb=0,
                 double autoDeactivationProb=0,
+                bool async=false,
                 bool normalizeCoupling=true,
                 size_t numInitialActive=-1):
             BaseClass(
@@ -43,6 +46,7 @@ class GlauberDynamics: public BinaryDynamics<GraphPriorType> {
                 numSteps,
                 autoActivationProb,
                 autoDeactivationProb,
+                async,
                 normalizeCoupling,
                 numInitialActive),
             m_couplingConstant(couplingConstant) {}
