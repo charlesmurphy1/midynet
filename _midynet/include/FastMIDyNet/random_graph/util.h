@@ -34,8 +34,10 @@ void checkGraphConsistencyWithLabelGraph(
     const MultiGraph& expectedEdgeMat
 );
 void checkGraphConsistencyWithDegreeSequence(
-    std::string namePrefix,
+    std::string className,
+    std::string expName,
     const MultiGraph& graph,
+    std::string actName,
     const DegreeSequence& expectedDegreeSeq
 );
 EdgeCountPrior* makeEdgeCountPrior(double edgeCount, bool canonical=false);

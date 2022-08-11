@@ -1,4 +1,4 @@
-from _midynet import utility, random_graph, data, mcmc
+from _midynet import utility, proposer, random_graph, data, mcmc
 from . import util
 from . import config
 from . import metrics

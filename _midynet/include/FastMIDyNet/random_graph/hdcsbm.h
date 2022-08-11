@@ -95,6 +95,7 @@ public:
     }
 
     void checkSelfConsistency() const override {
+        NestedVertexLabeledRandomGraph<BlockIndex>::checkSelfConsistency();
         m_degreePriorPtr->checkSelfConsistency();
         checkGraphConsistencyWithLabelGraph("NestedDegreeStochasticBlockModelFamily", m_state, getLabels(), getLabelGraph());
     }

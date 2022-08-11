@@ -131,12 +131,31 @@ std::string displayVector(const std::vector<T>& vec, std::string name="v", bool 
     for (auto row : vec){
         ss << std::to_string(row) << ", ";
     }
+    ss.seekp(-1, ss.cur);
+    ss.seekp(-1, ss.cur);
     ss << "]";
     if (toConsole)
         std::cout << ss.str() << std::endl;
 
     return ss.str();
 }
+
+template<typename T>
+std::string displaySet(const std::set<T>& s, std::string name="s", bool toConsole=false){
+    std::stringstream ss;
+    ss << name << " = {";
+    for (auto row : s){
+        ss << std::to_string(row) << ", ";
+    }
+    ss.seekp(-1, ss.cur);
+    ss.seekp(-1, ss.cur);
+    ss << "}";
+    if (toConsole)
+        std::cout << ss.str() << std::endl;
+
+    return ss.str();
+}
+
 
 void displayNeighborhood(const MultiGraph&, const BaseGraph::VertexIndex&);
 void displayGraph(const MultiGraph&graph, std::string name="g");

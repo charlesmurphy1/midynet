@@ -26,15 +26,15 @@ struct GraphMove{
 
     std::string display() const{
         std::stringstream ss;
-        ss << "edges removed : { ";
+        ss << "GraphMove(removed=[";
         for (auto e : removedEdges){
-            ss << "{ " << e.first << ", " << e.second << "}, ";
+            ss << " {" << e.first << ", " << e.second << "}, ";
         }
-        ss << "}\t edges added : { ";
+        ss << "], added=[";
         for (auto e : addedEdges){
-            ss << "{ " << e.first << ", " << e.second << "}, ";
+            ss << "{" << e.first << ", " << e.second << "}, ";
         }
-        ss << "}";
+        ss << "])";
         return ss.str();
     }
 };
@@ -59,8 +59,11 @@ struct LabelMove{
 
     std::string display()const{
         std::stringstream ss;
-        ss << "vertex " << vertexIndex << " at level " << level << ": " << prevLabel << " -> " << nextLabel;
-        ss << " (" << addedLabels << " labels added)";
+        ss << "LabelMove(vertex=" << vertexIndex;
+        ss << ", prevLabel=" << prevLabel;
+        ss << ", nextLabel=" << nextLabel;
+        ss << ", addedLabels=" << addedLabels;
+        ss << ", level=" << level << ")";
         return ss.str();
     }
 };

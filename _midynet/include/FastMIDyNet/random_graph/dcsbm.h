@@ -91,9 +91,14 @@ public:
     const std::vector<size_t> getDegrees() const { return getDegreePrior().getState(); }
 
     virtual void checkSelfConsistency() const override {
+        VertexLabeledRandomGraph<BlockIndex>::checkSelfConsistency();
         m_degreePriorPtr->checkSelfConsistency();
-        checkGraphConsistencyWithLabelGraph("DegreeCorrectedStochasticBlockModelBase", m_state, getLabels(), getLabelGraph());
-        checkGraphConsistencyWithDegreeSequence("DegreeCorrectedStochasticBlockModelBase", m_state, getDegrees());
+        checkGraphConsistencyWithLabelGraph(
+            "DegreeCorrectedStochasticBlockModelBase", m_state, getLabels(), getLabelGraph()
+        );
+        checkGraphConsistencyWithDegreeSequence(
+            "DegreeCorrectedStochasticBlockModelBase", "m_state", m_state, "m_degreePriorPtr", getDegrees()
+        );
     }
     const bool isCompatible(const MultiGraph& graph) const override{
         if (not VertexLabeledRandomGraph<BlockIndex>::isCompatible(graph)) return false;

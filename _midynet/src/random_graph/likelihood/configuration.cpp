@@ -50,8 +50,7 @@ const double ConfigurationModelLikelihood::getLogLikelihoodRatioFromGraphMove (c
         size_t edgeMult = m_statePtr->getEdgeMultiplicityIdx(diff.first);
         int factor = (diff.first.first == diff.first.second) ? 2 : 1;
         auto factFunc = (diff.first.first == diff.first.second) ? logDoubleFactorial : logFactorial;
-
-        logLikelihoodRatio -= factFunc(factor * (edgeMult + diff.second)) - logDoubleFactorial(factor * edgeMult);
+        logLikelihoodRatio -= factFunc(factor * (edgeMult + diff.second)) - factFunc(factor * edgeMult);
     }
 
     return logLikelihoodRatio;

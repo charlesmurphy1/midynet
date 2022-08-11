@@ -253,7 +253,7 @@ TEST_F(TestRestrictedMixedNestedBlockProposer, applyLabelMove_forBlockMoveAdding
     }
     const auto empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();
     proposer.applyLabelMove(move);
-    EXPECT_EQ(empties, proposer.getEmptyLabels());
+    EXPECT_NE(empties, proposer.getEmptyLabels());
     EXPECT_NE(avails, proposer.getAvailableLabels());
     EXPECT_EQ(avails[move.level].size() + 1, proposer.getAvailableLabels()[move.level].size());
 }

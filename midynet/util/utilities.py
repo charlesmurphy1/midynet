@@ -45,6 +45,24 @@ def to_batch(x, size):
         yield x[i : i + size]
 
 
+def to_nary(x, base=2, dim=None):
+    if type(x) is int or type(x) is float:
+        x = np.array([x])
+    if dim is None:
+        max_val = base ** np.floor(logbase(np.max(x), base) + 1)
+        dim = int(logbase(max_val, base))
+    y = np.zeros([dim, *x.shape])
+    for idx, xx in np.ndenumerate(x):
+        r = np.zeros(dim)
+        r0 = xx
+        while r0 > 0:
+            b = int(np.floor(logbase(r0, base)))
+            r[b] += 1
+            r0 -= base**b
+        y.T[idx] = r[::-1]
+    return y
+
+
 def delete_path(path: pathlib.Path):
     if not path.exists():
         return
@@ -103,8 +121,10 @@ def enumerate_all_graphs(
         yield g
 
 
-def enumerate_all_partitions(size: int):
-    return
+def enumerate_all_partitions(size, block_count=None):
+    block_count = size if block_count is None else block_count
+    for i in range(block_count**size):
+        yield tuple(to_nary(i, block_count, dim=size).squeeze().astype("int").tolist())
 
 
 if __name__ == "__main__":

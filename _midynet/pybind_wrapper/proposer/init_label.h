@@ -59,6 +59,8 @@ template<typename Label>
 py::class_<RestrictedLabelProposer<Label>, LabelProposer<Label>, PyRestrictedLabelProposer<Label>> declareRestrictedLabelProposer(py::module&m, std::string pyName){
     return py::class_<RestrictedLabelProposer<Label>, LabelProposer<Label>, PyRestrictedLabelProposer<Label>>(m, pyName.c_str())
         .def(py::init<double>(), py::arg("sample_label_count_prob")=0.1)
+        .def("get_available_labels", &RestrictedLabelProposer<Label>::getAvailableLabels)
+        .def("get_empty_labels", &RestrictedLabelProposer<Label>::getEmptyLabels)
         ;
 }
 

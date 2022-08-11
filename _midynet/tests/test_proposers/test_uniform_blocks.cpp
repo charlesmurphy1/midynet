@@ -93,8 +93,6 @@ TEST_F(TestGibbsUniformBlockProposer, applyLabelMove_forBlockMoveChangingBlockCo
 class DummyRestrictedUniformBlockProposer: public RestrictedUniformBlockProposer{
 public:
     using RestrictedUniformBlockProposer::RestrictedUniformBlockProposer;
-    const std::set<BlockIndex>& getEmptyLabels() { return m_emptyLabels; }
-    const std::set<BlockIndex>& getAvailableLabels() { return m_availableLabels; }
 
     void printAvails(){
         std::cout << "avails: ";
@@ -121,6 +119,7 @@ public:
     StochasticBlockModelFamily graphPrior = StochasticBlockModelFamily(100, 250, 3, useHyperPrior, canonical, stubLabeled);
     StochasticBlockModelFamily smallGraphPrior = StochasticBlockModelFamily(5, 5, 3, useHyperPrior, canonical, stubLabeled);
     DummyRestrictedUniformBlockProposer proposer = DummyRestrictedUniformBlockProposer(SAMPLE_LABEL_PROB);
+    bool expectConsistencyError = false;
     void SetUp(){
         seedWithTime();
         graphPrior.sample();
@@ -129,7 +128,8 @@ public:
         proposer.checkSafety();
     }
     void TearDown(){
-        proposer.checkConsistency();
+        if (not expectConsistencyError)
+            proposer.checkConsistency();
     }
 };
 
@@ -239,9 +239,10 @@ TEST_F(TestRestrictedUniformBlockProposer, applyLabelMove_forBlockMoveAddingLabe
     const auto empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();
     auto move = proposer.proposeNewLabelMove(0);
     proposer.applyLabelMove(move);
-    if (empties.size() > 1) EXPECT_NE(empties, proposer.getEmptyLabels()); else EXPECT_EQ(empties, proposer.getEmptyLabels());
+    EXPECT_NE(empties, proposer.getEmptyLabels());
     if (move.prevLabel != move.nextLabel)
         EXPECT_NE(avails, proposer.getAvailableLabels());
+    expectConsistencyError = true;
 }
 
 TEST_F(TestRestrictedUniformBlockProposer, applyLabelMove_forBlockMoveDestroyingLabel){
@@ -257,6 +258,7 @@ TEST_F(TestRestrictedUniformBlockProposer, applyLabelMove_forBlockMoveDestroying
     proposer.applyLabelMove(move);
     EXPECT_NE(empties, proposer.getEmptyLabels());
     EXPECT_EQ(proposer.getAvailableLabels().count(move.prevLabel), 0);
+    expectConsistencyError = true;
 }
 
 }

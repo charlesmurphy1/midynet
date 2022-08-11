@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string>
 
+#include "../fixtures.hpp"
 #include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/random_graph/prior/degree.h"
 #include "FastMIDyNet/random_graph/configuration.h"
@@ -14,7 +15,7 @@ using namespace std;
 using namespace FastMIDyNet;
 
 
-class TestConfigurationModelFamily: public::testing::Test{
+class CMParametrizedTest: public::testing::TestWithParam<bool>{
     public:
         const size_t NUM_VERTICES = 50, NUM_EDGES = 100;
         ConfigurationModelFamily randomGraph = ConfigurationModelFamily(NUM_VERTICES, NUM_EDGES);
@@ -23,15 +24,15 @@ class TestConfigurationModelFamily: public::testing::Test{
         }
 };
 
-TEST_F(TestConfigurationModelFamily, sample_getStateWithCorrectNumberOfEdges){
+TEST_P(CMParametrizedTest, sample_getStateWithCorrectNumberOfEdges){
     EXPECT_EQ(randomGraph.getState().getTotalEdgeNumber(), randomGraph.getEdgeCount());
 }
 
-TEST_F(TestConfigurationModelFamily, getLogLikelihood_returnNonPositiveValue){
+TEST_P(CMParametrizedTest, getLogLikelihood_returnNonPositiveValue){
     EXPECT_LE(randomGraph.getLogLikelihood(), 0);
 }
 
-TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectValue){
+TEST_P(CMParametrizedTest, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectValue){
     GraphMove move = {{}, {{0, 1}}};
 
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -42,7 +43,7 @@ TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forAdded
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
-TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forAddedSelfLoop_returnCorrectValue){
+TEST_P(CMParametrizedTest, getLogLikelihoodRatioFromGraphMove_forAddedSelfLoop_returnCorrectValue){
     GraphMove move = {{}, {{0, 0}}};
 
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -55,7 +56,7 @@ TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forAdded
 
 
 
-TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forRemovedEdge_returnCorrectValue){
+TEST_P(CMParametrizedTest, getLogLikelihoodRatioFromGraphMove_forRemovedEdge_returnCorrectValue){
     GraphMove move = {{{0, 1}}, {}};
     randomGraph.applyGraphMove({{}, {{0, 1}}});
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -66,7 +67,7 @@ TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forRemov
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
-TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forRemovedSelfLoop_returnCorrectValue){
+TEST_P(CMParametrizedTest, getLogLikelihoodRatioFromGraphMove_forRemovedSelfLoop_returnCorrectValue){
     GraphMove move = {{{0, 0}}, {}};
     randomGraph.applyGraphMove({{}, {{0, 0}}});
     double actualLogLikelihoodRatio = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
@@ -77,18 +78,18 @@ TEST_F(TestConfigurationModelFamily, getLogLikelihoodRatioFromGraphMove_forRemov
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
-TEST_F(TestConfigurationModelFamily, isCompatible_forGraphSampledFromSBM_returnTrue){
+TEST_P(CMParametrizedTest, isCompatible_forGraphSampledFromSBM_returnTrue){
     randomGraph.sample();
     auto g = randomGraph.getState();
     EXPECT_TRUE(randomGraph.isCompatible(g));
 }
 
-TEST_F(TestConfigurationModelFamily, isCompatible_forEmptyGraph_returnFalse){
+TEST_P(CMParametrizedTest, isCompatible_forEmptyGraph_returnFalse){
     MultiGraph g(0);
     EXPECT_FALSE(randomGraph.isCompatible(g));
 }
 
-TEST_F(TestConfigurationModelFamily, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
+TEST_P(CMParametrizedTest, isCompatible_forGraphWithOneEdgeMissing_returnFalse){
     randomGraph.sample();
     auto g = randomGraph.getState();
     for (auto vertex: g){
@@ -99,3 +100,14 @@ TEST_F(TestConfigurationModelFamily, isCompatible_forGraphWithOneEdgeMissing_ret
     }
     EXPECT_FALSE(randomGraph.isCompatible(g));
 }
+
+TEST_P(CMParametrizedTest, doingMetropolisHastingsWithGraph_expectNoConsistencyError){
+    EXPECT_NO_THROW(doMetropolisHastingsSweepForGraph(randomGraph));
+}
+
+
+INSTANTIATE_TEST_CASE_P(
+        ConfigurationModelFamilyTests,
+        CMParametrizedTest,
+        ::testing::Values( false, true )
+    );

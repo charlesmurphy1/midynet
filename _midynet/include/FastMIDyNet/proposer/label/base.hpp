@@ -134,16 +134,48 @@ public:
     }
 
     void applyLabelMove(const LabelMove<Label>& move) override {
-        if ( destroyingLabel(move) and move.prevLabel != move.nextLabel ){
+        if ( move.addedLabels==-1 ){
             m_emptyLabels.insert(move.prevLabel);
             m_availableLabels.erase(move.prevLabel);
         }
-        if ( creatingNewLabel(move) ){
+        if ( move.addedLabels==1 ){
             m_availableLabels.insert(move.nextLabel);
             m_emptyLabels.erase(move.nextLabel);
         }
+        if (m_emptyLabels.size() == 0){
+            m_emptyLabels.insert(*max_element(m_availableLabels.begin(), m_availableLabels.end()) + 1);
+        }
+    }
+    const std::set<Label>& getAvailableLabels() const {
+        return m_availableLabels;
+    }
+    const std::set<Label>& getEmptyLabels() const {
+        return m_emptyLabels;
+    }
+
+
+    void checkSelfConsistency() const override {
+        if (m_availableLabels.size() != m_graphPriorPtr->getLabelCount())
+            throw ConsistencyError(
+                "RestrictedLabelProposer",
+                "m_availableLabels", "size=" + std::to_string(m_availableLabels.size()),
+                "m_graphPriorPtr->getLabelCount()", "count=" + std::to_string(m_graphPriorPtr->getLabelCount())
+            );
         if (m_emptyLabels.size() == 0)
-            m_emptyLabels.insert(m_graphPriorPtr->getLabelCount());
+            throw ConsistencyError(
+                "RestrictedLabelProposer: `m_emptyLabels` is empty."
+            );
+        for (const auto& b: m_graphPriorPtr->getLabels()){
+            if (m_availableLabels.count(b) == 0)
+                throw ConsistencyError(
+                    "RestrictedLabelProposer", "m_availableLabels", "m_graphPriorPtr->getLabels()"
+                );
+            if (m_emptyLabels.count(b) != 0)
+                throw ConsistencyError(
+                    "RestrictedLabelProposer", "m_emptyLabels", "m_graphPriorPtr->getLabels()"
+                );
+        }
+
     }
 
 

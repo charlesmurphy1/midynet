@@ -140,7 +140,7 @@ public:
 
     void applyLabelMove(const LabelMove<Label>& move) override {
         // graph prior must be updated before proposer
-        if ( move.addedLabels==-1 and move.prevLabel != move.nextLabel )
+        if ( move.addedLabels==-1 )
             setUpWithNestedPrior(*m_nestedGraphPriorPtr);
         if ( move.addedLabels==1 ){
             m_availableLabels[move.level].insert(move.nextLabel);
@@ -151,7 +151,10 @@ public:
             }
         }
         if (m_emptyLabels[move.level].size() == 0)
-            m_emptyLabels[move.level].insert(m_nestedGraphPriorPtr->getNestedLabelCount()[move.level]);
+            m_emptyLabels[move.level].insert(
+                *max_element(m_availableLabels[move.level].begin(), m_availableLabels[move.level].end()) + 1
+            );
+
     }
 
 

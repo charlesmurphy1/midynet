@@ -17,7 +17,7 @@ public:
 
     StochasticBlockModelFamily graphPrior = StochasticBlockModelFamily(100, 250, 3, useHyperPrior, canonical, stubLabeled);
     GibbsMixedBlockProposer proposer = GibbsMixedBlockProposer(SAMPLE_LABEL_PROB, LABEL_CREATION_PROB, SHIFT);
-
+    bool expectConsistencyError = false;
     void SetUp(){
         seedWithTime();
         graphPrior.sample();
@@ -26,7 +26,8 @@ public:
     }
 
     void TearDown(){
-        proposer.checkConsistency();
+        if (not expectConsistencyError)
+            proposer.checkConsistency();
     }
 };
 
@@ -68,6 +69,7 @@ TEST_F(TestGibbsMixedBlockProposer, getLogProposalProb_forLabelMoveAddingNewLabe
     graphPrior.applyLabelMove(move);
     double revLogProb = proposer.getLogProposalProb(reverseMove, true);
     EXPECT_EQ(logProb, revLogProb);
+
 }
 
 class TestRestrictedMixedBlockProposer: public::testing::Test{
@@ -122,6 +124,7 @@ TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forSomeLabelMove_ret
         EXPECT_EQ(logProb, revLogProb);
     }
 }
+
 
 TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forLabelMoveAddingNewLabel_returnCorrectProb){
     auto move = proposer.proposeNewLabelMove(0);

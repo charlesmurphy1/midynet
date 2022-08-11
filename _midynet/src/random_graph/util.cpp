@@ -35,15 +35,15 @@ void checkGraphConsistencyWithLabelGraph(
                 );
 };
 
-void checkGraphConsistencyWithDegreeSequence(std::string namePrefix, const MultiGraph& graph, const DegreeSequence& expectedDegreeSeq){
+void checkGraphConsistencyWithDegreeSequence(std::string className, std::string expName, const MultiGraph& graph, std::string actName, const DegreeSequence& expectedDegreeSeq){
     DegreeSequence actualDegreeSeq = graph.getDegrees();
 
     for (auto idx : graph){
         if (expectedDegreeSeq[idx] != actualDegreeSeq[idx])
             throw ConsistencyError(
-                namePrefix,
-                "expected degree", "k=" + std::to_string(expectedDegreeSeq[idx]),
-                "actual degree", "k=" + std::to_string(actualDegreeSeq[idx]),
+                className,
+                expName, "k=" + std::to_string(expectedDegreeSeq[idx]),
+                actName, "k=" + std::to_string(actualDegreeSeq[idx]),
                 "vertex=" + std::to_string(idx)
             );
     }
@@ -110,7 +110,7 @@ EdgeProposer* makeEdgeProposer(
 }
 
 LabelProposer<BlockIndex>* makeBlockProposer(
-    std::string proposerType, bool restricted, double shift, double sampleLabelCountProb, double labelCreationProb
+    std::string proposerType, bool restricted, double sampleLabelCountProb, double labelCreationProb, double shift
 ){
     if (proposerType == "uniform"){
         if (restricted)
@@ -128,7 +128,7 @@ LabelProposer<BlockIndex>* makeBlockProposer(
 }
 
 NestedLabelProposer<BlockIndex>* makeNestedBlockProposer(
-    std::string proposerType, bool restricted, double shift, double sampleLabelCountProb, double labelCreationProb
+    std::string proposerType, bool restricted, double sampleLabelCountProb, double labelCreationProb, double shift
 ){
     if (proposerType == "uniform"){
         if (restricted)

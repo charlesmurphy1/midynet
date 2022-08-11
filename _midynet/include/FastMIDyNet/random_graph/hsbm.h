@@ -93,6 +93,7 @@ public:
     void setEdgeCountPrior(EdgeCountPrior& prior) { m_nestedLabelGraphPrior.setEdgeCountPrior(prior); }
 
     void checkSelfConsistency() const override {
+        NestedVertexLabeledRandomGraph<BlockIndex>::checkSelfConsistency();
         m_nestedLabelGraphPrior.checkSelfConsistency();
         checkGraphConsistencyWithLabelGraph("NestedStochasticBlockModelBase", m_state, getLabels(), getLabelGraph());
     }

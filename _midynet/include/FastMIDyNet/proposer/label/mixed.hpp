@@ -181,7 +181,8 @@ public:
         MixedSampler<Label>(shift) { this->m_graphPriorPtrPtr = &this->m_graphPriorPtr; }
 
     const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex&vertex) const override {
-        return MixedSampler<Label>::_proposeLabelMove(vertex);
+        auto move = MixedSampler<Label>::_proposeLabelMove(vertex);
+        return move;
     }
     const size_t getAvailableLabelCount() const override { return GibbsLabelProposer<Label>::m_graphPriorPtr->getLabelCount(); }
 };
@@ -207,7 +208,9 @@ public:
         MixedSampler<Label>(shift) { this->m_graphPriorPtrPtr = &this->m_graphPriorPtr; }
 
     const LabelMove<Label> proposeLabelMove(const BaseGraph::VertexIndex&vertex) const override {
-        return MixedSampler<Label>::_proposeLabelMove(vertex);
+        auto move =  MixedSampler<Label>::_proposeLabelMove(vertex);
+        move.addedLabels = -(int) RestrictedLabelProposer<Label>::destroyingLabel(move);
+        return move;
     }
     const size_t getAvailableLabelCount() const override { return m_availableLabels.size(); }
 };

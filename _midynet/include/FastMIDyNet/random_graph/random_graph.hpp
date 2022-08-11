@@ -169,7 +169,7 @@ public:
         proposer.isRoot(false);
         m_labelProposerPtr = &proposer;
     }
-    const LabelProposer<Label>& getLabelProposer() {
+    const LabelProposer<Label>& getLabelProposer() const {
         return *m_labelProposerPtr;
     }
     LabelProposer<Label>& getLabelProposerRef() {
@@ -194,6 +194,9 @@ public:
         RandomGraph::checkSelfSafety();
         if (m_labelProposerPtr == nullptr)
             throw SafetyError("RandomGraph", "m_labelProposerPtr");
+    }
+    virtual void checkSelfConsistency() const override {
+        m_edgeProposerPtr->checkConsistency();
     }
 };
 
@@ -249,6 +252,10 @@ public:
     const CounterMap<Label>& getVertexCounts() const override { return getNestedVertexCounts()[0]; }
     const CounterMap<Label>& getEdgeLabelCounts() const override { return getNestedEdgeLabelCounts()[0]; }
     const MultiGraph& getLabelGraph() const override { return getNestedLabelGraph()[0]; }
+    virtual void checkSelfConsistency() const override {
+        RandomGraph::checkSelfConsistency();
+        m_labelProposerPtr->checkConsistency();
+    }
 };
 using NestedBlockLabeledRandomGraph = NestedVertexLabeledRandomGraph<BlockIndex>;
 

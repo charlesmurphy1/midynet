@@ -94,6 +94,7 @@ public:
     const bool withParallelEdges() const { return m_withParallelEdges; }
 
     void checkSelfConsistency() const override{
+        VertexLabeledRandomGraph<BlockIndex>::checkSelfConsistency();
         m_labelGraphPriorPtr->checkSelfConsistency();
         checkGraphConsistencyWithLabelGraph("StochasticBlockModelBase", m_state, getLabels(), getLabelGraph());
     }
@@ -177,7 +178,7 @@ public:
                 withSelfLoops = withParallelEdges = true;
 
             m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
-            m_blockPriorUPtr = std::unique_ptr<BlockPrior>(makeBlockPrior(size, *m_blockCountPriorUPtr));
+            m_blockPriorUPtr = std::unique_ptr<BlockPrior>(makeBlockPrior(size, *m_blockCountPriorUPtr, useHyperPrior));
             m_labelGraphPriorUPtr = std::unique_ptr<LabelGraphPrior>(
                 new LabelGraphErdosRenyiPrior(*m_edgeCountPriorUPtr, *m_blockPriorUPtr)
             );
@@ -187,7 +188,6 @@ public:
                 makeEdgeProposer(edgeProposerType, canonical, false, withSelfLoops, withParallelEdges)
             );
             setEdgeProposer(*m_edgeProposerUPtr);
-
             m_labelProposerUPtr = std::unique_ptr<LabelProposer<BlockIndex>>(
                 makeBlockProposer(blockProposerType, useHyperPrior, sampleLabelCountProb, labelCreationProb, shift)
             );

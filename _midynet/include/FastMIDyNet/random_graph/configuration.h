@@ -51,6 +51,8 @@ public:
     }
 
     const size_t getEdgeCount() const { return m_degreePriorPtr->getEdgeCount(); }
+    const size_t getDegreeOfIdx(BaseGraph::VertexIndex vertex) const { return m_degreePriorPtr->getDegreeOfIdx(vertex);}
+    const std::vector<size_t>& getDegrees() const { return m_degreePriorPtr->getState();}
 
     const bool isCompatible(const MultiGraph& graph) const override{
         return RandomGraph::isCompatible(graph) and graph.getDegrees() == m_degreePriorPtr->getState(); ;
@@ -58,6 +60,14 @@ public:
     void computationFinished() const override {
         m_isProcessed = false;
         m_degreePriorPtr->computationFinished();
+    }
+
+    void checkSelfConsistency() const override {
+        RandomGraph::checkSelfConsistency();
+        checkGraphConsistencyWithDegreeSequence(
+            "ConfigurationModelBase", "m_state", m_state, "m_degreePriorPtr", getDegrees()
+        );
+
     }
 
 

@@ -316,7 +316,9 @@ def get_log_posterior_partition_meanfield(
     for i in range(config.num_sweeps):
         _s, _f = mcmc.do_MH_sweep(burn=burn)
     partitions = callback.get_data()
+    pmodes = gt.ModeClusterState(partitions)
     S = 0
+
     return S
 
 

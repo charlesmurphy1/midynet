@@ -49,6 +49,52 @@ static MultiGraph getUndirectedHouseMultiGraph(){
 
 }
 
+static void doMetropolisHastingsSweepForGraph(RandomGraph& randomGraph, size_t numIteration=10, bool verbose=false){
+    std::uniform_real_distribution<double> dist(0, 1);
+    for (size_t it=0; it < numIteration; ++it){
+        auto move = randomGraph.proposeGraphMove();
+        double logLikelihood = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
+        double logPrior = randomGraph.getLogPriorRatioFromGraphMove(move);
+        double logProp = randomGraph.getLogProposalRatioFromGraphMove(move);
+        bool accepted = false;
+        if ( dist(rng) < exp(logLikelihood + logPrior + logProp)){
+            randomGraph.applyGraphMove(move);
+            accepted = true;
+        }
+        if (verbose){
+            std::cout << "Iteration " << it << ": move=" << move;
+            std::cout << ", logLikelihood=" << logLikelihood;
+            std::cout << ", logPrior=" << logPrior;
+            std::cout << ", logProp=" << logProp;
+            std::cout << ", isAccepted=" << (int) accepted << std::endl;
+        }
+        randomGraph.checkConsistency();
+    }
+}
+
+static void doMetropolisHastingsSweepForLabels(VertexLabeledRandomGraph<BlockIndex>& randomGraph, size_t numIteration=10, bool verbose=false){
+    std::uniform_real_distribution<double> dist(0, 1);
+    for (size_t it=0; it < numIteration; ++it){
+        auto move = randomGraph.proposeLabelMove();
+        double logLikelihood = randomGraph.getLogLikelihoodRatioFromLabelMove(move);
+        double logPrior = randomGraph.getLogPriorRatioFromLabelMove(move);
+        double logProp = randomGraph.getLogProposalRatioFromLabelMove(move);
+        bool accepted = false;
+        if ( dist(rng) < exp(logLikelihood + logPrior + logProp)){
+            randomGraph.applyLabelMove(move);
+            accepted = true;
+        }
+        if (verbose){
+            std::cout << "Iteration " << it << ": move=" << move;
+            std::cout << ", logLikelihood=" << logLikelihood;
+            std::cout << ", logPrior=" << logPrior;
+            std::cout << ", logProp=" << logProp;
+            std::cout << ", isAccepted=" << (int) accepted << std::endl;
+        }
+        randomGraph.checkConsistency();
+    }
+}
+
 class DummyGraphLikelihood: public GraphLikelihoodModel{
 public:
     const MultiGraph sample() const { return generateErdosRenyi(*m_sizePtr, *m_edgeCountPtr); }
@@ -78,82 +124,15 @@ public:
     const size_t getEdgeCount() const override { return m_edgeCount; }
 };
 
-// class DummyErdosRenyiGraph: public ErdosRenyiModelBase{
-// public:
-//     EdgeCountDeltaPrior prior;
-//     DummyErdosRenyiGraph(size_t size=10, size_t edgeCount=25):
-//     ErdosRenyiModelBase(size), prior(edgeCount) { setEdgeCountPrior(prior); }
-// };
-//
-// class DummySBMGraph: public StochasticBlockModelBase{
-//     size_t size;
-//     size_t edgeCount;
-//     size_t blockCount;
-//
-//     BlockCountDeltaPrior blockCountPrior;
-//     BlockUniformPrior blockPrior;
-//     EdgeCountDeltaPrior edgeCountPrior;
-//     LabelGraphErdosRenyiPrior labelGraphPrior;
-//
-// public:
-//     DummySBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
-//     StochasticBlockModelBase(size),
-//     blockCountPrior(blockCount),
-//     blockPrior(size, blockCountPrior),
-//     edgeCountPrior(edgeCount),
-//     labelGraphPrior(edgeCountPrior, blockPrior)
-//      {
-//         setLabelGraphPrior(labelGraphPrior);
-//     }
-//     using StochasticBlockModelBase::sample;
-// };
-
-// class DummyRestrictedSBMGraph: public StochasticBlockModelBase{
-//     size_t size;
-//     size_t edgeCount;
-//     size_t blockCount;
-//
-//     BlockCountDeltaPrior blockCountPrior;
-//     BlockUniformHyperPrior blockPrior;
-//     EdgeCountDeltaPrior edgeCountPrior;
-//     LabelGraphErdosRenyiPrior labelGraphPrior;
-//
-// public:
-//     DummyRestrictedSBMGraph(size_t size=10, size_t edgeCount=25, size_t blockCount=3):
-//     StochasticBlockModelBase(size),
-//     blockCountPrior(blockCount),
-//     blockPrior(size, blockCountPrior),
-//     edgeCountPrior(edgeCount),
-//     labelGraphPrior(edgeCountPrior, blockPrior)
-//      {
-//         setLabelGraphPrior(labelGraphPrior);
-//     }
-//     using StochasticBlockModelBase::sample;
-// };
-
-// class DummyNestedSBMGraph: public NestedStochasticBlockModelBase{
-//     size_t size;
-//     size_t edgeCount;
-//     size_t blockCount;
-//
-//     EdgeCountDeltaPrior edgeCountPrior;
-//     LabelGraphErdosRenyiPrior labelGraphPrior;
-//
-// public:
-//     DummyNestedSBMGraph(size_t size=10, size_t edgeCount=25):
-//     NestedStochasticBlockModelBase(size),
-//     edgeCountPrior(edgeCount) { setEdgeCountPrior(edgeCountPrior); }
-// };
-
 class DummyDynamics: public Dynamics<RandomGraph>{
 public:
     DummyDynamics(RandomGraph& graphPrior, size_t numStates=2, double numSteps = 10):
-    Dynamics<RandomGraph>(graphPrior, numStates, numSteps){}
+    Dynamics<RandomGraph>(graphPrior, numStates, numSteps, false, false){}
 
     const double getTransitionProb(
-        VertexState prevVertexState,
-        VertexState nextVertexState,
-        VertexNeighborhoodState vertexNeighborhoodState
+        const VertexState& prevVertexState,
+        const VertexState& nextVertexState,
+        const VertexNeighborhoodState& vertexNeighborhoodState
     ) const { return 1. / getNumStates(); }
 
     void updateNeighborsStateFromEdgeMove(

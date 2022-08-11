@@ -38,9 +38,9 @@ class ReconstructionMCMC(Wrapper):
 
 class PartitionMCMC(Wrapper):
     def __init__(self, graph, **kwargs):
-        if issubclass(graph, BlockLabeledRandomGraph):
+        if issubclass(graph.__class__, BlockLabeledRandomGraph):
             mcmc = BlockLabelMCMC(graph, **kwargs)
-        elif issubclass(graph, NestedBlockLabeledRandomGraph):
+        elif issubclass(graph.__class__, NestedBlockLabeledRandomGraph):
             mcmc = NestedBlockLabelMCMC(graph, **kwargs)
         else:
             raise TypeError(f"BlockMCMC: wrong type `{graph.__class__}`.")

@@ -86,6 +86,8 @@ void VertexLabeledDegreePrior::_applyGraphMove(const GraphMove& move){
     applyGraphMoveToState(move);
 }
 void VertexLabeledDegreePrior::_applyLabelMove(const BlockMove& move) {
+    if (move.level != 0)
+        return;
     m_labelGraphPriorPtr->applyLabelMove(move);
     applyLabelMoveToDegreeCounts(move);
 }
