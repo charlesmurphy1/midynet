@@ -131,7 +131,7 @@ public:
     NestedDegreeCorrectedStochasticBlockModelFamily(
         size_t size,
         double edgeCount,
-        bool useHyperPrior=false,
+        bool useDegreeHyperPrior=false,
         bool canonical=false,
         std::string edgeProposerType="uniform",
         std::string blockProposerType="uniform",
@@ -142,7 +142,7 @@ public:
         NestedDegreeCorrectedStochasticBlockModelBase(size){
             m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
             m_nestedLabelGraphPrior.setEdgeCountPrior(*m_edgeCountPriorUPtr);
-            m_degreePriorUPtr = std::unique_ptr<VertexLabeledDegreePrior>(makeVertexLabeledDegreePrior(m_nestedLabelGraphPrior, useHyperPrior));
+            m_degreePriorUPtr = std::unique_ptr<VertexLabeledDegreePrior>(makeVertexLabeledDegreePrior(m_nestedLabelGraphPrior, useDegreeHyperPrior));
             setDegreePrior(*m_degreePriorUPtr);
 
             m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(

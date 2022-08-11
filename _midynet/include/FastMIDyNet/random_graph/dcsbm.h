@@ -134,7 +134,8 @@ public:
         size_t size,
         double edgeCount,
         size_t blockCount=0,
-        bool useHyperPrior=false,
+        bool useBlockHyperPrior=false,
+        bool useDegreeHyperPrior=false,
         bool usePlantedPrior=false,
         bool canonical=false,
         std::string edgeProposerType="degree",
@@ -151,9 +152,9 @@ public:
                 sampleLabelCountProb = 0;
             }
             m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
-            m_blockPriorUPtr = std::unique_ptr<BlockPrior>(makeBlockPrior(size, *m_blockCountPriorUPtr, useHyperPrior));
+            m_blockPriorUPtr = std::unique_ptr<BlockPrior>(makeBlockPrior(size, *m_blockCountPriorUPtr, useBlockHyperPrior));
             m_labelGraphPriorUPtr = std::unique_ptr<LabelGraphPrior>( makeLabelGraphPrior(*m_edgeCountPriorUPtr, *m_blockPriorUPtr, usePlantedPrior) );
-            m_degreePriorUPtr = std::unique_ptr<VertexLabeledDegreePrior>(makeVertexLabeledDegreePrior(*m_labelGraphPriorUPtr));
+            m_degreePriorUPtr = std::unique_ptr<VertexLabeledDegreePrior>(makeVertexLabeledDegreePrior(*m_labelGraphPriorUPtr, useDegreeHyperPrior));
             setDegreePrior(*m_degreePriorUPtr);
 
             m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(
@@ -162,7 +163,7 @@ public:
             setEdgeProposer(*m_edgeProposerUPtr);
 
             m_labelProposerUPtr = std::unique_ptr<LabelProposer<BlockIndex>>(
-                makeBlockProposer(blockProposerType, useHyperPrior, sampleLabelCountProb, labelCreationProb, shift)
+                makeBlockProposer(blockProposerType, useBlockHyperPrior, sampleLabelCountProb, labelCreationProb, shift)
             );
             setLabelProposer(*m_labelProposerUPtr);
 

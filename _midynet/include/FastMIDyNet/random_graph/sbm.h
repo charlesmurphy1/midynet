@@ -156,7 +156,7 @@ public:
         size_t size,
         double edgeCount,
         size_t blockCount=0,
-        bool useHyperPrior=true,
+        bool useBlockHyperPrior=true,
         bool usePlantedPrior=true,
         bool canonical=false,
         bool stubLabeled=true,
@@ -179,7 +179,7 @@ public:
                 withSelfLoops = withParallelEdges = true;
 
             m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
-            m_blockPriorUPtr = std::unique_ptr<BlockPrior>(makeBlockPrior(size, *m_blockCountPriorUPtr, useHyperPrior));
+            m_blockPriorUPtr = std::unique_ptr<BlockPrior>(makeBlockPrior(size, *m_blockCountPriorUPtr, useBlockHyperPrior));
             m_labelGraphPriorUPtr = std::unique_ptr<LabelGraphPrior>( makeLabelGraphPrior(*m_edgeCountPriorUPtr, *m_blockPriorUPtr, usePlantedPrior) );
             setLabelGraphPrior(*m_labelGraphPriorUPtr);
 
@@ -188,7 +188,7 @@ public:
             );
             setEdgeProposer(*m_edgeProposerUPtr);
             m_labelProposerUPtr = std::unique_ptr<LabelProposer<BlockIndex>>(
-                makeBlockProposer(blockProposerType, useHyperPrior, sampleLabelCountProb, labelCreationProb, shift)
+                makeBlockProposer(blockProposerType, useBlockHyperPrior, sampleLabelCountProb, labelCreationProb, shift)
             );
             setLabelProposer(*m_labelProposerUPtr);
 

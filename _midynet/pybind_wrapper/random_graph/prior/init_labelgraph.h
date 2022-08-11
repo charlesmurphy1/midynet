@@ -44,6 +44,13 @@ void initLabelGraphPrior(py::module& m){
         .def(py::init<>())
         .def(py::init<EdgeCountPrior&, BlockPrior&>(), py::arg("edge_count_prior"), py::arg("block_prior"));
 
+    py::class_<LabelGraphPlantedPartitionPrior, LabelGraphPrior>(m, "LabelGraphPlantedPartitionPrior")
+        .def(py::init<>())
+        .def(py::init<EdgeCountPrior&, BlockPrior&>(), py::arg("edge_count_prior"), py::arg("block_prior"))
+        .def("get_edge_count_in", &LabelGraphPlantedPartitionPrior::getEdgeCountIn)
+        .def("get_edge_count_out", &LabelGraphPlantedPartitionPrior::getEdgeCountOut)
+        ;
+
 }
 
 }

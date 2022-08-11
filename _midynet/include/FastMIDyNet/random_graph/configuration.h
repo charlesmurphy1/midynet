@@ -104,11 +104,11 @@ class ConfigurationModelFamily : public ConfigurationModelBase{
     std::unique_ptr<EdgeProposer> m_edgeProposerUPtr = nullptr;
 public:
     ConfigurationModelFamily(
-        size_t size, double edgeCount, bool useHyperPrior=true, bool canonical=false, std::string edgeProposerType="degree"
+        size_t size, double edgeCount, bool useDegreeHyperPrior=true, bool canonical=false, std::string edgeProposerType="degree"
     ):
         ConfigurationModelBase(size) {
             m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
-            m_degreePriorUPtr = std::unique_ptr<DegreePrior>(makeDegreePrior(size, *m_edgeCountPriorUPtr, useHyperPrior));
+            m_degreePriorUPtr = std::unique_ptr<DegreePrior>(makeDegreePrior(size, *m_edgeCountPriorUPtr, useDegreeHyperPrior));
             setDegreePrior(*m_degreePriorUPtr);
 
             m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(makeEdgeProposer(edgeProposerType, canonical, true, true, true));

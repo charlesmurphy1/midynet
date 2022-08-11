@@ -97,7 +97,9 @@ class RandomGraphConfig(Config):
         edge_count: float = 250,
         block_count: int = 0,
         likelihood_type: str = "uniform",
-        prior_type: str = "uniform",
+        block_prior_type: str = "uniform",
+        label_graph_prior_type: str = "uniform",
+        degree_prior_type: str = "uniform",
         canonical: bool = False,
         with_self_loops=True,
         with_parallel_edges=True,
@@ -114,7 +116,9 @@ class RandomGraphConfig(Config):
             edge_count=edge_count,
             block_count=block_count,
             likelihood_type=likelihood_type,
-            prior_type=prior_type,
+            block_prior_type=block_prior_type,
+            label_graph_prior_type=label_graph_prior_type,
+            degree_prior_type=degree_prior_type,
             canonical=canonical,
             with_self_loops=with_self_loops,
             with_parallel_edges=with_parallel_edges,
@@ -190,16 +194,12 @@ class RandomGraphFactory(Factory):
         DegreeCorrectedStochasticBlockModelFamily,
         NestedDegreeCorrectedStochasticBlockModelFamily,
     ]:
-        print(config.format())
         if config.likelihood_type == "degree_corrected":
-            if (
-                config.prior_type == "nested"
-                or config.prior_type == "nested-hyperprior"
-            ):
+            if config.label_graph_prior_type == "nested":
                 return NestedDegreeCorrectedStochasticBlockModelFamily(
                     config.size,
                     config.edge_count,
-                    hyperprior=(config.prior_type == "nested-hyperprior"),
+                    degree_hyperprior=(config.degree_prior_type == "hyper"),
                     canonical=config.canonical,
                     edge_proposer_type=config.edge_proposer_type,
                     block_proposer_type=config.block_proposer_type,
@@ -212,7 +212,9 @@ class RandomGraphFactory(Factory):
                     config.size,
                     config.edge_count,
                     block_count=config.block_count,
-                    hyperprior=(config.prior_type == "hyperprior"),
+                    block_hyperprior=(config.block_prior_type == "hyper"),
+                    degree_hyperprior=(config.degree_prior_type == "hyper"),
+                    planted=(config.label_graph_prior_type == "planted"),
                     canonical=config.canonical,
                     edge_proposer_type=config.edge_proposer_type,
                     block_proposer_type=config.block_proposer_type,
@@ -221,7 +223,7 @@ class RandomGraphFactory(Factory):
                     shift=config.shift,
                 )
         else:
-            if config.prior_type == "nested":
+            if config.label_graph_prior_type == "nested":
                 return NestedStochasticBlockModelFamily(
                     config.size,
                     config.edge_count,
@@ -240,7 +242,8 @@ class RandomGraphFactory(Factory):
                     config.size,
                     config.edge_count,
                     block_count=config.block_count,
-                    hyperprior=(config.prior_type == "hyperprior"),
+                    block_hyperprior=(config.block_prior_type == "hyper"),
+                    planted=(config.label_graph_prior_type == "planted"),
                     stub_labeled=(config.likelihood_type == "stub_labeled"),
                     canonical=config.canonical,
                     with_self_loops=config.with_self_loops,

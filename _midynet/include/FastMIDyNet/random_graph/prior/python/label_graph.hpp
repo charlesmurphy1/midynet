@@ -22,6 +22,7 @@ protected:
     void applyGraphMoveToState(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMoveToState, move); }
     void applyLabelMoveToState(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyLabelMoveToState, move); }
     void recomputeStateFromGraph() override { PYBIND11_OVERRIDE(void, BaseClass, recomputeStateFromGraph, ); }
+    void recomputeConsistentState() override { PYBIND11_OVERRIDE(void, BaseClass, recomputeConsistentState, ); }
 public:
     using PyVertexLabeledPrior<LabelGraph, BlockIndex, BaseClass>::PyVertexLabeledPrior;
     /* Pure abstract methods */
@@ -29,10 +30,8 @@ public:
     const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihoodRatioFromLabelMove, move); }
 
     /* Overloaded abstract methods */
-    void setGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE(void, BaseClass, setGraph, graph); }
     void setPartition(const std::vector<BlockIndex>& partition) override { PYBIND11_OVERRIDE(void, BaseClass, setPartition, partition); }
     void checkSelfConsistency() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfConsistency, ); }
-    void recomputeConsistentState() override { PYBIND11_OVERRIDE(void, BaseClass, recomputeConsistentState, ); }
 };
 
 }

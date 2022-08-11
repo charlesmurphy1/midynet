@@ -37,11 +37,12 @@ void initStochasticBlockModel(py::module& m){
 
     py::class_<StochasticBlockModelFamily, StochasticBlockModelBase>(m, "StochasticBlockModelFamily")
         .def(
-            py::init<size_t, double, size_t, bool, bool, bool, bool, bool, std::string, std::string, double, double, double>(),
+            py::init<size_t, double, size_t, bool, bool, bool, bool, bool, bool, std::string, std::string, double, double, double>(),
             py::arg("size"),
             py::arg("edge_count"),
             py::arg("block_count")=0,
-            py::arg("hyperprior")=true,
+            py::arg("block_hyperprior")=true,
+            py::arg("planted")=false,
             py::arg("canonical")=false,
             py::arg("stub_labeled")=false,
             py::arg("with_self_loops")=true,
