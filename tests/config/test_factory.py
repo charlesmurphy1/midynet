@@ -58,14 +58,19 @@ random_graph_setup = [
         id="sbm",
     ),
     pytest.param(
-        RandomGraphConfig.stochastic_block_model(100, 250, prior_type="nested"),
+        RandomGraphConfig.stochastic_block_model(
+            100, 250, label_graph_prior_type="nested"
+        ),
         RandomGraphFactory,
         lambda obj: obj.sample(),
         id="hsbm",
     ),
     pytest.param(
         RandomGraphConfig.stochastic_block_model(
-            100, 250, likelihood_type="degree_corrected", prior_type="nested"
+            100,
+            250,
+            likelihood_type="degree_corrected",
+            label_graph_prior_type="nested",
         ),
         RandomGraphFactory,
         lambda obj: obj.sample(),
