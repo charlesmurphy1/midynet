@@ -16,8 +16,7 @@ template<typename MCMCType>
 py::class_<CallBack<MCMCType>, PyCallBack<MCMCType>> declareCallBack(py::module& m, std::string pyName){
     return py::class_<CallBack<MCMCType>, PyCallBack<MCMCType>>(m, pyName.c_str())
         .def(py::init<>())
-        .def("set_up", &CallBack<MCMCType>::setUp, py::arg("mcmc"))
-        .def("tear_down", &CallBack<MCMCType>::tearDown)
+        .def("set_mcmc", &CallBack<MCMCType>::setMCMC, py::arg("mcmc"))
         .def("on_begin", &CallBack<MCMCType>::onBegin)
         .def("on_end", &CallBack<MCMCType>::onEnd)
         .def("on_step_begin", &CallBack<MCMCType>::onStepBegin)
@@ -32,8 +31,7 @@ template<typename MCMCType>
 py::class_<CallBackMap<MCMCType>> declareCallBackMap(py::module& m, std::string pyName){
     return py::class_<CallBackMap<MCMCType>>(m, pyName.c_str())
         .def(py::init<>())
-        .def("set_up", [](CallBackMap<MCMCType>& self, MCMC& mcmc){ self.setUp(&mcmc); })
-        .def("tear_down", &CallBackMap<MCMCType>::tearDown)
+        .def("set_mcmc", &CallBackMap<MCMCType>::setMCMC)
         .def("on_begin", &CallBackMap<MCMCType>::onBegin)
         .def("on_end", &CallBackMap<MCMCType>::onEnd)
         .def("on_step_begin", &CallBackMap<MCMCType>::onStepBegin)
@@ -56,8 +54,10 @@ py::class_<CallBackMap<MCMCType>> declareCallBackMap(py::module& m, std::string 
 void initCallBacks(py::module& m){
     declareCallBack<MCMC>(m, "CallBack");
     declareCallBack<VertexLabelMCMC<BlockIndex>>(m, "BlockCallBack");
+    declareCallBack<NestedVertexLabelMCMC<BlockIndex>>(m, "NestedBlockCallBack");
     declareCallBack<GraphReconstructionMCMC<RandomGraph>>(m, "GraphReconstructionCallBack");
-    declareCallBack<GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>>(m, "BlockGraphReconstructionCallBack");
+    declareCallBack<VertexLabeledGraphReconstructionMCMC<BlockIndex>>(m, "BlockGraphReconstructionCallBack");
+    declareCallBack<NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>>(m, "NestedBlockGraphReconstructionCallBack");
     initVerbose(m);
     initActions(m);
     initCollectors(m);

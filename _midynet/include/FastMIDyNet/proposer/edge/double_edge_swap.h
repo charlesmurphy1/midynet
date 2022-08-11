@@ -23,7 +23,7 @@ protected:
 public:
     using EdgeProposer::EdgeProposer;
     const GraphMove proposeRawMove() const override;
-    void setUp(const MultiGraph&) override;
+    void setUpWithGraph(const MultiGraph&) override;
     const double getLogProposalProbRatio(const GraphMove& move) const override ;
 
     void applyGraphMove(const GraphMove&) override;

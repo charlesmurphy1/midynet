@@ -31,11 +31,12 @@ public:
     }
 
     /* Abstract methods */
-    void setUp() override { PYBIND11_OVERRIDE(void, BaseClass, setUp, ); }
-    void tearDown() override { PYBIND11_OVERRIDE(void, BaseClass, tearDown, ); }
     void removeCallBack(std::string key) override {
         PYBIND11_OVERRIDE(void, BaseClass, removeCallBack, key);
     }
+    void reset() override { PYBIND11_OVERRIDE(void, BaseClass, reset, ); }
+    void onBegin() override { PYBIND11_OVERRIDE(void, BaseClass, onBegin, ); }
+    void onEnd() override { PYBIND11_OVERRIDE(void, BaseClass, onEnd, ); }
     void onStepBegin() override { PYBIND11_OVERRIDE(void, BaseClass, onStepBegin, ); }
     void onStepEnd() override { PYBIND11_OVERRIDE(void, BaseClass, onStepEnd, ); }
     void onSweepBegin() override { PYBIND11_OVERRIDE(void, BaseClass, onSweepBegin, ); }

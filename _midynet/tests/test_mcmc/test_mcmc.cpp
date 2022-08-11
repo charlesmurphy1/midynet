@@ -3,9 +3,9 @@
 #include <random>
 #include <time.h>
 
-#include "fixtures.hpp"
 #include "FastMIDyNet/mcmc/mcmc.h"
 #include "FastMIDyNet/rng.h"
+#include "../fixtures.hpp"
 
 
 namespace FastMIDyNet{
@@ -15,13 +15,11 @@ public:
     DummyMCMC mcmc = DummyMCMC();
     bool expectConsistencyError = false;
     void SetUp(){
-        mcmc.setUp();
         seed(time(NULL));
     }
     void TearDown(){
         if (not expectConsistencyError)
             mcmc.checkConsistency();
-        mcmc.tearDown();
     }
 
 };

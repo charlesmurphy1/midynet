@@ -23,7 +23,8 @@ namespace FastMIDyNet{
 void initEdgeProposer(py::module& m){
     py::class_<EdgeProposer, Proposer<GraphMove>, PyEdgeProposer<>>(m, "EdgeProposer")
         .def(py::init<bool, bool>(), py::arg("allow_self_loops")=true, py::arg("allow_multiedges")=true)
-        .def("set_up", &EdgeProposer::setUp, py::arg("graph"))
+        .def("set_up_with_graph", &EdgeProposer::setUpWithGraph, py::arg("graph"))
+        .def("set_up_with_prior", &EdgeProposer::setUpWithPrior, py::arg("graph"))
         .def("allow_self_loops", &EdgeProposer::allowSelfLoops)
         .def("allow_multiedges", &EdgeProposer::allowMultiEdges)
         .def("get_log_proposal_ratio", &EdgeProposer::getLogProposalProbRatio, py::arg("move"))

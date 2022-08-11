@@ -7,7 +7,7 @@ DISPLAY = False
 
 @pytest.fixture
 def config():
-    yield ExperimentConfig.reconstruction("test", ["glauber", "sis"], "uniform_sbm")
+    yield ExperimentConfig.reconstruction("test", ["glauber", "sis"], "erdosrenyi")
 
 
 @pytest.fixture
@@ -63,7 +63,7 @@ def test_split_param(config, script):
     if DISPLAY:
         print(script.config.format())
 
-    configs = script.split_param(config, "dynamics")
+    configs = script.split_param(config, "data_model")
 
     if DISPLAY:
         for c in configs:

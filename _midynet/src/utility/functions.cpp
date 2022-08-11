@@ -31,8 +31,8 @@ double logDoubleFactorial(size_t n){
 }
 
 double logBinomialCoefficient(size_t n, size_t k){
-    if (n < k) throw invalid_argument("`n` must be greater or equal to `k`: "
-    + to_string(n) + " !> " + to_string(k));
+    if (n < k) throw invalid_argument("logBinomialCoefficient: `n` (" + to_string(n) +
+    ") must be greater or equal to `k` (" + to_string(k) + ").");
     return logFactorial(n) - logFactorial(k) - logFactorial(n - k);
 }
 

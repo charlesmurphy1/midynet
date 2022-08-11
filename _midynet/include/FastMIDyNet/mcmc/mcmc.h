@@ -28,7 +28,7 @@ public:
         m_numSweeps(0),
         m_lastLogJointRatio(0),
         m_isLastAccepted(false),
-        m_uniform(0, 1) {}
+        m_uniform(0, 1) { m_mcmcCallBacks.setMCMC(*this); }
 
     const double getLastLogJointRatio() const { return m_lastLogJointRatio; }
     const double getLastLogAcceptance() const { return m_lastLogAcceptance; }
@@ -51,19 +51,20 @@ public:
     virtual const double getLogJoint() const = 0 ;
 
     void insertCallBack(std::pair<std::string, CallBack<MCMC>*> pair) {
-        pair.second->setUp(this); m_mcmcCallBacks.insert(pair);
+        m_mcmcCallBacks.insert(pair);
     }
     void insertCallBack(std::string key, CallBack<MCMC>& callback) { insertCallBack({key, &callback}); }
     virtual void removeCallBack(std::string key) {
         if ( m_mcmcCallBacks.contains(key) )
             m_mcmcCallBacks.remove(key);
         else
-            throw std::logic_error("MCMC: callback of key `" + key + "` cannot be removed.");
+            throw std::runtime_error("MCMC: callback of key `" + key + "` cannot be removed.");
     }
     const CallBack<MCMC>& getMCMCCallBack(std::string key){ return m_mcmcCallBacks.get(key); }
 
-    virtual void setUp() { m_mcmcCallBacks.setUp(this); m_numSteps = m_numSweeps = 0; }
-    virtual void tearDown() { m_mcmcCallBacks.tearDown(); m_numSteps = m_numSweeps = 0; }
+    virtual void reset() { m_mcmcCallBacks.clear(); m_numSteps = m_numSweeps = 0; }
+    virtual void onBegin() { m_mcmcCallBacks.onBegin(); }
+    virtual void onEnd() { m_mcmcCallBacks.onEnd(); }
     virtual void onSweepBegin() { m_mcmcCallBacks.onSweepBegin(); }
     virtual void onSweepEnd() { m_mcmcCallBacks.onSweepEnd(); }
     virtual void onStepBegin() { m_mcmcCallBacks.onStepBegin(); }

@@ -1,18 +1,17 @@
 #include "gtest/gtest.h"
 
-#include "FastMIDyNet/prior/sbm/edge_count.h"
+#include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/proposer/edge/single_edge.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
-#include "fixtures.hpp"
+#include "../fixtures.hpp"
 
 namespace FastMIDyNet{
 
 class TestSingleEdgeUniformProposer: public::testing::Test {
     public:
-        EdgeCountDeltaPrior edgeCountPrior = {10};
-        ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
+        ErdosRenyiModel randomGraph = ErdosRenyiModel(10, 10);
         SingleEdgeUniformProposer proposer;
         MultiGraph graph;
         BaseGraph::Edge inexistentEdge = {0, 1};
@@ -20,12 +19,12 @@ class TestSingleEdgeUniformProposer: public::testing::Test {
         BaseGraph::Edge doubleEdge = {0, 3};
         void SetUp() {
             randomGraph.sample();
-            graph = randomGraph.getGraph();
+            graph = randomGraph.getState();
             graph.setEdgeMultiplicityIdx(inexistentEdge, 0);
             graph.setEdgeMultiplicityIdx(singleEdge, 1);
             graph.setEdgeMultiplicityIdx(doubleEdge, 2);
-            randomGraph.setGraph(graph);
-            proposer.setUp(graph);
+            randomGraph.setState(graph);
+            proposer.setUpWithGraph(graph);
             proposer.checkSafety();
         }
         void TearDown() {
@@ -58,7 +57,7 @@ TEST_F(TestSingleEdgeUniformProposer, getLogProposalProbRatio_removeEdgeWithMult
 class TestSingleEdgeDegreeProposer: public::testing::Test {
     public:
         EdgeCountDeltaPrior edgeCountPrior = {10};
-        ErdosRenyiFamily randomGraph = ErdosRenyiFamily(10, edgeCountPrior);
+        ErdosRenyiModel randomGraph = ErdosRenyiModel(10, 10);
         SingleEdgeDegreeProposer proposer;
         MultiGraph graph;
         BaseGraph::Edge inexistentEdge = {0, 1};
@@ -66,13 +65,13 @@ class TestSingleEdgeDegreeProposer: public::testing::Test {
         BaseGraph::Edge doubleEdge = {0, 3};
         void SetUp() {
             randomGraph.sample();
-            graph = randomGraph.getGraph();
+            graph = randomGraph.getState();
 
             graph.setEdgeMultiplicityIdx(inexistentEdge, 0);
             graph.setEdgeMultiplicityIdx(singleEdge, 1);
             graph.setEdgeMultiplicityIdx(doubleEdge, 2);
-            randomGraph.setGraph(graph);
-            proposer.setUp(graph);
+            randomGraph.setState(graph);
+            proposer.setUpWithGraph(graph);
             proposer.checkSafety();
         }
         void TearDown() {

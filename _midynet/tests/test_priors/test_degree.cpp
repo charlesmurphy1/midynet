@@ -3,57 +3,47 @@
 #include <iostream>
 
 
-#include "fixtures.hpp"
-#include "FastMIDyNet/prior/sbm/block_count.h"
-#include "FastMIDyNet/prior/sbm/block.h"
-#include "FastMIDyNet/prior/sbm/edge_count.h"
-#include "FastMIDyNet/prior/sbm/edge_matrix.h"
-#include "FastMIDyNet/prior/sbm/degree.h"
+#include "FastMIDyNet/random_graph/prior/edge_count.h"
+#include "FastMIDyNet/random_graph/prior/degree.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/exceptions.h"
+#include "../fixtures.hpp"
 
 using namespace FastMIDyNet;
 
-const double GRAPH_SIZE=7;
-const double BLOCK_COUNT=5;
-const double POISSON_MEAN=5;
-const BlockSequence BLOCK_SEQ={0,0,0,0,1,1,1};
-const double TOL=1E-8;
 
 namespace FastMIDyNet{
 
 class DummyDegreePrior: public DegreePrior {
     public:
-        DummyDegreePrior(BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior):
-        DegreePrior(blockPrior, edgeMatrixPrior) {};
+        DummyDegreePrior(size_t size, EdgeCountPrior& prior):
+        DegreePrior(size, prior) {};
 
-        void sampleState() {
-            DegreeSequence degreeSeq(m_blockPriorPtr->getSize(), 0);
-            degreeSeq[0] = m_edgeMatrixPriorPtr->getEdgeCount();
-            degreeSeq[6] = m_edgeMatrixPriorPtr->getEdgeCount();
+        void sampleState() override {
+            DegreeSequence degreeSeq(getSize(), 0);
+            degreeSeq[0] = getEdgeCount();
+            degreeSeq[6] = getEdgeCount();
             setState(degreeSeq);
         }
-        const double getLogLikelihood() const { return 0; }
-        const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const { return 0; }
-        const double getLogLikelihoodRatioFromLabelMove(const BlockMove&) const { return 0; }
+        const double getLogLikelihood() const override { return 0; }
+        const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override { return 0; }
         void applyGraphMoveToState(const GraphMove& move) { DegreePrior::applyGraphMoveToState(move); }
         void applyGraphMoveToDegreeCounts(const GraphMove& move) { DegreePrior::applyGraphMoveToDegreeCounts(move); }
-        void applyLabelMoveToDegreeCounts(const BlockMove& move) { DegreePrior::applyLabelMoveToDegreeCounts(move); }
 
 
 };
 
-class TestDegreePrior: public ::testing::Test {
+class DegreePriorTest: public ::testing::Test {
     public:
 
-        BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
-        BlockUniformPrior blockPrior = BlockUniformPrior(GRAPH_SIZE, blockCountPrior);
-        EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(POISSON_MEAN);
-        EdgeMatrixUniformPrior edgeMatrixPrior = EdgeMatrixUniformPrior(edgeCountPrior, blockPrior);
-        DummyDegreePrior prior = DummyDegreePrior(blockPrior, edgeMatrixPrior);
+        double SIZE=10;
+        double EDGE_COUNT=10;
+        double TOL=1E-8;
+        EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(EDGE_COUNT);
+        DummyDegreePrior prior = DummyDegreePrior(SIZE, edgeCountPrior);
         MultiGraph graph = getUndirectedHouseMultiGraph();
 
         bool expectConsistencyError = false;
@@ -67,7 +57,7 @@ class TestDegreePrior: public ::testing::Test {
         }
 };
 
-// TEST_F(TestDegreePrior, setGraph_forHouseGraph_applyChangesToDegreeSequence){
+// TEST_F(DegreePriorTest, setGraph_forHouseGraph_applyChangesToDegreeSequence){
 //     prior.setGraph(graph);
 //     DegreeSequence expectedDegreeSeq = {4, 3, 5, 5, 2, 3, 0};
 //     DegreeSequence actualDegreeSeq = prior.getState();
@@ -76,7 +66,7 @@ class TestDegreePrior: public ::testing::Test {
 //     }
 // }
 
-// TEST_F(TestDegreePrior, computeDegreeCounts_forLocalDegreeSeqNBlockSeq_returnCorrectDegreeCounts){
+// TEST_F(DegreePriorTest, computeDegreeCounts_forLocalDegreeSeqNBlockSeq_returnCorrectDegreeCounts){
 //     blockPrior.setState({0,0,0,0,1,1,1});
 //     auto degreeCounts = prior.computeDegreeCounts(prior.getState(), prior.getBlockPrior().getState());
 //     EXPECT_EQ(degreeCounts.size(), 2);
@@ -94,7 +84,7 @@ class TestDegreePrior: public ::testing::Test {
 //     EXPECT_EQ(degreeCounts[1].get(prior.getEdgeMatrixPrior().getEdgeCount()), 1);
 // }
 
-TEST_F(TestDegreePrior, applyGraphMoveToState_ForAddedEdge_returnCorrectDegreeSeq){
+TEST_F(DegreePriorTest, applyGraphMoveToState_ForAddedEdge_returnCorrectDegreeSeq){
     GraphMove move = {{}, {{0,1}}};
     auto k0Before = prior.getState()[0];
     auto k1Before = prior.getState()[1];
@@ -107,7 +97,7 @@ TEST_F(TestDegreePrior, applyGraphMoveToState_ForAddedEdge_returnCorrectDegreeSe
     expectConsistencyError = true;
 }
 
-TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdge_returnCorrectDegreeSeq){
+TEST_F(DegreePriorTest, applyGraphMoveToState_ForRemovedEdge_returnCorrectDegreeSeq){
     GraphMove move = {{{0,6}}, {}};
     auto k0Before = prior.getState()[0];
     auto k6Before = prior.getState()[6];
@@ -120,7 +110,7 @@ TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdge_returnCorrectDegree
 
 }
 
-TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCorrectDegreeSeq){
+TEST_F(DegreePriorTest, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCorrectDegreeSeq){
     GraphMove move = {{{0,6}}, {{0, 1}}};
     auto k0Before = prior.getState()[0];
     auto k1Before = prior.getState()[1];
@@ -136,13 +126,12 @@ TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCor
 
 }
 
-TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
-    blockPrior.setState(BLOCK_SEQ);
+TEST_F(DegreePriorTest, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
     GraphMove move = {{}, {{0,1}}};
-    size_t E = prior.getEdgeMatrixPrior().getEdgeCount();
+    size_t E = prior.getEdgeCount();
     auto expected = prior.getDegreeCounts();
-    expected.decrement({0, 0}); expected.increment({0, 1});
-    expected.decrement({0, E}); expected.increment({0, E+1});
+    expected.decrement(0); expected.increment(1);
+    expected.decrement(E); expected.increment(E+1);
     prior.applyGraphMoveToDegreeCounts(move);
     auto actual = prior.getDegreeCounts();
 
@@ -155,170 +144,144 @@ TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectD
 
 }
 
-TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrectDegreeCounts){
-    while(blockPrior.getBlockCount()==1) prior.sample();
+TEST_F(DegreePriorTest, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrectDegreeCounts){
+    prior.sample();
     GraphMove move = {{{0, 4}}, {}};
-    size_t E = prior.getEdgeMatrixPrior().getEdgeCount();
+    size_t E = prior.getEdgeCount();
     auto expected = prior.getDegreeCounts();
     prior.applyGraphMoveToDegreeCounts(move);
     auto actual = prior.getDegreeCounts();
 
-    BlockIndex r = blockPrior.getBlockOfIdx(0), s = blockPrior.getBlockOfIdx(0);
-    size_t ki = prior.getState()[0],  kj = prior.getState()[0];
+    size_t ki = prior.getState()[0],  kj = prior.getState()[4];
 
-    EXPECT_EQ(expected.get({r, ki}) - 1, actual.get({r, ki}));
-    EXPECT_EQ(expected.get({r, ki - 1}) + 1, actual.get({r, ki - 1}));
+    EXPECT_EQ(expected.get(ki) - 1, actual.get(ki));
+    EXPECT_EQ(expected.get(ki - 1) + 1, actual.get(ki - 1));
 
-    EXPECT_EQ(expected.get({s, kj}) - 1, actual.get({s, kj}));
-    EXPECT_EQ(expected.get({s, kj - 1}) + 1, actual.get({s, kj - 1}));
+    EXPECT_EQ(expected.get(kj) - 1, actual.get(kj));
+    EXPECT_EQ(expected.get(kj - 1) + 1, actual.get(kj - 1));
     expectConsistencyError = true;
 }
 
-TEST_F(TestDegreePrior, applyLabelMoveToDegreeCounts_forNonEmptyLabelMove_returnCorrectDegreeCounts){
-    while(blockPrior.getBlockCount() == 1 || blockPrior.getBlockOfIdx(0) != 0) prior.sample();
-    BlockMove move = {0, 0, 1};
-    size_t k = prior.getState()[0], r = blockPrior.getBlockOfIdx(0);
-    auto expected = prior.getDegreeCounts();
-    prior.applyLabelMoveToDegreeCounts(move);
-    auto actual = prior.getDegreeCounts();
-    EXPECT_EQ(expected.get({0, k}) - 1, actual.get({0, k}));
-    EXPECT_EQ(expected.get({1, k}) + 1, actual.get({1, k}));
-    expectConsistencyError = true;
-}
-
-TEST_F(TestDegreePrior, applyLabelMoveToDegreeCounts_forAddedLabelMove_returnCorrectDegreeCounts){
-    while(blockPrior.getBlockCount() != 2 || blockPrior.getBlockOfIdx(0) != 0) prior.sample();
-    BlockMove move = {0, 0, 2};
-    size_t k = prior.getState()[0], r = 0, s = 2;
-    auto expected = prior.getDegreeCounts();
-    prior.applyLabelMoveToDegreeCounts(move);
-    auto actual = prior.getDegreeCounts();
-    EXPECT_EQ(expected.get({0, k}) - 1, actual.get({0, k}));
-    EXPECT_EQ(1, actual.get({2, k}));
-    expectConsistencyError = true;
-}
-
-
-class TestDegreeUniformPrior: public ::testing::Test {
-    public:
-
-        BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
-        BlockUniformPrior blockPrior = BlockUniformPrior(100, blockCountPrior);
-        EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(200);
-        EdgeMatrixUniformPrior edgeMatrixPrior = EdgeMatrixUniformPrior(edgeCountPrior, blockPrior);
-        DegreeUniformPrior prior = DegreeUniformPrior(blockPrior, edgeMatrixPrior);
-        void SetUp() {
-            prior.sample();
-            prior.checkSafety();
-        }
-        void TearDown(){
-            prior.checkConsistency();
-        }
-};
-
-TEST_F(TestDegreeUniformPrior, sampleState_returnConsistentState){
-    prior.sampleState();
-    EXPECT_NO_THROW(prior.checkSelfConsistency());
-}
-
-TEST_F(TestDegreeUniformPrior, getLogLikelihood_returnNonPositiveValue){
-    double logLikelihood = prior.getLogLikelihood();
-    EXPECT_LE(logLikelihood, 0);
-}
-
-TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectRatio){
-    GraphMove move = {{}, {{0,1}}};
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
-    double logLikelihoodBefore = prior.getLogLikelihood();
-    prior.applyGraphMove(move);
-    double logLikelihoodAfter = prior.getLogLikelihood();
-
-    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
-}
-
-TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
-    BaseGraph::VertexIndex idx = 0;
-    while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
-    auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
-    edgeMatrixPrior.setGraph(g);
-    BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
-    BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
-    if (nextBlockIdx == prior.getBlockPrior().getBlockCount())
-        nextBlockIdx -= 2;
-    BlockMove move = {idx, prevBlockIdx, nextBlockIdx};
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
-    double logLikelihoodBefore = prior.getLogLikelihood();
-    prior.applyLabelMove(move);
-    double logLikelihoodAfter = prior.getLogLikelihood();
-
-    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
-}
-
-
-class TestDegreeUniformHyperPrior: public ::testing::Test {
-    public:
-
-        BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
-        BlockUniformPrior blockPrior = BlockUniformPrior(100, blockCountPrior);
-        EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(200);
-        EdgeMatrixUniformPrior edgeMatrixPrior = EdgeMatrixUniformPrior(edgeCountPrior, blockPrior);
-        DegreeUniformHyperPrior prior = DegreeUniformHyperPrior(blockPrior, edgeMatrixPrior);
-        void SetUp() {
-            prior.sample();
-            prior.checkSafety();
-        }
-        void TearDown(){
-            prior.checkConsistency();
-        }
-};
-
-TEST_F(TestDegreeUniformHyperPrior, sampleState_returnConsistentState){
-    prior.sampleState();
-}
-
-TEST_F(TestDegreeUniformHyperPrior, getLogLikelihood_returnNonPositiveValue){
-    double logLikelihood = prior.getLogLikelihood();
-    EXPECT_LE(logLikelihood, 0);
-}
-
-TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectRatio){
-    GraphMove move = {{}, {{0,1}}};
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
-    double logLikelihoodBefore = prior.getLogLikelihood();
-    prior.applyGraphMove(move);
-
-    double logLikelihoodAfter = prior.getLogLikelihood();
-    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
-}
-
-TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
-    BaseGraph::VertexIndex idx = 0;
-    while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
-    auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
-    edgeMatrixPrior.setGraph(g);
-    BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
-    BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
-    if (nextBlockIdx == prior.getBlockPrior().getBlockCount())
-        nextBlockIdx -= 2;
-    BlockMove move = {idx, prevBlockIdx, nextBlockIdx};
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
-    double logLikelihoodBefore = prior.getLogLikelihood();
-    prior.applyLabelMove(move);
-    double logLikelihoodAfter = prior.getLogLikelihood();
-
-    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
-}
-
-TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forLabelMoveAddingNewBlock_returnCorrectRatio){
-    BaseGraph::VertexIndex idx = 0;
-    auto g = generateDCSBM(blockPrior.getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
-    BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getVertexCounts().size(), 1};
-    double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
-
-    double logLikelihoodBefore = prior.getLogLikelihood();
-    prior.applyLabelMove(move);
-    double logLikelihoodAfter = prior.getLogLikelihood();
-    EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
-}
+// class TestDegreeUniformPrior: public ::testing::Test {
+//     public:
+//
+//         BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
+//         BlockUniformPrior blockPrior = BlockUniformPrior(100, blockCountPrior);
+//         EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(200);
+//         EdgeMatrixUniformPrior edgeMatrixPrior = EdgeMatrixUniformPrior(edgeCountPrior, blockPrior);
+//         DegreeUniformPrior prior = DegreeUniformPrior(edgeMatrixPrior);
+//         void SetUp() {
+//             prior.sample();
+//             prior.checkSafety();
+//         }
+//         void TearDown(){
+//             prior.checkConsistency();
+//         }
+// };
+//
+// TEST_F(TestDegreeUniformPrior, sampleState_returnConsistentState){
+//     prior.sampleState();
+//     EXPECT_NO_THROW(prior.checkSelfConsistency());
+// }
+//
+// TEST_F(TestDegreeUniformPrior, getLogLikelihood_returnNonPositiveValue){
+//     double logLikelihood = prior.getLogLikelihood();
+//     EXPECT_LE(logLikelihood, 0);
+// }
+//
+// TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectRatio){
+//     GraphMove move = {{}, {{0,1}}};
+//     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
+//     double logLikelihoodBefore = prior.getLogLikelihood();
+//     prior.applyGraphMove(move);
+//     double logLikelihoodAfter = prior.getLogLikelihood();
+//
+//     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
+// }
+//
+// TEST_F(TestDegreeUniformPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
+//     BaseGraph::VertexIndex idx = 0;
+//     while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
+//     auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
+//     edgeMatrixPrior.setGraph(g);
+//     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
+//     BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
+//     if (nextBlockIdx == prior.getBlockPrior().getBlockCount())
+//         nextBlockIdx -= 2;
+//     BlockMove move = {idx, prevBlockIdx, nextBlockIdx};
+//     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
+//     double logLikelihoodBefore = prior.getLogLikelihood();
+//     prior.applyLabelMove(move);
+//     double logLikelihoodAfter = prior.getLogLikelihood();
+//
+//     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
+// }
+//
+//
+// class TestDegreeUniformHyperPrior: public ::testing::Test {
+//     public:
+//
+//         BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
+//         BlockUniformPrior blockPrior = BlockUniformPrior(100, blockCountPrior);
+//         EdgeCountPoissonPrior edgeCountPrior = EdgeCountPoissonPrior(200);
+//         EdgeMatrixUniformPrior edgeMatrixPrior = EdgeMatrixUniformPrior(edgeCountPrior, blockPrior);
+//         DegreeUniformHyperPrior prior = DegreeUniformHyperPrior(edgeMatrixPrior);
+//         void SetUp() {
+//             prior.sample();
+//             prior.checkSafety();
+//         }
+//         void TearDown(){
+//             prior.checkConsistency();
+//         }
+// };
+//
+// TEST_F(TestDegreeUniformHyperPrior, sampleState_returnConsistentState){
+//     prior.sampleState();
+// }
+//
+// TEST_F(TestDegreeUniformHyperPrior, getLogLikelihood_returnNonPositiveValue){
+//     double logLikelihood = prior.getLogLikelihood();
+//     EXPECT_LE(logLikelihood, 0);
+// }
+//
+// TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectRatio){
+//     GraphMove move = {{}, {{0,1}}};
+//     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
+//     double logLikelihoodBefore = prior.getLogLikelihood();
+//     prior.applyGraphMove(move);
+//
+//     double logLikelihoodAfter = prior.getLogLikelihood();
+//     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
+// }
+//
+// TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
+//     BaseGraph::VertexIndex idx = 0;
+//     while (prior.getBlockPrior().getBlockCount() == 1) prior.sample();
+//     auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
+//     edgeMatrixPrior.setGraph(g);
+//     BlockIndex prevBlockIdx = prior.getBlockPrior().getState()[idx];
+//     BlockIndex nextBlockIdx = prior.getBlockPrior().getState()[idx] + 1;
+//     if (nextBlockIdx == prior.getBlockPrior().getBlockCount())
+//         nextBlockIdx -= 2;
+//     BlockMove move = {idx, prevBlockIdx, nextBlockIdx};
+//     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
+//     double logLikelihoodBefore = prior.getLogLikelihood();
+//     prior.applyLabelMove(move);
+//     double logLikelihoodAfter = prior.getLogLikelihood();
+//
+//     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
+// }
+//
+// TEST_F(TestDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forLabelMoveAddingNewBlock_returnCorrectRatio){
+//     BaseGraph::VertexIndex idx = 0;
+//     auto g = generateDCSBM(blockPrior.getState(), prior.getEdgeMatrixPrior().getState().getAdjacencyMatrix(), prior.getState());
+//     BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getVertexCounts().size(), 1};
+//     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
+//
+//     double logLikelihoodBefore = prior.getLogLikelihood();
+//     prior.applyLabelMove(move);
+//     double logLikelihoodAfter = prior.getLogLikelihood();
+//     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
+// }
 
 }

@@ -6,113 +6,86 @@
 #include <vector>
 
 #include "BaseGraph/types.h"
-#include "FastMIDyNet/random_graph/sbm.h"
 #include "FastMIDyNet/random_graph/random_graph.hpp"
+#include "FastMIDyNet/random_graph/likelihood/erdosrenyi.h"
+#include "FastMIDyNet/random_graph/util.h"
 #include "FastMIDyNet/generators.h"
 
 namespace FastMIDyNet{
 
-class ErdosRenyiFamily: public StochasticBlockModelFamily{
+class ErdosRenyiModelBase: public RandomGraph{
 protected:
-    const BlockSequence m_blocks;
-    BlockDeltaPrior m_blockDeltaPrior;
-    EdgeMatrixUniformPrior m_edgeMatrixUniformPrior;
-public:
-    ErdosRenyiFamily(size_t graphSize):
-        StochasticBlockModelFamily(graphSize),
-        m_blocks(graphSize, 0),
-        m_blockDeltaPrior(m_blocks),
-        m_edgeMatrixUniformPrior(){
-            setBlockPrior(m_blockDeltaPrior);
-            m_edgeMatrixUniformPrior.setBlockPrior(m_blockDeltaPrior);
-            setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
-        }
-    ErdosRenyiFamily(size_t graphSize, EdgeCountPrior& edgeCountPrior):
-        StochasticBlockModelFamily(graphSize),
-        m_blocks(graphSize, 0),
-        m_blockDeltaPrior(m_blocks),
-        m_edgeMatrixUniformPrior(edgeCountPrior, m_blockDeltaPrior){
-            setBlockPrior(m_blockDeltaPrior);
-            setEdgeMatrixPrior(m_edgeMatrixUniformPrior);
-
-        }
-
-    const EdgeCountPrior& getEdgeCountPrior(){ return m_edgeMatrixUniformPrior.getEdgeCountPrior(); }
-    EdgeCountPrior& getEdgeCountPriorRef(){ return m_edgeMatrixUniformPrior.getEdgeCountPriorRef(); }
-    void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){
-        m_edgeMatrixUniformPrior.setEdgeCountPrior(edgeCountPrior);
+    EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
+    ErdosRenyiLikelihood m_likelihoodModel;
+    void _applyGraphMove (const GraphMove& move) override {
+        m_edgeCountPriorPtr->applyGraphMove(move);
+        RandomGraph::_applyGraphMove(move);
     }
+    const double _getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint(); }
+    const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override {
+        return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move);
+    }
+    void _samplePrior() override { m_edgeCountPriorPtr->sample(); }
+    void setUpLikelihood() {
+        m_likelihoodModel.m_statePtr = &m_state;
+        m_likelihoodModel.m_graphSizePtr = &m_size;
+        m_likelihoodModel.m_edgeCountPriorPtrPtr = &m_edgeCountPriorPtr;
+        m_likelihoodModel.m_withSelfLoopsPtr = &m_withSelfLoops;
+        m_likelihoodModel.m_withParallelEdgesPtr = &m_withParallelEdges;
+    }
+    ErdosRenyiModelBase(size_t graphSize, bool withSelfLoops=true, bool withParallelEdges=true):
+        RandomGraph(graphSize, m_likelihoodModel, withSelfLoops, withParallelEdges)
+        { setUpLikelihood(); }
+    ErdosRenyiModelBase(size_t graphSize, EdgeCountPrior& edgeCountPrior, bool withSelfLoops=true, bool withParallelEdges=true):
+        RandomGraph(graphSize, m_likelihoodModel, withSelfLoops, withParallelEdges),
+        m_edgeCountPriorPtr(&edgeCountPrior){ setUpLikelihood(); }
+public:
+
+    const size_t getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }
+
+    const EdgeCountPrior& getEdgeCountPrior(){ return *m_edgeCountPriorPtr; }
+    void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){ m_edgeCountPriorPtr = &edgeCountPrior; }
 
     const bool isCompatible(const MultiGraph& graph) const override{
         return RandomGraph::isCompatible(graph) and graph.getTotalEdgeNumber() == getEdgeCount();
     }
-};
-
-class SimpleErdosRenyiFamily: public RandomGraph{
-private:
-    CounterMap<size_t> m_edgeCounts;
-    EdgeCountPrior* m_edgeCountPriorPtr = nullptr;
-protected:
-    void _applyGraphMove(const GraphMove& move) override {
-        m_edgeCountPriorPtr->applyGraphMove(move);
-        RandomGraph::_applyGraphMove(move);
-    }
-public:
-    SimpleErdosRenyiFamily(size_t graphSize):
-        RandomGraph(graphSize) { }
-    SimpleErdosRenyiFamily(size_t graphSize, EdgeCountPrior& edgeCountPrior):
-        RandomGraph(graphSize)
-        { setEdgeCountPrior(edgeCountPrior); }
-    const size_t& getEdgeCount() const override { return m_edgeCountPriorPtr->getState(); }
-
-    void setGraph(const MultiGraph& graph) override{
-        RandomGraph::setGraph(graph);
-        m_edgeCountPriorPtr->setState(graph.getTotalEdgeNumber());
-    }
-
-    void sample() override {
-        m_edgeCountPriorPtr->sample();
-        setGraph(generateSER(m_size, getEdgeCount()));
-        computationFinished();
-    }
-    const double getLogLikelihood() const override { return -logBinomialCoefficient( m_size * (m_size - 1) / 2, getEdgeCount()); }
-    const double getLogPrior() const override { return m_edgeCountPriorPtr->getLogJoint(); }
-    const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const override{
-        int edgeCountDiff = move.addedEdges.size() - move.removedEdges.size();
-        return -logBinomialCoefficient( m_size * (m_size - 1) / 2, getEdgeCount() + edgeCountDiff)
-               +logBinomialCoefficient( m_size * (m_size - 1) / 2, getEdgeCount());
-    };
-    const double getLogPriorRatioFromGraphMove (const GraphMove& move) const override {
-        return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move);
-    }
-    void checkSelfConsistency() const override {
-        m_edgeCountPriorPtr->checkSelfConsistency();
-        if (m_graph.getTotalEdgeNumber() != getEdgeCount())
-            throw ConsistencyError("SimpleErdosRenyiFamily: edge count ("
-            + std::to_string(getEdgeCount()) + ") state is not equal to the number of edges in the graph ("
-            + std::to_string(m_graph.getTotalEdgeNumber()) +").");
-    }
-    void checkSelfSafety() const override {
-        if (m_edgeCountPriorPtr == nullptr)
-            throw SafetyError("SimpleErdosRenyiFamily: unsafe graph family since `m_edgeCountPriorPtr` is empty.");
-        m_edgeCountPriorPtr->checkSafety();
-    }
-
-    bool const isCompatible(const MultiGraph& graph) const override{
-        return RandomGraph::isCompatible(graph) and graph.getTotalEdgeNumber() == getEdgeCount();
-
-    }
-
-    const EdgeCountPrior& getEdgeCountPrior(){ return *m_edgeCountPriorPtr; }
-    EdgeCountPrior& getEdgeCountPriorRef(){ return *m_edgeCountPriorPtr; }
-    void setEdgeCountPrior(EdgeCountPrior& edgeCountPrior){ m_edgeCountPriorPtr = &edgeCountPrior; }
-
     void computationFinished() const override {
         m_isProcessed = false;
         m_edgeCountPriorPtr->computationFinished();
     }
-
+    void checkSelfSafety() const override {
+        RandomGraph::checkSelfSafety();
+        if (not m_edgeCountPriorPtr)
+            throw SafetyError("ErdosRenyiFamily", "m_edgeCountPriorPtr");
+        m_edgeCountPriorPtr->checkSafety();
+    }
 };
+
+class ErdosRenyiModel: public ErdosRenyiModelBase{
+    std::unique_ptr<EdgeCountPrior> m_edgeCountPriorUPtr = nullptr;
+    std::unique_ptr<EdgeProposer> m_edgeProposerUPtr = nullptr;
+public:
+    ErdosRenyiModel(
+        size_t size,
+        double edgeCount,
+        bool canonical=false,
+        bool withSelfLoops=true,
+        bool withParallelEdges=true,
+        std::string edgeProposerType="uniform"):
+        ErdosRenyiModelBase(size, withSelfLoops, withParallelEdges) {
+            m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
+            setEdgeCountPrior(*m_edgeCountPriorUPtr);
+
+            m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(
+                makeEdgeProposer(edgeProposerType, canonical, false, withSelfLoops, withParallelEdges)
+            );
+            setEdgeProposer(*m_edgeProposerUPtr);
+
+            checkSafety();
+            sample();
+        }
+};
+
 
 }// end FastMIDyNet
 #endif

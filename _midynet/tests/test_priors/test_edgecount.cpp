@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <vector>
 
-#include "FastMIDyNet/prior/sbm/edge_count.h"
+#include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/exceptions.h"
@@ -13,13 +13,12 @@ const std::vector<size_t> TESTED_INTEGERS={0,5,10};
 
 class DummyEdgeCountPrior: public FastMIDyNet::EdgeCountPrior {
     public:
-        void sampleState() {}
-        const double getLogLikelihoodFromState(const size_t& state) const { return state; }
-        const double getLogPrior() { return 0; }
-        void checkSelfConsistency() const { }
+        void sampleState() override {}
+        const double getLogLikelihoodFromState(const size_t& state) const override { return state; }
+        void checkSelfConsistency() const override { }
 };
 
-class TestEdgeCountPrior: public ::testing::Test {
+class EdgeCountPriorTest: public ::testing::Test {
     public:
         DummyEdgeCountPrior prior;
         void SetUp() {
@@ -31,7 +30,7 @@ class TestEdgeCountPrior: public ::testing::Test {
         }
 };
 
-TEST_F(TestEdgeCountPrior, getStateAfterGraphMove_addEdges_returnCorrectEdgeNumber) {
+TEST_F(EdgeCountPriorTest, getStateAfterGraphMove_addEdges_returnCorrectEdgeNumber) {
     for (auto currentEdgeNumber: {0, 1, 2, 10}) {
         prior.setState(currentEdgeNumber);
         for (auto addedNumber: {0, 1, 2, 10}) {
@@ -41,7 +40,7 @@ TEST_F(TestEdgeCountPrior, getStateAfterGraphMove_addEdges_returnCorrectEdgeNumb
     }
 }
 
-TEST_F(TestEdgeCountPrior, getStateAfterGraphMove_removeEdges_returnCorrectEdgeNumber) {
+TEST_F(EdgeCountPriorTest, getStateAfterGraphMove_removeEdges_returnCorrectEdgeNumber) {
     size_t currentEdgeNumber=10;
     prior.setState(currentEdgeNumber);
 
@@ -51,21 +50,21 @@ TEST_F(TestEdgeCountPrior, getStateAfterGraphMove_removeEdges_returnCorrectEdgeN
     }
 }
 
-TEST_F(TestEdgeCountPrior, getLogLikelihoodRatio_addEdges_returnCorrectRatio) {
+TEST_F(EdgeCountPriorTest, getLogLikelihoodRatio_addEdges_returnCorrectRatio) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
 
     EXPECT_EQ(prior.getLogLikelihoodRatioFromGraphMove({{}, edgeMove}), 2);
 }
 
-TEST_F(TestEdgeCountPrior, getLogLikelihoodRatio_removeEdges_returnCorrectRatio) {
+TEST_F(EdgeCountPriorTest, getLogLikelihoodRatio_removeEdges_returnCorrectRatio) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
 
     EXPECT_EQ(prior.getLogLikelihoodRatioFromGraphMove({edgeMove, {}}), -2);
 }
 
-TEST_F(TestEdgeCountPrior, getLogJointRatio_graphMove_returnLogLikelihoodRatio) {
+TEST_F(EdgeCountPriorTest, getLogJointRatio_graphMove_returnLogLikelihoodRatio) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
     FastMIDyNet::GraphMove move = {edgeMove, {}};
@@ -73,15 +72,7 @@ TEST_F(TestEdgeCountPrior, getLogJointRatio_graphMove_returnLogLikelihoodRatio) 
     EXPECT_EQ(prior.getLogJointRatioFromGraphMove(move), prior.getLogLikelihoodRatioFromGraphMove(move));
 }
 
-TEST_F(TestEdgeCountPrior, getLogJointRatio_blockMove_return0) {
-    prior.setState(5);
-    std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
-    FastMIDyNet::BlockMove move = {0, 0, 0};
-
-    EXPECT_EQ(prior.getLogJointRatioFromLabelMove(move), 0);
-}
-
-TEST_F(TestEdgeCountPrior, applyGraphMove_addEdges_edgeNumberIncrements) {
+TEST_F(EdgeCountPriorTest, applyGraphMove_addEdges_edgeNumberIncrements) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
 
@@ -89,7 +80,7 @@ TEST_F(TestEdgeCountPrior, applyGraphMove_addEdges_edgeNumberIncrements) {
     EXPECT_EQ(prior.getState(), 7);
 }
 
-TEST_F(TestEdgeCountPrior, applyGraphMove_removeEdges_edgeNumberDecrements) {
+TEST_F(EdgeCountPriorTest, applyGraphMove_removeEdges_edgeNumberDecrements) {
     prior.setState(5);
     std::vector<BaseGraph::Edge> edgeMove(2, {0, 0});
 
@@ -97,11 +88,11 @@ TEST_F(TestEdgeCountPrior, applyGraphMove_removeEdges_edgeNumberDecrements) {
     EXPECT_EQ(prior.getState(), 3);
 }
 
-TEST_F(TestEdgeCountPrior, getLogPrior_return0) {
+TEST_F(EdgeCountPriorTest, getLogPrior_return0) {
     EXPECT_DOUBLE_EQ(prior.getLogPrior(), 0);
 }
 
-class TestEdgeCountDeltaPrior: public::testing::Test{
+class EdgeCountDeltaPriorTest: public::testing::Test{
 public:
     size_t edgeCount = 5;
     FastMIDyNet::EdgeCountDeltaPrior prior={edgeCount};
@@ -113,32 +104,32 @@ public:
     }
 };
 
-TEST_F(TestEdgeCountDeltaPrior, sampleState_doNothing){
+TEST_F(EdgeCountDeltaPriorTest, sampleState_doNothing){
     EXPECT_EQ(prior.getState(), edgeCount);
     prior.sampleState();
     EXPECT_EQ(prior.getState(), edgeCount);
 }
 
-TEST_F(TestEdgeCountDeltaPrior, getLogLikelihood_return0){
+TEST_F(EdgeCountDeltaPriorTest, getLogLikelihood_return0){
     EXPECT_EQ(prior.getLogLikelihood(), 0.);
 }
 
-TEST_F(TestEdgeCountDeltaPrior, getLogLikelihoodFromState_forSomeStateDifferentThan5_returnMinusInf){
+TEST_F(EdgeCountDeltaPriorTest, getLogLikelihoodFromState_forSomeStateDifferentThan5_returnMinusInf){
     EXPECT_EQ(prior.getLogLikelihoodFromState(10), -INFINITY);
 }
 
-TEST_F(TestEdgeCountDeltaPrior, getLogLikelihoodRatio_forSomeGraphMovePreservingEdgeCount_return0){
+TEST_F(EdgeCountDeltaPriorTest, getLogLikelihoodRatio_forSomeGraphMovePreservingEdgeCount_return0){
     FastMIDyNet::GraphMove move = {{{0,0}}, {{0,2}}};
     EXPECT_EQ(prior.getLogLikelihoodRatioFromGraphMove(move), 0);
 }
 
-TEST_F(TestEdgeCountDeltaPrior, getLogLikelihoodRatio_forSomeGraphMoveNotPreservingEdgeCount_return0){
+TEST_F(EdgeCountDeltaPriorTest, getLogLikelihoodRatio_forSomeGraphMoveNotPreservingEdgeCount_return0){
     FastMIDyNet::GraphMove move = {{{0,0}}, {}};
     EXPECT_EQ(prior.getLogLikelihoodRatioFromGraphMove(move), -INFINITY);
 }
 
 
-class TestEdgeCountPoissonPrior: public::testing::Test{
+class EdgeCountPoissonPriorTest: public::testing::Test{
 public:
     FastMIDyNet::EdgeCountPoissonPrior prior={POISSON_MEAN};
     bool expectConsistencyError = false;
@@ -152,18 +143,18 @@ public:
     }
 };
 
-TEST_F(TestEdgeCountPoissonPrior, getLogLikelihoodFromState_differentIntegers_returnPoissonPMF) {
+TEST_F(EdgeCountPoissonPriorTest, getLogLikelihoodFromState_differentIntegers_returnPoissonPMF) {
     for (auto x: TESTED_INTEGERS)
         EXPECT_DOUBLE_EQ(prior.getLogLikelihoodFromState(x), FastMIDyNet::logPoissonPMF(x, POISSON_MEAN));
 }
 
-TEST_F(TestEdgeCountPoissonPrior, checkSelfConsistency_validMean_noThrow) {
+TEST_F(EdgeCountPoissonPriorTest, checkSelfConsistency_validMean_noThrow) {
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
-TEST_F(TestEdgeCountPoissonPrior, checkSelfConsistency_nonPositiveMean_throwConsistencyError) {
+TEST_F(EdgeCountPoissonPriorTest, checkSelfConsistency_nonPositiveMean_throwConsistencyError) {
     prior={-2};
-    EXPECT_THROW(prior.checkSelfConsistency(), FastMIDyNet::ConsistencyError);
+    EXPECT_THROW(prior.checkSafety(), FastMIDyNet::SafetyError);
     expectConsistencyError = true;
 }
 

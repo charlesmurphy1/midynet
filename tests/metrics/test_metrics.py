@@ -7,7 +7,7 @@ import pytest
 from midynet import metrics
 from midynet.config import (
     Config,
-    DynamicsConfig,
+    DataModelConfig,
     RandomGraphConfig,
     MetricsCollectionConfig,
     ExperimentConfig,
@@ -27,13 +27,13 @@ def base_metrics():
     coupling = np.linspace(0, 10, 2)
     infection_prob = np.linspace(0, 10, 2)
     N = [10, 100]
-    d = DynamicsConfig.auto(["glauber", "sis"])
+    d = DataModelConfig.auto(["glauber", "sis"])
     d[0].set_value("coupling", coupling)
     d[1].set_value("infection_prob", infection_prob)
 
-    g = RandomGraphConfig.auto("uniform_sbm")
+    g = RandomGraphConfig.auto("erdosrenyi")
     g.set_value("size", N)
-    config = Config(name="test", dynamics=d, graph=g)
+    config = Config(name="test", data_model=d, graph=g)
     return DummyMetrics(config=config)
 
 
@@ -82,8 +82,8 @@ def test_basemetrics_load(base_metrics):
 
 
 metrics_dict = {
-    "dynamics_entropy": metrics.DynamicsEntropyMetrics,
-    "dynamics_prediction_entropy": metrics.DynamicsPredictionEntropyMetrics,
+    "data_entropy": metrics.DataEntropyMetrics,
+    "data_prediction_entropy": metrics.DataPredictionEntropyMetrics,
     "graph_entropy": metrics.GraphEntropyMetrics,
     "graph_reconstruction_entropy": metrics.GraphReconstructionEntropyMetrics,
     "reconstructability": metrics.ReconstructabilityMetrics,
@@ -97,15 +97,15 @@ def args(request):
     c = ExperimentConfig.reconstruction(
         "test",
         "sis",
-        "er",
+        "erdosrenyi",
         path="./tests/experiments/test-dir",
         num_procs=1,
         seed=1,
     )
-    c.set_value("dynamics.num_steps", 10)
-    c.set_value("dynamics.infection_prob", [0.0, 0.5])
+    c.set_value("data.num_steps", 10)
+    c.set_value("data.infection_prob", [0.0, 0.5])
     c.set_value("graph.size", 5)
-    c.set_value("graph.edge_count.state", 5)
+    c.set_value("graph.edge_count", 5)
     c.set_value(
         "metrics",
         MetricsCollectionConfig.auto(request.param),

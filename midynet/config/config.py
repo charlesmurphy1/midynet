@@ -62,8 +62,7 @@ class Config:
             self.insert(
                 k,
                 v,
-                unique=k in self.unique_parameters
-                or self.unique_parameters == {"all"},
+                unique=k in self.unique_parameters or self.unique_parameters == {"all"},
             )
 
     def __str__(self) -> str:
@@ -115,9 +114,10 @@ class Config:
         elif isinstance(config_type, cls):
             return config_type
         else:
+            t = config_type if isinstance(config_type, str) else type(config_type)
+
             message = (
-                f"Invalid config type `{type(config_type)}` for"
-                + f"auto build of object `{cls.__name__}`."
+                f"Invalid config type `{t}` for auto build of object `{cls.__name__}`."
             )
             raise TypeError(message)
 
@@ -167,9 +167,7 @@ class Config:
         Args:
             args: input for constructing an instance of `Config`.
         """
-        if isinstance(config_type, str) or issubclass(
-            type(config_type), Config
-        ):
+        if isinstance(config_type, str) or issubclass(type(config_type), Config):
             return cls.__auto__(config_type, *others, **kwargs)
         else:
             return [cls.__auto__(c, *others, **kwargs) for c in config_type]
@@ -368,9 +366,9 @@ class Config:
             if v.is_config and recursively:
                 if v.is_sequenced():
                     for vv in v.value:
-                        copy[
-                            f"{prefix}{k}{self.separator}{vv.name}"
-                        ] = Parameter(name=v.name, value=vv, unique=v.unique)
+                        copy[f"{prefix}{k}{self.separator}{vv.name}"] = Parameter(
+                            name=v.name, value=vv, unique=v.unique
+                        )
                         copy.update(
                             vv.dict_copy(
                                 prefix=f"{prefix}{k}{self.separator}"
@@ -380,9 +378,7 @@ class Config:
                         )
                 else:
                     copy.update(
-                        v.value.dict_copy(
-                            prefix=f"{prefix}{k}{self.separator}"
-                        )
+                        v.value.dict_copy(prefix=f"{prefix}{k}{self.separator}")
                     )
         return copy
 
@@ -511,9 +507,7 @@ class Config:
                 else:
                     s += ss[0] + "\n"
             else:
-                s += (
-                    f"{prefix}|\t{name_prefix}{v.name} = {v.format()}{endline}"
-                )
+                s += f"{prefix}|\t{name_prefix}{v.name} = {v.format()}{endline}"
         if suffix is not None and len(self.items()) > 0:
             s += f"{prefix}{suffix}"
         return s
@@ -550,18 +544,13 @@ class Config:
                             self.get_param(key).add_value(value.value)
                     else:
                         if value.value.name != self.get_value(key).name:
-                            self.get_param(key).add_value(
-                                config.get_value(key)
-                            )
+                            self.get_param(key).add_value(config.get_value(key))
                         else:
                             self.get_value(key).merge_with(
                                 config.get_value(key), verbose=0
                             )
                 else:
-                    if (
-                        self.get_param(key).is_sequenced()
-                        or value.is_sequenced()
-                    ):
+                    if self.get_param(key).is_sequenced() or value.is_sequenced():
                         self.get_param(key).add_values(value.value)
                     else:
                         self.get_param(key).add_value(value.value)
@@ -605,9 +594,7 @@ class Config:
                     config.get_param(k).force_non_sequence = self.get_param(
                         k
                     ).force_non_sequence
-                    config.get_param(k).sort_sequence = self.get_param(
-                        k
-                    ).sort_sequence
+                    config.get_param(k).sort_sequence = self.get_param(k).sort_sequence
                 if config.is_sequenced():
                     for c in config.__generate_sequence__():
                         name = self.subname(c)

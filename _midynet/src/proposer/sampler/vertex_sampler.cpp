@@ -4,6 +4,19 @@
 
 namespace FastMIDyNet{
 
+void VertexSampler::setUpWithGraph(const MultiGraph& graph) {
+    clear();
+    for (const auto& vertex : graph)
+        onVertexInsertion(vertex);
+    for (const auto& vertex : graph){
+        for (const auto& neighbor : graph.getNeighboursOfIdx(vertex)){
+            if (vertex <= neighbor.vertexIndex){
+                onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
+            }
+        }
+    }
+}
+
 BaseGraph::VertexIndex VertexDegreeSampler::sample() const {
     double prob = m_shift * m_vertexSampler.total_weight() / (
         m_shift * m_vertexSampler.total_weight() + m_totalEdgeWeight

@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include "BaseGraph/types.h"
 #include "FastMIDyNet/types.h"
 
@@ -18,33 +19,51 @@ struct GraphMove{
     std::vector<BaseGraph::Edge> removedEdges;
     std::vector<BaseGraph::Edge> addedEdges;
 
-    void display() const{
-        std::cout << "edges removed : { ";
-        for (auto e : removedEdges){
-            std::cout << "{ " << e.first << ", " << e.second << "}, ";
-        }
-        std::cout << "}\t edges added : { ";
-        for (auto e : addedEdges){
-            std::cout << "{ " << e.first << ", " << e.second << "}, ";
-        }
-        std::cout << "}" << std::endl;
+    friend std::ostream& operator <<(std::ostream& os, const GraphMove& move) {
+        os << move.display();
+        return os;
+    }
 
+    std::string display() const{
+        std::stringstream ss;
+        ss << "GraphMove(removed=[";
+        for (auto e : removedEdges){
+            ss << " {" << e.first << ", " << e.second << "}, ";
+        }
+        ss << "], added=[";
+        for (auto e : addedEdges){
+            ss << "{" << e.first << ", " << e.second << "}, ";
+        }
+        ss << "])";
+        return ss.str();
     }
 };
 
 template <typename Label>
 struct LabelMove{
-    LabelMove(BaseGraph::VertexIndex vertexIndex, Label prevLabel, Label nextLabel, int addedLabels=0):
-        vertexIndex(vertexIndex), prevLabel(prevLabel), nextLabel(nextLabel), addedLabels(addedLabels){ }
+    LabelMove(BaseGraph::VertexIndex vertexIndex=0, Label prevLabel=0, Label nextLabel=0, int addedLabels=0, Level level=0):
+        vertexIndex(vertexIndex), prevLabel(prevLabel),
+        nextLabel(nextLabel), addedLabels(addedLabels),
+        level(level){ }
     BaseGraph::VertexIndex vertexIndex;
     Label prevLabel;
     Label nextLabel;
     int addedLabels;
+    Level level;
+
+    friend std::ostream& operator <<(std::ostream& os, const LabelMove<Label>& move) {
+        os << move.display();
+        return os;
+    }
+
 
     std::string display()const{
         std::stringstream ss;
-        ss << "vertex " << vertexIndex << ": " << prevLabel << " -> " << nextLabel;
-        ss << " (" << addedLabels << " labels added)";
+        ss << "LabelMove(vertex=" << vertexIndex;
+        ss << ", prevLabel=" << prevLabel;
+        ss << ", nextLabel=" << nextLabel;
+        ss << ", addedLabels=" << addedLabels;
+        ss << ", level=" << level << ")";
         return ss.str();
     }
 };

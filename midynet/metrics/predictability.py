@@ -1,7 +1,12 @@
 import time
 from dataclasses import dataclass, field
 from _midynet import utility
-from midynet.config import Config, MCMCFactory
+from midynet.config import (
+    Config,
+    RandomGraphFactory,
+    DataModelFactory,
+    ReconstructionMCMC,
+)
 from .metrics import Metrics
 from .multiprocess import Expectation
 from .statistics import Statistics
@@ -16,9 +21,13 @@ class Predictability(Expectation):
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-        mcmc = MCMCFactory.build_reconstruction(self.config)
+
+        graph = RandomGraphFactory.build(self.config.graph)
+        data_model = DataModelFactory.build(self.config.data_model)
+        data_model.set_graph_prior(graph)
+        mcmc = ReconstructionMCMC(data_model, graph)
+
         mcmc.sample()
-        mcmc.set_up()
         hxg = -mcmc.get_log_likelihood()
         hx = -get_log_evidence(mcmc, self.config.metrics.predictability)
         return (hx - hxg) / hx

@@ -26,13 +26,9 @@ const GraphMove DoubleEdgeSwapProposer::proposeRawMove() const {
     return move;
 }
 
-void DoubleEdgeSwapProposer::setUp( const MultiGraph& graph ) {
-    m_edgeSampler.clear();
+void DoubleEdgeSwapProposer::setUpWithGraph( const MultiGraph& graph ) {
+    m_edgeSampler.setUpWithGraph(graph);
     m_graphPtr = &graph;
-    for (auto vertex : graph)
-        for (auto neighbor : graph.getNeighboursOfIdx(vertex))
-            if (vertex <= neighbor.vertexIndex)
-                m_edgeSampler.onEdgeInsertion({vertex, neighbor.vertexIndex}, neighbor.label);
 }
 
 void DoubleEdgeSwapProposer::applyGraphMove(const GraphMove& move) {

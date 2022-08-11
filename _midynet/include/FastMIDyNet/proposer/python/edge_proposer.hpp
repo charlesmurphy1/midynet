@@ -27,7 +27,8 @@ public:
     const double getLogProposalProbRatio(const GraphMove& move) const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogProposalProbRatio, move); }
 
     /* Abstract & overloaded methods */
-    void setUp(const MultiGraph& graph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, graph); }
+    void setUpWithGraph(const MultiGraph& graph) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, graph); }
+    void setUpWithPrior(const RandomGraph& prior) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setUp, prior); }
     void applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMove, move); }
     void clear() override { PYBIND11_OVERRIDE(void, BaseClass, clear, ); }
 };

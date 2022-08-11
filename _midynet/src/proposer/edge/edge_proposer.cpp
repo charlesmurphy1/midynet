@@ -1,4 +1,5 @@
 #include "FastMIDyNet/proposer/edge/edge_proposer.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
 #include "FastMIDyNet/utility/functions.h"
 
 namespace FastMIDyNet{
@@ -14,5 +15,8 @@ const GraphMove EdgeProposer::proposeMove() const {
     }
     throw std::runtime_error("EdgeProposer: Could not find edge to propose.");
 }
+
+void EdgeProposer::setUpWithPrior( const RandomGraph& prior ) { clear(); setUpWithGraph(prior.getState()); }
+
 
 }

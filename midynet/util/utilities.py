@@ -12,6 +12,7 @@ __all__ = (
     "to_batch",
     "delete_path",
     "enumerate_all_graphs",
+    "enumerate_all_partitions",
 )
 
 
@@ -41,7 +42,25 @@ def log_mean_exp(x):
 
 def to_batch(x, size):
     for i in range(0, len(x), size):
-        yield x[i:i+size]
+        yield x[i : i + size]
+
+
+def to_nary(x, base=2, dim=None):
+    if type(x) is int or type(x) is float:
+        x = np.array([x])
+    if dim is None:
+        max_val = base ** np.floor(logbase(np.max(x), base) + 1)
+        dim = int(logbase(max_val, base))
+    y = np.zeros([dim, *x.shape])
+    for idx, xx in np.ndenumerate(x):
+        r = np.zeros(dim)
+        r0 = xx
+        while r0 > 0:
+            b = int(np.floor(logbase(r0, base)))
+            r[b] += 1
+            r0 -= base**b
+        y.T[idx] = r[::-1]
+    return y
 
 
 def delete_path(path: pathlib.Path):
@@ -58,9 +77,7 @@ def delete_path(path: pathlib.Path):
     path.rmdir()
 
 
-def get_all_edges(
-    size: int, allow_self_loops: bool = False
-) -> list[tuple[int, int]]:
+def get_all_edges(size: int, allow_self_loops: bool = False) -> list[tuple[int, int]]:
     if allow_self_loops:
         return list(itertools.combinations_with_replacement(range(size), 2))
     else:
@@ -102,6 +119,12 @@ def enumerate_all_graphs(
         for u, v in edge_list:
             g.add_edge_idx(u, v)
         yield g
+
+
+def enumerate_all_partitions(size, block_count=None):
+    block_count = size if block_count is None else block_count
+    for i in range(block_count**size):
+        yield tuple(to_nary(i, block_count, dim=size).squeeze().astype("int").tolist())
 
 
 if __name__ == "__main__":

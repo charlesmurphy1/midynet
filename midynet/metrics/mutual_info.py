@@ -4,11 +4,22 @@ import numpy as np
 from dataclasses import dataclass, field
 from collections import defaultdict
 from _midynet import utility
-from midynet.config import Config, MCMCFactory
+from _midynet.random_graph import BlockLabeledRandomGraph
+from midynet.config import (
+    Config,
+    RandomGraphFactory,
+    DataModelFactory,
+    ReconstructionMCMC,
+)
 from .metrics import Metrics
 from .multiprocess import Expectation
 from .statistics import Statistics
-from .util import get_log_evidence, get_log_posterior, get_log_prior_meanfield
+from .util import (
+    get_log_evidence,
+    get_log_posterior,
+    get_log_prior_meanfield,
+    get_log_posterior_partition_meanfield,
+)
 
 __all__ = ("MutualInformation", "MutualInformationMetrics")
 
@@ -19,11 +30,18 @@ class MutualInformation(Expectation):
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-        mcmc = MCMCFactory.build_reconstruction(self.config)
+        graph = RandomGraphFactory.build(self.config.graph)
+        data_model = DataModelFactory.build(self.config.data_model)
+        data_model.set_graph_prior(graph)
+        mcmc = ReconstructionMCMC(data_model, graph)
         mcmc.sample()
-        mcmc.set_up()
+
         hxg = -mcmc.get_log_likelihood() / np.log(2)
         hg = -mcmc.get_log_prior() / np.log(2)
+        if issubclass(graph.__class__, BlockLabeledRandomGraph):
+            hg += get_log_posterior_partition_meanfield(
+                graph, self.config.metrics.mutualinfo
+            ) / np.log(2)
         hx = -get_log_evidence(
             mcmc, self.config.metrics.mutualinfo, verbose=0
         ) / np.log(2)

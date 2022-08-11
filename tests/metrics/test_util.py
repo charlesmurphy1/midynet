@@ -1,12 +1,12 @@
 import pytest
 import midynet
 from midynet.config import (
-    DynamicsFactory,
+    DataModelFactory,
     RandomGraphFactory,
-    MCMCFactory,
     MetricsConfig,
     ExperimentConfig,
     Wrapper,
+    ReconstructionMCMC,
 )
 
 DISPLAY = False
@@ -14,10 +14,12 @@ DISPLAY = False
 
 @pytest.fixture
 def config():
-    c = ExperimentConfig.reconstruction(name="test", dynamics="sis", graph="er")
-    c.dynamics.set_value("num_steps", 5)
+    c = ExperimentConfig.reconstruction(
+        name="test", data_model="sis", graph="erdosrenyi"
+    )
+    c.data_model.set_value("num_steps", 5)
     c.graph.set_value("size", 4)
-    c.graph.edge_count.set_value("state", 2)
+    c.graph.set_value("edge_count", 2)
     return c
 
 
@@ -31,9 +33,12 @@ def metrics_config():
 
 @pytest.fixture
 def mcmc(config):
-    mcmc = MCMCFactory.build_reconstruction(config)
-    mcmc.others["dynamics"].sample()
-    mcmc.set_up()
+    graph = RandomGraphFactory.build(config.graph)
+    dynamics = DataModelFactory.build(config.data_model)
+    dynamics.set_graph_prior(graph)
+    print(dynamics)
+    mcmc = ReconstructionMCMC(dynamics, graph)
+    mcmc.sample()
     return mcmc
 
 

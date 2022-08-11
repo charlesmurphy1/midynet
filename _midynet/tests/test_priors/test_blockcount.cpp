@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <vector>
 
-#include "FastMIDyNet/prior/sbm/block_count.h"
+#include "FastMIDyNet/random_graph/prior/block_count.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/utility/functions.h"
 #include "FastMIDyNet/exceptions.h"
@@ -16,12 +16,11 @@ class DummyBlockCountPrior: public BlockCountPrior {
 public:
     void sampleState() {}
     const double getLogLikelihoodFromState(const size_t& state) const { return state; }
-    const double getLogPrior() { return 0; }
 
     void checkSelfConsistency() const {}
 };
 
-class TestBlockCountPrior: public ::testing::Test {
+class BlockCountPriorTest: public ::testing::Test {
 public:
     DummyBlockCountPrior prior;
     bool expectConsistencyError = false;
@@ -35,35 +34,17 @@ public:
     }
 };
 
-
-// TEST_F(TestBlockCountPrior, getStateAfterMove_SomLabelMove_returnCorrectBlockNumberIfVertexInNewBlock) {
-//     for (auto currentBlockNumber: {1, 2, 5, 10}){
-//         prior.setState(currentBlockNumber);
-//         for (BlockIndex nextBlockIdx : {0, 1, 2, 6}){
-//             BlockMove blockMove = {0, 0, nextBlockIdx};
-//             if (nextBlockIdx >= currentBlockNumber) blockMove.addedBlocks = 1;
-//
-//
-//             if (currentBlockNumber > nextBlockIdx)
-//                 EXPECT_EQ(prior.getStateAfterLabelMove(blockMove), currentBlockNumber);
-//             else
-//                 EXPECT_EQ(prior.getStateAfterLabelMove(blockMove), currentBlockNumber + 1);
-//         }
-//     }
-//
-// }
-
-TEST_F(TestBlockCountPrior, getLogLikelihoodRatio_throwLogicError) {
+TEST_F(BlockCountPriorTest, getLogLikelihoodRatio_throwDepletedMethodError) {
     prior.setState(5);
     BlockMove blockMove = {0, 0, 1};
-    EXPECT_THROW(prior.getLogLikelihoodRatioFromLabelMove(blockMove), std::logic_error);
+    EXPECT_THROW(prior.getLogLikelihoodRatioFromLabelMove(blockMove), DepletedMethodError);
 }
 
 
-TEST_F(TestBlockCountPrior, applyLabelMove_noNewblockMove_blockNumberUnchangedIsProcessedIsTrue) {
+TEST_F(BlockCountPriorTest, applyLabelMove_noNewblockMove_blockNumberUnchangedIsProcessedIsTrue) {
     prior.setState(5);
     BlockMove blockMove = {0, 0, 2};
-    EXPECT_THROW(prior.applyLabelMove(blockMove), std::logic_error);
+    EXPECT_THROW(prior.applyLabelMove(blockMove), DepletedMethodError);
 }
 
 /* BLOCK COUNT DELTA PRIOR TEST: BEGIN */
@@ -132,12 +113,66 @@ TEST_F(TestBlockCountPoissonPrior, checkSelfConsistency_noError_noThrow) {
 
 TEST_F(TestBlockCountPoissonPrior, checkSelfConsistency_negativeMean_throwConsistencyError) {
     prior={-2};
-    EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
+    EXPECT_THROW(prior.checkSafety(), SafetyError);
 
     prior={1};
     prior.setState(0);
-    EXPECT_THROW(prior.checkSelfConsistency(), ConsistencyError);
+    EXPECT_THROW(prior.checkSelfSafety(), SafetyError);
     expectConsistencyError = true;
 }
+
+
+class TestNestedBlockCountUniformPrior: public::testing::Test{
+public:
+    size_t N = 10;
+    NestedBlockCountUniformPrior prior = {N};
+    bool expectConsistencyError = false;
+    void SetUp(){
+        seedWithTime();
+    }
+    void TearDown(){
+        if (not expectConsistencyError)
+            prior.checkConsistency();
+    }
+};
+
+TEST_F(TestNestedBlockCountUniformPrior, sampleState_returnConsistentState){
+    prior.sample();
+    EXPECT_NO_THROW(prior.checkConsistency());
+}
+
+TEST_F(TestNestedBlockCountUniformPrior, getDepth){
+    std::vector<size_t> nestedState = {7, 3, 2, 1};
+    prior.setNestedState(nestedState);
+    EXPECT_EQ(4, prior.getDepth());
+}
+
+TEST_F(TestNestedBlockCountUniformPrior, setNestedState){
+    std::vector<size_t> nestedState = {7, 3, 2, 1};
+    prior.setNestedState(nestedState);
+    EXPECT_EQ(nestedState, prior.getNestedState());
+}
+
+TEST_F(TestNestedBlockCountUniformPrior, getLogLikelihood_returnCorrectValue){
+    std::vector<size_t> nestedState = {7, 3, 2, 1};
+    prior.setNestedState(nestedState);
+    EXPECT_EQ(-log(N - 1) -log(7 - 1) - log(3 - 1) - log(2 - 1), prior.getLogLikelihood());
+}
+
+TEST_F(TestNestedBlockCountUniformPrior, getLogLikelihoodFromNestedState_forValidState_returnCorrectValue){
+    std::vector<size_t> nestedState = {7, 3, 2, 1};
+    double logP = prior.getLogLikelihoodFromNestedState(nestedState);
+    EXPECT_EQ(-log(N - 1) -log(7 - 1) - log(3 - 1) - log(2 - 1), logP);
+    expectConsistencyError = true;
+}
+
+TEST_F(TestNestedBlockCountUniformPrior, getLogLikelihoodFromNestedState_forIncorrectState_returnMinusInfinity){
+    std::vector<size_t> nestedState = {7, 8, 2, 1};
+    double logP = prior.getLogLikelihoodFromNestedState(nestedState);
+    EXPECT_EQ(-INFINITY, logP);
+    expectConsistencyError = true;
+}
+
+
 
 }

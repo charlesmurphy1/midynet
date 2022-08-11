@@ -1,5 +1,6 @@
 import numpy as np
 from collections import defaultdict
+from _midynet.random_graph import BlockLabeledRandomGraph, NestedBlockLabeledRandomGraph
 from _midynet.mcmc import GraphReconstructionMCMC
 from _midynet.mcmc.callbacks import (
     CollectEdgeMultiplicityOnSweep,
@@ -7,7 +8,12 @@ from _midynet.mcmc.callbacks import (
 )
 from _midynet.utility import get_weighted_edge_list
 from midynet.config import Config, MCMCVerboseFactory
-from midynet.util import enumerate_all_graphs, log_mean_exp, log_sum_exp
+from midynet.util import (
+    enumerate_all_graphs,
+    enumerate_all_partitions,
+    log_mean_exp,
+    log_sum_exp,
+)
 
 __all__ = ("get_log_evidence", "get_log_posterior")
 
@@ -20,7 +26,7 @@ def get_log_evidence_arithmetic(
     for k in range(config.K):
         logp_k = []
         for m in range(config.num_sweeps):
-            mcmc.get_dynamics().sample_graph()
+            mcmc.sample_prior()
             logp_k.append(mcmc.get_log_likelihood())
         logp.append(log_mean_exp(logp_k))
     mcmc.set_graph(g)
@@ -39,15 +45,13 @@ def get_log_evidence_harmonic(
         mcmc.insert_callback("verbose", verboseCallback.get_wrap())
 
     g = mcmc.get_graph()
-    mcmc.set_up()
-    burn = config.burn_per_vertex * mcmc.get_dynamics().get_size()
+    burn = config.burn_per_vertex * mcmc.get_data_model().get_size()
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
     for i in range(config.num_sweeps):
         s, f = mcmc.do_MH_sweep(burn=burn)
 
     logp = -np.array(callback.get_data())
 
-    mcmc.tear_down()
     mcmc.remove_callback("collector")
     if verbose:
         mcmc.remove_callback("verbose")
@@ -59,9 +63,12 @@ def get_log_evidence_meanfield(
     mcmc: GraphReconstructionMCMC, config: Config, verbose: int = 0, **kwargs
 ):
 
-    return mcmc.get_log_joint() - get_log_posterior_meanfield(
+    S = mcmc.get_log_joint() - get_log_posterior_meanfield(
         mcmc, config, verbose, **kwargs
     )
+    if issubclass(mcmc.graph_prior.__class__, BlockLabeledRandomGraph):
+        S -= get_log_posterior_meanfield_partition(mcmc.graph, config)
+    return S
 
 
 def get_log_evidence_annealed(
@@ -74,8 +81,8 @@ def get_log_evidence_annealed(
         mcmc.insert_callback("verbose", verboseCallback.get_wrap())
 
     original_graph = mcmc.get_graph()
-    mcmc.set_up()
-    burn = config.burn_per_vertex * mcmc.get_dynamics().get_size()
+
+    burn = config.burn_per_vertex * mcmc.get_data_model().get_size()
     logp = []
 
     beta_k = np.linspace(0, 1, config.num_betas + 1) ** (1 / config.exp_betas)
@@ -86,13 +93,12 @@ def get_log_evidence_annealed(
         if config.start_from_original:
             mcmc.set_graph(original_graph)
         else:
-            mcmc.get_dynamics().sample_graph()
-        mcmc.set_up()
+            mcmc.get_data_model().sample_prior()
 
         # if config.start_from_original:
         #     mcmc.set_graph(original_graph)
         # else:
-        #     mcmc.get_dynamics().sample_graph()
+        #     mcmc.get_data_model().sample_prior()
         #     mcmc.set_graph(mcmc.get_graph())
         s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
         for i in range(config.num_sweeps):
@@ -101,7 +107,7 @@ def get_log_evidence_annealed(
         logp_k = (ub - lb) * np.array(callback.get_data())
         logp.append(log_mean_exp(logp_k))
         callback.clear()
-    mcmc.tear_down()
+
     mcmc.remove_callback("collector")
     if verbose:
         mcmc.remove_callback("verbose")
@@ -113,21 +119,18 @@ def get_log_evidence_annealed(
 def get_log_evidence_exact(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
     logevidence = []
     original_graph = mcmc.get_graph()
-    size = mcmc.get_dynamics().get_size()
-    edge_proposer = mcmc.get_edge_proposer()
+    size = mcmc.get_data_model().get_size()
     graph = mcmc.get_graph_prior()
     edge_count = graph.get_edge_count()
-    allow_self_loops = edge_proposer.allow_self_loops()
-    allow_multiedges = edge_proposer.allow_multiedges()
+    allow_self_loops = mcmc.graph_prior.with_self_loops()
+    allow_multiedges = mcmc.graph_prior.with_parallel_edges()
 
-    mcmc.set_up()
     counter = 0
     for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
         counter += 1
         if graph.is_compatible(g):
             mcmc.set_graph(g)
             logevidence.append(mcmc.get_log_joint())
-    mcmc.tear_down()
 
     mcmc.set_graph(original_graph)
     return log_sum_exp(logevidence)
@@ -136,7 +139,10 @@ def get_log_evidence_exact(mcmc: GraphReconstructionMCMC, config: Config, **kwar
 def get_log_evidence_exact_meanfield(
     mcmc: GraphReconstructionMCMC, config: Config, **kwargs
 ):
-    return mcmc.get_log_joint() - get_log_posterior_exact_meanfield(mcmc, config)
+    S = mcmc.get_log_joint() - get_log_posterior_exact_meanfield(mcmc, config)
+    if issubclass(mcmc.graph_prior.__class__, BlockLabeledRandomGraph):
+        S -= get_log_posterior_meanfield_partition(mcmc.graph, config)
+    return S
 
 
 def get_log_evidence(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
@@ -162,11 +168,17 @@ def get_log_evidence(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
 def get_log_posterior_arithmetic(
     mcmc: GraphReconstructionMCMC, config: Config, **kwargs
 ):
-    return mcmc.get_log_joint() - get_log_evidence_arithmetic(mcmc, config, **kwargs)
+    S = mcmc.get_log_joint() - get_log_evidence_arithmetic(mcmc, config, **kwargs)
+    if issubclass(mcmc.graph_prior.__class__, BlockLabeledRandomGraph):
+        S -= get_log_posterior_meanfield_partition(mcmc.graph, config)
+    return S
 
 
 def get_log_posterior_harmonic(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
-    return mcmc.get_log_joint() - get_log_evidence_harmonic(mcmc, config, **kwargs)
+    S = mcmc.get_log_joint() - get_log_evidence_harmonic(mcmc, config, **kwargs)
+    if issubclass(mcmc.graph_prior.__class__, BlockLabeledRandomGraph):
+        S -= get_log_posterior_meanfield_partition(mcmc.graph, config)
+    return S
 
 
 def get_log_posterior_meanfield(
@@ -177,16 +189,16 @@ def get_log_posterior_meanfield(
     if verbose:
         verboseCallback = MCMCVerboseFactory.build_console()
         mcmc.insert_callback("verbose", verboseCallback.get_wrap())
-    mcmc.set_up()
+
     original_graph = mcmc.get_graph()
     graph_callback.collect()
     # if not config.start_from_original:
-    #     mcmc.get_dynamics().sample_graph()
+    #     mcmc.get_data_model().sample_prior()
     #     mcmc.set_graph(mcmc.get_graph())
     # if not config.start_from_original:
-    #     mcmc.get_dynamics().sample_graph()
-    #     mcmc.set_up()
-    burn = config.burn_per_vertex * mcmc.get_dynamics().get_size()
+    #     mcmc.get_data_model().sample_prior()
+    #
+    burn = config.burn_per_vertex * mcmc.get_data_model().get_size()
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
 
     for i in range(config.num_sweeps):
@@ -197,7 +209,6 @@ def get_log_posterior_meanfield(
     mcmc.set_graph(original_graph)
     logp = graph_callback.get_log_posterior_estimate(original_graph)
 
-    mcmc.tear_down()
     mcmc.remove_callback("collector")
     if verbose:
         mcmc.remove_callback("verbose")
@@ -205,25 +216,29 @@ def get_log_posterior_meanfield(
 
 
 def get_log_posterior_annealed(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
-    return mcmc.get_log_joint() - get_log_evidence_annealed(mcmc, config, **kwargs)
+    S = mcmc.get_log_joint() - get_log_evidence_annealed(mcmc, config, **kwargs)
+    if issubclass(mcmc.graph_prior.__class__, BlockLabeledRandomGraph):
+        S -= get_log_posterior_meanfield_partition(mcmc.graph, config)
+    return S
 
 
 def get_log_posterior_exact(mcmc: GraphReconstructionMCMC, config: Config, **kwargs):
-    return mcmc.get_log_joint() - get_log_evidence_exact(mcmc, config, **kwargs)
+    S = mcmc.get_log_joint() - get_log_evidence_exact(mcmc, config, **kwargs)
+    if issubclass(mcmc.graph_prior.__class__, BlockLabeledRandomGraph):
+        S -= get_log_posterior_exact_partition(mcmc.graph, config)
+    return S
 
 
 def get_log_posterior_exact_meanfield(
     mcmc: GraphReconstructionMCMC, config: Config, **kwargs
 ):
     original_graph = mcmc.get_graph()
-    size = mcmc.get_dynamics().get_size()
-    edge_proposer = mcmc.get_edge_proposer()
+    size = mcmc.get_data_model().get_size()
     graph = mcmc.get_graph_prior()
     edge_count = graph.get_edge_count()
-    allow_self_loops = edge_proposer.allow_self_loops()
-    allow_multiedges = edge_proposer.allow_multiedges()
+    allow_self_loops = mcmc.graph_prior.with_self_loops()
+    allow_multiedges = mcmc.graph_prior.with_parallel_edges()
 
-    mcmc.set_up()
     i = 0
     edge_weights = defaultdict(lambda: defaultdict(list))
     edge_total = defaultdict(list)
@@ -231,12 +246,12 @@ def get_log_posterior_exact_meanfield(
     for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
         if graph.is_compatible(g):
             i += 1
-            mcmc.get_dynamics().set_graph(g)
+            mcmc.get_data_model().set_graph(g)
             weight = mcmc.get_log_joint() - evidence
             for e, w in get_weighted_edge_list(g).items():
                 edge_weights[e][w].append(weight)
                 edge_total[e].append(weight)
-    mcmc.tear_down()
+
     mcmc.set_graph(original_graph)
     log_posterior = 0
     for e, weights in edge_weights.items():
@@ -276,7 +291,7 @@ def get_log_prior_meanfield(
 ) -> float:
     callback = CollectEdgeMultiplicityOnSweep()
     mcmc.insert_callback("edge", callback)
-    mcmc.set_up()
+
     randomGraph = mcmc.get_graph_prior()
     original_graph = mcmc.get_graph()
     callback.collect()
@@ -287,3 +302,28 @@ def get_log_prior_meanfield(
     mcmc.set_graph(original_graph)
     mcmc.remove_callback("edge")
     return hg
+
+
+def get_log_posterior_partition_meanfield(
+    graph: BlockLabeledRandomGraph, config: Config, **kwargs
+) -> float:
+    mcmc = PartitionMCMC(graph)
+    callback = CollectPartitionOnSweep()
+    mcmc.insert_callback("partition", callback)
+    original_partition = mcmc.get_labels()
+    burn = config.burn_per_vertex * mcmc.graph_prior.get_size()
+
+    for i in range(config.num_sweeps):
+        _s, _f = mcmc.do_MH_sweep(burn=burn)
+    partitions = callback.get_data()
+    pmodes = gt.ModeClusterState(partitions)
+    S = 0
+
+    return S
+
+
+def get_log_posterior_partition_exact(
+    graph: BlockLabeledRandomGraph, config: Config, **kwargs
+) -> float:
+
+    return 0

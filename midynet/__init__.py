@@ -1,4 +1,4 @@
-from _midynet import dynamics, mcmc, prior, proposer, random_graph, utility
+from _midynet import utility, proposer, random_graph, data, mcmc
 from . import util
 from . import config
 from . import metrics
@@ -14,7 +14,6 @@ __all__ = (
     "config",
     "dynamics",
     "mcmc",
-    "prior",
     "proposer",
     "random_graph",
     "util",
@@ -22,5 +21,5 @@ __all__ = (
     "experiments",
     "scripts",
     "metadata",
-    "__version__"
+    "__version__",
 )

@@ -12,13 +12,6 @@ const GraphMove SingleEdgeProposer::proposeRawMove() const {
 
     BaseGraph::Edge proposedEdge = {vertex1, vertex2};
 
-    std::cout << "N = " << m_graphPtr->getSize() << std::endl;
-    std::cout << "E = " << m_graphPtr->getTotalEdgeNumber() << std::endl;
-    std::cout << "v1 = " << vertex1 << std::endl;
-    std::cout << "v2 = " << vertex2 << std::endl;
-    std::cout << "E(v1,v2) = " << m_graphPtr->getEdgeMultiplicityIdx(vertex1, vertex2) << std::endl;
-
-
     if (not m_graphPtr->isEdgeIdx(vertex1, vertex2))
         return {{}, {proposedEdge}};
 
@@ -27,7 +20,7 @@ const GraphMove SingleEdgeProposer::proposeRawMove() const {
     return {{proposedEdge}, {}};
 }
 
-void SingleEdgeProposer::setUp(const MultiGraph& graph) {
+void SingleEdgeProposer::setUpWithGraph(const MultiGraph& graph) {
     m_graphPtr = &graph;
     for (auto vertex : graph){
         m_vertexSamplerPtr->onVertexInsertion(vertex);

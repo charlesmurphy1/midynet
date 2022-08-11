@@ -1,56 +1,50 @@
 from __future__ import annotations
 from typing import Any
 
+from _midynet.random_graph import (
+    RandomGraph,
+    BlockLabeledRandomGraph,
+    NestedBlockLabeledRandomGraph,
+)
+from _midynet.data import DataModel, BlockLabeledDataModel, NestedBlockLabeledDataModel
 from _midynet.mcmc import (
     GraphReconstructionMCMC,
     BlockLabeledGraphReconstructionMCMC,
+    NestedBlockLabeledGraphReconstructionMCMC,
     BlockLabelMCMC,
+    NestedBlockLabelMCMC,
 )
 from _midynet.mcmc import callbacks as cb
 from .config import Config
 from .factory import Factory, OptionError, MissingRequirementsError
-from .proposer import EdgeProposerFactory, BlockProposerFactory
-from .random_graph import RandomGraphFactory
-from .dynamics import DynamicsFactory
 from .wrapper import Wrapper
 
-__all__ = ("MCMCFactory", "MCMCVerboseFactory")
+__all__ = ("ReconstructionMCMC", "PartitionMCMC", "MCMCVerboseFactory")
 
 
-class MCMCFactory(Factory):
-    @staticmethod
-    def build_reconstruction(config: ExperimentConfig):
-        graph = RandomGraphFactory.build(config.graph)
-        edge_proposer = EdgeProposerFactory.build(config.graph.edge_proposer)
-        if not config.graph.labeled:
-            dynamics = DynamicsFactory.build(config.dynamics)
-            dynamics.set_graph_prior(graph.wrap)
-            mcmc = GraphReconstructionMCMC(dynamics, edge_proposer)
-            return Wrapper(
-                mcmc, dynamics=dynamics, graph=graph, edge_proposer=edge_proposer
-            )
-        dynamics = DynamicsFactory.build_labeled(config.dynamics)
-        dynamics.set_graph_prior(graph.wrap)
-        block_proposer = BlockProposerFactory.build(config.graph.block_proposer)
-        mcmc = BlockLabeledGraphReconstructionMCMC(
-            dynamics, edge_proposer, block_proposer
-        )
-        return Wrapper(
-            mcmc,
-            dynamics=dynamics,
-            graph=graph,
-            edge_proposer=edge_proposer,
-            block_proposer=block_proposer,
-        )
+class ReconstructionMCMC(Wrapper):
+    def __init__(self, data_model, graph_prior, **kwargs):
+        data_model.set_graph_prior(graph_prior)
+        if issubclass(data_model.__class__, DataModel):
+            mcmc = GraphReconstructionMCMC(data_model, **kwargs)
+        elif issubclass(data_model.__class__, BlockLabeledDataModel):
+            mcmc = BlockLabeledGraphReconstructionMCMC(data_model, **kwargs)
+        elif issubclass(data_model.__class__, NestedBlockLabeledDataModel):
+            mcmc = NestedBlockLabeledGraphReconstructionMCMC(data_model, **kwargs)
+        else:
+            raise TypeError(f"ReconstructionMCMC: wrong type `{data_model.__class__}`.")
+        super().__init__(mcmc, data_model=data_model, graph_prior=graph_prior, **kwargs)
 
-    @staticmethod
-    def build_community(config: RandomGraphConfig):
-        graph = RandomGraphFactory.build(config.graph)
-        if config.graph.labeled:
-            block_proposer = BlockProposerFactory.build(config.graph.block_proposer)
-            mcmc = BlockLabelMCMC(graph.wrap, block_proposer)
-            return Wrapper(mcmc, graph=graph, block_proposer=block_proposer)
-        return None
+
+class PartitionMCMC(Wrapper):
+    def __init__(self, graph, **kwargs):
+        if issubclass(graph.__class__, BlockLabeledRandomGraph):
+            mcmc = BlockLabelMCMC(graph, **kwargs)
+        elif issubclass(graph.__class__, NestedBlockLabeledRandomGraph):
+            mcmc = NestedBlockLabelMCMC(graph, **kwargs)
+        else:
+            raise TypeError(f"BlockMCMC: wrong type `{graph.__class__}`.")
+        super().__init__(mcmc, graph=graph, **kwargs)
 
 
 class MCMCVerboseFactory(Factory):

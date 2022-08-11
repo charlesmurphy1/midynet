@@ -10,18 +10,85 @@ namespace FastMIDyNet {
 
 void assertValidProbability(double probability);
 
-class ConsistencyError: public std::logic_error {
+class ConsistencyError: public std::runtime_error {
 public:
-    ConsistencyError(const std::string& message): std::logic_error(message) {}
+    // Custom message
+    ConsistencyError(const std::string& message): std::runtime_error(message) {}
+
+    // Message without values
+    ConsistencyError(
+        const std::string& className,
+        const std::string& expectedProperty,
+        const std::string& actualProperty
+    ): std::runtime_error(
+        className + ": `" + expectedProperty + "` is inconsistent with `" + actualProperty + "`."
+    ) {}
+
+    // Message with values
+    ConsistencyError(
+        const std::string& className,
+        const std::string& expectedProperty,
+        const std::string& expectedValue,
+        const std::string& actualProperty,
+        const std::string& actualValue
+    ): std::runtime_error(
+        className + ": `" + expectedProperty + "` (`" + expectedValue + "`) is inconsistent with `"
+        + actualProperty + "` (`" + actualValue + "`)."
+    ) {}
+
+    // Message with values and locations
+    ConsistencyError(
+        const std::string& className,
+        const std::string& expectedName,
+        const std::string& expectedValue,
+        const std::string& actualName,
+        const std::string& actualValue,
+        const std::string& location
+    ): std::runtime_error(
+        className + ": `" + expectedName + "` (" + expectedValue + ") is inconsistent with `"
+        + actualName + "` (" + actualValue + ") at [" + location + "]."
+    ) {}
 };
 
-class SafetyError: public std::logic_error {
-private:
-    // std::string m_className;
-    // std::string m_unsafeObject;
-    // std::string m_objectUnsafeValue;
+class SafetyError: public std::runtime_error {
 public:
-    SafetyError(const std::string& message): std::logic_error(message) {}
+    // Custom message
+    SafetyError(const std::string& message): std::runtime_error(message) {}
+
+    // Standard message
+    SafetyError(
+        const std::string& className,
+        const std::string& variableName,
+        const std::string& value="nullptr"
+    ): std::runtime_error(
+        className + ": unsafe `" + variableName + "` with value `" + value + "`."
+    ) {}
+};
+
+class DepletedMethodError: public std::runtime_error {
+public:
+    // Custom message
+    DepletedMethodError(const std::string& message): std::runtime_error(message) {}
+
+    // Standard message
+    DepletedMethodError(
+        const std::string& className,
+        const std::string& depletedMethodName
+    ): std::runtime_error(
+        className + ": method `" + depletedMethodName + "` is depleted and should not be used."
+    ) {}
+
+
+    // Standard message with "use instead"
+    DepletedMethodError(
+        const std::string& className,
+        const std::string& depletedMethodName,
+        const std::string& correctMethodName
+    ): std::runtime_error(
+        className + ": method `" + depletedMethodName
+        + "` is depleted and should not be used; use instead `"
+        + correctMethodName + "`."
+    ) {}
 };
 
 } // namespace FastMIDyNet

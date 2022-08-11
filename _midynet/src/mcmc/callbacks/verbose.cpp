@@ -10,12 +10,8 @@ std::string VerboseDisplay::getMessage() const {
     }
     return message.str();
 }
-void VerboseDisplay::setUp(MCMC* mcmcPtr) {
-    CallBack::setUp(mcmcPtr);
-    for (auto v : m_verboseVec) v->setUp(mcmcPtr);
-}
-void VerboseDisplay::tearDown() {
-    for (auto v : m_verboseVec) v->tearDown();
+void VerboseDisplay::clear() {
+    for (auto v : m_verboseVec) v->clear();
 }
 void VerboseDisplay::onBegin() {
     for (auto v : m_verboseVec) v->onBegin();

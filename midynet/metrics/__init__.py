@@ -1,8 +1,8 @@
 from .metrics import Metrics
 from .multiprocess import MultiProcess, Expectation
 from .statistics import Statistics
-from .dynamics_entropy import DynamicsEntropyMetrics
-from .dynamics_prediction_entropy import DynamicsPredictionEntropyMetrics
+from .data_entropy import DataEntropyMetrics
+from .data_prediction_entropy import DataPredictionEntropyMetrics
 from .graph_entropy import GraphEntropyMetrics
 from .graph_reconstruction_entropy import GraphReconstructionEntropyMetrics
 from .mutual_info import MutualInformationMetrics
@@ -14,8 +14,8 @@ __all__ = (
     "MultiProcess",
     "Expectation",
     "Statistics",
-    "DynamicsEntropyMetrics",
-    "DynamicsPredictionEntropyMetrics",
+    "DataEntropyMetrics",
+    "DataPredictionEntropyMetrics",
     "GraphEntropyMetrics",
     "GraphReconstructionEntropyMetrics",
     "MutualInformationMetrics",

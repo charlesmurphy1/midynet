@@ -2,12 +2,12 @@
 
 #include "SamplableSet.hpp"
 #include "hash_specialization.hpp"
-#include "FastMIDyNet/prior/sbm/edge_count.h"
+#include "FastMIDyNet/random_graph/prior/edge_count.h"
 #include "FastMIDyNet/random_graph/erdosrenyi.h"
 #include "FastMIDyNet/proposer/edge/hinge_flip.h"
 #include "FastMIDyNet/proposer/movetypes.h"
 #include "FastMIDyNet/rng.h"
-#include "fixtures.hpp"
+#include "../fixtures.hpp"
 
 namespace FastMIDyNet{
 
@@ -19,16 +19,15 @@ public:
 
 class TestHingeFlipUniformProposer: public::testing::Test {
     public:
-        EdgeCountDeltaPrior edgeCountPrior = {3};
-        ErdosRenyiFamily randomGraph = ErdosRenyiFamily(3, edgeCountPrior);
+        ErdosRenyiModel randomGraph = ErdosRenyiModel(3, 3);
         DummyEdgeProposer proposer;
         MultiGraph graph;
         MultiGraph toyGraph = getToyMultiGraph();
         void SetUp() {
             randomGraph.sample();
-            graph = randomGraph.getGraph();
-            randomGraph.setGraph(graph);
-            proposer.setUp(graph);
+            graph = randomGraph.getState();
+            randomGraph.setState(graph);
+            proposer.setUpWithGraph(graph);
             proposer.checkSafety();
         }
         void TearDown() {
@@ -108,7 +107,7 @@ TEST_F(TestHingeFlipUniformProposer, applyGraphMove_removeEdge_edgeWeightDecreas
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forNormalMove_returnCorrectValue) {
-    proposer.setUp(toyGraph);
+    proposer.setUpWithGraph(toyGraph);
 
     GraphMove normalMove1 = {{{0, 1}}, {{0, 3}}};
     EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(normalMove1), 0);
@@ -121,7 +120,7 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forNormalMove_retur
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopyMove_returnCorrectValue) {
-    proposer.setUp(toyGraph);
+    proposer.setUpWithGraph(toyGraph);
 
     GraphMove loopyMove1 = {{{1, 1}}, {{1, 3}}};
     EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(loopyMove1), -log(2));
@@ -131,7 +130,7 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopyMove_return
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forSelfieMove_returnCorrectValue) {
-    proposer.setUp(toyGraph);
+    proposer.setUpWithGraph(toyGraph);
 
     GraphMove selfieMove1 = {{{0, 1}}, {{0, 0}}};
     EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(selfieMove1), log(2));
@@ -147,7 +146,7 @@ TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forSelfieMove_retur
 }
 
 TEST_F(TestHingeFlipUniformProposer, getLogProposalProbRatio_forLoopySelfieMove_returnCorrectValue) {
-    proposer.setUp(toyGraph);
+    proposer.setUpWithGraph(toyGraph);
 
     GraphMove selfieMove1 = {{{1, 1}}, {{1, 1}}};
     EXPECT_FLOAT_EQ(proposer.getLogProposalProbRatio(selfieMove1), 0);

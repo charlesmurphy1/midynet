@@ -32,11 +32,3 @@ class Wrapper:
         raise AttributeError(
             f"`{self.__class__.__name__}` object wrapping `{self.wrap}` has no attribute `{key}`."
         )
-        # GET BACK HERE!
-        # if key in self.__dict__:
-        #     return getattr(self, key)
-        # elif key in self.__wrapped__:
-        #     return getattr(self.wrap, key)
-        # elif key in self.__others__:
-        #     return getattr(self.others, key)
-        # raise ValueError(f"Key {key} not found.")

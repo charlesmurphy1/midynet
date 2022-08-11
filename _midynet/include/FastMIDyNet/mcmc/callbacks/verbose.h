@@ -190,14 +190,13 @@ public:
     void writeMessage() { writeMessage(getMessage()); }
     size_t getStep() { return m_step; }
     void setStep(size_t step) { m_step = step; }
-    void setUp(MCMC* mcmcPtr) ;
-    void tearDown() ;
-    virtual void onBegin() ;
-    virtual void onEnd() ;
-    void onStepBegin() ;
-    void onStepEnd() ;
-    void onSweepBegin() ;
-    void onSweepEnd() ;
+    void clear() override ;
+    virtual void onBegin() override ;
+    virtual void onEnd() override ;
+    void onStepBegin() override ;
+    void onStepEnd() override ;
+    void onSweepBegin() override ;
+    void onSweepEnd() override ;
 };
 
 class VerboseToConsole: public VerboseDisplay{

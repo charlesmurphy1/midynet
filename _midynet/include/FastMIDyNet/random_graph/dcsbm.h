@@ -6,95 +6,170 @@
 #include <vector>
 
 #include "BaseGraph/types.h"
-#include "FastMIDyNet/prior/sbm/edge_matrix.h"
-#include "FastMIDyNet/prior/sbm/block.h"
-#include "FastMIDyNet/prior/sbm/degree.h"
-#include "FastMIDyNet/random_graph/sbm.h"
+#include "prior/block.h"
+#include "prior/label_graph.h"
+#include "prior/labeled_degree.h"
+#include "FastMIDyNet/random_graph/random_graph.hpp"
+#include "FastMIDyNet/random_graph/util.h"
+#include "FastMIDyNet/random_graph/likelihood/dcsbm.h"
 #include "FastMIDyNet/utility/maps.hpp"
 #include "FastMIDyNet/generators.h"
 #include "FastMIDyNet/types.h"
 
 namespace FastMIDyNet{
 
-class DegreeCorrectedStochasticBlockModelFamily: public StochasticBlockModelFamily{
+class DegreeCorrectedStochasticBlockModelBase: public BlockLabeledRandomGraph{
 protected:
-    DegreePrior* m_degreePriorPtr = nullptr;
+    DegreeCorrectedStochasticBlockModelLikelihood m_likelihoodModel = DegreeCorrectedStochasticBlockModelLikelihood();
+    VertexLabeledDegreePrior* m_degreePriorPtr = nullptr;
+    void _applyGraphMove (const GraphMove& move) override {
+        RandomGraph::_applyGraphMove(move);
+        m_degreePriorPtr->applyGraphMove(move);
+    }
+    void _applyLabelMove (const BlockMove& move) override{
+        m_degreePriorPtr->applyLabelMove(move);
+    }
+    const double _getLogPrior() const override { return m_degreePriorPtr->getLogJoint(); }
+    const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return m_degreePriorPtr->getLogJointRatioFromGraphMove(move); }
+    const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override { return m_degreePriorPtr->getLogJointRatioFromLabelMove(move); }
+    void _samplePrior() override { m_degreePriorPtr->sample(); }
+    void setUpLikelihood() override {
+        m_likelihoodModel.m_statePtr = &m_state;
+        m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
+    }
 
-    void _applyGraphMove (const GraphMove&) override;
-    void _applyLabelMove (const BlockMove&) override;
-public:
-    DegreeCorrectedStochasticBlockModelFamily(size_t graphSize):
-        StochasticBlockModelFamily(graphSize) { }
-    DegreeCorrectedStochasticBlockModelFamily(size_t graphSize, BlockPrior& blockPrior, EdgeMatrixPrior& edgeMatrixPrior, DegreePrior& degreePrior):
-        StochasticBlockModelFamily(graphSize, blockPrior, edgeMatrixPrior) {
+
+    DegreeCorrectedStochasticBlockModelBase(size_t graphSize):
+        VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel, true, true) { }
+    DegreeCorrectedStochasticBlockModelBase(size_t graphSize, VertexLabeledDegreePrior& degreePrior):
+        VertexLabeledRandomGraph<BlockIndex>(graphSize, m_likelihoodModel, true, true){
             setDegreePrior(degreePrior);
+            m_degreePriorPtr->isRoot(false);
         }
 
-    void sample () override;
+public:
 
-    // void setGraph(const MultiGraph& graph) override {
-    //     StochasticBlockModelFamily::setGraph(graph);
-    // }
-
-    const DegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
-    DegreePrior& getDegreePriorRef() const { return *m_degreePriorPtr; }
-    void setBlockPrior(BlockPrior& blockPrior) {
-        StochasticBlockModelFamily::setBlockPrior(blockPrior);
-        if (m_degreePriorPtr){
-            m_degreePriorPtr->setBlockPrior(*m_blockPriorPtr);
-        }
-    }
-    void setEdgeMatrixPrior(EdgeMatrixPrior& edgeMatrixPrior) {
-        StochasticBlockModelFamily::setEdgeMatrixPrior(edgeMatrixPrior);
-        if (m_degreePriorPtr){
-            m_degreePriorPtr->setBlockPrior(*m_blockPriorPtr);
-            m_degreePriorPtr->setEdgeMatrixPrior(*m_edgeMatrixPriorPtr);
-        }
-    }
-    void setDegreePrior(DegreePrior& degreePrior) {
-        m_degreePriorPtr = &degreePrior;
-        m_degreePriorPtr->isRoot(false);
-        m_degreePriorPtr->setBlockPrior(*m_blockPriorPtr);
-        m_degreePriorPtr->setEdgeMatrixPrior(*m_edgeMatrixPriorPtr);
+    void sampleLabels() override {
+        m_degreePriorPtr->samplePartition();
     }
 
-    const std::vector<size_t>& getDegrees() const { return m_degreePriorPtr->getState(); }
-
-
-    const double getLogLikelihood() const override ;
-    const double getLogPrior() const override ;
-
-    const double getLogLikelihoodRatioEdgeTerm (const GraphMove&) const override;
-    const double getLogLikelihoodRatioAdjTerm (const GraphMove&) const override;
-
-    const double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;
-    const double getLogLikelihoodRatioFromLabelMove (const BlockMove&) const override;
-
-    const double getLogPriorRatioFromGraphMove (const GraphMove&) const override;
-    const double getLogPriorRatioFromLabelMove (const BlockMove&) const override;
-
-
-
-    static void checkGraphConsistencyWithDegreeSequence(const MultiGraph&, const DegreeSequence&) ;
-
-    bool isSafe() const override {
-        return m_blockPriorPtr != nullptr and m_edgeMatrixPriorPtr != nullptr and m_degreePriorPtr != nullptr;
+    void setState(const MultiGraph& state) override {
+        RandomGraph::setState(state);
+        m_degreePriorPtr->setGraph(m_state);
+    }
+    void setLabels(const std::vector<BlockIndex>& labels) override {
+        m_degreePriorPtr->setPartition(labels);
     }
 
 
-    void checkSelfConsistency() const override;
-    void checkSelfSafety() const override;
+    const VertexLabeledDegreePrior& getDegreePrior() const { return *m_degreePriorPtr; }
+    VertexLabeledDegreePrior& getDegreePriorRef() const { return *m_degreePriorPtr; }
+    void setDegreePrior(VertexLabeledDegreePrior& prior) {
+        prior.isRoot(false);
+        m_degreePriorPtr = &prior;
+        setUpLikelihood();
+    }
+
+    const BlockSequence& getLabels() const override {
+        return m_degreePriorPtr->getLabelGraphPrior().getBlockPrior().getState();
+    }
+    const size_t getLabelCount() const override {
+        return m_degreePriorPtr->getLabelGraphPrior().getBlockPrior().getBlockCount();
+    }
+    const CounterMap<BlockIndex>& getVertexCounts() const override {
+        return m_degreePriorPtr->getLabelGraphPrior().getBlockPrior().getVertexCounts();
+    }
+    const CounterMap<BlockIndex>& getEdgeLabelCounts() const override {
+        return m_degreePriorPtr->getLabelGraphPrior().getEdgeCounts();
+    }
+    const LabelGraph& getLabelGraph() const override {
+        return m_degreePriorPtr->getLabelGraphPrior().getState();
+    }
+    const size_t getEdgeCount() const override {
+        return m_degreePriorPtr->getLabelGraphPrior().getEdgeCount();
+    }
+    const std::vector<size_t> getDegrees() const { return getDegreePrior().getState(); }
+
+    virtual void checkSelfConsistency() const override {
+        VertexLabeledRandomGraph<BlockIndex>::checkSelfConsistency();
+        m_degreePriorPtr->checkSelfConsistency();
+        checkGraphConsistencyWithLabelGraph(
+            "DegreeCorrectedStochasticBlockModelBase", m_state, getLabels(), getLabelGraph()
+        );
+        checkGraphConsistencyWithDegreeSequence(
+            "DegreeCorrectedStochasticBlockModelBase", "m_state", m_state, "m_degreePriorPtr", getDegrees()
+        );
+    }
     const bool isCompatible(const MultiGraph& graph) const override{
-        if (not StochasticBlockModelFamily::isCompatible(graph)) return false;
-        return graph.getDegrees() == getDegrees();
+        if (not VertexLabeledRandomGraph<BlockIndex>::isCompatible(graph)) return false;
+        auto labelGraph = getLabelGraphFromGraph(graph, getLabels());
+        bool sameLabelGraph = labelGraph.getAdjacencyMatrix() == getLabelGraph().getAdjacencyMatrix() ;
+        bool sameDegrees = graph.getDegrees() == getDegrees();
+        return sameLabelGraph and sameDegrees;
     }
-    void computationFinished() const override{
+    void computationFinished() const override {
         m_isProcessed = false;
-        m_blockPriorPtr->computationFinished();
-        m_edgeMatrixPriorPtr->computationFinished();
         m_degreePriorPtr->computationFinished();
     }
 
+    void checkSelfSafety() const override {
+        RandomGraph::checkSelfSafety();
+        if (not m_degreePriorPtr)
+            throw SafetyError("DegreeCorrectedStochasticBlockModelBase", "m_degreePriorPtr");
+        m_degreePriorPtr->checkSafety();
+    }
+};
+
+class DegreeCorrectedStochasticBlockModelFamily: public DegreeCorrectedStochasticBlockModelBase{
+    std::unique_ptr<BlockCountPrior> m_blockCountPriorUPtr;
+    std::unique_ptr<LabelGraphPrior> m_labelGraphPriorUPtr;
+
+    std::unique_ptr<BlockPrior> m_blockPriorUPtr;
+    std::unique_ptr<EdgeCountPrior> m_edgeCountPriorUPtr;
+    std::unique_ptr<VertexLabeledDegreePrior> m_degreePriorUPtr;
+    std::unique_ptr<EdgeProposer> m_edgeProposerUPtr;
+    std::unique_ptr<LabelProposer<BlockIndex>> m_labelProposerUPtr;
+public:
+    DegreeCorrectedStochasticBlockModelFamily(
+        size_t size,
+        double edgeCount,
+        size_t blockCount=0,
+        bool useBlockHyperPrior=false,
+        bool useDegreeHyperPrior=false,
+        bool usePlantedPrior=false,
+        bool canonical=false,
+        std::string edgeProposerType="degree",
+        std::string blockProposerType="uniform",
+        double sampleLabelCountProb=0.1,
+        double labelCreationProb=0.5,
+        double shift=1
+    ):
+        DegreeCorrectedStochasticBlockModelBase(size){
+            if (blockCount == 0)
+                m_blockCountPriorUPtr = std::unique_ptr<BlockCountPrior>(new BlockCountUniformPrior(1, size-1));
+            else{
+                m_blockCountPriorUPtr = std::unique_ptr<BlockCountPrior>(new BlockCountDeltaPrior(blockCount));
+                sampleLabelCountProb = 0;
+            }
+            m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
+            m_blockPriorUPtr = std::unique_ptr<BlockPrior>(makeBlockPrior(size, *m_blockCountPriorUPtr, useBlockHyperPrior));
+            m_labelGraphPriorUPtr = std::unique_ptr<LabelGraphPrior>( makeLabelGraphPrior(*m_edgeCountPriorUPtr, *m_blockPriorUPtr, usePlantedPrior) );
+            m_degreePriorUPtr = std::unique_ptr<VertexLabeledDegreePrior>(makeVertexLabeledDegreePrior(*m_labelGraphPriorUPtr, useDegreeHyperPrior));
+            setDegreePrior(*m_degreePriorUPtr);
+
+            m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(
+                makeEdgeProposer(edgeProposerType, canonical, false, true, true)
+            );
+            setEdgeProposer(*m_edgeProposerUPtr);
+
+            m_labelProposerUPtr = std::unique_ptr<LabelProposer<BlockIndex>>(
+                makeBlockProposer(blockProposerType, useBlockHyperPrior, sampleLabelCountProb, labelCreationProb, shift)
+            );
+            setLabelProposer(*m_labelProposerUPtr);
+
+            checkSafety();
+            sample();
+    }
 };
 
 }// end FastMIDyNet
