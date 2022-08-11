@@ -59,7 +59,6 @@ void VertexLabeledDegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& mov
     const BlockSequence& blocks = getBlockPrior().getState();
 
     IntMap<BaseGraph::VertexIndex> diffDegreeMap;
-    // std::cout << move << std::endl;
     for (auto edge : move.addedEdges){
         diffDegreeMap.increment(edge.first);
         diffDegreeMap.increment(edge.second);

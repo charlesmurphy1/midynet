@@ -20,7 +20,7 @@ public:
     void checkSelfConsistency() const {}
 };
 
-class TestBlockCountPrior: public ::testing::Test {
+class BlockCountPriorTest: public ::testing::Test {
 public:
     DummyBlockCountPrior prior;
     bool expectConsistencyError = false;
@@ -34,14 +34,14 @@ public:
     }
 };
 
-TEST_F(TestBlockCountPrior, getLogLikelihoodRatio_throwDepletedMethodError) {
+TEST_F(BlockCountPriorTest, getLogLikelihoodRatio_throwDepletedMethodError) {
     prior.setState(5);
     BlockMove blockMove = {0, 0, 1};
     EXPECT_THROW(prior.getLogLikelihoodRatioFromLabelMove(blockMove), DepletedMethodError);
 }
 
 
-TEST_F(TestBlockCountPrior, applyLabelMove_noNewblockMove_blockNumberUnchangedIsProcessedIsTrue) {
+TEST_F(BlockCountPriorTest, applyLabelMove_noNewblockMove_blockNumberUnchangedIsProcessedIsTrue) {
     prior.setState(5);
     BlockMove blockMove = {0, 0, 2};
     EXPECT_THROW(prior.applyLabelMove(blockMove), DepletedMethodError);

@@ -63,6 +63,14 @@ BlockPrior* makeBlockPrior(size_t size, BlockCountPrior& blockCountPrior, bool h
         return new BlockUniformPrior(size, blockCountPrior) ;
 }
 
+LabelGraphPrior* makeLabelGraphPrior(EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior, bool plantedPrior){
+    if (plantedPrior)
+        return new LabelGraphPlantedPartitionPrior(edgeCountPrior, blockPrior);
+    else
+        return new LabelGraphErdosRenyiPrior(edgeCountPrior, blockPrior);
+}
+
+
 DegreePrior* makeDegreePrior(size_t size, EdgeCountPrior& prior, bool hyperPrior){
     if (hyperPrior)
         return new DegreeUniformHyperPrior(size, prior) ;

@@ -121,6 +121,8 @@ double VertexLabelMCMC<Label>::_getLogAcceptanceProbFromLabelMove(const LabelMov
 template<typename Label>
 bool VertexLabelMCMC<Label>::doMetropolisHastingsStep() {
     LabelMove<Label> move = m_graphPriorPtr->proposeLabelMove();
+    if (not m_graphPriorPtr->isValidLabelMove(move))
+        return m_isLastAccepted = false;
     if (move.prevLabel == move.nextLabel and move.addedLabels == 0)
         return m_isLastAccepted = true;
     m_lastLogAcceptance = getLogAcceptanceProbFromLabelMove(move);

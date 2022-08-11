@@ -46,7 +46,7 @@ class DummyBlockPrior: public BlockPrior {
         bool getIsProcessed() { return m_isProcessed; }
 };
 
-class TestBlockPrior: public ::testing::Test {
+class BlockPriorTest: public ::testing::Test {
     public:
 
         DummyBlockPrior prior = DummyBlockPrior(GRAPH_SIZE, BLOCK_COUNT);
@@ -64,12 +64,12 @@ class TestBlockPrior: public ::testing::Test {
         }
 };
 
-TEST_F(TestBlockPrior, getBlockCount_returnCorrectBlockCount){
+TEST_F(BlockPriorTest, getBlockCount_returnCorrectBlockCount){
     size_t numBlocks = prior.getBlockCount();
     EXPECT_EQ(numBlocks, BLOCK_COUNT);
 }
 
-TEST_F(TestBlockPrior, computeVertexCountsInBlock_forSomeBlockSeq_returnCorrectVertexCount){
+TEST_F(BlockPriorTest, computeVertexCountsInBlock_forSomeBlockSeq_returnCorrectVertexCount){
     BlockSequence blockSeq = BlockSequence(GRAPH_SIZE, 0);
     blockSeq[0] = BLOCK_COUNT - 1;
 
@@ -78,76 +78,76 @@ TEST_F(TestBlockPrior, computeVertexCountsInBlock_forSomeBlockSeq_returnCorrectV
     EXPECT_EQ(actualVertexCount[BLOCK_COUNT - 1], 1);
 }
 
-TEST_F(TestBlockPrior, getSize_returnGraphSize){
+TEST_F(BlockPriorTest, getSize_returnGraphSize){
     EXPECT_EQ(prior.getSize(), GRAPH_SIZE);
 }
 
-TEST_F(TestBlockPrior, getLogLikelihoodRatio_forSomeGraphMove_return0){
+TEST_F(BlockPriorTest, getLogLikelihoodRatio_forSomeGraphMove_return0){
     GraphMove move({{0,0}}, {});
     EXPECT_EQ(prior.getLogLikelihoodRatioFromGraphMove(move), 0.);
 }
 
-TEST_F(TestBlockPrior, getLogLikelihoodRatio_forSomeLabelMove_return0){
+TEST_F(BlockPriorTest, getLogLikelihoodRatio_forSomeLabelMove_return0){
     BlockMove move = {0, 0, 1};
     EXPECT_EQ(prior.getLogLikelihoodRatioFromLabelMove(move), 0.);
 }
 
-// TEST_F(TestBlockPrior, getLogPrior_forSomeLabelMove_return0){
+// TEST_F(BlockPriorTest, getLogPrior_forSomeLabelMove_return0){
 //     BlockMove move = {0, 0, 1};
 //     displayVector(prior.getState());
 //     EXPECT_EQ(prior.getLogPriorRatioFromLabelMove(move), 0.);
 // }
 
-TEST_F(TestBlockPrior, getLogJoint_forSomeGraphMove_return0){
+TEST_F(BlockPriorTest, getLogJoint_forSomeGraphMove_return0){
     GraphMove move({{0,0}}, {});
     EXPECT_EQ(prior.getLogJointRatioFromGraphMove(move), 0.);
 }
 
-// TEST_F(TestBlockPrior, getLogJoint_forSomeLabelMove_return0){
+// TEST_F(BlockPriorTest, getLogJoint_forSomeLabelMove_return0){
 //     BlockMove move = {0, 0, 1};
 //     EXPECT_EQ(prior.getLogJointRatioFromLabelMove(move), 0.);
 // }
 
-TEST_F(TestBlockPrior, applyMove_forSomeGraphMove_doNothing){
+TEST_F(BlockPriorTest, applyMove_forSomeGraphMove_doNothing){
     GraphMove move({{0,0}}, {});
     prior.applyGraphMove(move);
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
-TEST_F(TestBlockPrior, applyMove_forSomeLabelMove_changeBlockOfNode0From0To1){
+TEST_F(BlockPriorTest, applyMove_forSomeLabelMove_changeBlockOfNode0From0To1){
     BlockMove move = {0, 0, 1};
     prior.applyLabelMove(move);
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
-TEST_F(TestBlockPrior, reducePartition_forSomeIrreduciblePartition_returnSame){
+TEST_F(BlockPriorTest, reducePartition_forSomeIrreduciblePartition_returnSame){
     BlockSequence partition = {0, 0, 1, 1, 1, 2};
     BlockSequence reduced = prior.reducePartition(partition);
     EXPECT_EQ(partition, reduced);
 }
 
-TEST_F(TestBlockPrior, reducePartition_forSomeUnsortedPartition_returnSorted){
+TEST_F(BlockPriorTest, reducePartition_forSomeUnsortedPartition_returnSorted){
     BlockSequence partition = {0, 0, 2, 1, 1, 1}, expected = {0, 0, 1, 2, 2, 2};
     BlockSequence reduced = prior.reducePartition(partition);
 
     EXPECT_EQ(expected, reduced);
 }
 
-TEST_F(TestBlockPrior, reducePartition_forSomeReduciblePartition_returnReduced){
+TEST_F(BlockPriorTest, reducePartition_forSomeReduciblePartition_returnReduced){
     BlockSequence partition = {0, 0, 2, 2, 2, 2}, expected = {0, 0, 1, 1, 1, 1};
     BlockSequence reduced = prior.reducePartition(partition);
 
     EXPECT_EQ(expected, reduced);
 }
 
-TEST_F(TestBlockPrior, reducePartition_forSomeUnsortedAndReduciblePartition_returnSortedAndReduced){
+TEST_F(BlockPriorTest, reducePartition_forSomeUnsortedAndReduciblePartition_returnSortedAndReduced){
     BlockSequence partition = {2, 2, 0, 0, 0, 0}, expected = {0, 0, 1, 1, 1, 1};
     BlockSequence reduced = prior.reducePartition(partition);
 
     EXPECT_EQ(expected, reduced);
 }
 
-class TestBlockDeltaPrior: public::testing::Test{
+class BlockDeltaPriorTest: public::testing::Test{
     public:
         BlockDeltaPrior prior = BlockDeltaPrior(BLOCK_SEQ);
         void SetUp() {
@@ -166,45 +166,45 @@ class TestBlockDeltaPrior: public::testing::Test{
         }
 };
 
-TEST_F(TestBlockDeltaPrior, sampleState_doNothing){
+TEST_F(BlockDeltaPriorTest, sampleState_doNothing){
     prior.sampleState();
     EXPECT_TRUE( isCorrectBlockSequence( prior.getState() ) );
 }
 
-TEST_F(TestBlockDeltaPrior, samplePriors_doNothing){
+TEST_F(BlockDeltaPriorTest, samplePriors_doNothing){
     prior.samplePriors();
     EXPECT_TRUE( isCorrectBlockSequence( prior.getState() ) );
 }
 
-TEST_F(TestBlockDeltaPrior, getLogLikelihood_return0){
+TEST_F(BlockDeltaPriorTest, getLogLikelihood_return0){
     EXPECT_EQ(prior.getLogLikelihood(), 0);
 }
 
-TEST_F(TestBlockDeltaPrior, getLogPrior_return0){
+TEST_F(BlockDeltaPriorTest, getLogPrior_return0){
     EXPECT_EQ(prior.getLogPrior(), 0);
 }
 
-TEST_F(TestBlockDeltaPrior, getLogLikelihoodRatioFromLabelMove_forSomePreservingLabelMove_return0){
+TEST_F(BlockDeltaPriorTest, getLogLikelihoodRatioFromLabelMove_forSomePreservingLabelMove_return0){
     BlockMove move = {0, 0, 0};
     EXPECT_EQ(prior.getLogLikelihoodRatioFromLabelMove(move), 0);
 }
 
-TEST_F(TestBlockDeltaPrior, getLogLikelihoodRatioFromLabelMove_forSomeNonPreservingLabelMove_returnMinusInf){
+TEST_F(BlockDeltaPriorTest, getLogLikelihoodRatioFromLabelMove_forSomeNonPreservingLabelMove_returnMinusInf){
     BlockMove move = {0, 0, 1};
     EXPECT_EQ(prior.getLogLikelihoodRatioFromLabelMove(move), -INFINITY);
 }
 
-TEST_F(TestBlockDeltaPrior, getLogPriorRatioFromLabelMove_forSomePreservingLabelMove_return0){
+TEST_F(BlockDeltaPriorTest, getLogPriorRatioFromLabelMove_forSomePreservingLabelMove_return0){
     BlockMove move = {0, 0, 0};
     EXPECT_EQ(prior.getLogPriorRatioFromLabelMove(move), 0);
 }
 
-TEST_F(TestBlockDeltaPrior, getLogPriorRatioFromLabelMove_forSomeNonPreservingLabelMove_return0){
+TEST_F(BlockDeltaPriorTest, getLogPriorRatioFromLabelMove_forSomeNonPreservingLabelMove_return0){
     BlockMove move = {0, 0, 1};
     EXPECT_EQ(prior.getLogPriorRatioFromLabelMove(move), 0);
 }
 
-class TestBlockUniformPrior: public::testing::Test{
+class BlockUniformPriorTest: public::testing::Test{
     public:
         BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
         BlockUniformPrior prior = BlockUniformPrior(GRAPH_SIZE, blockCountPrior);
@@ -222,14 +222,14 @@ class TestBlockUniformPrior: public::testing::Test{
         }
 };
 
-TEST_F(TestBlockUniformPrior, sample_returnBlockSeqWithExpectedSizeAndBlockCount){
+TEST_F(BlockUniformPriorTest, sample_returnBlockSeqWithExpectedSizeAndBlockCount){
     prior.sample();
     auto blockSeq = prior.getState();
     EXPECT_EQ(prior.getState().size(), GRAPH_SIZE);
     EXPECT_TRUE(*max_element(blockSeq.begin(), blockSeq.end()) <= BLOCK_COUNT - 1);
 }
 
-TEST_F(TestBlockUniformPrior, getLogLikelihood_fromSomeRandomBlockSeq_returnCorrectLogLikelihood){
+TEST_F(BlockUniformPriorTest, getLogLikelihood_fromSomeRandomBlockSeq_returnCorrectLogLikelihood){
     for (size_t i = 0; i < 10; i++) {
         prior.sample();
         double logLikelihood = prior.getLogLikelihood();
@@ -238,7 +238,7 @@ TEST_F(TestBlockUniformPrior, getLogLikelihood_fromSomeRandomBlockSeq_returnCorr
     }
 }
 
-TEST_F(TestBlockUniformPrior, getLogLikelihoodRatio_fromSomeLabelMove_returnCorrectLogLikelihoodRatio){
+TEST_F(BlockUniformPriorTest, getLogLikelihoodRatio_fromSomeLabelMove_returnCorrectLogLikelihoodRatio){
     BlockMove move = {2, 0, 1};
 
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
@@ -248,19 +248,19 @@ TEST_F(TestBlockUniformPrior, getLogLikelihoodRatio_fromSomeLabelMove_returnCorr
     EXPECT_FLOAT_EQ(expectedLogLikelihoodRatio, actualLogLikelihoodRatio);
 }
 
-TEST_F(TestBlockUniformPrior, applyMove_forSomeLabelMove_changeBlockOfNode2From0To1){
+TEST_F(BlockUniformPriorTest, applyMove_forSomeLabelMove_changeBlockOfNode2From0To1){
     BlockMove move = {2, 0, 1};
     EXPECT_EQ(prior.getState()[2], 0);
     prior.applyLabelMove(move);
     EXPECT_EQ(prior.getState()[2], 1);
 }
 
-TEST_F(TestBlockUniformPrior, checkSelfConsistency_noError_noThrow){
+TEST_F(BlockUniformPriorTest, checkSelfConsistency_noError_noThrow){
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
 
-class TestBlockUniformHyperPrior: public::testing::Test{
+class BlockUniformHyperPriorTest: public::testing::Test{
     public:
         BlockCountPoissonPrior blockCountPrior = BlockCountPoissonPrior(POISSON_MEAN);
         BlockUniformHyperPrior prior = BlockUniformHyperPrior(GRAPH_SIZE, blockCountPrior);
@@ -278,24 +278,24 @@ class TestBlockUniformHyperPrior: public::testing::Test{
         }
 };
 
-TEST_F(TestBlockUniformHyperPrior, sampleState_generateConsistentState){
+TEST_F(BlockUniformHyperPriorTest, sampleState_generateConsistentState){
     prior.sampleState();
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
-TEST_F(TestBlockUniformHyperPrior, getLogLikelihood_returnCorrectLogLikehood){
+TEST_F(BlockUniformHyperPriorTest, getLogLikelihood_returnCorrectLogLikehood){
     const auto& nr = prior.getVertexCounts();
     EXPECT_LE( prior.getLogLikelihood(), 0 );
     EXPECT_FLOAT_EQ( prior.getLogLikelihood(), -logMultinomialCoefficient( nr.getValues() ) - logBinomialCoefficient(prior.getSize() - 1, prior.getBlockCount() - 1) );
 }
 
-TEST_F(TestBlockUniformHyperPrior, applyLabelMove_ForSomeLabelMove_getConsistentState){
+TEST_F(BlockUniformHyperPriorTest, applyLabelMove_ForSomeLabelMove_getConsistentState){
     BlockMove move = {0, prior.getBlockOfIdx(0), findLabelMove(0)};
     prior.applyLabelMove(move);
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
-TEST_F(TestBlockUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectLogLikelihoodRatio){
+TEST_F(BlockUniformHyperPriorTest, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectLogLikelihoodRatio){
     BlockMove move = {0, prior.getBlockOfIdx(0), findLabelMove(0)};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();

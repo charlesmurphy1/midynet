@@ -22,7 +22,6 @@ namespace FastMIDyNet {
 // }
 
 
-
 std::vector<size_t> sampleUniformlySequenceWithoutReplacement(size_t n, size_t k) {
     std::unordered_map<size_t, size_t> indexReplacements;
     size_t newDrawnIndex;
@@ -138,6 +137,41 @@ std::vector<size_t> sampleRandomPermutation(const std::vector<size_t>& nk){
     }
     return sequence;
 }
+
+std::vector<size_t> sampleMultinomial(const size_t n, const std::vector<double>& p){
+    std::vector<size_t> output(p.size(), 0);
+
+    std::vector<size_t> idx = argsortVector(p);
+    std::vector<double> sorted = sortVector(p);
+    double norm = 0;
+    for (auto pp : p)
+        norm += pp;
+    if (norm - 1 > 1e-15)
+        throw std::runtime_error(
+            "sampleMultinomial: `p` must be normalized, but summed to " + std::to_string(norm) + "."
+        );
+
+    std::uniform_real_distribution<double> dist(0, 1);
+    for (size_t i = 0; i<n; ++i){
+        norm = 0;
+        std::set<size_t> s;
+        size_t j = 0;
+        for(size_t j=0; j<p.size(); ++j){
+            norm += sorted[j];
+            if (dist(rng) <= norm)
+                s.insert(idx[j]);
+        }
+        ++output[(s.size() != p.size()) ? *s.rend() : 0];
+    }
+    return output;
+}
+std::vector<size_t> sampleUniformMultinomial(const size_t n, const size_t k){
+    std::vector<double> p;
+    for (size_t i=0; i<k; ++i)
+        p.push_back(1./k);
+    return sampleMultinomial(n, p);
+}
+
 
 
 BaseGraph::UndirectedMultigraph generateDCSBM(

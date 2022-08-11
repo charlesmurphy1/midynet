@@ -15,7 +15,7 @@
 
 using namespace FastMIDyNet;
 
-class TestNestedLabelGraphPrior: public ::testing::Test {
+class NestedLabelGraphPriorTest: public ::testing::Test {
     public:
 
         size_t EDGE_COUNT=10, GRAPH_SIZE=10;
@@ -74,11 +74,11 @@ class TestNestedLabelGraphPrior: public ::testing::Test {
         }
 };
 
-TEST_F(TestNestedLabelGraphPrior, sampleState_noThrow){
+TEST_F(NestedLabelGraphPriorTest, sampleState_noThrow){
     EXPECT_NO_THROW(prior.checkConsistency());
 }
 
-TEST_F(TestNestedLabelGraphPrior, getLogLikelihood_returnSumOfLogLikelihoodAtEaclLevel){
+TEST_F(NestedLabelGraphPriorTest, getLogLikelihood_returnSumOfLogLikelihoodAtEaclLevel){
     double actualLogLikelihood = prior.getLogLikelihood();
     double expectedLogLikelihood = 0;
     for (Level l=0; l<prior.getDepth(); ++l)
@@ -86,7 +86,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihood_returnSumOfLogLikelihoodAtEac
     EXPECT_NEAR(actualLogLikelihood, expectedLogLikelihood, 1e-6);
 }
 
-TEST_F(TestNestedLabelGraphPrior, getLogLikelihood_forLastLevel_returnCorrectValue){
+TEST_F(NestedLabelGraphPriorTest, getLogLikelihood_forLastLevel_returnCorrectValue){
     while(prior.getDepth() == 1)
         prior.sample();
     Level level = prior.getDepth() - 1;
@@ -96,7 +96,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihood_forLastLevel_returnCorrectVal
     EXPECT_NEAR(actualLogLikelihood, expectedLogLikelihood, 1e-6);
 }
 
-TEST_F(TestNestedLabelGraphPrior, getLogLikelihood_forAnyLevelOtherThanLast_returnCorrectValue){
+TEST_F(NestedLabelGraphPriorTest, getLogLikelihood_forAnyLevelOtherThanLast_returnCorrectValue){
     for (Level level=0; level < prior.getDepth() - 1; ++level){
         double actualLogLikelihood = prior.getLogLikelihoodAtLevel(level);
         double expectedLogLikelihood = 0;
@@ -118,12 +118,12 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihood_forAnyLevelOtherThanLast_retu
     }
 }
 
-TEST_F(TestNestedLabelGraphPrior, setGraph_noThrow){
+TEST_F(NestedLabelGraphPriorTest, setGraph_noThrow){
     EXPECT_EQ(prior.getGraph(), graph);
     EXPECT_NO_THROW(prior.checkConsistency());
 }
 
-TEST_F(TestNestedLabelGraphPrior, applyGraphMove_forAddedEdge_noThrow){
+TEST_F(NestedLabelGraphPriorTest, applyGraphMove_forAddedEdge_noThrow){
     GraphMove move = {{}, {{0, 1}}};
     BlockIndex r = prior.getNestedBlocks(0)[0], s = prior.getNestedBlocks(0)[1];
     auto stateBefore = prior.getNestedState(0);
@@ -133,7 +133,7 @@ TEST_F(TestNestedLabelGraphPrior, applyGraphMove_forAddedEdge_noThrow){
     EXPECT_NO_THROW(prior.checkConsistency());
 }
 
-TEST_F(TestNestedLabelGraphPrior, applyGraphMove_forAddedSelfLoop_noThrow){
+TEST_F(NestedLabelGraphPriorTest, applyGraphMove_forAddedSelfLoop_noThrow){
     GraphMove move = {{}, {{0, 0}}};
     BlockIndex r = prior.getNestedBlocks(0)[0];
     auto stateBefore = prior.getNestedState(0);
@@ -143,7 +143,7 @@ TEST_F(TestNestedLabelGraphPrior, applyGraphMove_forAddedSelfLoop_noThrow){
     EXPECT_NO_THROW(prior.checkConsistency());
 }
 
-TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forIdentityMoveAtAnyLevel_doNothing){
+TEST_F(NestedLabelGraphPriorTest, applyLabelMove_forIdentityMoveAtAnyLevel_doNothing){
     for(Level level=0; level < prior.getDepth(); ++level){
         BlockMove move = {0, prior.getBlockOfIdx(0, level), prior.getBlockOfIdx(0, level), 0, level};
         prior.applyLabelMove(move);
@@ -151,7 +151,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forIdentityMoveAtAnyLevel_doNot
     }
 }
 
-TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveNotChangingBlockCountAtAnyLevel_noThrow){
+TEST_F(NestedLabelGraphPriorTest, applyLabelMove_forMoveNotChangingBlockCountAtAnyLevel_noThrow){
 
     size_t depth = 4;
     for(Level level=0; level < 1; ++level){
@@ -163,7 +163,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveNotChangingBlockCountAtA
 
 }
 
-TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveChangingBlockCountAtAnyLevel_noThrow){
+TEST_F(NestedLabelGraphPriorTest, applyLabelMove_forMoveChangingBlockCountAtAnyLevel_noThrow){
     size_t depth = 4;
     for(Level level=0; level < depth - 1; ++level){
         BlockMove move = proposeNestedBlockMove(0, level, depth, true);
@@ -173,7 +173,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveChangingBlockCountAtAnyL
     }
 }
 
-TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveIncreasingDepth_noThrow){
+TEST_F(NestedLabelGraphPriorTest, applyLabelMove_forMoveIncreasingDepth_noThrow){
     size_t depth = 3;
     size_t id = 0;
     Level level = depth - 1;
@@ -184,7 +184,7 @@ TEST_F(TestNestedLabelGraphPrior, applyLabelMove_forMoveIncreasingDepth_noThrow)
     EXPECT_NO_THROW(prior.checkConsistency());
 }
 
-TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectValue){
+TEST_F(NestedLabelGraphPriorTest, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectValue){
     GraphMove move = {{}, {{0, 1}}};
     double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
@@ -193,7 +193,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdg
     EXPECT_NEAR(expectedLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
-TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromGraphMove_forAddedSelfLoop_returnCorrectValue){
+TEST_F(NestedLabelGraphPriorTest, getLogLikelihoodRatioFromGraphMove_forAddedSelfLoop_returnCorrectValue){
     GraphMove move = {{}, {{0, 0}}};
     double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
@@ -202,7 +202,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromGraphMove_forAddedSel
     EXPECT_NEAR(expectedLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, 1e-6);
 }
 
-TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forIdentityMoveAtAnyLevel_returnCorrectValue){
+TEST_F(NestedLabelGraphPriorTest, getLogLikelihoodRatioFromLabelMove_forIdentityMoveAtAnyLevel_returnCorrectValue){
     size_t depth = 4;
     for (Level l=0; l<depth; ++l){
         while(prior.getDepth() != depth)
@@ -213,7 +213,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forIdentity
     }
 }
 
-TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveNotChangingBlockCountAtAnyLevel_returnCorrectValue){
+TEST_F(NestedLabelGraphPriorTest, getLogLikelihoodRatioFromLabelMove_forMoveNotChangingBlockCountAtAnyLevel_returnCorrectValue){
     size_t depth = 4;
     for (Level l=0; l<depth - 1; ++l){
         BlockMove move = proposeNestedBlockMove(0, l, depth);
@@ -225,7 +225,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveNotC
     }
 }
 
-TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveChangingBlockCountAtAnyLevel_returnCorrectValue){
+TEST_F(NestedLabelGraphPriorTest, getLogLikelihoodRatioFromLabelMove_forMoveChangingBlockCountAtAnyLevel_returnCorrectValue){
     size_t depth = 4;
     for (Level l=0; l<1; ++l){
         BlockMove move = proposeNestedBlockMove(0, l, depth, true);
@@ -237,7 +237,7 @@ TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveChan
     }
 }
 
-TEST_F(TestNestedLabelGraphPrior, getLogLikelihoodRatioFromLabelMove_forMoveIncreasingDepth_returnCorrectValue){
+TEST_F(NestedLabelGraphPriorTest, getLogLikelihoodRatioFromLabelMove_forMoveIncreasingDepth_returnCorrectValue){
     size_t depth = 4;
     BlockMove move = proposeNestedBlockMove(0, depth-1, depth, true);
     double expectedLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);

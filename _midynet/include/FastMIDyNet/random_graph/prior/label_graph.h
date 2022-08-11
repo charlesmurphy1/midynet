@@ -60,29 +60,7 @@ class LabelGraphPrior: public BlockLabeledPrior< LabelGraph >{
                 edgeCounts.set(v, state.getDegreeOfIdx(v));
             return edgeCounts;
         }
-        static const MultiGraph addEmptyLabelsToLabelGraph(const LabelGraph& labelGraph, const CounterMap<BlockIndex>& vertexCounts, size_t blockCount){
-            std::map<BlockIndex, BlockIndex> indexMap;
-            BlockIndex id = 0;
-            for(BlockIndex r = 0; r < blockCount; ++r){
-                if (vertexCounts[r] > 0){
-                    indexMap[r] = vertexCounts[r];
-                    ++id;
-                }
-            }
-
-            LabelGraph resizedLabelGraph = labelGraph;
-            // for (auto r : labelGraph){
-            //     for (const auto& s : labelGraph.getNeighboursOfIdx(r)){
-            //         if (r > s.vertexIndex)
-            //             continue;
-            //         BlockIndex rr = indexMap[r], ss = indexMap[s.vertexIndex];
-            //         resizedLabelGraph.addMultiedgeIdx(rr, ss, s.label);
-            //     }
-            // }
-
-            return resizedLabelGraph;
-
-        }
+        virtual void recomputeConsistentState() ;
     public:
         LabelGraphPrior() {}
         LabelGraphPrior(EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior){
@@ -109,7 +87,7 @@ class LabelGraphPrior: public BlockLabeledPrior< LabelGraph >{
             m_blockPriorPtr->isRoot(false);
         }
 
-        virtual void setGraph(const MultiGraph& graph);
+        void setGraph(const MultiGraph& graph);
         const MultiGraph& getGraph() { return *m_graphPtr; }
         void setState(const LabelGraph&) override;
         virtual void setPartition(const std::vector<BlockIndex>&) ;
@@ -156,13 +134,13 @@ class LabelGraphPrior: public BlockLabeledPrior< LabelGraph >{
             m_blockPriorPtr->checkSafety();
             m_edgeCountPriorPtr->checkSafety();
         }
-        virtual void recomputeConsistentState() ;
 };
 
 class LabelGraphDeltaPrior: public LabelGraphPrior{
 public:
     LabelGraph m_labelGraph;
     EdgeCountDeltaPrior m_edgeCountDeltaPrior;
+    void recomputeConsistentState() override { m_labelGraph = m_state; }
 
 public:
     LabelGraphDeltaPrior(){}
@@ -181,15 +159,6 @@ public:
     const LabelGraphDeltaPrior& operator=(const LabelGraphDeltaPrior& other){
         this->setState(other.getState());
         return *this;
-    }
-
-    void setState(const LabelGraph& labelGraph) {
-        m_labelGraph = labelGraph;
-        m_state = labelGraph;
-        m_edgeCounts.clear();
-        for (const auto r : m_labelGraph)
-            m_edgeCounts.set(r, m_labelGraph.getDegreeOfIdx(r));
-        // recomputeState();
     }
     void sampleState() override { };
 
@@ -220,12 +189,29 @@ public:
 private:
     double getLogLikelihoodRatio(size_t blockCountAfter, size_t edgeNumberAfter) const {
         return getLogLikelihood(blockCountAfter, edgeNumberAfter)
-        -getLogLikelihood(m_edgeCountPriorPtr->getState(), m_blockPriorPtr->getEffectiveBlockCount());
+             - getLogLikelihood(m_edgeCountPriorPtr->getState(), m_blockPriorPtr->getEffectiveBlockCount());
 
     }
     double getLogLikelihood(size_t blockCount, size_t edgeCount) const {
         return -logMultisetCoefficient( blockCount*(blockCount+1)/2, edgeCount );
     }
+};
+
+class LabelGraphPlantedPartitionPrior: public LabelGraphPrior{
+protected:
+    size_t m_edgeCountIn=0, m_edgeCountOut=0;
+    void applyGraphMoveToState(const GraphMove&) override ;
+    void applyLabelMoveToState(const BlockMove&) override ;
+    void recomputeConsistentState() override ;
+public:
+    using LabelGraphPrior::LabelGraphPrior;
+    void sampleState() override ;
+    const double getLogLikelihood() const override ;
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const override;
+    const double getLogLikelihoodRatioFromLabelMove(const BlockMove&) const override;
+    void checkSelfConsistency() const override ;
+    const size_t getEdgeCountIn() const { return m_edgeCountIn; }
+    const size_t getEdgeCountOut() const { return m_edgeCountOut; }
 };
 
 // class LabelGraphExponentialPrior: public LabelGraphPrior {

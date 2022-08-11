@@ -36,7 +36,7 @@ class DummyDegreePrior: public DegreePrior {
 
 };
 
-class TestDegreePrior: public ::testing::Test {
+class DegreePriorTest: public ::testing::Test {
     public:
 
         double SIZE=10;
@@ -57,7 +57,7 @@ class TestDegreePrior: public ::testing::Test {
         }
 };
 
-// TEST_F(TestDegreePrior, setGraph_forHouseGraph_applyChangesToDegreeSequence){
+// TEST_F(DegreePriorTest, setGraph_forHouseGraph_applyChangesToDegreeSequence){
 //     prior.setGraph(graph);
 //     DegreeSequence expectedDegreeSeq = {4, 3, 5, 5, 2, 3, 0};
 //     DegreeSequence actualDegreeSeq = prior.getState();
@@ -66,7 +66,7 @@ class TestDegreePrior: public ::testing::Test {
 //     }
 // }
 
-// TEST_F(TestDegreePrior, computeDegreeCounts_forLocalDegreeSeqNBlockSeq_returnCorrectDegreeCounts){
+// TEST_F(DegreePriorTest, computeDegreeCounts_forLocalDegreeSeqNBlockSeq_returnCorrectDegreeCounts){
 //     blockPrior.setState({0,0,0,0,1,1,1});
 //     auto degreeCounts = prior.computeDegreeCounts(prior.getState(), prior.getBlockPrior().getState());
 //     EXPECT_EQ(degreeCounts.size(), 2);
@@ -84,7 +84,7 @@ class TestDegreePrior: public ::testing::Test {
 //     EXPECT_EQ(degreeCounts[1].get(prior.getEdgeMatrixPrior().getEdgeCount()), 1);
 // }
 
-TEST_F(TestDegreePrior, applyGraphMoveToState_ForAddedEdge_returnCorrectDegreeSeq){
+TEST_F(DegreePriorTest, applyGraphMoveToState_ForAddedEdge_returnCorrectDegreeSeq){
     GraphMove move = {{}, {{0,1}}};
     auto k0Before = prior.getState()[0];
     auto k1Before = prior.getState()[1];
@@ -97,7 +97,7 @@ TEST_F(TestDegreePrior, applyGraphMoveToState_ForAddedEdge_returnCorrectDegreeSe
     expectConsistencyError = true;
 }
 
-TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdge_returnCorrectDegreeSeq){
+TEST_F(DegreePriorTest, applyGraphMoveToState_ForRemovedEdge_returnCorrectDegreeSeq){
     GraphMove move = {{{0,6}}, {}};
     auto k0Before = prior.getState()[0];
     auto k6Before = prior.getState()[6];
@@ -110,7 +110,7 @@ TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdge_returnCorrectDegree
 
 }
 
-TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCorrectDegreeSeq){
+TEST_F(DegreePriorTest, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCorrectDegreeSeq){
     GraphMove move = {{{0,6}}, {{0, 1}}};
     auto k0Before = prior.getState()[0];
     auto k1Before = prior.getState()[1];
@@ -126,7 +126,7 @@ TEST_F(TestDegreePrior, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCor
 
 }
 
-TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
+TEST_F(DegreePriorTest, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
     GraphMove move = {{}, {{0,1}}};
     size_t E = prior.getEdgeCount();
     auto expected = prior.getDegreeCounts();
@@ -144,7 +144,7 @@ TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectD
 
 }
 
-TEST_F(TestDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrectDegreeCounts){
+TEST_F(DegreePriorTest, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrectDegreeCounts){
     prior.sample();
     GraphMove move = {{{0, 4}}, {}};
     size_t E = prior.getEdgeCount();

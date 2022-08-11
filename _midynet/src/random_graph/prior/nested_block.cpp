@@ -222,6 +222,7 @@ const double NestedBlockUniformHyperPrior::getLogLikelihoodAtLevel(Level level) 
 }
 
 const double NestedBlockUniformHyperPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+    std::cout << move << " is valid: " << (int) isValidBlockMove(move) <<std::endl;
     if (not isValidBlockMove(move))
         return -INFINITY;
     if (move.prevLabel == move.nextLabel)
@@ -233,8 +234,10 @@ const double NestedBlockUniformHyperPrior::getLogLikelihoodRatioFromLabelMove(co
     int B = getNestedEffectiveBlockCount(move.level);
     int nrPrev = m_nestedVertexCounts[move.level][move.prevLabel];
     int nrNext = m_nestedVertexCounts[move.level][move.nextLabel];
-
+    std::cout << N << ", " << B << std::endl;
     logLikelihoodRatio += log(nrNext + 1) - log(nrPrev);
+
+
     logLikelihoodRatio -= logBinomialCoefficient(N - 1, B + addedBlocks - 1) - logBinomialCoefficient(N - 1, B - 1);
 
     if (move.addedLabels != 0 and move.level != getDepth() - 1){

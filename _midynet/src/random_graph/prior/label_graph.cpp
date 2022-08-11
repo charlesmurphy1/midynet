@@ -186,6 +186,233 @@ const double LabelGraphErdosRenyiPrior::getLogLikelihoodRatioFromLabelMove(const
     return newLogLikelihood - currentLogLikelihood;
 }
 
+
+
+void LabelGraphPlantedPartitionPrior::recomputeConsistentState() {
+    LabelGraphPrior::recomputeConsistentState();
+    m_edgeCountIn=0, m_edgeCountOut=0;
+    if (m_blockPriorPtr->getEffectiveBlockCount() == 1){
+        m_edgeCountIn = getEdgeCount();
+        return;
+    }
+    for(size_t r=0; r<m_state.getSize(); ++r){
+        m_edgeCountIn += m_state.getEdgeMultiplicityIdx(r, r);
+        for(size_t s=r+1; s<m_state.getSize(); ++s){
+            m_edgeCountOut += m_state.getEdgeMultiplicityIdx(r, s);
+        }
+    }
+}
+
+void LabelGraphPlantedPartitionPrior::applyGraphMoveToState(const GraphMove& move) {
+    LabelGraphPrior::applyGraphMoveToState(move);
+    for(auto edge : move.addedEdges){
+        BlockIndex r = getBlockOfIdx(edge.first), s = getBlockOfIdx(edge.second);
+        if (r == s)
+            ++m_edgeCountIn;
+        else
+            ++m_edgeCountOut;
+    }
+    for(auto edge : move.removedEdges){
+        BlockIndex r = getBlockOfIdx(edge.first), s = getBlockOfIdx(edge.second);
+        if (r == s)
+            --m_edgeCountIn;
+        else
+            --m_edgeCountOut;
+    }
+
+}
+
+void LabelGraphPlantedPartitionPrior::applyLabelMoveToState(const BlockMove& move) {
+    LabelGraphPrior::applyLabelMoveToState(move);
+    for(auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIndex)){
+        BlockIndex t = getBlockOfIdx(neighbor.vertexIndex);
+
+        if (move.prevLabel == t or move.vertexIndex == neighbor.vertexIndex)
+            m_edgeCountIn-=neighbor.label;
+        else
+            m_edgeCountOut-=neighbor.label;
+
+        if (move.nextLabel == t or move.vertexIndex == neighbor.vertexIndex)
+            m_edgeCountIn+=neighbor.label;
+        else
+            m_edgeCountOut+=neighbor.label;
+    }
+}
+
+void LabelGraphPlantedPartitionPrior::sampleState() {
+    std::uniform_int_distribution<size_t> dist(0, getEdgeCount());
+    size_t B = m_blockPriorPtr->getBlockCount(), E_in = dist(rng), E_out = getEdgeCount() - E_in;
+    std::vector<size_t> e_in = sampleUniformMultinomial(E_in, B);
+    std::vector<size_t> e_out = sampleUniformMultinomial(E_out, B * (B - 1) / 2);
+
+    LabelGraph labelGraph(B);
+
+    size_t it = 0;
+    for (size_t r=0; r<B ; ++r){
+        labelGraph.addMultiedgeIdx(r, r, e_in[r]);
+        for (size_t s=r + 1; s<B ; ++s){
+            labelGraph.addMultiedgeIdx(r, s, e_out[it++]);
+        }
+    }
+    setState(labelGraph);
+}
+
+const double LabelGraphPlantedPartitionPrior::getLogLikelihood() const {
+    size_t E = getEdgeCount(), B = getBlockCount();
+    if (B == 1)
+        return 0;
+    double logLikelihood = -log(E + 1);
+    logLikelihood += logFactorial(m_edgeCountIn) - m_edgeCountIn * log(B);
+    logLikelihood += logFactorial(m_edgeCountOut) - m_edgeCountOut * log( B * (B - 1) / 2);
+
+    for (size_t r=0; r<B ; ++r){
+        logLikelihood -= logFactorial(m_state.getEdgeMultiplicityIdx(r, r));
+        for (size_t s=r + 1; s<B ; ++s){
+            logLikelihood -= logFactorial(m_state.getEdgeMultiplicityIdx(r, s));
+        }
+    }
+    return logLikelihood;
+
+}
+
+const double LabelGraphPlantedPartitionPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
+    size_t E = getEdgeCount(), B = getBlockCount();
+    if (B == 1)
+        return 0;
+    int dEin = 0, dEout = 0, dE = move.addedEdges.size() - move.removedEdges.size();
+    IntMap<BaseGraph::Edge> edgeCountDiff;
+    for(auto edge : move.addedEdges){
+        BlockIndex r = getBlockOfIdx(edge.first), s = getBlockOfIdx(edge.second);
+        if (r == s)
+            ++dEin;
+        else
+            ++dEout;
+        edgeCountDiff.increment(getOrderedEdge({r, s}));
+    }
+    for(auto edge : move.removedEdges){
+        BlockIndex r = getBlockOfIdx(edge.first), s = getBlockOfIdx(edge.second);
+        if (r == s)
+            --dEin;
+        else
+            --dEout;
+        edgeCountDiff.decrement(getOrderedEdge({r, s}));
+    }
+
+    double ratio = 0;
+
+    ratio += (B == 1) ? 0 : log(E + 1) - log(E + dE + 1);
+
+    ratio += logFactorial(m_edgeCountIn + dEin) - (m_edgeCountIn + dEin) * log(B);
+    ratio -= logFactorial(m_edgeCountIn) - (m_edgeCountIn) * log(B);
+
+    if (B > 1){
+        ratio += logFactorial(m_edgeCountOut + dEout) - (m_edgeCountOut + dEout) * log(B * (B - 1) / 2);
+        ratio -= logFactorial(m_edgeCountOut) - (m_edgeCountOut) * log(B * (B - 1) / 2);
+    }
+
+    for (const auto& diff : edgeCountDiff){
+        size_t ers = m_state.getEdgeMultiplicityIdx(diff.first.first, diff.first.second);
+        ratio -= logFactorial(ers + diff.second) - logFactorial(ers);
+    }
+    return ratio;
+}
+
+const double LabelGraphPlantedPartitionPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+    size_t E = getEdgeCount(), B = getBlockCount();
+    int dEin = 0, dEout = 0;
+    IntMap<BaseGraph::Edge> edgeCountDiff;
+    for(auto neighbor : m_graphPtr->getNeighboursOfIdx(move.vertexIndex)){
+        BlockIndex t = getBlockOfIdx(neighbor.vertexIndex);
+
+        if (move.prevLabel == t)
+            dEin -= neighbor.label;
+        else
+            dEout -= neighbor.label;
+        edgeCountDiff.decrement(getOrderedEdge({move.prevLabel, t}), neighbor.label);
+
+        t = (move.vertexIndex == neighbor.vertexIndex) ? move.nextLabel : t;
+        if (move.nextLabel == t)
+            dEin += neighbor.label;
+        else
+            dEout += neighbor.label;
+        edgeCountDiff.increment(getOrderedEdge({move.nextLabel, t}), neighbor.label);
+    }
+
+    double ratio = 0;
+    size_t nextB = B + move.addedLabels;
+
+    ratio += logFactorial(m_edgeCountIn + dEin) - (m_edgeCountIn + dEin) * log(nextB);
+    ratio -= logFactorial(m_edgeCountIn) - (m_edgeCountIn) * log(B);
+    ratio += logFactorial(m_edgeCountOut + dEout) - ((nextB == 1) ? 0 : ((m_edgeCountOut + dEout) * log(nextB * (nextB - 1) / 2)));
+    ratio -= logFactorial(m_edgeCountOut) - ((B == 1) ? 0 : ((m_edgeCountOut) * log(B * (B - 1) / 2)));
+
+    for (const auto& diff : edgeCountDiff){
+        BlockIndex r = diff.first.first;
+        BlockIndex s = diff.first.second;
+        size_t ers = (diff.first.first >= m_state.getSize() or diff.first.second >= m_state.getSize()) ? 0 : m_state.getEdgeMultiplicityIdx(diff.first.first, diff.first.second);
+        ratio -= logFactorial(ers + diff.second) - logFactorial(ers);
+    }
+    return ratio;
+}
+
+void LabelGraphPlantedPartitionPrior::checkSelfConsistency() const {
+    LabelGraphPrior::checkSelfConsistency();
+    if (m_edgeCountIn + m_edgeCountOut  != getEdgeCount())
+        throw ConsistencyError(
+            "LabelGraphPlantedPartitionPrior",
+            "(m_edgeCountIn, m_edgeCountOut)", "value=(" + std::to_string(m_edgeCountIn) + ", " + std::to_string(m_edgeCountIn) + ")",
+            "m_edgeCountPriorPtr", "value=" + std::to_string(getEdgeCount())
+        );
+    size_t actualEdgeCountIn=0, actualEdgeCountOut=0;
+    for (const auto vertex: *m_graphPtr){
+        actualEdgeCountIn += m_graphPtr->getEdgeMultiplicityIdx(vertex, vertex);
+
+        for (const auto& neighbor : m_graphPtr->getNeighboursOfIdx(vertex)){
+            if (vertex >= neighbor.vertexIndex)
+                continue;
+            BlockIndex r = getBlockOfIdx(vertex), s = getBlockOfIdx(neighbor.vertexIndex);
+            if (r == s)
+                actualEdgeCountIn += neighbor.label;
+            else
+                actualEdgeCountOut += neighbor.label;
+        }
+    }
+
+    if (actualEdgeCountIn != m_edgeCountIn)
+        throw ConsistencyError(
+            "LabelGraphPlantedPartitionPrior",
+            "m_edgeCountIn", "value=" + std::to_string(m_edgeCountIn),
+            "m_graphPtr", "value=" + std::to_string(actualEdgeCountIn)
+        );
+    if (actualEdgeCountOut != m_edgeCountOut)
+        throw ConsistencyError(
+            "LabelGraphPlantedPartitionPrior",
+            "m_edgeCountOut", "value=" + std::to_string(m_edgeCountOut),
+            "m_graphPtr", "value=" + std::to_string(actualEdgeCountOut)
+        );
+
+    actualEdgeCountIn = actualEdgeCountOut = 0;
+    for (size_t r=0; r<m_state.getSize(); ++r){
+        actualEdgeCountIn += m_state.getEdgeMultiplicityIdx(r, r);
+        for (size_t s=r + 1; s<m_state.getSize(); ++s){
+            actualEdgeCountOut += m_state.getEdgeMultiplicityIdx(r, s);
+        }
+    }
+
+    if (actualEdgeCountIn != m_edgeCountIn)
+        throw ConsistencyError(
+            "LabelGraphPlantedPartitionPrior",
+            "m_edgeCountIn", "value=" + std::to_string(m_edgeCountIn),
+            "m_state", "value=" + std::to_string(actualEdgeCountIn)
+        );
+    if (actualEdgeCountOut != m_edgeCountOut)
+        throw ConsistencyError(
+            "LabelGraphPlantedPartitionPrior",
+            "m_edgeCountOut", "value=" + std::to_string(m_edgeCountOut),
+            "m_state", "value=" + std::to_string(actualEdgeCountOut)
+        );
+}
+
 // /* DEFINITION OF EDGE MATRIX EXPONENTIAL PRIOR */
 //
 // void LabelGraphExponentialPrior::sampleState() {

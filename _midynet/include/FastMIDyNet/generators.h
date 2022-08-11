@@ -4,6 +4,7 @@
 #include <random>
 #include <vector>
 #include <list>
+#include <algorithm>
 
 #include "BaseGraph/undirected_multigraph.h"
 #include "BaseGraph/algorithms/randomgraphs.h"
@@ -28,6 +29,8 @@ std::list<size_t> sampleRandomComposition(size_t n, size_t k);
 std::list<size_t> sampleRandomWeakComposition(size_t n, size_t k);
 std::list<size_t> sampleRandomRestrictedPartition(size_t n, size_t k, size_t numberOfSteps=0);
 std::vector<size_t> sampleRandomPermutation(const std::vector<size_t>& nk);
+std::vector<size_t> sampleMultinomial(const size_t n, const std::vector<double>& p);
+std::vector<size_t> sampleUniformMultinomial(const size_t n, const size_t k);
 
 template <typename T>
 T sampleUniformly(T min, T max) {
@@ -46,6 +49,24 @@ Iterator sampleUniformlyFrom(Iterator start, Iterator end) {
     std::advance(start, dist(rng));
     return start;
 }
+
+
+
+template <typename T>
+std::vector<size_t> argsortVector(const std::vector<T> &v) {
+    std::vector<size_t> idx(v.size());
+    std::iota(idx.begin(), idx.end(), 0);
+    std::stable_sort( idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {return v[i1] < v[i2];} );
+    return idx;
+}
+
+template <typename T>
+std::vector<T> sortVector(const std::vector<T> &v) {
+    std::vector<T> values(v);
+    std::sort( values.begin(), values.end() );
+    return values;
+}
+
 
 BaseGraph::UndirectedMultigraph generateDCSBM(const BlockSequence& vertexBlocks, const LabelGraph& blockEdgeMatrix, const DegreeSequence& degrees);
 BaseGraph::UndirectedMultigraph generateStubLabeledSBM(const BlockSequence& vertexBlocks, const LabelGraph& labelGraph, bool withSelfLoops=true);

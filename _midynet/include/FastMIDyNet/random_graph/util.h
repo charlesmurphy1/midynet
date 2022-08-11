@@ -42,6 +42,7 @@ void checkGraphConsistencyWithDegreeSequence(
 );
 EdgeCountPrior* makeEdgeCountPrior(double edgeCount, bool canonical=false);
 BlockPrior* makeBlockPrior(size_t size, BlockCountPrior& blockCountPrior, bool hyperPrior=false);
+LabelGraphPrior* makeLabelGraphPrior(EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior, bool plantedPrior=false);
 DegreePrior* makeDegreePrior(size_t size, EdgeCountPrior& prior, bool hyperPrior=false);
 VertexLabeledDegreePrior* makeVertexLabeledDegreePrior(LabelGraphPrior& prior, bool hyperPrior=false);
 StochasticBlockModelLikelihood* makeSBMLikelihood(bool stubLabeled=true);

@@ -133,6 +133,8 @@ double GraphReconstructionMCMC<GraphPriorType>::_getLogAcceptanceProbFromGraphMo
 template<typename GraphPriorType>
 bool GraphReconstructionMCMC<GraphPriorType>::doMetropolisHastingsStep() {
     GraphMove move = m_dataModelPtr->getGraphPrior().proposeGraphMove();
+    if (not m_graphPriorPtr->isValidGraphMove(move))
+        return m_isLastAccepted = false;
     if (move.addedEdges == move.removedEdges)
         return m_isLastAccepted = true;
     m_lastLogAcceptance = getLogAcceptanceProbFromGraphMove(move);
@@ -207,6 +209,8 @@ bool VertexLabeledGraphReconstructionMCMC<Label>::doMetropolisHastingsStep() {
     if ( not m_lastMoveWasLabelMove)
         return BaseClass::doMetropolisHastingsStep();
     LabelMove<Label> move = m_dataModelPtr->getGraphPrior().proposeLabelMove();
+    if (not m_dataModelPtr->getGraphPrior().isValidLabelMove(move))
+        return BaseClass::m_isLastAccepted = false;
     if (move.prevLabel == move.nextLabel and move.addedLabels == 0)
         return BaseClass::m_isLastAccepted = true;
     BaseClass::m_lastLogAcceptance = getLogAcceptanceProbFromLabelMove(move);

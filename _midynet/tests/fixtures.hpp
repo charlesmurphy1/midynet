@@ -53,6 +53,8 @@ static void doMetropolisHastingsSweepForGraph(RandomGraph& randomGraph, size_t n
     std::uniform_real_distribution<double> dist(0, 1);
     for (size_t it=0; it < numIteration; ++it){
         auto move = randomGraph.proposeGraphMove();
+        if (not randomGraph.isValidGraphMove(move))
+            continue;
         double logLikelihood = randomGraph.getLogLikelihoodRatioFromGraphMove(move);
         double logPrior = randomGraph.getLogPriorRatioFromGraphMove(move);
         double logProp = randomGraph.getLogProposalRatioFromGraphMove(move);
@@ -76,6 +78,8 @@ static void doMetropolisHastingsSweepForLabels(VertexLabeledRandomGraph<BlockInd
     std::uniform_real_distribution<double> dist(0, 1);
     for (size_t it=0; it < numIteration; ++it){
         auto move = randomGraph.proposeLabelMove();
+        if (not randomGraph.isValidLabelMove(move))
+            continue;
         double logLikelihood = randomGraph.getLogLikelihoodRatioFromLabelMove(move);
         double logPrior = randomGraph.getLogPriorRatioFromLabelMove(move);
         double logProp = randomGraph.getLogProposalRatioFromLabelMove(move);

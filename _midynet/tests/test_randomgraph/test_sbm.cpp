@@ -16,12 +16,18 @@ using namespace std;
 using namespace FastMIDyNet;
 
 
-class SBMParametrizedTest: public::testing::TestWithParam<std::tuple<bool, bool>>{
+class SBMParametrizedTest: public::testing::TestWithParam<std::tuple<bool, bool, bool>>{
     public:
         const size_t NUM_VERTICES = 50, NUM_EDGES = 100, NUM_BLOCKS=3;
         const bool canonical = false;
         StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(
-            NUM_VERTICES, NUM_EDGES, NUM_BLOCKS, std::get<0>(GetParam()), canonical, std::get<1>(GetParam())
+            NUM_VERTICES,
+            NUM_EDGES,
+            NUM_BLOCKS,
+            std::get<0>(GetParam()),
+            std::get<1>(GetParam()),
+            canonical,
+            std::get<2>(GetParam())
         );
 
         BaseGraph::VertexIndex vertex = 4;
@@ -317,9 +323,13 @@ INSTANTIATE_TEST_CASE_P(
         StochasticBlockModelFamilyTests,
         SBMParametrizedTest,
         ::testing::Values(
-            std::make_tuple(false, false),
-            std::make_tuple(false, true),
-            std::make_tuple(true, false),
-            std::make_tuple(true, true)
+            std::make_tuple(false, false, false),
+            std::make_tuple(false, true, false),
+            std::make_tuple(true, false, false),
+            std::make_tuple(true, true, false),
+            std::make_tuple(false, false, true),
+            std::make_tuple(false, true, true),
+            std::make_tuple(true, false, true),
+            std::make_tuple(true, true, true)
         )
     );

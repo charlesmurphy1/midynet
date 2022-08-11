@@ -16,12 +16,12 @@ using namespace std;
 using namespace FastMIDyNet;
 
 
-class DCSBMParametrizedTest: public::testing::TestWithParam<bool>{
+class DCSBMParametrizedTest: public::testing::TestWithParam<std::tuple<bool,bool>>{
     public:
         const size_t NUM_VERTICES = 50, NUM_EDGES = 100, NUM_BLOCKS = 3;
         const bool canonical=false;
         DegreeCorrectedStochasticBlockModelFamily randomGraph = DegreeCorrectedStochasticBlockModelFamily(
-            NUM_VERTICES, NUM_EDGES, NUM_BLOCKS, GetParam(), canonical
+            NUM_VERTICES, NUM_EDGES, NUM_BLOCKS, std::get<0>(GetParam()), std::get<1>(GetParam()), canonical
         );
 
         BaseGraph::VertexIndex vertexIdx = 4;
@@ -306,5 +306,10 @@ TEST_P(DCSBMParametrizedTest, doingMetropolisHastingsWithLabels_expectNoConsiste
 INSTANTIATE_TEST_CASE_P(
         DegreeCorrectedStochasticBlockModelFamilyTests,
         DCSBMParametrizedTest,
-        ::testing::Values( false, true )
+        ::testing::Values(
+            std::make_tuple(false, false),
+            std::make_tuple(false, true),
+            std::make_tuple(true, false),
+            std::make_tuple(true, true)
+         )
     );

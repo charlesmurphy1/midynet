@@ -122,7 +122,7 @@ public:
 
 class DegreeCorrectedStochasticBlockModelFamily: public DegreeCorrectedStochasticBlockModelBase{
     std::unique_ptr<BlockCountPrior> m_blockCountPriorUPtr;
-    LabelGraphErdosRenyiPrior m_labelGraphPrior;
+    std::unique_ptr<LabelGraphPrior> m_labelGraphPriorUPtr;
 
     std::unique_ptr<BlockPrior> m_blockPriorUPtr;
     std::unique_ptr<EdgeCountPrior> m_edgeCountPriorUPtr;
@@ -135,6 +135,7 @@ public:
         double edgeCount,
         size_t blockCount=0,
         bool useHyperPrior=false,
+        bool usePlantedPrior=false,
         bool canonical=false,
         std::string edgeProposerType="degree",
         std::string blockProposerType="uniform",
@@ -142,8 +143,7 @@ public:
         double labelCreationProb=0.5,
         double shift=1
     ):
-        DegreeCorrectedStochasticBlockModelBase(size),
-        m_labelGraphPrior(){
+        DegreeCorrectedStochasticBlockModelBase(size){
             if (blockCount == 0)
                 m_blockCountPriorUPtr = std::unique_ptr<BlockCountPrior>(new BlockCountUniformPrior(1, size-1));
             else{
@@ -152,8 +152,8 @@ public:
             }
             m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
             m_blockPriorUPtr = std::unique_ptr<BlockPrior>(makeBlockPrior(size, *m_blockCountPriorUPtr, useHyperPrior));
-            m_labelGraphPrior = LabelGraphErdosRenyiPrior(*m_edgeCountPriorUPtr, *m_blockPriorUPtr);
-            m_degreePriorUPtr = std::unique_ptr<VertexLabeledDegreePrior>(makeVertexLabeledDegreePrior(m_labelGraphPrior));
+            m_labelGraphPriorUPtr = std::unique_ptr<LabelGraphPrior>( makeLabelGraphPrior(*m_edgeCountPriorUPtr, *m_blockPriorUPtr, usePlantedPrior) );
+            m_degreePriorUPtr = std::unique_ptr<VertexLabeledDegreePrior>(makeVertexLabeledDegreePrior(*m_labelGraphPriorUPtr));
             setDegreePrior(*m_degreePriorUPtr);
 
             m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(

@@ -157,6 +157,7 @@ public:
         double edgeCount,
         size_t blockCount=0,
         bool useHyperPrior=true,
+        bool usePlantedPrior=true,
         bool canonical=false,
         bool stubLabeled=true,
         bool withSelfLoops=true,
@@ -179,9 +180,7 @@ public:
 
             m_edgeCountPriorUPtr = std::unique_ptr<EdgeCountPrior>(makeEdgeCountPrior(edgeCount, canonical));
             m_blockPriorUPtr = std::unique_ptr<BlockPrior>(makeBlockPrior(size, *m_blockCountPriorUPtr, useHyperPrior));
-            m_labelGraphPriorUPtr = std::unique_ptr<LabelGraphPrior>(
-                new LabelGraphErdosRenyiPrior(*m_edgeCountPriorUPtr, *m_blockPriorUPtr)
-            );
+            m_labelGraphPriorUPtr = std::unique_ptr<LabelGraphPrior>( makeLabelGraphPrior(*m_edgeCountPriorUPtr, *m_blockPriorUPtr, usePlantedPrior) );
             setLabelGraphPrior(*m_labelGraphPriorUPtr);
 
             m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(

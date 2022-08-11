@@ -46,7 +46,7 @@ class DummyVertexLabeledDegreePrior: public VertexLabeledDegreePrior {
 
 };
 
-class TestVertexLabeledDegreePrior: public ::testing::Test {
+class VertexLabeledDegreePriorTest: public ::testing::Test {
     public:
 
         BlockCountDeltaPrior blockCountPrior = BlockCountDeltaPrior(3);
@@ -67,7 +67,7 @@ class TestVertexLabeledDegreePrior: public ::testing::Test {
         }
 };
 
-// TEST_F(TestVertexLabeledDegreePrior, setGraph_forHouseGraph_applyChangesToDegreeSequence){
+// TEST_F(VertexLabeledDegreePriorTest, setGraph_forHouseGraph_applyChangesToDegreeSequence){
 //     prior.setGraph(graph);
 //     DegreeSequence expectedDegreeSeq = {4, 3, 5, 5, 2, 3, 0};
 //     DegreeSequence actualDegreeSeq = prior.getState();
@@ -76,7 +76,7 @@ class TestVertexLabeledDegreePrior: public ::testing::Test {
 //     }
 // }
 
-// TEST_F(TestVertexLabeledDegreePrior, computeDegreeCounts_forLocalDegreeSeqNBlockSeq_returnCorrectDegreeCounts){
+// TEST_F(VertexLabeledDegreePriorTest, computeDegreeCounts_forLocalDegreeSeqNBlockSeq_returnCorrectDegreeCounts){
 //     blockPrior.setState({0,0,0,0,1,1,1});
 //     auto degreeCounts = prior.computeDegreeCounts(prior.getState(), prior.getBlockPrior().getState());
 //     EXPECT_EQ(degreeCounts.size(), 2);
@@ -94,7 +94,7 @@ class TestVertexLabeledDegreePrior: public ::testing::Test {
 //     EXPECT_EQ(degreeCounts[1].get(prior.getLabelGraphPrior().getEdgeCount()), 1);
 // }
 
-TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToState_ForAddedEdge_returnCorrectDegreeSeq){
+TEST_F(VertexLabeledDegreePriorTest, applyGraphMoveToState_ForAddedEdge_returnCorrectDegreeSeq){
     GraphMove move = {{}, {{0,1}}};
     auto k0Before = prior.getState()[0];
     auto k1Before = prior.getState()[1];
@@ -107,7 +107,7 @@ TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToState_ForAddedEdge_returnCo
     expectConsistencyError = true;
 }
 
-TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToState_ForRemovedEdge_returnCorrectDegreeSeq){
+TEST_F(VertexLabeledDegreePriorTest, applyGraphMoveToState_ForRemovedEdge_returnCorrectDegreeSeq){
     GraphMove move = {{{0,6}}, {}};
     auto k0Before = prior.getState()[0];
     auto k6Before = prior.getState()[6];
@@ -120,7 +120,7 @@ TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToState_ForRemovedEdge_return
 
 }
 
-TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCorrectDegreeSeq){
+TEST_F(VertexLabeledDegreePriorTest, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCorrectDegreeSeq){
     GraphMove move = {{{0,6}}, {{0, 1}}};
     auto k0Before = prior.getState()[0];
     auto k1Before = prior.getState()[1];
@@ -136,7 +136,7 @@ TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToState_ForRemovedEdgeNAddedE
 
 }
 
-TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
+TEST_F(VertexLabeledDegreePriorTest, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
     blockPrior.setState(BLOCK_SEQ);
     GraphMove move = {{}, {{0,1}}};
     size_t E = prior.getLabelGraphPrior().getEdgeCount();
@@ -155,7 +155,7 @@ TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToDegreeCounts_forAddedEdge_r
 
 }
 
-TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrectDegreeCounts){
+TEST_F(VertexLabeledDegreePriorTest, applyGraphMoveToDegreeCounts_forRemovedEdge_returnCorrectDegreeCounts){
     GraphMove move = {{{0, 4}}, {}};
     prior.applyGraphMove(move);
     size_t E = prior.getLabelGraphPrior().getEdgeCount();
@@ -174,7 +174,7 @@ TEST_F(TestVertexLabeledDegreePrior, applyGraphMoveToDegreeCounts_forRemovedEdge
     expectConsistencyError = true;
 }
 
-TEST_F(TestVertexLabeledDegreePrior, applyLabelMoveToDegreeCounts_forNonEmptyLabelMove_returnCorrectDegreeCounts){
+TEST_F(VertexLabeledDegreePriorTest, applyLabelMoveToDegreeCounts_forNonEmptyLabelMove_returnCorrectDegreeCounts){
     while(blockPrior.getBlockOfIdx(0) != 0) prior.sample();
     BlockMove move = {0, 0, 1};
     size_t k = prior.getState()[0], r = blockPrior.getBlockOfIdx(0);
@@ -186,7 +186,7 @@ TEST_F(TestVertexLabeledDegreePrior, applyLabelMoveToDegreeCounts_forNonEmptyLab
     expectConsistencyError = true;
 }
 
-TEST_F(TestVertexLabeledDegreePrior, applyLabelMoveToDegreeCounts_forAddedLabelMove_returnCorrectDegreeCounts){
+TEST_F(VertexLabeledDegreePriorTest, applyLabelMoveToDegreeCounts_forAddedLabelMove_returnCorrectDegreeCounts){
     while(blockPrior.getBlockOfIdx(0) != 0) prior.sample();
     BlockMove move = {0, 0, 3};
     size_t k = prior.getState()[0];
@@ -201,7 +201,7 @@ TEST_F(TestVertexLabeledDegreePrior, applyLabelMoveToDegreeCounts_forAddedLabelM
 }
 
 
-class TestVertexLabeledDegreeUniformPrior: public ::testing::Test {
+class VertexLabeledDegreeUniformPriorTest: public ::testing::Test {
     public:
 
         BlockCountDeltaPrior blockCountPrior = BlockCountDeltaPrior(3);
@@ -218,17 +218,17 @@ class TestVertexLabeledDegreeUniformPrior: public ::testing::Test {
         }
 };
 
-TEST_F(TestVertexLabeledDegreeUniformPrior, sampleState_returnConsistentState){
+TEST_F(VertexLabeledDegreeUniformPriorTest, sampleState_returnConsistentState){
     prior.sampleState();
     EXPECT_NO_THROW(prior.checkSelfConsistency());
 }
 
-TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihood_returnNonPositiveValue){
+TEST_F(VertexLabeledDegreeUniformPriorTest, getLogLikelihood_returnNonPositiveValue){
     double logLikelihood = prior.getLogLikelihood();
     EXPECT_LE(logLikelihood, 0);
 }
 
-TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectRatio){
+TEST_F(VertexLabeledDegreeUniformPriorTest, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectRatio){
     GraphMove move = {{}, {{0,1}}};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
@@ -238,7 +238,7 @@ TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihoodRatioFromGraphMove_f
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
 }
 
-TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
+TEST_F(VertexLabeledDegreeUniformPriorTest, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
     auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getLabelGraphPrior().getState(), prior.getState());
     labelGraphPrior.setGraph(g);
@@ -256,7 +256,7 @@ TEST_F(TestVertexLabeledDegreeUniformPrior, getLogLikelihoodRatioFromLabelMove_f
 }
 
 
-class TestVertexLabeledDegreeUniformHyperPrior: public ::testing::Test {
+class VertexLabeledDegreeUniformHyperPriorTest: public ::testing::Test {
     public:
 
         BlockCountDeltaPrior blockCountPrior = BlockCountDeltaPrior(3);
@@ -273,16 +273,16 @@ class TestVertexLabeledDegreeUniformHyperPrior: public ::testing::Test {
         }
 };
 
-TEST_F(TestVertexLabeledDegreeUniformHyperPrior, sampleState_returnConsistentState){
+TEST_F(VertexLabeledDegreeUniformHyperPriorTest, sampleState_returnConsistentState){
     prior.sampleState();
 }
 
-TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihood_returnNonPositiveValue){
+TEST_F(VertexLabeledDegreeUniformHyperPriorTest, getLogLikelihood_returnNonPositiveValue){
     double logLikelihood = prior.getLogLikelihood();
     EXPECT_LE(logLikelihood, 0);
 }
 
-TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectRatio){
+TEST_F(VertexLabeledDegreeUniformHyperPriorTest, getLogLikelihoodRatioFromGraphMove_forAddedEdge_returnCorrectRatio){
     GraphMove move = {{}, {{0,1}}};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromGraphMove(move);
     double logLikelihoodBefore = prior.getLogLikelihood();
@@ -292,7 +292,7 @@ TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromGraphM
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
 }
 
-TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
+TEST_F(VertexLabeledDegreeUniformHyperPriorTest, getLogLikelihoodRatioFromLabelMove_forSomeLabelMove_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
     auto g = generateDCSBM(prior.getBlockPrior().getState(), prior.getLabelGraphPrior().getState(), prior.getState());
     labelGraphPrior.setGraph(g);
@@ -309,7 +309,7 @@ TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelM
     EXPECT_NEAR(actualLogLikelihoodRatio, logLikelihoodAfter - logLikelihoodBefore, TOL);
 }
 
-TEST_F(TestVertexLabeledDegreeUniformHyperPrior, getLogLikelihoodRatioFromLabelMove_forLabelMoveAddingNewBlock_returnCorrectRatio){
+TEST_F(VertexLabeledDegreeUniformHyperPriorTest, getLogLikelihoodRatioFromLabelMove_forLabelMoveAddingNewBlock_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
     auto g = generateDCSBM(blockPrior.getState(), prior.getLabelGraphPrior().getState(), prior.getState());
     BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getVertexCounts().size(), 1};
