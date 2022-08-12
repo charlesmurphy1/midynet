@@ -74,6 +74,8 @@ void VertexLabeledDegreePrior::applyGraphMoveToDegreeCounts(const GraphMove& mov
 }
 
 void VertexLabeledDegreePrior::applyLabelMoveToDegreeCounts(const BlockMove& move){
+    if (move.level != 0)
+        return;
     const DegreeSequence& degreeSeq = getState();
     m_degreeCounts.decrement({move.prevLabel, degreeSeq[move.vertexIndex]});
     m_degreeCounts.increment({move.nextLabel, degreeSeq[move.vertexIndex]});
@@ -85,8 +87,6 @@ void VertexLabeledDegreePrior::_applyGraphMove(const GraphMove& move){
     applyGraphMoveToState(move);
 }
 void VertexLabeledDegreePrior::_applyLabelMove(const BlockMove& move) {
-    if (move.level != 0)
-        return;
     m_labelGraphPriorPtr->applyLabelMove(move);
     applyLabelMoveToDegreeCounts(move);
 }
@@ -221,6 +221,9 @@ const double VertexLabeledDegreeUniformPrior::getLogLikelihoodRatioFromGraphMove
 }
 
 const double VertexLabeledDegreeUniformPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+
+    if (move.level != 0)
+        return 0;
     BlockIndex r = move.prevLabel, s = move.nextLabel;
     size_t k = m_state[move.vertexIndex];
     size_t nr = getBlockPrior().getVertexCounts().get(r) ;
@@ -315,6 +318,9 @@ const double VertexLabeledDegreeUniformHyperPrior::getLogLikelihoodRatioFromGrap
 }
 
 const double VertexLabeledDegreeUniformHyperPrior::getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const {
+
+    if (move.level != 0)
+        return 0;
     BlockIndex r = move.prevLabel, s = move.nextLabel;
     bool createEmptyBlock = move.nextLabel == getBlockPrior().getVertexCounts().size();
     size_t k = m_state[move.vertexIndex];

@@ -347,7 +347,7 @@ TEST_F(LabelPlantedPartitionPriorTest, getLogLikelihood_forSomeSampledMatrix_ret
     auto E = prior.getEdgeCount(), B = prior.getBlockPrior().getEffectiveBlockCount();
     double actualLogLikelihood = prior.getLogLikelihood();
     double expectedLogLikelihood = - ((B == 1) ? 0 : log(E + 1)) + logFactorial(prior.getEdgeCountIn())  + logFactorial(prior.getEdgeCountOut());
-    expectedLogLikelihood -= log(B) * prior.getEdgeCountIn() + log(B * (B - 1) / 2) * prior.getEdgeCountOut();
+    expectedLogLikelihood -= log(B) * prior.getEdgeCountIn() + ((B == 1) ? 0 : log(B * (B - 1) / 2) * prior.getEdgeCountOut());
     for(size_t r=0; r<prior.getState().getSize(); ++r){
         expectedLogLikelihood -= logFactorial(prior.getState().getEdgeMultiplicityIdx(r, r));
         for(size_t s=r+1; s<prior.getState().getSize(); ++s){
