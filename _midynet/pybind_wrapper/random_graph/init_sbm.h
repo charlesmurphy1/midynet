@@ -35,6 +35,30 @@ void initStochasticBlockModel(py::module& m){
         )
         ;
 
+    py::class_<PlantedPartitionModel, StochasticBlockModel>(m, "PlantedPartitionModel")
+        .def(
+            py::init<const std::vector<size_t>, size_t, double, bool, bool, bool, std::string>(),
+            py::arg("sizes"),
+            py::arg("edge_count"),
+            py::arg("assortativity")=0,
+            py::arg("stub_labeled")=true,
+            py::arg("with_self_loops")=true,
+            py::arg("with_parallel_edges")=true,
+            py::arg("edge_proposer_type")="uniform"
+        )
+        .def(
+            py::init<size_t, size_t, size_t, double, bool, bool, bool, std::string>(),
+            py::arg("size"),
+            py::arg("edge_count"),
+            py::arg("block_count"),
+            py::arg("assortativity")=0,
+            py::arg("stub_labeled")=true,
+            py::arg("with_self_loops")=true,
+            py::arg("with_parallel_edges")=true,
+            py::arg("edge_proposer_type")="uniform"
+        )
+        ;
+
     py::class_<StochasticBlockModelFamily, StochasticBlockModelBase>(m, "StochasticBlockModelFamily")
         .def(
             py::init<size_t, double, size_t, bool, bool, bool, bool, bool, bool, std::string, std::string, double, double, double>(),

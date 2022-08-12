@@ -36,9 +36,7 @@ void initLabelGraphPrior(py::module& m){
 
     py::class_<LabelGraphDeltaPrior, LabelGraphPrior>(m, "LabelGraphDeltaPrior")
         .def(py::init<>())
-        .def(py::init<LabelGraph>(), py::arg("label_graph"))
-        .def(py::init<LabelGraph, EdgeCountPrior&, BlockPrior&>(),
-            py::arg("label_graph"), py::arg("edge_count_prior"), py::arg("block_prior"));
+        .def(py::init<const std::vector<BlockIndex>&, const LabelGraph&>(), py::arg("blocks"), py::arg("label_graph"));
 
     py::class_<LabelGraphErdosRenyiPrior, LabelGraphPrior>(m, "LabelGraphErdosRenyiPrior")
         .def(py::init<>())
