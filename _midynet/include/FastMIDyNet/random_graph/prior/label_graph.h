@@ -139,21 +139,23 @@ class LabelGraphPrior: public BlockLabeledPrior< LabelGraph >{
 class LabelGraphDeltaPrior: public LabelGraphPrior{
 public:
     LabelGraph m_labelGraph;
+    BlockDeltaPrior m_blockDeltaPrior;
     EdgeCountDeltaPrior m_edgeCountDeltaPrior;
     void recomputeConsistentState() override { m_labelGraph = m_state; }
 
 public:
     LabelGraphDeltaPrior(){}
-    LabelGraphDeltaPrior(const LabelGraph& labelGraph) {
-        setState(labelGraph);
-        m_edgeCountDeltaPrior.setState(labelGraph.getTotalEdgeNumber());
-    }
-    LabelGraphDeltaPrior(const LabelGraph& labelGraph, EdgeCountPrior& edgeCountPrior, BlockPrior& blockPrior):
-        LabelGraphPrior(edgeCountPrior, blockPrior){ setState(labelGraph); }
-
-    LabelGraphDeltaPrior(const LabelGraphDeltaPrior& labelGraphDeltaPrior):
-        LabelGraphPrior(labelGraphDeltaPrior) {
-            setState(labelGraphDeltaPrior.getState());
+    LabelGraphDeltaPrior(const std::vector<BlockIndex>& blocks, const LabelGraph& labelGraph):
+    LabelGraphPrior(),
+    m_blockDeltaPrior(blocks), m_edgeCountDeltaPrior(labelGraph.getTotalEdgeNumber()), m_labelGraph(labelGraph){
+            setEdgeCountPrior(m_edgeCountDeltaPrior);
+            setBlockPrior(m_blockDeltaPrior);
+            setState(m_labelGraph);
+        }
+    LabelGraphDeltaPrior(const LabelGraphDeltaPrior& other):
+        LabelGraphPrior(other),
+        m_blockDeltaPrior(other.getBlocks()), m_labelGraph(other.m_labelGraph){
+            setState(other.getState());
         }
     virtual ~LabelGraphDeltaPrior(){}
     const LabelGraphDeltaPrior& operator=(const LabelGraphDeltaPrior& other){

@@ -12,7 +12,7 @@ def get_edgelist(bs_graph):
     return el
 
 
-def get_networkx_graph_from_basegraph(bs_graph):
+def convert_basegraph_to_networkx(bs_graph):
     nx_graph = nx.Graph()
     for v in bs_graph:
         nx_graph.add_node(v)
@@ -23,7 +23,7 @@ def get_networkx_graph_from_basegraph(bs_graph):
     return nx_graph
 
 
-def get_graphtool_graph_from_basegraph(bs_graph):
+def convert_basegraph_to_graphtool(bs_graph):
     gt_graph = gt.Graph()
     for v in bs_graph:
         for u in bs_graph.get_out_edges_of_idx(v):

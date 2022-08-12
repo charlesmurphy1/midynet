@@ -2,6 +2,7 @@
 #include <list>
 #include <algorithm>
 #include <string>
+#include <cmath>
 
 #include "../fixtures.hpp"
 #include "FastMIDyNet/random_graph/prior/block.h"
@@ -333,3 +334,39 @@ INSTANTIATE_TEST_CASE_P(
             std::make_tuple(true, true, true)
         )
     );
+
+class SBMTest: public::testing::Test{
+protected:
+    std::vector<size_t> sizes = {10, 20, 30};
+    size_t edgeCount = 100;
+    double assortativity = 0.8;
+    std::vector<BlockIndex> blocks = getPlantedBlocks(sizes);
+    LabelGraph labelGraph = getPlantedLabelGraph(sizes.size(), edgeCount);
+
+    StochasticBlockModel randomGraph = StochasticBlockModel(blocks, labelGraph);
+
+};
+
+
+TEST_F(SBMTest, sample_noError){
+    randomGraph.sample();
+}
+
+class PlantedPartitionModelTest: public::testing::Test{
+protected:
+    size_t edgeCount = 100;
+    double assortativity = 0.8;
+};
+
+
+TEST_F(PlantedPartitionModelTest, constructor1_noThrow){
+    PlantedPartitionModel randomGraph = PlantedPartitionModel({10, 20, 30}, edgeCount, assortativity);
+    randomGraph.sample();
+    EXPECT_NO_THROW(randomGraph.checkConsistency());
+}
+
+TEST_F(PlantedPartitionModelTest, constructor2_noThrow){
+    PlantedPartitionModel randomGraph = PlantedPartitionModel(60, edgeCount, 3, assortativity);
+    randomGraph.sample();
+    EXPECT_NO_THROW(randomGraph.checkConsistency());
+}

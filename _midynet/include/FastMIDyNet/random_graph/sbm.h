@@ -116,7 +116,6 @@ public:
 
 
 class StochasticBlockModel: public StochasticBlockModelBase{
-    BlockDeltaPrior m_blockPrior;
     LabelGraphDeltaPrior m_labelGraphPrior;
     std::unique_ptr<EdgeProposer> m_edgeProposerUPtr = nullptr;
     std::unique_ptr<LabelProposer<BlockIndex>> m_labelProposerUPtr;
@@ -129,8 +128,8 @@ public:
         bool withParallelEdges=true,
         std::string edgeProposerType="uniform"):
         StochasticBlockModelBase(blocks.size(), stubLabeled, withSelfLoops, withParallelEdges),
-        m_blockPrior(blocks),
-        m_labelGraphPrior(labelGraph){
+        m_labelGraphPrior(blocks, labelGraph){
+                setLabelGraphPrior(m_labelGraphPrior);
                 m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(makeEdgeProposer(edgeProposerType, false, false, withSelfLoops, withSelfLoops));
                 m_edgeProposerPtr = m_edgeProposerUPtr.get();
                 m_edgeProposerPtr->isRoot(false);
@@ -197,8 +196,52 @@ public:
     }
 };
 
-class PlantedPartitionModel: public StochasticBlockModelBase{
+std::vector<BlockIndex> getPlantedBlocks(std::vector<size_t> sizes);
+std::vector<BlockIndex> getPlantedBlocks(size_t, size_t);
+LabelGraph getPlantedLabelGraph(size_t blockCount, size_t edgeCount, double assortativity=0);
 
+class PlantedPartitionModel: public StochasticBlockModel{
+    double m_assortativity;
+public:
+    PlantedPartitionModel(
+        std::vector<size_t> sizes,
+        size_t edgeCount,
+        double assortativity=0,
+        bool stubLabeled=true,
+        bool withSelfLoops=true,
+        bool withParallelEdges=true,
+        std::string edgeProposerType="uniform"
+    ):
+        StochasticBlockModel(
+            getPlantedBlocks(sizes),
+            getPlantedLabelGraph(sizes.size(), edgeCount, assortativity),
+            stubLabeled,
+            withSelfLoops,
+            withParallelEdges,
+            edgeProposerType
+        ),
+        m_assortativity(assortativity) { }
+
+        PlantedPartitionModel(
+            size_t size,
+            size_t edgeCount,
+            size_t blockCount,
+            double assortativity=0,
+            bool stubLabeled=true,
+            bool withSelfLoops=true,
+            bool withParallelEdges=true,
+            std::string edgeProposerType="uniform"
+        ):
+            StochasticBlockModel(
+                getPlantedBlocks(size, blockCount),
+                getPlantedLabelGraph(blockCount, edgeCount, assortativity),
+                stubLabeled,
+                withSelfLoops,
+                withParallelEdges,
+                edgeProposerType
+            ),
+            m_assortativity(assortativity) { }
+    const double getAssortativity() const { return m_assortativity; }
 };
 
 }// end FastMIDyNet

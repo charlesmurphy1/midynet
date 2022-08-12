@@ -1,13 +1,14 @@
 import os
 import pathlib
 import matplotlib.pyplot as plt
+import numpy as np
 import networkx as nx
 
 from typing import Optional, Union
 from cycler import cycler
 from palettable.palette import Palette
 
-from .convert import get_edgelist, get_networkx_graph_from_basegraph
+from .convert import get_edgelist, convert_basegraph_to_networkx
 
 __all__ = (
     "fontsizes",
@@ -228,7 +229,7 @@ def draw_graph(graph, labels=None, ax=None, pos=None, marginals=None):
         + [c for c in med_colors.values()]
         + [c for c in dark_colors.values()]
     )
-    nx_graph = get_networkx_graph_from_basegraph(graph)
+    nx_graph = convert_basegraph_to_networkx(graph)
     if pos is None:
         pos = nx.spring_layout(nx_graph)
 

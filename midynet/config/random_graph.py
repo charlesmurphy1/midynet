@@ -1,6 +1,7 @@
 import numpy as np
 from math import floor, ceil
 from typing import Union, Optional
+from itertools import combinations_with_replacement
 
 from basegraph.core import UndirectedMultigraph
 from _midynet.random_graph import (
@@ -262,8 +263,8 @@ class RandomGraphFactory(Factory):
         e_in = ceil(E / B * a)
         e_out = floor(2 * E / (B * (B - 1)) * (1 - a))
         blocks = []
-        for i, n in enumerate(sizes):
-            blocks += [i] * n
+        for i, n in enumerate(config.sizes):
+            blocks += [i] * int(n)
         label_graph = UndirectedMultigraph(B)
         for i, j in combinations_with_replacement(range(B), 2):
             label_graph.add_multiedge_idx(i, j, e_in if i == j else e_out)
