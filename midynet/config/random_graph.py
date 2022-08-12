@@ -8,7 +8,7 @@ from _midynet.random_graph import (
     ErdosRenyiModel,
     ConfigurationModel,
     ConfigurationModelFamily,
-    StochasticBlockModel,
+    PlantedPartitionModel,
     StochasticBlockModelFamily,
     NestedStochasticBlockModelFamily,
     DegreeCorrectedStochasticBlockModelFamily,
@@ -258,19 +258,10 @@ class RandomGraphFactory(Factory):
 
     @staticmethod
     def build_planted_partition(config: RandomGraphConfig):
-        a = (config.assortativity + 1.0) / 2.0
-        E, B = config.edge_count, len(config.sizes)
-        e_in = ceil(E / B * a)
-        e_out = floor(2 * E / (B * (B - 1)) * (1 - a))
-        blocks = []
-        for i, n in enumerate(config.sizes):
-            blocks += [i] * int(n)
-        label_graph = UndirectedMultigraph(B)
-        for i, j in combinations_with_replacement(range(B), 2):
-            label_graph.add_multiedge_idx(i, j, e_in if i == j else e_out)
-        return StochasticBlockModel(
-            blocks,
-            label_graph,
+        return PlantedPartitionModel(
+            config.sizes,
+            config.edge_count,
+            assortativity=config.assortativity,
             stub_labeled=config.stub_labeled,
             with_self_loops=config.with_self_loops,
             with_parallel_edges=config.with_parallel_edges,

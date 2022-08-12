@@ -76,12 +76,12 @@ random_graph_setup = [
         lambda obj: obj.sample(),
         id="hdcsbm",
     ),
-    # pytest.param(
-    #     RandomGraphConfig.planted_partition(100, 250),
-    #     RandomGraphFactory,
-    #     lambda obj: obj.sample(),
-    #     id="pp",
-    # ),
+    pytest.param(
+        RandomGraphConfig.planted_partition(sizes=[25, 25, 25, 25], edge_count=250),
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="pp",
+    ),
 ]
 
 
