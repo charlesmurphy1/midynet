@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include "../fixtures.hpp"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/generators.h"
 
@@ -54,6 +55,25 @@ static const FastMIDyNet::DegreeSequence convertDegrees(const std::vector<size_t
     for (auto d: basegraphDegrees)
         degrees.push_back(d);
     return degrees;
+}
+
+TEST(TESTSampleRandomNeighbor, sampleRandomNeighbor_forMultipleSample_sampleAccordingToMultiplicity){
+    seedWithTime();
+    size_t numSamples = 1000;
+    MultiGraph graph = getUndirectedHouseMultiGraph();
+    graph.addMultiedgeIdx(1, 2, 2);
+    graph.addMultiedgeIdx(1, 3, 1);
+    graph.addMultiedgeIdx(1, 1, 2);
+
+    CounterMap<BaseGraph::VertexIndex> counter;
+    for(size_t i=0; i<numSamples; ++i){
+        counter.increment(sampleRandomNeighbor(graph, 1, true));
+    }
+
+    for (const auto& c : counter){
+        size_t m = ((c.first == 1) ? 2 : 1) * graph.getEdgeMultiplicityIdx(1, c.first);
+        EXPECT_EQ(round(((double) c.second * 10) / numSamples), m);
+    }
 }
 
 

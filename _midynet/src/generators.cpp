@@ -172,6 +172,27 @@ std::vector<size_t> sampleUniformMultinomial(const size_t n, const size_t k){
     return sampleMultinomial(n, p);
 }
 
+BaseGraph::VertexIndex sampleRandomNeighbor(
+    const MultiGraph& graph, const BaseGraph::VertexIndex vertex, bool withMultiplicity
+){
+    const size_t degree = (withMultiplicity) ? graph.getDegreeOfIdx(vertex): graph.getNeighboursOfIdx(vertex).size();
+    std::uniform_int_distribution<size_t> dist(0, degree - 1);
+    BaseGraph::VertexIndex neighborIndex;
+    int counter = dist(rng);
+
+    for(const auto& neighbor : graph.getNeighboursOfIdx(vertex)){
+        int c = 1;
+        if (withMultiplicity)
+            c = neighbor.label;
+        if (neighbor.vertexIndex == vertex)
+            c *= 2;
+        counter -= c;
+        neighborIndex = neighbor.vertexIndex;
+        if (counter < 0)
+            break;
+    }
+    return neighborIndex;
+}
 
 
 BaseGraph::UndirectedMultigraph generateDCSBM(

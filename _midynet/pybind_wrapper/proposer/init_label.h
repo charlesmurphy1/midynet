@@ -27,8 +27,9 @@ py::class_<LabelProposer<Label>, Proposer<LabelMove<Label>>, PyLabelProposer<Lab
         .def("get_log_proposal_prob_ratio", &LabelProposer<Label>::getLogProposalProbRatio, py::arg("move"))
         .def("get_log_proposal_prob", &LabelProposer<Label>::getLogProposalProb, py::arg("move"), py::arg("reverse")=false)
         .def("apply_label_move", &LabelProposer<Label>::applyLabelMove, py::arg("move"))
-        .def("propose_label_move", &LabelProposer<Label>::proposeLabelMove, py::arg("vertex"))
-        .def("propose_new_label_move", &LabelProposer<Label>::proposeNewLabelMove, py::arg("vertex"))
+        .def("propose_move", [](const LabelProposer<Label>& self, BaseGraph::VertexIndex vertex) { return self.proposeMove(vertex); }, py::arg("vertex"))
+        .def("propose_label_move", [](const LabelProposer<Label>& self, BaseGraph::VertexIndex vertex) { return self.proposeLabelMove(vertex); }, py::arg("vertex"))
+        .def("propose_new_label_move", [](const LabelProposer<Label>& self, BaseGraph::VertexIndex vertex) { return self.proposeNewLabelMove(vertex); }, py::arg("vertex"))
         ;
 }
 

@@ -8,9 +8,35 @@
 
 namespace FastMIDyNet{
 
+
+double getGroundTruthMoveProb(
+    BaseGraph::VertexIndex vertex,
+    BlockIndex s,
+    const MultiGraph& graph,
+    const BlockSequence& blocks,
+    const LabelGraph& labelGraph,
+    double shift,
+    size_t blockCount){
+        double weight, degree;
+
+        for (const auto& neighbor : graph.getNeighboursOfIdx(vertex)){
+            BlockIndex t = blocks[neighbor.vertexIndex];
+            size_t m = neighbor.label;
+            if (vertex == neighbor.vertexIndex)
+                m *= 2;
+            size_t Est = labelGraph.getEdgeMultiplicityIdx(s, t);
+            size_t Et = labelGraph.getDegreeOfIdx(t);
+            if (s == t)
+                Est *= 2;
+            weight += m * (Est + shift) / (Et + shift * blockCount);
+            degree += m;
+        }
+        return log(weight) - log(degree);
+    }
+
 class TestGibbsMixedBlockProposer: public::testing::Test{
 public:
-    double SAMPLE_LABEL_PROB=0.1, LABEL_CREATION_PROB=0.5, SHIFT=1;
+    double SAMPLE_LABEL_PROB=0., LABEL_CREATION_PROB=0.5, SHIFT=1;
     size_t numSamples = 100;
     const size_t NUM_VERTICES = 100, NUM_EDGES = 250;
     const bool useHyperPrior = false, canonical = false, stubLabeled = false;
@@ -31,6 +57,7 @@ public:
     }
 };
 
+
 TEST_F(TestGibbsMixedBlockProposer, proposeLabelMove_returnValidMove){
     for(size_t i=0; i<numSamples; ++i){
         auto move = proposer.proposeLabelMove(0);
@@ -50,8 +77,12 @@ TEST_F(TestGibbsMixedBlockProposer, proposeNewLabelMove_returnValidMove){
 TEST_F(TestGibbsMixedBlockProposer, getLogProposalProb_forSomeLabelMove_returnCorrectProb){
     for(size_t i=0; i<10; ++i){
         auto move = proposer.proposeLabelMove(0);
-        while (move.prevLabel == move.nextLabel)
+        while (move.prevLabel == move.nextLabel){
+            graphPrior.sample();
+            proposer.setUpWithPrior(graphPrior);
             move = proposer.proposeLabelMove(0);
+
+        }
         LabelMove<BlockIndex> reverseMove = {move.vertexIndex, move.nextLabel, move.prevLabel};
         double logProb = proposer.getLogProposalProb(move, false);
         proposer.applyLabelMove(move);
@@ -114,14 +145,17 @@ TEST_F(TestRestrictedMixedBlockProposer, proposeNewLabelMove_returnValidMove){
 TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forSomeLabelMove_returnCorrectProb){
     for(size_t i=0; i<10; ++i){
         auto move = proposer.proposeLabelMove(0);
-        while (move.prevLabel == move.nextLabel or graphPrior.getVertexCounts().get(move.prevLabel) == 1)
+        while (move.prevLabel == move.nextLabel or graphPrior.getVertexCounts().get(move.prevLabel) == 1){
+            graphPrior.sample();
+            proposer.setUpWithPrior(graphPrior);
             move = proposer.proposeLabelMove(0);
+        }
         LabelMove<BlockIndex> reverseMove = {move.vertexIndex, move.nextLabel, move.prevLabel};
         double logProb = proposer.getLogProposalProb(move, false);
         proposer.applyLabelMove(move);
         graphPrior.applyLabelMove(move);
         double revLogProb = proposer.getLogProposalProb(reverseMove, true);
-        EXPECT_EQ(logProb, revLogProb);
+        EXPECT_NEAR(logProb, revLogProb, 1e-6);
     }
 }
 

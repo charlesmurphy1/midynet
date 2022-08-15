@@ -133,8 +133,9 @@ class RandomGraphConfig(Config):
     @classmethod
     def planted_partition(
         cls,
-        sizes: list[int] = [50, 50],
+        size: int = 100,
         edge_count: int = 250,
+        block_count: int = 3,
         assortativity: float = 0.5,
         stub_labeled: bool = False,
         with_self_loops: bool = True,
@@ -142,8 +143,9 @@ class RandomGraphConfig(Config):
     ):
         return cls(
             name="planted_partition",
-            sizes=sizes,
+            size=size,
             edge_count=edge_count,
+            block_count=block_count,
             assortativity=assortativity,
             labeled=True,
             stub_labeled=stub_labeled,
@@ -259,8 +261,9 @@ class RandomGraphFactory(Factory):
     @staticmethod
     def build_planted_partition(config: RandomGraphConfig):
         return PlantedPartitionModel(
-            config.sizes,
+            config.size,
             config.edge_count,
+            block_count=config.block_count,
             assortativity=config.assortativity,
             stub_labeled=config.stub_labeled,
             with_self_loops=config.with_self_loops,

@@ -220,7 +220,17 @@ def drawPieMarker(xs, ys, ratios, colors, size=60, ax=None):
         ax.scatter(xs, ys, zorder=10, **marker)
 
 
-def draw_graph(graph, labels=None, ax=None, pos=None, marginals=None):
+def draw_graph(
+    graph,
+    labels=None,
+    ax=None,
+    pos=None,
+    marginals=None,
+    ec=med_colors["grey"],
+    ew=1,
+    with_self_loops=True,
+    with_parallel_edges=True,
+):
     ax = plt.gca() if ax is None else ax
     labels = [0] * graph.get_size() if labels is None else labels
     el = []
@@ -230,24 +240,21 @@ def draw_graph(graph, labels=None, ax=None, pos=None, marginals=None):
         + [c for c in dark_colors.values()]
     )
     nx_graph = convert_basegraph_to_networkx(graph)
+    if not with_self_loops:
+        nx_graph.remove_edges_from(nx.selfloop_edges(nx_graph))
     if pos is None:
         pos = nx.spring_layout(nx_graph)
 
-    # for i, j in get_edgelist(graph):
-    #     pos_i, pos_j = pos[i], pos[j]
-    #     ax.plot(
-    #         [pos_i[0], pos_j[0]],
-    #         [pos_i[1], pos_j[1]],
-    #         linestyle="-",
-    #         marker="None",
-    #         color=med_colors["grey"],
-    #         linewidth=graph.get_edge_multiplicity_idx(i, j),
-    #     )
     nx.draw_networkx_edges(
         nx_graph,
         pos=pos,
         edgelist=get_edgelist(graph),
-        width=[graph.get_edge_multiplicity_idx(*e) for e in get_edgelist(graph)],
+        width=[
+            ew * graph.get_edge_multiplicity_idx(*e) if with_parallel_edges else ew
+            for e in get_edgelist(graph)
+        ],
+        edge_color=ec,
+        ax=ax,
     )
 
     for i, p in pos.items():

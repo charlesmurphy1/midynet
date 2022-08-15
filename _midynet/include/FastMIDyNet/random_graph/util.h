@@ -27,6 +27,7 @@
 namespace FastMIDyNet{
 
 MultiGraph getLabelGraphFromGraph(const MultiGraph& graph, const BlockSequence& blockSeq);
+
 void checkGraphConsistencyWithLabelGraph(
     std::string namePrefix,
     const MultiGraph& graph,

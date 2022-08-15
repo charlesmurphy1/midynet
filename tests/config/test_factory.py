@@ -77,7 +77,7 @@ random_graph_setup = [
         id="hdcsbm",
     ),
     pytest.param(
-        RandomGraphConfig.planted_partition(sizes=[25, 25, 25, 25], edge_count=250),
+        RandomGraphConfig.planted_partition(size=100, edge_count=250, block_count=4),
         RandomGraphFactory,
         lambda obj: obj.sample(),
         id="pp",

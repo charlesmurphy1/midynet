@@ -20,6 +20,7 @@ void initGenerators(py::module& m){
     m.def("sampleRandomRestrictedPartition", &sampleRandomRestrictedPartition, py::arg("n"), py::arg("k"), py::arg("numSteps")=0);
     m.def("sampleRandomPermutation", &sampleRandomPermutation, py::arg("nk"));
     m.def("sampleMultinomial", &sampleMultinomial, py::arg("n"), py::arg("p"));
+    m.def("sampleRandomNeighbor", &sampleRandomNeighbor, py::arg("graph"), py::arg("vertex"), py::arg("with_multiplicity")=true);
 
     /* Random graph generators */
     m.def("generateErdosRenyi", &generateErdosRenyi, py::arg("size"), py::arg("edge_count"), py::arg("with_self_loops")=true);

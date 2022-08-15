@@ -43,7 +43,12 @@ public:
     virtual const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const {
         if ( isCreatingLabelMove(move, reverse) )
             return log(m_sampleLabelCountProb);
-        return log(1 - m_sampleLabelCountProb) + ((reverse) ? getLogProposalProbForReverseMove(move) :  getLogProposalProbForMove(move));
+        double dS = 0;
+        if (reverse)
+            dS = getLogProposalProbForReverseMove(move);
+        else
+            dS = getLogProposalProbForMove(move);
+        return log(1 - m_sampleLabelCountProb) + dS;
     }
 
     const double getSampleLabelCountProb() const { return m_sampleLabelCountProb; }
@@ -56,6 +61,9 @@ public:
 
     const LabelMove<Label> proposeMove() const {
         BaseGraph::VertexIndex vertex = m_vertexDistribution(rng);
+        return proposeMove(vertex);
+    }
+    const LabelMove<Label> proposeMove(const BaseGraph::VertexIndex& vertex) const {
         if (m_uniform01(rng) < m_sampleLabelCountProb)
             return proposeNewLabelMove(vertex);
         return proposeLabelMove(vertex);
@@ -106,7 +114,10 @@ protected:
         return (int) creatingNewLabel(move) - (int) destroyingLabel(move);
     }
     bool isCreatingLabelMove(const LabelMove<Label>& move, bool reverse) const {
-        return ( move.addedLabels == ((reverse) ? -1 : 1 ));
+        if (reverse)
+            return move.addedLabels == -1;
+        else
+            return move.addedLabels == 1;
     }
     using BaseClass = LabelProposer<Label>;
     using BaseClass::m_graphPriorPtr;

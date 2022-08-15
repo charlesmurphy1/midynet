@@ -29,5 +29,6 @@ def convert_basegraph_to_graphtool(bs_graph):
         for u in bs_graph.get_out_edges_of_idx(v):
             if v > u.vertex_index:
                 continue
-            gt_graph.add_edge(v, u.vertex_index)
+            for e in range(u.label):
+                gt_graph.add_edge(v, u.vertex_index)
     return gt_graph

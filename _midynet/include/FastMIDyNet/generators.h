@@ -32,6 +32,10 @@ std::vector<size_t> sampleRandomPermutation(const std::vector<size_t>& nk);
 std::vector<size_t> sampleMultinomial(const size_t n, const std::vector<double>& p);
 std::vector<size_t> sampleUniformMultinomial(const size_t n, const size_t k);
 
+BaseGraph::VertexIndex sampleRandomNeighbor(
+    const MultiGraph& graph, const BaseGraph::VertexIndex vertex, bool withMultiplicity=true
+);
+
 template <typename T>
 T sampleUniformly(T min, T max) {
     std::uniform_int_distribution<> dist(min, max);
