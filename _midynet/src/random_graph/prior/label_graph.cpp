@@ -191,10 +191,10 @@ const double LabelGraphErdosRenyiPrior::getLogLikelihoodRatioFromLabelMove(const
 void LabelGraphPlantedPartitionPrior::recomputeConsistentState() {
     LabelGraphPrior::recomputeConsistentState();
     m_edgeCountIn=0, m_edgeCountOut=0;
-    if (m_blockPriorPtr->getEffectiveBlockCount() == 1){
-        m_edgeCountIn = getEdgeCount();
-        return;
-    }
+    // if (m_blockPriorPtr->getEffectiveBlockCount() == 1){
+    //     m_edgeCountIn = getEdgeCount();
+    //     return;
+    // }
     for(size_t r=0; r<m_state.getSize(); ++r){
         m_edgeCountIn += m_state.getEdgeMultiplicityIdx(r, r);
         for(size_t s=r+1; s<m_state.getSize(); ++s){

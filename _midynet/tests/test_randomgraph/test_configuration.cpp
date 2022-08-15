@@ -111,3 +111,11 @@ INSTANTIATE_TEST_CASE_P(
         CMParametrizedTest,
         ::testing::Values( false, true )
     );
+
+
+TEST(CMTests, instanciateConfigurationModel_forRegularSequence){
+    std::vector<size_t> degrees(100, 5);
+
+    ConfigurationModel graph(degrees);
+
+}

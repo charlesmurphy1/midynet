@@ -128,10 +128,10 @@ TEST_F(DegreePriorTest, applyGraphMoveToState_ForRemovedEdgeNAddedEdge_returnCor
 
 TEST_F(DegreePriorTest, applyGraphMoveToDegreeCounts_forAddedEdge_returnCorrectDegreeCounts){
     GraphMove move = {{}, {{0,1}}};
-    size_t E = prior.getEdgeCount();
     auto expected = prior.getDegreeCounts();
-    expected.decrement(0); expected.increment(1);
-    expected.decrement(E); expected.increment(E+1);
+    size_t k0 = prior.getDegreeOfIdx(0), k1 = prior.getDegreeOfIdx(1);
+    expected.decrement(k0); expected.increment(k0 + 1);
+    expected.decrement(k1); expected.increment(k1+1);
     prior.applyGraphMoveToDegreeCounts(move);
     auto actual = prior.getDegreeCounts();
 

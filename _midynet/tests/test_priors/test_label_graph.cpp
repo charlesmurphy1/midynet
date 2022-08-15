@@ -315,7 +315,7 @@ class LabelPlantedPartitionPriorTest: public ::testing::Test {
         MultiGraph graph = getUndirectedHouseMultiGraph();
         EdgeCountDeltaPrior edgeCountPrior = {11};
         BlockCountDeltaPrior blockCountPrior = {3};
-        BlockUniformPrior blockPrior = {graph.getSize(), blockCountPrior};
+        BlockUniformHyperPrior blockPrior = {graph.getSize(), blockCountPrior};
         LabelGraphPlantedPartitionPrior prior = {edgeCountPrior, blockPrior};
 
         bool expectConsistencyError = false;
@@ -343,18 +343,25 @@ TEST_F(LabelPlantedPartitionPriorTest, sample_returnLabelGraphWithCorrectShape){
 }
 
 TEST_F(LabelPlantedPartitionPriorTest, getLogLikelihood_forSomeSampledMatrix_returnCorrectLogLikelihood){
-    prior.sample();
-    auto E = prior.getEdgeCount(), B = prior.getBlockPrior().getEffectiveBlockCount();
-    double actualLogLikelihood = prior.getLogLikelihood();
-    double expectedLogLikelihood = - ((B == 1) ? 0 : log(E + 1)) + logFactorial(prior.getEdgeCountIn())  + logFactorial(prior.getEdgeCountOut());
-    expectedLogLikelihood -= log(B) * prior.getEdgeCountIn() + ((B == 1) ? 0 : log(B * (B - 1) / 2) * prior.getEdgeCountOut());
-    for(size_t r=0; r<prior.getState().getSize(); ++r){
-        expectedLogLikelihood -= logFactorial(prior.getState().getEdgeMultiplicityIdx(r, r));
-        for(size_t s=r+1; s<prior.getState().getSize(); ++s){
-            expectedLogLikelihood -= logFactorial(prior.getState().getEdgeMultiplicityIdx(r, s));
+    for (size_t i=0; i<100; ++i){
+        prior.sample();
+        auto E = prior.getEdgeCount(), B = prior.getBlockPrior().getEffectiveBlockCount();
+        double actualLogLikelihood = prior.getLogLikelihood();
+        double expectedLogLikelihood = logFactorial(prior.getEdgeCountIn()) + logFactorial(prior.getEdgeCountOut());
+        expectedLogLikelihood -= log(B) * prior.getEdgeCountIn();
+        if (B > 1){
+            expectedLogLikelihood -= log(E + 1);
+            expectedLogLikelihood -= log(B * (B - 1) / 2) * prior.getEdgeCountOut();
         }
+
+        for(size_t r=0; r<prior.getState().getSize(); ++r){
+            expectedLogLikelihood -= logFactorial(prior.getState().getEdgeMultiplicityIdx(r, r));
+            for(size_t s=r+1; s<prior.getState().getSize(); ++s){
+                expectedLogLikelihood -= logFactorial(prior.getState().getEdgeMultiplicityIdx(r, s));
+            }
+        }
+        EXPECT_NEAR(actualLogLikelihood, expectedLogLikelihood, 1e-6);
     }
-    EXPECT_NEAR(actualLogLikelihood, expectedLogLikelihood, 1e-6);
     expectConsistencyError = true;
 }
 

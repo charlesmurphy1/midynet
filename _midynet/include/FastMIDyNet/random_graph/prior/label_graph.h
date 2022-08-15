@@ -92,7 +92,7 @@ class LabelGraphPrior: public BlockLabeledPrior< LabelGraph >{
         void setState(const LabelGraph&) override;
         virtual void setPartition(const std::vector<BlockIndex>&) ;
         void samplePartition() {
-            m_blockPriorPtr->sampleState();
+            m_blockPriorPtr->sample();
             recomputeConsistentState();
         }
 

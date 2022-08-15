@@ -86,8 +86,7 @@ public:
     ConfigurationModel(const DegreeSequence& degrees):
         ConfigurationModelBase(degrees.size()) {
             m_degreePriorUPtr = std::unique_ptr<DegreePrior>(new DegreeDeltaPrior(degrees));
-            m_degreePriorPtr = m_degreePriorUPtr.get();
-            m_degreePriorPtr->isRoot(false);
+            setDegreePrior(*m_degreePriorUPtr.get());
 
             m_edgeProposerUPtr = std::unique_ptr<EdgeProposer>(makeEdgeProposer("degree", false, true, true, true));
             m_edgeProposerPtr = m_edgeProposerUPtr.get();

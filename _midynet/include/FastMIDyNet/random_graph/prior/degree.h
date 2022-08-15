@@ -51,7 +51,7 @@ public:
     // const MultiGraph& getGraph() const { return *m_graphPtr; }
     virtual void setState(const DegreeSequence&) override;
     static const DegreeCountsMap computeDegreeCounts(const std::vector<size_t>& degreeSequence);
-
+    static const size_t computeEdgeCountFromDegrees(const std::vector<size_t>& degrees);
 
     const size_t getSize() const { return m_size; }
     void setSize(size_t size) { m_size = size; }
@@ -93,13 +93,17 @@ public:
 
 class DegreeDeltaPrior: public DegreePrior{
     DegreeSequence m_degreeSeq;
+    EdgeCountDeltaPrior m_edgeCountDeltaPrior;
 
 public:
-    DegreeDeltaPrior(const DegreeSequence& degreeSeq):
-        DegreePrior(degreeSeq.size()){ setState(degreeSeq); }
+    DegreeDeltaPrior(const DegreeSequence& degrees):
+        DegreePrior(degrees.size()), m_edgeCountDeltaPrior(DegreePrior::computeEdgeCountFromDegrees(degrees)){
+            setEdgeCountPrior(m_edgeCountDeltaPrior);
+            setState(degrees);
+        }
 
     DegreeDeltaPrior(const DegreeDeltaPrior& degreeDeltaPrior):
-        DegreePrior(degreeDeltaPrior.m_size) {
+        DegreePrior(degreeDeltaPrior.m_size, degreeDeltaPrior.getEdgeCountPriorRef()) {
             setState(degreeDeltaPrior.getState());
         }
     virtual ~DegreeDeltaPrior(){}
@@ -112,7 +116,7 @@ public:
     void setState(const DegreeSequence& degrees){
         m_size = degrees.size();
         m_degreeSeq = degrees;
-        m_state = degrees;
+        DegreePrior::setState(degrees);
     }
     void sampleState() override { };
 

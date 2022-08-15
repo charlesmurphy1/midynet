@@ -22,8 +22,16 @@ const DegreeCountsMap DegreePrior::computeDegreeCounts(const std::vector<size_t>
     return degreeCounts;
 }
 
+const size_t DegreePrior::computeEdgeCountFromDegrees(const std::vector<size_t>& degrees){
+    size_t edgeCount = 0;
+    for (auto k : degrees)
+        edgeCount += k;
+    return edgeCount / 2;
+}
+
 void DegreePrior::recomputeConsistentState() {
     m_degreeCounts = computeDegreeCounts(m_state);
+    m_edgeCountPriorPtr->setState(computeEdgeCountFromDegrees(m_state));
 }
 
 void DegreePrior::setState(const DegreeSequence& state) {
@@ -32,7 +40,6 @@ void DegreePrior::setState(const DegreeSequence& state) {
 }
 
 void DegreePrior::setGraph(const MultiGraph& graph) {
-    m_edgeCountPriorPtr->setState(graph.getTotalEdgeNumber());
     m_state = graph.getDegrees();
     recomputeConsistentState();
 }

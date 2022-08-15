@@ -57,7 +57,9 @@ void BlockUniformPrior::sampleState() {
     for (size_t vertexIdx = 0; vertexIdx < getSize(); vertexIdx++) {
         blockSeq[vertexIdx] = dist(rng);
     }
-    m_state = blockSeq;
+
+    m_state = reducePartition(blockSeq);
+
     m_vertexCounts = computeVertexCounts(m_state);
 }
 

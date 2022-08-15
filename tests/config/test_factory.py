@@ -25,12 +25,12 @@ random_graph_setup = [
         lambda obj: obj.sample(),
         id="cm",
     ),
-    # pytest.param(
-    #     RandomGraphConfig.poisson(100, 250),
-    #     RandomGraphFactory,
-    #     lambda obj: obj.sample(),
-    #     id="cm",
-    # ),
+    pytest.param(
+        RandomGraphConfig.poisson(100, 250),
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="cm",
+    ),
     # pytest.param(
     #     RandomGraphConfig.nbinom(100, 250),
     #     RandomGraphFactory,
