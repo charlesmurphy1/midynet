@@ -10,10 +10,10 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
-            - name: Set up Python 3.9
-              uses: actions/setup-python@v2
-              with:
-                    python-version: 3.9
+            # - name: Set up Python 3.9
+            #   uses: actions/setup-python@v2
+            #   with:
+            #         python-version: 3.9
 
             - name: Loading submodules
               shell: bash
@@ -21,11 +21,15 @@ jobs:
                     git submodule init
                     git submodule update
 
+            # - name: Install C++ dependencies
+            #   shell: bash
+            #   run: |
+            #         sudo apt install gcc-9 g++ cmake
+            #         pip install --upgrade pip
             - name: Install C++ dependencies
               shell: bash
               run: |
                     sudo apt install gcc-9 g++ cmake
-                    pip install --upgrade pip
 
             - name: Installing basegraph==1.0.0
               shell: bash
@@ -35,8 +39,6 @@ jobs:
                     cd build
                     cmake ..
                     make -j4
-                    cd ..
-                    pip install .
 
             - name: Installing SamplableSet==2.2.0
               shell: bash
@@ -47,8 +49,6 @@ jobs:
                     cd build
                     cmake ..
                     make -j4
-                    cd ../..
-                    pip install .
 
             - name: Building midynet backend and run c++ tests
               shell: bash
