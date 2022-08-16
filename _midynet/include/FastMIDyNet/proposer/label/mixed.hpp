@@ -119,10 +119,17 @@ const double MixedSampler<Label>::_getLogProposalProbForReverseMove(const LabelM
         if (move.vertexIndex == neighbor.vertexIndex)
             edgeMult *= 2;
         auto rt = getOrderedEdge({t, move.prevLabel});
-        size_t Ert = (labelGraph.getEdgeMultiplicityIdx(rt) + edgeMatDiff.get(rt));
+
+        size_t Ert = 0;
+        if (t < labelGraph.getSize() and move.prevLabel < labelGraph.getSize())
+            Ert = labelGraph.getEdgeMultiplicityIdx(rt);
+        Ert += edgeMatDiff.get(rt);
         if (t == move.prevLabel)
             Ert *= 2;
-        size_t Et = labelGraph.getDegreeOfIdx(t) + edgeCountsDiff.get(t);
+        size_t Et = 0;
+        if (t < labelGraph.getSize())
+            Et = labelGraph.getDegreeOfIdx(t);
+        Et += edgeCountsDiff.get(t);
         degree += edgeMult;
         weight += edgeMult * ( Ert + m_shift ) / (Et + m_shift * (getAvailableLabelCount() + move.addedLabels)) ;
     }

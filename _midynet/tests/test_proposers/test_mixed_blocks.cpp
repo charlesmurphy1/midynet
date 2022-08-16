@@ -92,6 +92,30 @@ TEST_F(TestGibbsMixedBlockProposer, getLogProposalProb_forSomeLabelMove_returnCo
     }
 }
 
+TEST_F(TestGibbsMixedBlockProposer, getLogProposalProb_forSomeLabelMove_returnSampledValue){
+    CounterMap<BlockIndex> counter;
+    size_t numSamples = 100000;
+    double tol = 1e-2;
+
+    for (size_t i=0; i<numSamples; ++i){
+        BlockMove move = proposer.proposeMove(0);
+        counter.increment(move.nextLabel);
+    }
+
+    for (auto s : counter){
+        int dB = 0 ;
+        if (graphPrior.getVertexCounts().get(s.first) == 0)
+            dB = 1;
+        else if (graphPrior.getVertexCounts().get(graphPrior.getLabelOfIdx(0)) == 1)
+            dB = -1;
+
+        BlockMove move = {0, graphPrior.getLabelOfIdx(0), s.first, dB};
+        double expected = exp(proposer.getLogProposalProb(move));
+        double actual = (double)s.second / (double)numSamples;
+        EXPECT_NEAR(expected, actual, tol);
+    }
+}
+
 TEST_F(TestGibbsMixedBlockProposer, getLogProposalProb_forLabelMoveAddingNewLabel_returnCorrectProb){
     auto move = proposer.proposeNewLabelMove(0);
     LabelMove<BlockIndex> reverseMove = {move.vertexIndex, move.nextLabel, move.prevLabel, -move.addedLabels};
@@ -159,6 +183,30 @@ TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forSomeLabelMove_ret
     }
 }
 
+
+TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forSomeLabelMove_returnSampledValue){
+    CounterMap<BlockIndex> counter;
+    size_t numSamples = 100000;
+    double tol = 1e-2;
+
+    for (size_t i=0; i<numSamples; ++i){
+        BlockMove move = proposer.proposeMove(0);
+        counter.increment(move.nextLabel);
+    }
+
+    for (auto s : counter){
+        int dB = 0 ;
+        if (graphPrior.getVertexCounts().get(s.first) == 0)
+            dB = 1;
+        else if (graphPrior.getVertexCounts().get(graphPrior.getLabelOfIdx(0)) == 1)
+            dB = -1;
+
+        BlockMove move = {0, graphPrior.getLabelOfIdx(0), s.first, dB};
+        double expected = exp(proposer.getLogProposalProb(move));
+        double actual = (double)s.second / (double)numSamples;
+        EXPECT_NEAR(expected, actual, tol);
+    }
+}
 
 TEST_F(TestRestrictedMixedBlockProposer, getLogProposalProb_forLabelMoveAddingNewLabel_returnCorrectProb){
     auto move = proposer.proposeNewLabelMove(0);

@@ -23,7 +23,7 @@ protected:
 
     virtual const Label sampleLabelUniformlyAtLevel(Level level) const = 0;
 
-    const Label sampleLabelPreferentiallyAtLevel(const Label neighborLabel, Level level) const ;
+    const Label sampleLabelFromNeighborLabelAtLevel(const Label neighborLabel, Level level) const ;
     const double _getLogProposalProbForMove(const LabelMove<Label>& move) const ;
     const double _getLogProposalProbForReverseMove(const LabelMove<Label>& move) const ;
     const LabelMove<Label> _proposeLabelMoveAtLevel(const BaseGraph::VertexIndex&, Level) const ;
@@ -45,45 +45,38 @@ protected:
 
 template<typename Label>
 const Label MixedNestedSampler<Label>::sampleNeighborLabelAtLevel(BaseGraph::VertexIndex vertex, Level level) const {
-    Label index = (*m_nestedGraphPriorPtrPtr)->getLabelOfIdx(vertex, level - 1);
-    const LabelGraph& labelGraph = (*m_nestedGraphPriorPtrPtr)->getNestedLabelGraph(level-1);
-    size_t degree = labelGraph.getDegreeOfIdx(index) - 2 * labelGraph.getEdgeMultiplicityIdx(index, index);
-    size_t counter = std::uniform_int_distribution<size_t>(0, degree-1)(rng);
-    for (const auto& neighbor : labelGraph.getNeighboursOfIdx(index)){
-        if (neighbor.vertexIndex == index)
-            continue;
-        counter -= neighbor.label;
-        if (counter < 0)
-            return (*m_nestedGraphPriorPtrPtr)->getNestedLabelOfIdx(neighbor.vertexIndex, level);
-    }
-    return  (*m_nestedGraphPriorPtrPtr)->getNestedLabelOfIdx(index, level);
+    const Label index = (*m_nestedGraphPriorPtrPtr)->getLabelOfIdx(vertex, level - 1);
+    const LabelGraph& graph = (*m_nestedGraphPriorPtrPtr)->getNestedLabelGraph(level - 1);
+
+    Label neighbor = sampleRandomNeighbor(graph, index);
+    Label label = (*m_nestedGraphPriorPtrPtr)->getNestedLabelOfIdx(neighbor, level);
+    return label;
 }
 
 template<typename Label>
-const Label MixedNestedSampler<Label>::sampleLabelPreferentiallyAtLevel(
+const Label MixedNestedSampler<Label>::sampleLabelFromNeighborLabelAtLevel(
     const Label neighborLabel, Level level
 ) const {
-    std::uniform_int_distribution<int> dist(
-        0, (*m_nestedGraphPriorPtrPtr)->getNestedEdgeLabelCounts(level).get(neighborLabel) - 1
-    );
-    const LabelGraph& labelGraph = (*m_nestedGraphPriorPtrPtr)->getNestedLabelGraph(level);
-    int counter = dist(rng);
-    for (auto s : labelGraph.getNeighboursOfIdx(neighborLabel)){
-        counter -= ((neighborLabel == s.vertexIndex) ? 2 : 1) * s.label;
-        if (counter < 0)
-            return s.vertexIndex;
-    }
-    return sampleLabelUniformlyAtLevel(level);
+    return sampleRandomNeighbor((*m_nestedGraphPriorPtrPtr)->getNestedLabelGraph(level), neighborLabel);
 }
 //
 template<typename Label>
 const LabelMove<Label> MixedNestedSampler<Label>::_proposeLabelMoveAtLevel(const BaseGraph::VertexIndex&vertex, Level level) const {
-    const auto& edgeCounts = (*m_nestedGraphPriorPtrPtr)->getNestedEdgeLabelCounts(level);
     const auto& B = getAvailableLabelCountAtLevel(level);
-    Label neighborLabel = MixedNestedSampler<Label>::sampleNeighborLabelAtLevel(vertex, level);
-    double probUniformSampling = m_shift * B / (edgeCounts.get(neighborLabel) + m_shift * B);
-    Label nextLabel = (m_uniform01(rng) < probUniformSampling) ? sampleLabelUniformlyAtLevel(level) : sampleLabelPreferentiallyAtLevel(neighborLabel, level);
-    return {vertex, (*m_nestedGraphPriorPtrPtr)->getLabelOfIdx(vertex, level), nextLabel, 0, level};
+    Label index = (*m_nestedGraphPriorPtrPtr)->getLabelOfIdx(vertex, level - 1);
+    Label prevLabel = (*m_nestedGraphPriorPtrPtr)->getLabelOfIdx(vertex, level), nextLabel;
+    if ((*m_nestedGraphPriorPtrPtr)->getNestedLabelGraph(level - 1).getDegreeOfIdx(index) == 0)
+        nextLabel = sampleLabelUniformlyAtLevel(level);
+    else{
+        Label neighborLabel = MixedNestedSampler<Label>::sampleNeighborLabelAtLevel(vertex, level);
+        const auto& Et = (*m_nestedGraphPriorPtrPtr)->getNestedLabelGraph(level).getDegreeOfIdx(neighborLabel);
+        double probUniformSampling = m_shift * B / (Et + m_shift * B);
+        if (m_uniform01(rng) < probUniformSampling)
+            nextLabel = sampleLabelUniformlyAtLevel(level);
+        else
+            nextLabel = sampleLabelFromNeighborLabelAtLevel(neighborLabel, level);
+    }
+    return {vertex, prevLabel, nextLabel, 0, level};
 }
 
 template<typename Label>
@@ -96,15 +89,19 @@ const double MixedNestedSampler<Label>::_getLogProposalProbForMove(const LabelMo
 
     double weight = 0, degree = 0;
     for (auto neighbor : graph.getNeighboursOfIdx(index)){
-        if (index == neighbor.vertexIndex)
-            continue;
         auto t = labels[ neighbor.vertexIndex ];
-        size_t m = (move.nextLabel >= labelGraph.getSize()) ? 0 : labelGraph.getEdgeMultiplicityIdx(t, move.nextLabel);
-        size_t Est = ((t == move.nextLabel) ? 2 : 1) * m;
-        size_t Et = edgeCounts.get(t);
+        size_t edgeMult = neighbor.label;
+        if (index == neighbor.vertexIndex)
+            edgeMult *= 2;
+        size_t Est = 0;
+        if (move.nextLabel < labelGraph.getSize())
+            Est = labelGraph.getEdgeMultiplicityIdx(t, move.nextLabel);
+        if (t == move.nextLabel)
+            Est *= 2;
+        size_t Et = labelGraph.getDegreeOfIdx(t);
 
-        degree += neighbor.label;
-        weight += neighbor.label * ( Est + m_shift ) / (Et + m_shift * getAvailableLabelCountAtLevel(move.level)) ;
+        degree += edgeMult;
+        weight += edgeMult * ( Est + m_shift ) / (Et + m_shift * getAvailableLabelCountAtLevel(move.level)) ;
     }
 
     if (degree == 0)
@@ -126,17 +123,26 @@ const double MixedNestedSampler<Label>::_getLogProposalProbForReverseMove(const 
 
     double weight = 0, degree = 0;
     for (auto neighbor : graph.getNeighboursOfIdx(index)){
-        if (index == neighbor.vertexIndex)
-            continue;
         auto t = labels[ neighbor.vertexIndex ];
-        size_t m = (move.prevLabel >= labelGraph.getSize()) ? 0 : labelGraph.getEdgeMultiplicityIdx(t, move.prevLabel);
-        size_t Ert = ((t == move.prevLabel) ? 2 : 1) * (m + edgeMatDiff.get(getOrderedEdge({t, move.prevLabel})));
-        size_t Et = edgeCounts.get(t) + edgeCountsDiff.get(t);
-
-        degree += neighbor.label;
-        weight += neighbor.label * ( Ert + m_shift ) / (Et + m_shift * (getAvailableLabelCountAtLevel(move.level) + move.addedLabels)) ;
+        if (index == neighbor.vertexIndex)
+            t = move.nextLabel;
+        size_t edgeMult = neighbor.label;
+        if (index == neighbor.vertexIndex)
+            edgeMult *= 2;
+        auto rt = getOrderedEdge({t, move.prevLabel});
+        size_t Ert = 0;
+        if (t < labelGraph.getSize() and move.prevLabel < labelGraph.getSize())
+            Ert = labelGraph.getEdgeMultiplicityIdx(rt);
+        Ert += edgeMatDiff.get(rt);
+        if (t == move.prevLabel)
+            Ert *= 2;
+        size_t Et = 0;
+        if (t < labelGraph.getSize())
+            Et = labelGraph.getDegreeOfIdx(t);
+        Et += edgeCountsDiff.get(t);
+        degree += edgeMult;
+        weight += edgeMult * ( Ert + m_shift ) / (Et + m_shift * (getAvailableLabelCountAtLevel(move.level) + move.addedLabels)) ;
     }
-
 
     if (degree == 0)
        return -log(getAvailableLabelCountAtLevel(move.level) + move.addedLabels);

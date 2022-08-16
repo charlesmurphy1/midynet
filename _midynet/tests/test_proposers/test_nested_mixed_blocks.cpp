@@ -14,7 +14,7 @@ public:
     const std::vector<std::set<BlockIndex>>& getAvailableLabels() { return RestrictedMixedNestedBlockProposer::m_availableLabels; }
 
     void printAvails(){
-        std::cout << "avails: ";
+        std::cout << "avails: " << std::endl;
         Level l=0;
         for (const auto& avails : getAvailableLabels()){
             std::cout << "\t Level " << l << ":";
@@ -27,7 +27,7 @@ public:
     }
 
     void printEmpties(){
-        std::cout << "empties: ";
+        std::cout << "empties: " << std::endl;
         Level l=0;
         for (const auto& empties : getEmptyLabels()){
             std::cout << "\t Level " << l << ":";
@@ -44,12 +44,12 @@ class TestRestrictedMixedNestedBlockProposer: public::testing::Test {
 public:
     const size_t SIZE=10, EDGECOUNT=20;
     const bool canonical = false, stubLabeled = false;
-    double SAMPLE_LABEL_PROB=0.1;
+    double SAMPLE_LABEL_PROB=0.1, SHIFT=1000;
     size_t numSamples = 10;
     NestedStochasticBlockModelFamily graphPrior = NestedStochasticBlockModelFamily(
         SIZE, EDGECOUNT, canonical, stubLabeled
     );
-    DummyRestrictedMixedNestedBlockProposer proposer = DummyRestrictedMixedNestedBlockProposer(SAMPLE_LABEL_PROB);
+    DummyRestrictedMixedNestedBlockProposer proposer = DummyRestrictedMixedNestedBlockProposer(SAMPLE_LABEL_PROB, SHIFT);
     void SetUp(){
         seedWithTime();
         graphPrior.sample();
@@ -59,6 +59,35 @@ public:
     void TearDown(){
         proposer.checkConsistency();
     }
+
+
+    double getGroundTruthMoveProb(
+        BaseGraph::VertexIndex vertex,
+        BlockIndex s,
+        const MultiGraph& graph,
+        const BlockSequence& blocks,
+        const LabelGraph& labelGraph,
+        size_t blockCount){
+            double weight, degree;
+
+            for (const auto& neighbor : graph.getNeighboursOfIdx(vertex)){
+                BlockIndex t = blocks[neighbor.vertexIndex];
+                size_t m = neighbor.label;
+                if (vertex == neighbor.vertexIndex)
+                    m *= 2;
+                size_t Est = 0;
+                if (s < labelGraph.getSize())
+                    Est = labelGraph.getEdgeMultiplicityIdx(s, t);
+                if (s == t)
+                    Est *= 2;
+                size_t Et = labelGraph.getDegreeOfIdx(t);
+                weight += m * (Est + SHIFT) / (Et + SHIFT * blockCount);
+                degree += m;
+            }
+            if (degree == 0)
+                return 1. / blockCount;
+            return weight / degree;
+        }
 };
 
 TEST_F(TestRestrictedMixedNestedBlockProposer, proposeLabelMove_returnValidMove){
@@ -95,6 +124,65 @@ TEST_F(TestRestrictedMixedNestedBlockProposer, getLogProposalProb_forStandardBlo
         auto move = proposer.proposeLabelMove(0);
         double logProb = proposer.getLogProposalProb(move, false);
         EXPECT_LE(logProb, 0) ;
+    }
+}
+
+
+TEST_F(TestRestrictedMixedNestedBlockProposer, getLogProposalProb_forSomeLabelMove_returnSampledValue){
+    CounterMap<std::pair<BlockIndex, Level>> counter;
+    size_t numSamples = 100000;
+    double tol = 1e-2;
+    size_t depth = 3;
+    while(graphPrior.getDepth() != depth){
+        graphPrior.sample();
+    }
+
+    proposer.setUpWithNestedPrior(graphPrior);
+    // displayMatrix(graphPrior.getNestedLabels(), "b", true);
+    // proposer.printAvails();
+    // proposer.printEmpties();
+    for (size_t i=0; i<numSamples; ++i){
+        // std::cout << "here1" << std::endl;
+        BlockMove move = proposer.proposeMove(0);
+        // std::cout << "here2" << std::endl;
+        counter.increment({move.nextLabel, move.level});
+    }
+
+    for (auto s : counter){
+        Level level = s.first.second;
+        BlockIndex nextLabel = s.first.first, prevLabel = graphPrior.getLabelOfIdx(0, level);
+        int dB = 0 ;
+        if (graphPrior.getNestedVertexCounts(level).get(nextLabel) == 0)
+            dB = 1;
+        else if (graphPrior.getNestedVertexCounts(level).get(prevLabel) == 1 and prevLabel != nextLabel)
+            dB = -1;
+
+        BlockMove move = {0, prevLabel, nextLabel, dB, level};
+        std::cout << move << std::endl;
+        double expected = exp(proposer.getLogProposalProb(move));
+        double actual = (double)s.second / (double)numSamples;
+
+        double truth;
+        if (dB == 1)
+            truth = 0.1;
+        else
+            truth = 0.9 * getGroundTruthMoveProb(
+                graphPrior.getLabelOfIdx(0, level - 1),
+                nextLabel,
+                graphPrior.getNestedLabelGraph(level-1),
+                graphPrior.getNestedLabels(level),
+                graphPrior.getNestedLabelGraph(level),
+                proposer.getAvailableLabels()[level].size()
+            );
+
+        truth /= depth;
+
+        // std::cout << " -> expected=" << expected << " actual=" << actual << " truth=" << truth <<  std::endl;
+
+        if (prevLabel != nextLabel){
+            EXPECT_NEAR(expected, actual, tol);
+            EXPECT_NEAR(expected, truth, 1e-6);
+        }
     }
 }
 

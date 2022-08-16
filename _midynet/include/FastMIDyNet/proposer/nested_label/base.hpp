@@ -34,13 +34,20 @@ public:
     }
 
     const double getLogProposalProb(const LabelMove<Label>& move, bool reverse=false) const override {
-        int dL;
+        int dL=0;
         if ( isCreatingLabelMove(move, reverse) ){
-            dL = (reverse and move.level == m_nestedGraphPriorPtr->getDepth() - 2 and m_nestedGraphPriorPtr->getNestedVertexCounts(move.level).size() == 2) ? -1 : 0;
+            if (reverse and move.level == m_nestedGraphPriorPtr->getDepth() - 2 and m_nestedGraphPriorPtr->getNestedVertexCounts(move.level).size() == 2)
+                dL = -1;
             return log(m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth() + dL);
         }
-        dL = (reverse and move.level == m_nestedGraphPriorPtr->getDepth() - 1 and move.addedLabels == 1) ? 1 : 0;
-        return log(1 - m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth() + dL) + ((reverse) ? getLogProposalProbForReverseMove(move) : getLogProposalProbForMove(move));
+        if (reverse and move.level == m_nestedGraphPriorPtr->getDepth() - 1 and move.addedLabels == 1)
+            dL = 1;
+        double dS = log(1 - m_sampleLabelCountProb) - log(m_nestedGraphPriorPtr->getDepth() + dL);
+        if (reverse)
+            dS += getLogProposalProbForReverseMove(move);
+        else
+            dS += getLogProposalProbForMove(move);
+        return dS;
     }
 
     void checkSelfSafety() const override{
@@ -104,7 +111,10 @@ protected:
         return (int) creatingNewLabel(move) - (int) destroyingLabel(move);
     }
     bool isCreatingLabelMove(const LabelMove<Label>& move, bool reverse) const override {
-        return move.addedLabels == ((reverse) ? -1 : 1);
+        if (reverse)
+            return move.addedLabels == -1;
+        else
+            return move.addedLabels == 1;
     }
     using BaseClass = LabelProposer<Label>;
     using NestedBaseClass = NestedLabelProposer<Label>;
@@ -120,10 +130,9 @@ public:
         Level level = sampleLevel();
         Label prevLabel = m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level);
         Label nextLabel = *sampleUniformlyFrom(m_emptyLabels[level].begin(), m_emptyLabels[level].end());
-        LabelMove<Label> move = {vertex, prevLabel, nextLabel, 0, level};
+        LabelMove<Label> move = {vertex, prevLabel, nextLabel, 1, level};
         if ( destroyingLabel(move) )
             return {vertex, prevLabel, prevLabel, 0, level};
-        move.addedLabels = 1;
         return move;
     }
     void setUpWithNestedPrior(const NestedVertexLabeledRandomGraph<Label>& graphPrior) override {

@@ -37,6 +37,10 @@ struct GraphMove{
         ss << "])";
         return ss.str();
     }
+    bool operator==(const GraphMove& other){
+        return other.removedEdges == removedEdges
+            and other.addedEdges == addedEdges;
+    }
 };
 
 template <typename Label>
@@ -65,6 +69,13 @@ struct LabelMove{
         ss << ", addedLabels=" << addedLabels;
         ss << ", level=" << level << ")";
         return ss.str();
+    }
+    bool operator==(const LabelMove& other){
+        return other.vertexIndex == vertexIndex
+            and other.prevLabel == prevLabel
+            and other.nextLabel == nextLabel
+            and other.addedLabels == addedLabels
+            and other.level == level;
     }
 };
 
