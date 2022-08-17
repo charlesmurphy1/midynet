@@ -263,7 +263,7 @@ def test_experiment_config_reconstruction():
     )
     assert "name" in exp
     assert "data_model" in exp
-    assert "graph" in exp
+    assert "graph_prior" in exp
     assert "metrics" in exp
     assert "path" in exp
     assert "seed" in exp

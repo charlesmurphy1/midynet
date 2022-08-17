@@ -44,3 +44,6 @@ class DataModelWrapper(_Wrapper):
         wrapped, dtype = get_graph_prior_type(graph_prior)
         self.__wrapped__ = self.constructors[dtype](wrapped, **self.others["params"])
         self.__others__["graph_prior"] = graph_prior
+
+    def get_graph_prior(self):
+        return self.__others__["graph_prior"]

@@ -14,11 +14,11 @@ DISPLAY = False
 @pytest.fixture
 def config():
     c = ExperimentConfig.reconstruction(
-        name="test", data_model="sis", graph="erdosrenyi"
+        name="test", data_model="sis", graph_prior="erdosrenyi"
     )
     c.data_model.set_value("num_steps", 5)
-    c.graph.set_value("size", 4)
-    c.graph.set_value("edge_count", 2)
+    c.graph_prior.set_value("size", 4)
+    c.graph_prior.set_value("edge_count", 2)
     return c
 
 
@@ -32,11 +32,10 @@ def metrics_config():
 
 @pytest.fixture
 def data_model(config):
-    graph_prior = RandomGraphFactory.build(config.graph)
+    graph_prior = RandomGraphFactory.build(config.graph_prior)
     data_model = DataModelFactory.build(config.data_model)
     data_model.set_graph_prior(graph_prior)
     data_model.sample()
-    print(data_model)
     return data_model
 
 

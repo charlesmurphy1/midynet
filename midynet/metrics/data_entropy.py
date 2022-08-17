@@ -20,7 +20,7 @@ class DataEntropy(Expectation):
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-        graph_model = RandomGraphFactory.build(self.config.graph)
+        graph_model = RandomGraphFactory.build(self.config.graph_prior)
         data_model = DataModelFactory.build(self.config.data_model)
         data_model.set_graph_prior(graph_model)
         data_model.sample()

@@ -123,7 +123,7 @@ class GraphReconstructionMCMC(MCMCWrapper):
         )
 
 
-class PartitionMCMC(MCMCWrapper):
+class PartitionReconstructionMCMC(MCMCWrapper):
     def __init__(
         self, graph_model: _random_graph.RandomGraph, verbose: int = 0, **kwargs
     ):

@@ -5,7 +5,7 @@ from midynet.random_graph import (
     BlockLabeledRandomGraph,
     NestedBlockLabeledRandomGraph,
 )
-from midynet.mcmc import GraphReconstructionMCMC, PartitionMCMC
+from midynet.mcmc import GraphReconstructionMCMC, PartitionReconstructionMCMC
 from midynet.mcmc.callbacks import (
     CollectEdgesOnSweep,
     CollectLikelihoodOnSweep,
@@ -315,7 +315,7 @@ def get_posterior_entropy_partition_meanfield(
     graph_model: BlockLabeledRandomGraph, config: Config = None, **kwargs
 ) -> float:
     config = Config() if config is None else config
-    mcmc = PartitionMCMC(graph_model)
+    mcmc = PartitionReconstructionMCMC(graph_model)
     callback = CollectPartitionOnSweep()
     mcmc.insert_callback("partition", callback)
     original_partition = mcmc.get_labels()

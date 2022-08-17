@@ -12,31 +12,39 @@ from midynet.scripts import ScriptManager
 
 
 def get_config(
-    graph="er", dynamics="sis", num_procs=32, time="24:00:00", mem=12, seed=None
+    graph_prior="erdosrenyi",
+    data_model="sis",
+    num_procs=32,
+    time="24:00:00",
+    mem=12,
+    seed=None,
 ):
-    config = ExperimentConfig.default(
-        f"recon-{graph}-{dynamics}",
-        dynamics,
-        graph,
+    config = ExperimentConfig.reconstruction(
+        f"recon-{graph_prior}-{data_model}",
+        data_model,
+        graph_prior,
         metrics=["mutualinfo"],
-        path=PATH_TO_DATA / "exploration" / f"recon-{graph}-{dynamics}",
+        path=PATH_TO_DATA / "exploration" / f"recon-{graph_prior}-{data_model}",
         num_procs=num_procs,
         seed=seed,
     )
     N = 100
     E = 250
     T = 100
-    if dynamics == "sis":
+    if data_model == "sis":
         coupling = np.linspace(0, 1, 20)
-        config.dynamics.set_coupling(coupling)
-        config.dynamics.set_value("normalize", False)
-        config.dynamics.set_value("recovery_prob", 0.5)
+        config.data_model.set_value("infection_prob", coupling)
+        config.data_model.set_value("normalize", False)
+        config.data_model.set_value("recovery_prob", 0.5)
     else:
         coupling = np.concatenate([np.linspace(0, 1, 10), np.linspace(1, 4, 10)])
-        config.dynamics.set_coupling(coupling)
-    config.graph.set_value("size", N)
-    config.graph.edge_count.set_value("state", E)
-    config.dynamics.set_value("num_steps", T)
+        if data_model == "glauber":
+            config.data_model.set_value("coupling", coupling)
+        else:
+            config.data_model.set_value("nu", coupling)
+    config.graph_prior.set_value("size", N)
+    config.graph_prior.set_value("edge_count", E)
+    config.data_model.set_value("num_steps", T)
     config.metrics.mutualinfo.set_value("num_samples", num_procs)
     config.metrics.mutualinfo.set_value("burn_per_vertex", 5)
     config.metrics.mutualinfo.set_value("start_from_original", False)
@@ -56,8 +64,10 @@ def get_config(
 
 
 def main():
-    for graph, dynamics in itertools.product(["hyperuniform_cm"], ["ising"]):
-        config = get_config(graph, dynamics, num_procs=1, time="16:00:00", mem=12)
+    for graph_prior, data_model in itertools.product(["erdosrenyi"], ["glauber"]):
+        config = get_config(
+            graph_prior, data_model, num_procs=1, time="16:00:00", mem=12
+        )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,

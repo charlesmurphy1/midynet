@@ -18,7 +18,7 @@ class ExperimentConfig(Config):
     requirements: set[str] = {
         "name",
         "data_model",
-        "graph",
+        "graph_prior",
         "metrics",
         "path",
         "num_procs",
@@ -30,7 +30,7 @@ class ExperimentConfig(Config):
         cls,
         name: str,
         data_model: str,
-        graph: str,
+        graph_prior: str,
         metrics: Optional[List[str]] = None,
         path: Union[str, pathlib.Path] = ".",
         num_procs: int = 1,
@@ -43,7 +43,7 @@ class ExperimentConfig(Config):
         graph_params = {} if graph_params is None else graph_params
         obj = cls(name=name)
         obj.insert("data_model", DataModelConfig.auto(data_model, **data_model_params))
-        obj.insert("graph", RandomGraphConfig.auto(graph, **graph_params))
+        obj.insert("graph_prior", RandomGraphConfig.auto(graph_prior, **graph_params))
         obj.insert(
             "metrics",
             MetricsCollectionConfig.auto(metrics if metrics is not None else []),

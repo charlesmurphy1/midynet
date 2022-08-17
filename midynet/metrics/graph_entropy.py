@@ -21,7 +21,7 @@ class GraphEntropy(Expectation):
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-        graph_model = RandomGraphFactory.build(self.config.graph)
+        graph_model = RandomGraphFactory.build(self.config.graph_prior)
         graph_model.sample()
         S = -graph_model.get_log_joint()
         if issubclass(graph_model.__class__, BlockLabeledRandomGraph):
