@@ -1,12 +1,5 @@
 from _midynet.mcmc import callbacks as cb
-from _midynet.mcmc.callbacks import (
-    CallBack,
-    CollectLikelihoodOnSweep,
-    CollectPriorOnSweep,
-    CollectJointOnSweep,
-    CheckSafetyOnSweep,
-    CheckConsistencyOnSweep,
-)
+from _midynet.mcmc.callbacks import *
 from midynet.wrapper import Wrapper
 
 
@@ -21,6 +14,7 @@ __all__ = (
     "CollectJointOnSweep",
     "CheckConsistencyOnSweep",
     "CheckSafetyOnSweep",
+    "VerboseDisplay",
 )
 
 

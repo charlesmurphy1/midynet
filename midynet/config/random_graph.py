@@ -4,15 +4,12 @@ from typing import Union, Optional
 from itertools import combinations_with_replacement
 
 from basegraph.core import UndirectedMultigraph
-from _midynet.random_graph import (
+from midynet.random_graph import (
     ErdosRenyiModel,
     ConfigurationModel,
     ConfigurationModelFamily,
     PlantedPartitionModel,
     StochasticBlockModelFamily,
-    NestedStochasticBlockModelFamily,
-    DegreeCorrectedStochasticBlockModelFamily,
-    NestedDegreeCorrectedStochasticBlockModelFamily,
 )
 
 from midynet.utility.degree_sequences import poisson_degreeseq, nbinom_degreeseq
@@ -23,8 +20,6 @@ __all__ = ("RandomGraphConfig", "RandomGraphFactory")
 
 
 class RandomGraphConfig(Config):
-    requirements: set[str] = {"labeled"}
-
     @classmethod
     def erdosrenyi(
         cls,
@@ -40,7 +35,6 @@ class RandomGraphConfig(Config):
             name="erdosrenyi",
             size=size,
             edge_count=edge_count,
-            labeled=False,
             canonical=canonical,
             with_self_loops=with_self_loops,
             with_parallel_edges=with_parallel_edges,
@@ -59,7 +53,6 @@ class RandomGraphConfig(Config):
         return cls(
             name="configuration",
             size=size,
-            labeled=False,
             edge_count=edge_count,
             prior_type=prior_type,
             canonical=canonical,
@@ -71,7 +64,6 @@ class RandomGraphConfig(Config):
         return cls(
             "poisson",
             size=size,
-            labeled=False,
             edge_count=edge_count,
         )
 
@@ -85,7 +77,6 @@ class RandomGraphConfig(Config):
         return cls(
             "nbinom",
             size=size,
-            labeled=False,
             edge_count=edge_count,
             heterogeneity=heterogeneity,
         )
@@ -101,8 +92,8 @@ class RandomGraphConfig(Config):
         label_graph_prior_type: str = "uniform",
         degree_prior_type: str = "uniform",
         canonical: bool = False,
-        with_self_loops=True,
-        with_parallel_edges=True,
+        with_self_loops: bool = True,
+        with_parallel_edges: bool = True,
         edge_proposer_type: str = "uniform",
         block_proposer_type: str = "uniform",
         sample_label_count_prob: float = 0.1,
@@ -112,7 +103,6 @@ class RandomGraphConfig(Config):
         return cls(
             name="stochastic_block_model",
             size=size,
-            labeled=True,
             edge_count=edge_count,
             block_count=block_count,
             likelihood_type=likelihood_type,
@@ -146,7 +136,6 @@ class RandomGraphConfig(Config):
             edge_count=edge_count,
             block_count=block_count,
             assortativity=assortativity,
-            labeled=True,
             stub_labeled=stub_labeled,
             with_self_loops=with_self_loops,
             with_parallel_edges=with_parallel_edges,
@@ -170,7 +159,7 @@ class RandomGraphFactory(Factory):
         return ConfigurationModelFamily(
             config.size,
             config.edge_count,
-            hyperprior=(config.prior_type == "hyperprior"),
+            prior_type=config.prior_type,
             canonical=config.canonical,
             edge_proposer_type=config.edge_proposer_type,
         )
@@ -190,78 +179,30 @@ class RandomGraphFactory(Factory):
     @staticmethod
     def build_stochastic_block_model(
         config: RandomGraphConfig,
-    ) -> Union[
-        StochasticBlockModelFamily,
-        NestedStochasticBlockModelFamily,
-        DegreeCorrectedStochasticBlockModelFamily,
-        NestedDegreeCorrectedStochasticBlockModelFamily,
-    ]:
-        if config.likelihood_type == "degree_corrected":
-            if config.label_graph_prior_type == "nested":
-                return NestedDegreeCorrectedStochasticBlockModelFamily(
-                    config.size,
-                    config.edge_count,
-                    degree_hyperprior=(config.degree_prior_type == "hyper"),
-                    canonical=config.canonical,
-                    edge_proposer_type=config.edge_proposer_type,
-                    block_proposer_type=config.block_proposer_type,
-                    sample_label_count_prob=config.sample_label_count_prob,
-                    label_creation_prob=config.label_creation_prob,
-                    shift=config.shift,
-                )
-            else:
-                return DegreeCorrectedStochasticBlockModelFamily(
-                    config.size,
-                    config.edge_count,
-                    block_count=config.block_count,
-                    block_hyperprior=(config.block_prior_type == "hyper"),
-                    degree_hyperprior=(config.degree_prior_type == "hyper"),
-                    planted=(config.label_graph_prior_type == "planted"),
-                    canonical=config.canonical,
-                    edge_proposer_type=config.edge_proposer_type,
-                    block_proposer_type=config.block_proposer_type,
-                    sample_label_count_prob=config.sample_label_count_prob,
-                    label_creation_prob=config.label_creation_prob,
-                    shift=config.shift,
-                )
-        else:
-            if config.label_graph_prior_type == "nested":
-                return NestedStochasticBlockModelFamily(
-                    config.size,
-                    config.edge_count,
-                    stub_labeled=(config.likelihood_type == "stub_labeled"),
-                    canonical=config.canonical,
-                    with_self_loops=config.with_self_loops,
-                    with_parallel_edges=config.with_parallel_edges,
-                    edge_proposer_type=config.edge_proposer_type,
-                    block_proposer_type=config.block_proposer_type,
-                    sample_label_count_prob=config.sample_label_count_prob,
-                    label_creation_prob=config.label_creation_prob,
-                    shift=config.shift,
-                )
-            else:
-                return StochasticBlockModelFamily(
-                    config.size,
-                    config.edge_count,
-                    block_count=config.block_count,
-                    block_hyperprior=(config.block_prior_type == "hyper"),
-                    planted=(config.label_graph_prior_type == "planted"),
-                    stub_labeled=(config.likelihood_type == "stub_labeled"),
-                    canonical=config.canonical,
-                    with_self_loops=config.with_self_loops,
-                    with_parallel_edges=config.with_parallel_edges,
-                    edge_proposer_type=config.edge_proposer_type,
-                    block_proposer_type=config.block_proposer_type,
-                    sample_label_count_prob=config.sample_label_count_prob,
-                    label_creation_prob=config.label_creation_prob,
-                    shift=config.shift,
-                )
+    ) -> StochasticBlockModelFamily:
+        return StochasticBlockModelFamily(
+            size=config.size,
+            edge_count=config.edge_count,
+            block_count=config.block_count,
+            likelihood_type=config.likelihood_type,
+            block_prior_type=config.block_prior_type,
+            label_graph_prior_type=config.label_graph_prior_type,
+            degree_prior_type=config.degree_prior_type,
+            canonical=config.canonical,
+            with_self_loops=config.with_self_loops,
+            with_parallel_edges=config.with_parallel_edges,
+            edge_proposer_type=config.edge_proposer_type,
+            block_proposer_type=config.block_proposer_type,
+            sample_label_count_prob=config.sample_label_count_prob,
+            label_creation_prob=config.label_creation_prob,
+            shift=config.shift,
+        )
 
     @staticmethod
     def build_planted_partition(config: RandomGraphConfig):
         return PlantedPartitionModel(
-            config.size,
-            config.edge_count,
+            size=config.size,
+            edge_count=config.edge_count,
             block_count=config.block_count,
             assortativity=config.assortativity,
             stub_labeled=config.stub_labeled,

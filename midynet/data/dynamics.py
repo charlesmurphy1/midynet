@@ -1,18 +1,12 @@
 from __future__ import annotations
 
-from _midynet.random_graph import (
-    RandomGraph,
-    BlockLabeledRandomGraph,
-    NestedBlockLabeledRandomGraph,
-)
 from _midynet.data import dynamics as _dynamics
 from _midynet.data.dynamics import (
     Dynamics,
     BlockLabeledDynamics,
     NestedBlockLabeledDynamics,
 )
-from midynet.wrapper import Wrapper
-from .data import DataModelWrapper
+from .__init__ import DataModelWrapper as _DataModelWrapper
 
 __all__ = (
     "Dynamics",
@@ -24,7 +18,7 @@ __all__ = (
 )
 
 
-class SISDynamics(DataModelWrapper):
+class SISDynamics(_DataModelWrapper):
     constructors = {
         "normal": _dynamics.SISDynamics,
         "labeled": _dynamics.BlockLabeledSISDynamics,
@@ -56,7 +50,7 @@ class SISDynamics(DataModelWrapper):
         )
 
 
-class GlauberDynamics(DataModelWrapper):
+class GlauberDynamics(_DataModelWrapper):
     constructors = {
         "normal": _dynamics.GlauberDynamics,
         "labeled": _dynamics.BlockLabeledGlauberDynamics,
@@ -86,7 +80,7 @@ class GlauberDynamics(DataModelWrapper):
         )
 
 
-class CowanDynamics(DataModelWrapper):
+class CowanDynamics(_DataModelWrapper):
     constructors = {
         "normal": _dynamics.CowanDynamics,
         "labeled": _dynamics.BlockLabeledCowanDynamics,
@@ -122,7 +116,7 @@ class CowanDynamics(DataModelWrapper):
         )
 
 
-class DegreeDynamics(DataModelWrapper):
+class DegreeDynamics(_DataModelWrapper):
     constructors = {
         "normal": _dynamics.DegreeDynamics,
         "labeled": _dynamics.BlockLabeledDegreeDynamics,
