@@ -1,5 +1,6 @@
 from __future__ import annotations
 import typing
+
 import midynet.metrics
 from .config import Config
 from .factory import Factory, OptionError, MissingRequirementsError

@@ -1,11 +1,10 @@
 import time
 from dataclasses import dataclass, field
-from _midynet import utility
+from midynet import utility
 from midynet.config import (
     Config,
     RandomGraphFactory,
     DataModelFactory,
-    ReconstructionMCMC,
 )
 from .multiprocess import Expectation
 from .metrics import Metrics
@@ -21,12 +20,11 @@ class DataEntropy(Expectation):
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-        graph = RandomGraphFactory.build(self.config.graph)
-        data = DataModelFactory.build(self.config.data_model)
-        data.set_graph_prior(graph)
-        mcmc = ReconstructionMCMC(data, graph)
-        mcmc.sample()
-        hx = -get_log_evidence(mcmc, self.config.metrics.data_entropy)
+        graph_model = RandomGraphFactory.build(self.config.graph)
+        data_model = DataModelFactory.build(self.config.data_model)
+        data_model.set_graph_prior(graph_model)
+        data_model.sample()
+        hx = -get_log_evidence(data_model, self.config.metrics.data_entropy)
         return hx
 
 

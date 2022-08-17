@@ -1,8 +1,8 @@
 import time
 
 from dataclasses import dataclass, field
-from _midynet import utility
-from _midynet.random_graph import BlockLabeledRandomGraph
+from midynet import utility
+from midynet.random_graph import BlockLabeledRandomGraph
 from midynet.config import (
     Config,
     RandomGraphFactory,
@@ -10,7 +10,7 @@ from midynet.config import (
 from .metrics import Metrics
 from .multiprocess import Expectation
 from .statistics import Statistics
-from .util import get_log_prior_meanfield, get_log_posterior_partition_meanfield
+from .util import get_log_prior_meanfield, get_posterior_entropy_partition_meanfield
 
 __all__ = ("GraphEntropy", "GraphEntropyMetrics")
 
@@ -21,13 +21,12 @@ class GraphEntropy(Expectation):
 
     def func(self, seed: int) -> float:
         utility.seed(seed)
-        graph = RandomGraphFactory.build(self.config.graph)
-        graph.sample()
-        S = -graph.get_log_joint()
-        if issubclass(graph.__class__, BlockLabeledRandomGraph):
-            mcmc = PartitionMCMC(graph)
-            S += get_log_posterior_partition_meanfield(
-                graph, self.config.metrics.graph_entropy
+        graph_model = RandomGraphFactory.build(self.config.graph)
+        graph_model.sample()
+        S = -graph_model.get_log_joint()
+        if issubclass(graph_model.__class__, BlockLabeledRandomGraph):
+            S -= get_posterior_entropy_partition_meanfield(
+                graph_model, self.config.metrics.graph_entropy
             )
         return S
 

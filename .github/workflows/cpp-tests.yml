@@ -1,4 +1,4 @@
-name: C++ wrapper
+name: C++ build and tests
 
 on:
     - push

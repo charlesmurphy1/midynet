@@ -146,8 +146,8 @@ std::vector<size_t> sampleMultinomial(const size_t n, const std::vector<double>&
     double norm = 0;
     for (auto pp : p)
         norm += pp;
-    if (norm - 1 > 1e-15)
-        throw std::runtime_error(
+    if (abs(norm - 1) > 1e-10)
+        throw std::invalid_argument(
             "sampleMultinomial: `p` must be normalized, but summed to " + std::to_string(norm) + "."
         );
 
@@ -168,7 +168,7 @@ std::vector<size_t> sampleMultinomial(const size_t n, const std::vector<double>&
 std::vector<size_t> sampleUniformMultinomial(const size_t n, const size_t k){
     std::vector<double> p;
     for (size_t i=0; i<k; ++i)
-        p.push_back(1./k);
+        p.push_back((double)1./(double)k);
     return sampleMultinomial(n, p);
 }
 
@@ -201,9 +201,9 @@ BaseGraph::UndirectedMultigraph generateDCSBM(
     const DegreeSequence& degrees) {
 
     if (degrees.size() != blockSeq.size())
-        throw std::logic_error("generateDCSBM: Degrees don't have the same length as blockSeq.");
+        throw std::invalid_argument("generateDCSBM: Degrees don't have the same length as blockSeq.");
     if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= labelGraph.getSize())
-        throw std::logic_error("generateDCSBM: Vertex is out of range of labelGraph.");
+        throw std::invalid_argument("generateDCSBM: Vertex is out of range of labelGraph.");
 
     size_t vertexNumber = degrees.size();
     size_t blockNumber = labelGraph.getSize();
@@ -223,7 +223,7 @@ BaseGraph::UndirectedMultigraph generateDCSBM(
             stubsOfBlock[block].insert(stubsOfBlock[block].end(), degrees[vertex], vertex);
 
         if (stubsOfBlock[block].size() != sumEdgeMatrix)
-            throw std::logic_error("generateDCSBM: Edge matrix doesn't match with degrees. "
+            throw std::invalid_argument("generateDCSBM: Edge matrix doesn't match with degrees. "
                     "Sum of row doesn't equal the sum of nodes in block "+std::to_string(block)+".");
 
         std::random_shuffle(stubsOfBlock[block].begin(), stubsOfBlock[block].end());
@@ -255,7 +255,7 @@ BaseGraph::UndirectedMultigraph generateDCSBM(
 BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq, const MultiGraph& labelGraph, bool withSelfLoops) {
 
     if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= labelGraph.getSize())
-        throw std::logic_error("generateSBM: Vertex is out of range of labelGraph.");
+        throw std::invalid_argument("generateSBM: Vertex is out of range of labelGraph.");
 
     size_t size = blockSeq.size();
     size_t blockCount = labelGraph.getSize();
@@ -277,7 +277,7 @@ BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq, const
         size_t ers = labelGraph.getEdgeMultiplicityIdx(r, s);
 
         if (labeledEdges.second.size() < ers)
-            throw std::logic_error("generateSBM: edge count at r=" + std::to_string(r)
+            throw std::invalid_argument("generateSBM: edge count at r=" + std::to_string(r)
                 + " and s=" + std::to_string(s) + " (ers=" + std::to_string(ers)
                 + ") must be greater than the total number of pairs ("
                 + std::to_string(labeledEdges.second.size()) + ").");
@@ -292,7 +292,7 @@ BaseGraph::UndirectedMultigraph generateSBM(const BlockSequence& blockSeq, const
 BaseGraph::UndirectedMultigraph generateStubLabeledSBM(const BlockSequence& blockSeq, const MultiGraph& labelGraph, bool withSelfLoops) {
 
     if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= labelGraph.getSize())
-        throw std::logic_error("generateStubLabeledSBM: Vertex is out of range of labelGraph.");
+        throw std::invalid_argument("generateStubLabeledSBM: Vertex is out of range of labelGraph.");
 
     size_t vertexNumber = blockSeq.size();
     size_t blockNumber = labelGraph.getSize();
@@ -331,7 +331,7 @@ BaseGraph::UndirectedMultigraph generateMultiGraphSBM(const BlockSequence& block
     // displayVector(blockSeq, "[generator] b", true);
     // displayMatrix(labelGraph, "[generator] E", true);
     if (*std::max_element(blockSeq.begin(), blockSeq.end()) >= labelGraph.getSize())
-        throw std::logic_error("generateSBM: Vertex is out of range of edgeMat.");
+        throw std::invalid_argument("generateSBM: Vertex is out of range of edgeMat.");
 
     size_t size = blockSeq.size();
     size_t blockCount = labelGraph.getSize();
@@ -395,7 +395,7 @@ MultiGraph generateErdosRenyi(size_t size, size_t edgeCount, bool withSelfLoops)
             if (withSelfLoops or j != i)
                 allEdges.push_back({i, j});
     if (allEdges.size() < edgeCount)
-        throw std::logic_error("generateErdosRenyi: edge count (" + std::to_string(edgeCount) +
+        throw std::invalid_argument("generateErdosRenyi: edge count (" + std::to_string(edgeCount) +
             ") must be greater than the total number of pairs (with N=" + std::to_string(size) + ").");
     auto indices = sampleUniformlySequenceWithoutReplacement(allEdges.size(), edgeCount);
 

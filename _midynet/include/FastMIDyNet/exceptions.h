@@ -10,6 +10,7 @@ namespace FastMIDyNet {
 
 void assertValidProbability(double probability);
 
+
 class ConsistencyError: public std::runtime_error {
 public:
     // Custom message

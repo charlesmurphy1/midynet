@@ -26,6 +26,9 @@ namespace FastMIDyNet{
 // class NestedLabelProposer;
 
 class RandomGraph: public NestedRandomVariable{
+private:
+    int m_samplingIteration=0;
+    int m_maxIteration=100;
 protected:
     GraphLikelihoodModel* m_likelihoodModelPtr = nullptr;
     EdgeProposer* m_edgeProposerPtr = nullptr;
@@ -88,9 +91,18 @@ public:
     }
 
     void sample() {
-        samplePrior();
-        sampleState();
-        setUp();
+        try{
+            samplePrior();
+            sampleState();
+            setUp();
+        } catch (std::invalid_argument){
+            if (m_samplingIteration < m_maxIteration){
+                ++m_samplingIteration;
+                sample();
+            }else
+                throw std::runtime_error("RandomGraph: could not sample the model after " + std::to_string(m_maxIteration) + " iterations.");
+        }
+        m_samplingIteration=0;
     }
     void sampleState() {
         setState(m_likelihoodModelPtr->sample());

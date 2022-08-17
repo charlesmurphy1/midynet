@@ -1,22 +1,22 @@
-from _midynet import utility, proposer, random_graph, data, mcmc
-from . import util
+from . import wrapper
+from . import random_graph
+from . import data
+from . import mcmc
+from . import utility
 from . import config
 from . import metrics
 from . import experiments
-from . import scripts
 from .metadata import __version__
-
 
 utility.seedWithTime()
 
-
 __all__ = (
-    "config",
-    "dynamics",
-    "mcmc",
-    "proposer",
+    "wrapper",
+    "utility",
     "random_graph",
-    "util",
+    "data",
+    "mcmc",
+    "config",
     "metrics",
     "experiments",
     "scripts",

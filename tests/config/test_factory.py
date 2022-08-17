@@ -8,8 +8,6 @@ from midynet.config import (
     DataModelFactory,
     MetricsFactory,
     ExperimentConfig,
-    ReconstructionMCMC,
-    PartitionMCMC,
 )
 
 random_graph_setup = [
@@ -29,14 +27,14 @@ random_graph_setup = [
         RandomGraphConfig.poisson(100, 250),
         RandomGraphFactory,
         lambda obj: obj.sample(),
-        id="cm",
+        id="pcm",
     ),
-    # pytest.param(
-    #     RandomGraphConfig.nbinom(100, 250),
-    #     RandomGraphFactory,
-    #     lambda obj: obj.sample(),
-    #     id="cm",
-    # ),
+    pytest.param(
+        RandomGraphConfig.nbinom(100, 250),
+        RandomGraphFactory,
+        lambda obj: obj.sample(),
+        id="nbcm",
+    ),
     pytest.param(
         RandomGraphConfig.stochastic_block_model(100, 250),
         RandomGraphFactory,
@@ -121,11 +119,7 @@ metrics_setup = [
 
 @pytest.mark.parametrize(
     "config, factory, run",
-    [
-        *random_graph_setup,
-        *data_setup,
-        *metrics_setup,
-    ],
+    [*random_graph_setup, *data_setup, *metrics_setup],
 )
 def test_build_from_config(config, factory, run):
     factory.build(config)
@@ -142,33 +136,6 @@ def test_build_from_config(config, factory, run):
 def test_run_after_creation(config, factory, run):
     obj = factory.build(config)
     run(obj)
-
-
-mcmc_setup = [
-    pytest.param(
-        ExperimentConfig.reconstruction("test", d, g),
-        ReconstructionMCMC,
-        id=f"mcmc.{d}.{g}",
-    )
-    for d, g in product(
-        ["glauber", "sis", "cowan"],
-        [
-            "erdosrenyi",
-            "configuration",
-            "stochastic_block_model",
-        ],
-    )
-]
-
-
-@pytest.mark.parametrize("config, factory", [*mcmc_setup])
-def test_run_reconstruction_from_exp_config(config, factory):
-    graph = RandomGraphFactory.build(config.graph)
-    dynamics = DataModelFactory.build(config.data_model)
-    dynamics.set_graph_prior(graph)
-    mcmc = ReconstructionMCMC(dynamics, graph)
-    dynamics.sample()
-    mcmc.do_MH_sweep(1000)
 
 
 if __name__ == "__main__":

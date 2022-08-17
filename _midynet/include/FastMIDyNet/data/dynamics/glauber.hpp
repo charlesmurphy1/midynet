@@ -23,7 +23,7 @@ class GlauberDynamics: public BinaryDynamics<GraphPriorType> {
                 double autoDeactivationProb=0,
                 bool async=false,
                 bool normalizeCoupling=true,
-                size_t numInitialActive=-1):
+                int numInitialActive=-1):
             BaseClass(
                 numSteps,
                 autoActivationProb,
@@ -40,7 +40,7 @@ class GlauberDynamics: public BinaryDynamics<GraphPriorType> {
                 double autoDeactivationProb=0,
                 bool async=false,
                 bool normalizeCoupling=true,
-                size_t numInitialActive=-1):
+                int numInitialActive=-1):
             BaseClass(
                 graphPrior,
                 numSteps,

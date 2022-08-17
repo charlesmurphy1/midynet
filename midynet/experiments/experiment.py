@@ -9,7 +9,8 @@ from dataclasses import dataclass, field
 from _midynet import utility
 from midynet.config import Config, MetricsFactory
 from midynet.metrics import Metrics
-from midynet.util import (
+from midynet.utility import (
+    seed,
     LoggerDict,
     Verbose,
     delete_path,
@@ -22,18 +23,12 @@ __all__ = ["Experiment"]
 class Experiment:
     config: Config = field(repr=False, init=True)
     verbose: Verbose = field(default_factory=Verbose, init=True)
-    loggers: LoggerDict = field(
-        repr=False, default_factory=LoggerDict, init=True
-    )
+    loggers: LoggerDict = field(repr=False, default_factory=LoggerDict, init=True)
     name: str = field(default="exp", init=False)
     path: pathlib.Path = field(default_factory=pathlib.Path, init=False)
-    config_filename: str = field(
-        repr=False, default="config.pickle", init=False
-    )
+    config_filename: str = field(repr=False, default="config.pickle", init=False)
     log_filename: str = field(repr=False, default="log.json", init=False)
-    seed: int = field(
-        repr=False, default_factory=lambda: int(time.time()), init=False
-    )
+    seed: int = field(repr=False, default_factory=lambda: int(time.time()), init=False)
     metrics: typing.Dict[str, Metrics] = field(
         repr=False, default_factory=dict, init=False
     )
@@ -85,7 +80,7 @@ class Experiment:
         self.path.mkdir(exist_ok=True, parents=True)
         random.seed(self.seed)
         np.random.seed(self.seed)
-        utility.seed(self.seed)
+        seed(self.seed)
         if clean:
             self.clean()
 
@@ -134,9 +129,7 @@ class Experiment:
 
     @classmethod
     def load_from_file(cls, path: pathlib.Path):
-        path = (
-            pathlib.Path(path) if not isinstance(path, pathlib.Path) else path
-        )
+        path = pathlib.Path(path) if not isinstance(path, pathlib.Path) else path
         abs_path = path.resolve()
         config = Config.load(abs_path)
         config.set_value("path", abs_path.parents[0])
@@ -155,9 +148,7 @@ class Experiment:
         config_filename="config.pickle",
     ):
         path = pathlib.Path(path) if isinstance(path, str) else path
-        destination = (
-            path / name if destination is None else destination / name
-        )
+        destination = path / name if destination is None else destination / name
         prohibited = [] if prohibited is None else prohibited
         others = []
         config = None

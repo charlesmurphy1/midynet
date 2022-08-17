@@ -156,7 +156,7 @@ public:
         double edgeCount,
         size_t blockCount=0,
         bool useBlockHyperPrior=true,
-        bool usePlantedPrior=true,
+        bool usePlantedPrior=false,
         bool canonical=false,
         bool stubLabeled=true,
         bool withSelfLoops=true,
@@ -190,7 +190,6 @@ public:
                 makeBlockProposer(blockProposerType, useBlockHyperPrior, sampleLabelCountProb, labelCreationProb, shift)
             );
             setLabelProposer(*m_labelProposerUPtr);
-
             checkSafety();
             sample();
     }

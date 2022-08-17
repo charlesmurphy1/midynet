@@ -2,7 +2,7 @@ from __future__ import annotations
 import importlib
 import basegraph
 from typing import Callable, Optional
-from _midynet.mcmc import GraphReconstructionMCMC
+from _midynet.mcmc import _GraphReconstructionMCMC
 from _midynet.mcmc.callbacks import CallBack
 from _midynet.utility import get_edge_list
 

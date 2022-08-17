@@ -143,7 +143,7 @@ const double LabelGraphDeltaPrior::getLogLikelihoodRatioFromLabelMove(const Bloc
 /* DEFINITION OF EDGE MATRIX UNIFORM PRIOR */
 
 void LabelGraphErdosRenyiPrior::sampleState() {
-    LabelGraph labelGraph(m_blockPriorPtr->getBlockCount());
+    LabelGraph labelGraph(m_blockPriorPtr->getMaxBlockCount());
 
     std::vector<std::pair<BlockIndex, BlockIndex>> allEdges;
 
@@ -241,29 +241,42 @@ void LabelGraphPlantedPartitionPrior::applyLabelMoveToState(const BlockMove& mov
 
 void LabelGraphPlantedPartitionPrior::sampleState() {
     std::uniform_int_distribution<size_t> dist(0, getEdgeCount());
-    size_t B = m_blockPriorPtr->getBlockCount(), E_in = dist(rng), E_out = getEdgeCount() - E_in;
-    std::vector<size_t> e_in = sampleUniformMultinomial(E_in, B);
-    std::vector<size_t> e_out = sampleUniformMultinomial(E_out, B * (B - 1) / 2);
+    size_t Beff = m_blockPriorPtr->getEffectiveBlockCount(), B = m_blockPriorPtr->getMaxBlockCount();
+    size_t E_in, E_out;
+    if (Beff > 1){
+        E_in = dist(rng);
+        E_out = getEdgeCount() - E_in;
+    } else {
+        E_in = getEdgeCount();
+        E_out = 0;
+    }
+    std::vector<size_t> e_in = sampleUniformMultinomial(E_in, Beff), e_out;
+    if (Beff > 1)
+        e_out = sampleUniformMultinomial(E_out, Beff * (Beff - 1) / 2);
 
     LabelGraph labelGraph(B);
 
-    size_t it = 0;
+    size_t i = 0, j = 0;
     for (size_t r=0; r<B ; ++r){
-        labelGraph.addMultiedgeIdx(r, r, e_in[r]);
+        if (m_blockPriorPtr->getVertexCounts().get(r) == 0)
+            continue;
+        labelGraph.addMultiedgeIdx(r, r, e_in[i++]);
         for (size_t s=r + 1; s<B ; ++s){
-            labelGraph.addMultiedgeIdx(r, s, e_out[it++]);
+            if (m_blockPriorPtr->getVertexCounts().get(s) == 0 or e_out.size() == 0)
+                continue;
+            labelGraph.addMultiedgeIdx(r, s, e_out[j++]);
         }
     }
     setState(labelGraph);
 }
 
 const double LabelGraphPlantedPartitionPrior::getLogLikelihood() const {
-    size_t E = getEdgeCount(), B = getBlockCount();
-    if (B == 1)
-        return 0;
-    double logLikelihood = -log(E + 1);
-    logLikelihood += logFactorial(m_edgeCountIn) - m_edgeCountIn * log(B);
-    logLikelihood += logFactorial(m_edgeCountOut) - m_edgeCountOut * log( B * (B - 1) / 2);
+    size_t E = getEdgeCount(), B = m_blockPriorPtr->getEffectiveBlockCount();
+    double logLikelihood = logFactorial(m_edgeCountIn) - m_edgeCountIn * log(B);
+    if (B > 1){
+        logLikelihood += logFactorial(m_edgeCountOut) - m_edgeCountOut * log( B * (B - 1) / 2);
+        logLikelihood += -log(E + 1);
+    }
 
     for (size_t r=0; r<B ; ++r){
         logLikelihood -= logFactorial(m_state.getEdgeMultiplicityIdx(r, r));

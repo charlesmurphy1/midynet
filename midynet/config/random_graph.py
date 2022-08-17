@@ -15,10 +15,9 @@ from _midynet.random_graph import (
     NestedDegreeCorrectedStochasticBlockModelFamily,
 )
 
-from midynet.util.degree_sequences import poisson_degreeseq, nbinom_degreeseq
+from midynet.utility.degree_sequences import poisson_degreeseq, nbinom_degreeseq
 from .config import Config
 from .factory import Factory, UnavailableOption
-from .wrapper import Wrapper
 
 __all__ = ("RandomGraphConfig", "RandomGraphFactory")
 
@@ -185,7 +184,7 @@ class RandomGraphFactory(Factory):
     @staticmethod
     def build_nbinom(config: RandomGraphConfig) -> ConfigurationModel:
         avgk = 2 * config.edge_count / config.size
-        degrees = nbinom_degreeseq(config.size, avgk, heterogeneity).tolist()
+        degrees = nbinom_degreeseq(config.size, avgk, config.heterogeneity).tolist()
         return ConfigurationModel(degrees)
 
     @staticmethod

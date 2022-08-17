@@ -50,12 +50,7 @@ public:
         const auto& blocks = (*m_labelGraphPriorPtrPtr)->getBlocks();
         const auto& labelGraph = (*m_labelGraphPriorPtrPtr)->getState();
         const auto& generate = (*m_withParallelEdgesPtr) ? generateMultiGraphSBM : generateSBM;
-        try {
-            return generate(blocks, labelGraph, *m_withSelfLoopsPtr);
-        } catch (std::logic_error){
-            (*m_labelGraphPriorPtrPtr)->sample();
-            return sample();
-        }
+        return generate(blocks, labelGraph, *m_withSelfLoopsPtr);
     }
     const double getLogLikelihood() const override ;
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove&) const override;

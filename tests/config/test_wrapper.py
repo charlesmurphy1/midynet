@@ -1,7 +1,7 @@
 import pytest
 
 from _midynet.random_graph.prior import BlockCountUniformPrior, BlockUniformPrior
-from midynet.config import Wrapper
+from midynet.wrapper import Wrapper
 
 
 @pytest.fixture

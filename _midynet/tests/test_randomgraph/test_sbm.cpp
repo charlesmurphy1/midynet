@@ -335,37 +335,40 @@ INSTANTIATE_TEST_CASE_P(
         )
     );
 
-class SBMTest: public::testing::Test{
-protected:
+
+TEST(SBMTest, construction_returnSafeObject){
     std::vector<size_t> sizes = {10, 20, 30};
     size_t edgeCount = 100;
     double assortativity = 0.8;
     std::vector<BlockIndex> blocks = getPlantedBlocks(sizes);
     LabelGraph labelGraph = getPlantedLabelGraph(sizes.size(), edgeCount);
-
     StochasticBlockModel randomGraph = StochasticBlockModel(blocks, labelGraph);
-
-};
-
-
-TEST_F(SBMTest, sample_noError){
+    EXPECT_NO_THROW(randomGraph.checkSafety());
     randomGraph.sample();
+    EXPECT_NO_THROW(randomGraph.checkConsistency());
 }
 
-class PlantedPartitionModelTest: public::testing::Test{
-protected:
+TEST(UniformSBMTest, construction_returnSafeObject){
+    seedWithTime();
+    for (size_t i=0; i<100; ++i){
+        StochasticBlockModelFamily randomGraph(100, 250, 0, true, true);
+        EXPECT_NO_THROW(randomGraph.checkSafety());
+        randomGraph.sample();
+        EXPECT_NO_THROW(randomGraph.checkConsistency());
+    }
+}
+
+TEST(PlantedPartitionModelTest, constructor1_noThrow){
     size_t edgeCount = 100;
     double assortativity = 0.8;
-};
-
-
-TEST_F(PlantedPartitionModelTest, constructor1_noThrow){
     PlantedPartitionModel randomGraph = PlantedPartitionModel({10, 20, 30}, edgeCount, assortativity);
     randomGraph.sample();
     EXPECT_NO_THROW(randomGraph.checkConsistency());
 }
 
-TEST_F(PlantedPartitionModelTest, constructor2_noThrow){
+TEST(PlantedPartitionModelTest, constructor2_noThrow){
+    size_t edgeCount = 100;
+    double assortativity = 0.8;
     PlantedPartitionModel randomGraph = PlantedPartitionModel(60, edgeCount, 3, assortativity);
     randomGraph.sample();
     EXPECT_NO_THROW(randomGraph.checkConsistency());

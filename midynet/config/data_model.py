@@ -1,20 +1,11 @@
 from __future__ import annotations
 from typing import Set, Any
-from _midynet.data.dynamics import (
+from midynet.data.dynamics import (
     Dynamics,
     CowanDynamics,
     DegreeDynamics,
     SISDynamics,
     GlauberDynamics,
-    BlockLabeledDynamics,
-    BlockLabeledCowanDynamics,
-    BlockLabeledDegreeDynamics,
-    BlockLabeledSISDynamics,
-    BlockLabeledGlauberDynamics,
-    NestedBlockLabeledCowanDynamics,
-    NestedBlockLabeledDegreeDynamics,
-    NestedBlockLabeledSISDynamics,
-    NestedBlockLabeledGlauberDynamics,
 )
 from .config import Config
 from .factory import Factory, OptionError
@@ -135,30 +126,8 @@ class DataModelConfig(Config):
 
 
 class DataModelFactory(Factory):
-    data_model: Dict[str, Any] = {
-        "cowan": CowanDynamics,
-        "degree": DegreeDynamics,
-        "glauber": GlauberDynamics,
-        "sis": SISDynamics,
-    }
-    labeled_data_model: Dict[str, Any] = {
-        "cowan": BlockLabeledCowanDynamics,
-        "degree": BlockLabeledDegreeDynamics,
-        "glauber": BlockLabeledGlauberDynamics,
-        "sis": BlockLabeledSISDynamics,
-    }
-    nested_data_model: Dict[str, Any] = {
-        "cowan": NestedBlockLabeledCowanDynamics,
-        "degree": NestedBlockLabeledDegreeDynamics,
-        "glauber": NestedBlockLabeledGlauberDynamics,
-        "sis": NestedBlockLabeledSISDynamics,
-    }
-
     @classmethod
-    def build(cls, config: Config, constructors=None) -> Any:
-        constructors = (
-            DataModelFactory.data_model if constructors is None else constructors
-        )
+    def build(cls, config: Config) -> Any:
         if config.unmet_requirements():
             raise MissingRequirementsError(config)
         options = {
@@ -166,58 +135,50 @@ class DataModelFactory(Factory):
         }
         name = config.name
         if name in options:
-            return options[name](config, constructors[name])
+            return options[name](config)
         else:
             raise OptionError(actual=name, expected=list(options.keys()))
 
-    @classmethod
-    def build_labeled(cls, config: Config):
-        return cls.build(config, DataModelFactory.labeled_data_model)
-
-    @classmethod
-    def build_nested(cls, config: Config):
-        return cls.build(config, DataModelFactory.nested_data_model)
-
     @staticmethod
-    def build_glauber(config: DataModelConfig, constructor=GlauberDynamics):
-        return constructor(
-            config.num_steps,
-            config.coupling,
-            config.auto_activation_prob,
-            config.auto_deactivation_prob,
-            config.async_mode,
-            config.normalize,
-            config.num_active,
+    def build_glauber(config: DataModelConfig):
+        return GlauberDynamics(
+            num_steps=config.num_steps,
+            coupling=config.coupling,
+            auto_activation_prob=config.auto_activation_prob,
+            auto_deactivation_prob=config.auto_deactivation_prob,
+            async_mode=config.async_mode,
+            normalize=config.normalize,
+            num_active=config.num_active,
         )
 
     @staticmethod
-    def build_sis(config: DataModelConfig, constructor=SISDynamics):
-        return constructor(
-            config.num_steps,
-            config.infection_prob,
-            config.recovery_prob,
-            config.auto_activation_prob,
-            config.auto_deactivation_prob,
-            config.async_mode,
-            config.normalize,
-            config.num_active,
+    def build_sis(config: DataModelConfig):
+        return SISDynamics(
+            num_steps=config.num_steps,
+            infection_prob=config.infection_prob,
+            recovery_prob=config.recovery_prob,
+            auto_activation_prob=config.auto_activation_prob,
+            auto_deactivation_prob=config.auto_deactivation_prob,
+            async_mode=config.async_mode,
+            normalize=config.normalize,
+            num_active=config.num_active,
         )
 
     @staticmethod
-    def build_cowan(config: DataModelConfig, constructor=CowanDynamics):
-        return constructor(
-            config.num_steps,
-            config.nu,
-            config.a,
-            config.mu,
-            config.eta,
-            config.auto_activation_prob,
-            config.auto_deactivation_prob,
-            config.async_mode,
-            config.normalize,
-            config.num_active,
+    def build_cowan(config: DataModelConfig):
+        return CowanDynamics(
+            num_steps=config.num_steps,
+            nu=config.nu,
+            a=config.a,
+            mu=config.mu,
+            eta=config.eta,
+            auto_activation_prob=config.auto_activation_prob,
+            auto_deactivation_prob=config.auto_deactivation_prob,
+            async_mode=config.async_mode,
+            normalize=config.normalize,
+            num_active=config.num_active,
         )
 
     @staticmethod
-    def build_degree(config: DataModelConfig, constructor=DegreeDynamics):
-        return constructor(config.num_steps, config.C)
+    def build_degree(config: DataModelConfig):
+        return DegreeDynamics(num_steps=config.num_steps, C=config.C)

@@ -315,7 +315,7 @@ class LabelPlantedPartitionPriorTest: public ::testing::Test {
         MultiGraph graph = getUndirectedHouseMultiGraph();
         EdgeCountDeltaPrior edgeCountPrior = {11};
         BlockCountDeltaPrior blockCountPrior = {3};
-        BlockUniformHyperPrior blockPrior = {graph.getSize(), blockCountPrior};
+        BlockUniformPrior blockPrior = {graph.getSize(), blockCountPrior};
         LabelGraphPlantedPartitionPrior prior = {edgeCountPrior, blockPrior};
 
         bool expectConsistencyError = false;

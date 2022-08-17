@@ -1,4 +1,5 @@
 # from .display import *
+from _midynet.utility import *
 from .utilities import (
     clip,
     log_sum_exp,

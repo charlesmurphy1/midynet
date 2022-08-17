@@ -15,7 +15,7 @@ namespace FastMIDyNet{
 template <typename GraphPriorType=RandomGraph>
 class BinaryDynamics: public Dynamics<GraphPriorType>{
 private:
-    size_t m_numInitialActive;
+    int m_numInitialActive;
     double m_autoActivationProb;
     double m_autoDeactivationProb;
 public:
@@ -26,7 +26,7 @@ public:
             double autoDeactivationProb=0.0,
             bool async=false,
             bool normalizeCoupling=true,
-            size_t numInitialActive=-1):
+            int numInitialActive=-1):
         BaseClass(2, numSteps, async, normalizeCoupling),
         m_autoActivationProb(autoActivationProb),
         m_autoDeactivationProb(autoDeactivationProb),
@@ -38,7 +38,7 @@ public:
             double autoDeactivationProb=0.0,
             bool async=false,
             bool normalizeCoupling=true,
-            size_t numInitialActive=-1):
+            int numInitialActive=-1):
         BaseClass(randomGraph, 2, numSteps, async, normalizeCoupling),
         m_autoActivationProb(autoActivationProb),
         m_autoDeactivationProb(autoDeactivationProb),
@@ -47,8 +47,8 @@ public:
         const VertexState& prevVertexState, const VertexState& nextVertexState, const VertexNeighborhoodState& neighborhoodState
     ) const override;
 
-    const size_t getNumInitialActive() const { return m_numInitialActive; }
-    void setNumInitialActive(size_t numInitialActive) {m_numInitialActive = numInitialActive; }
+    const int getNumInitialActive() const { return m_numInitialActive; }
+    void setNumInitialActive(int numInitialActive) {m_numInitialActive = numInitialActive; }
     const State getRandomState() const override;
     virtual const double getActivationProb(const VertexNeighborhoodState& neighborState) const = 0;
     virtual const double getDeactivationProb(const VertexNeighborhoodState& neighborState) const = 0;
@@ -64,7 +64,7 @@ template <typename GraphPriorType>
 const State BinaryDynamics<GraphPriorType>::getRandomState() const {
     size_t N = BaseClass::m_graphPriorPtr->getSize();
     State randomState(N);
-    if (m_numInitialActive > N)
+    if (m_numInitialActive < 0 or m_numInitialActive > N)
         return Dynamics<GraphPriorType>::getRandomState();
 
     auto indices = sampleUniformlySequenceWithoutReplacement(N, m_numInitialActive);
