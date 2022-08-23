@@ -36,8 +36,10 @@ public:
     const MultiGraph& getGraph() const { return m_graphPriorPtr->getState(); }
     void setGraph(const MultiGraph& graph) {m_graphPriorPtr->setState(graph); }
 
-    const std::vector<Label>& getLabels() const { return m_graphPriorPtr->getLabels(); }
-    void setLabels(const std::vector<Label>& labels) { m_graphPriorPtr->setLabels(labels); }
+    const std::vector<Label>& getLabels() const {
+        return m_graphPriorPtr->getLabels();
+    }
+    void setLabels(const std::vector<Label>& labels, bool reduce=false) { m_graphPriorPtr->setLabels(labels, reduce); }
 
 
     void sample() override { m_graphPriorPtr->sample(); }
@@ -167,7 +169,7 @@ public:
 
     const std::vector<Label>& getLabels() const { return m_graphPriorPtr->getLabels(); }
     const std::vector<std::vector<Label>>& getNestedLabels() const { return m_graphPriorPtr->getNestedLabels(); }
-    void setNestedLabels(const std::vector<std::vector<Label>>& labels) { m_graphPriorPtr->setNestedLabels(labels); }
+    void setNestedLabels(const std::vector<std::vector<Label>>& labels, bool reduce=false) { m_graphPriorPtr->setNestedLabels(labels, reduce); }
 
 
     void sample() override { m_graphPriorPtr->sample(); }

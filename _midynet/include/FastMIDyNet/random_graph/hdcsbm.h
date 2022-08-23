@@ -73,9 +73,12 @@ public:
         RandomGraph::setState(state);
         m_degreePriorPtr->setGraph(m_state);
     }
-    void setNestedLabels(const std::vector<BlockSequence>& labels) override {
+    void setNestedLabels(const std::vector<BlockSequence>& labels, bool reduce=false) override {
         m_nestedLabelGraphPrior.setNestedPartition(labels);
-        m_degreePriorPtr->recomputeConsistentState();
+        if ( reduce )
+            m_degreePriorPtr->reducePartition();
+        else
+            m_degreePriorPtr->recomputeConsistentState();
     }
 
 
@@ -95,7 +98,8 @@ public:
     }
 
     void reduceLabels() override {
-        m_nestedLabelGraphPrior.reducePartition(); m_degreePriorPtr->recomputeConsistentState();
+        m_degreePriorPtr->reducePartition();
+        setUp();
     }
     void checkSelfConsistency() const override {
         NestedVertexLabeledRandomGraph<BlockIndex>::checkSelfConsistency();

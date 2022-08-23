@@ -79,8 +79,10 @@ public:
         RandomGraph::setState(state);
         m_nestedLabelGraphPrior.setGraph(m_state);
     }
-    void setNestedLabels(const std::vector<BlockSequence>& labels) override {
+    void setNestedLabels(const std::vector<BlockSequence>& labels, bool reduce=false) override {
         m_nestedLabelGraphPrior.setNestedPartition(labels);
+        if ( reduce )
+            reduceLabels();
     }
 
 
@@ -89,7 +91,10 @@ public:
 
     const LabelGraphPrior& getLabelGraphPrior() const { return *m_labelGraphPriorPtr; }
     const NestedLabelGraphPrior& getNestedLabelGraphPrior() const { return m_nestedLabelGraphPrior; }
-    void reduceLabels() override { m_nestedLabelGraphPrior.reducePartition(); }
+    void reduceLabels() override {
+        m_nestedLabelGraphPrior.reducePartition();
+        setUp();
+    }
 
     void setEdgeCountPrior(EdgeCountPrior& prior) { m_nestedLabelGraphPrior.setEdgeCountPrior(prior); }
 

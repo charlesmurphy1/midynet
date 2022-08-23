@@ -71,7 +71,11 @@ public:
         RandomGraph::setState(state);
         m_labelGraphPriorPtr->setGraph(m_state);
     }
-    void setLabels(const std::vector<BlockIndex>& labels) override { m_labelGraphPriorPtr->setPartition(labels); }
+    void setLabels(const std::vector<BlockIndex>& labels, bool reduce=false) override {
+        m_labelGraphPriorPtr->setPartition(labels);
+        if ( reduce )
+            reduceLabels();
+    }
 
 
     LabelGraphPrior& getLabelGraphPriorRef() const { return *m_labelGraphPriorPtr; }
@@ -92,7 +96,10 @@ public:
     const bool isStubLabeled() const { return m_stubLabeled; }
     const bool withSelfLoops() const { return m_withSelfLoops; }
     const bool withParallelEdges() const { return m_withParallelEdges; }
-    void reduceLabels() override { m_labelGraphPriorPtr->reducePartition(); }
+    void reduceLabels() override {
+        m_labelGraphPriorPtr->reducePartition();
+        setUp();
+    }
 
     void checkSelfConsistency() const override{
         VertexLabeledRandomGraph<BlockIndex>::checkSelfConsistency();

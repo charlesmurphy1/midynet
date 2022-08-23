@@ -324,13 +324,14 @@ def get_posterior_entropy_partition_meanfield(
 
     for i in range(config.num_sweeps):
         _s, _f = mcmc.do_MH_sweep(burn=burn)
+        print(graph_model.get_labels())
     partitions = callback.get_data()
+    print(partitions)
     pmodes = ModeClusterState(partitions)  # from graph-tool
     if config.get_value("equilibrate_mode_cluster", False):
         mcmc_equilibrate(pmodes, force_niter=10, verbose=True)  # from graph-tool
     S = pmodes.posterior_entropy(True)
     graph_model.set_labels(original_partition)
-    print(S)
     return S
 
 
@@ -345,20 +346,20 @@ def get_posterior_entropy_partition_exact(
         graph_model.set_labels(p)
         logp.append(graph_model.get_log_joint())
 
-    graph_model.set_labels(og_p)
-
     log_evidence = log_sum_exp(logp)
 
     entropy = 0
+    z = 0
     for p in enumerate_all_partitions(graph_model.get_size(), graph_model.get_size()):
         graph_model.set_labels(p)
-        graph_model.reduce()
         log_posterior = graph_model.get_log_joint() - log_evidence
-        print(p, log_posterior)
+        z += np.exp(log_posterior)
+        print(p, graph_model.get_labels(), log_posterior, graph_model.get_label_count())
         if not np.isinf(log_posterior):
             entropy -= np.exp(log_posterior) * log_posterior
-
-    return 0
+    print(f"{entropy=}, {z=}")
+    graph_model.set_labels(og_p)
+    return entropy
 
 
 def get_posterior_entropy_partition(

@@ -57,8 +57,10 @@ public:
         RandomGraph::setState(state);
         m_degreePriorPtr->setGraph(m_state);
     }
-    void setLabels(const std::vector<BlockIndex>& labels) override {
+    void setLabels(const std::vector<BlockIndex>& labels, bool reduce=false) override {
         m_degreePriorPtr->setPartition(labels);
+        if ( reduce )
+            reduceLabels();
     }
 
 
@@ -89,7 +91,10 @@ public:
         return m_degreePriorPtr->getLabelGraphPrior().getEdgeCount();
     }
     const std::vector<size_t> getDegrees() const { return getDegreePrior().getState(); }
-    void reduceLabels() override { m_degreePriorPtr->reducePartition(); }
+    void reduceLabels() override {
+        m_degreePriorPtr->reducePartition();
+        setUp();
+    }
 
     virtual void checkSelfConsistency() const override {
         VertexLabeledRandomGraph<BlockIndex>::checkSelfConsistency();

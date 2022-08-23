@@ -48,7 +48,7 @@ public:
     using PyRandomGraph<BaseClass>::PyRandomGraph;
 
     /* Pure abstract methods */
-    void setLabels(const std::vector<BlockIndex>& labels) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setLabels, labels); }
+    void setLabels(const std::vector<BlockIndex>& labels, bool reduce=false) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setLabels, labels, reduce); }
     void sampleLabels () override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleLabels,); }
 
     const std::vector<Label>& getLabels() const override  {
@@ -77,7 +77,7 @@ public:
     using PyVertexLabeledRandomGraph<Label, BaseClass>::PyVertexLabeledRandomGraph;
 
     /* Pure abstract methods */
-    void setNestedLabels(const std::vector<std::vector<Label>>& labels) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setNestedLabels, labels);}
+    void setNestedLabels(const std::vector<std::vector<Label>>& labels, bool reduce=false) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setNestedLabels, labels, reduce);}
     const size_t getDepth() const override { PYBIND11_OVERRIDE_PURE(const size_t, BaseClass, getDepth, );}
     const Label getLabelOfIdx(BaseGraph::VertexIndex vertex, Level level) const override { PYBIND11_OVERRIDE_PURE(const Label, BaseClass, getLabelOfIdx, vertex, level);}
     const Label getNestedLabelOfIdx(BaseGraph::VertexIndex vertex, Level level) const override { PYBIND11_OVERRIDE_PURE(const Label, BaseClass, getNestedLabelOfIdx, vertex, level);}

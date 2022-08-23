@@ -144,7 +144,6 @@ public:
     }
 
     virtual bool isValidGraphMove(const GraphMove& move) const { return true; }
-    virtual void reduceLabels() { }
 };
 
 template <typename Label>
@@ -173,7 +172,7 @@ public:
     virtual const LabelGraph& getLabelGraph() const = 0;
     const Label& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getLabels()[vertexIdx]; }
 
-    virtual void setLabels(const std::vector<Label>&) = 0;
+    virtual void setLabels(const std::vector<Label>&, bool reduce=false) = 0;
     virtual void sampleLabels() = 0;
 
 
@@ -211,6 +210,7 @@ public:
     virtual void checkSelfConsistency() const override {
         m_edgeProposerPtr->checkConsistency();
     }
+    virtual void reduceLabels() { }
 };
 
 using BlockLabeledRandomGraph = VertexLabeledRandomGraph<BlockIndex>;
@@ -227,10 +227,10 @@ protected:
 public:
     using VertexLabeledRandomGraph<Label>::VertexLabeledRandomGraph;
 
-    void setLabels(const std::vector<Label>&) override {
+    void setLabels(const std::vector<Label>&, bool reduce=false) override {
         throw DepletedMethodError("NestedVertexLabeledRandomGraph", "setLabels");
     }
-    virtual void setNestedLabels(const std::vector<std::vector<Label>>&) = 0;
+    virtual void setNestedLabels(const std::vector<std::vector<Label>>&, bool reduce=false) = 0;
 
     virtual const size_t getDepth() const = 0;
 

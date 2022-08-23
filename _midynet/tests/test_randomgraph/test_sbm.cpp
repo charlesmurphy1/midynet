@@ -305,7 +305,7 @@ TEST_P(SBMParametrizedTest, setLabels_forSomeRandomLabels_returnConsistentState)
     std::uniform_int_distribution<BlockIndex> dist(0, B-1);
     for (size_t v=0; v<N; ++v)
         newLabels[v] = dist(rng);
-    randomGraph.setLabels(newLabels);
+    randomGraph.setLabels(newLabels, false);
     EXPECT_EQ(randomGraph.getLabels(), newLabels);
     EXPECT_NO_THROW(randomGraph.checkConsistency());
 }

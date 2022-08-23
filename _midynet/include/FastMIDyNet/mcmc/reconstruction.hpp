@@ -185,8 +185,8 @@ public:
     const std::vector<Label>& getLabels() const {
         return m_dataModelPtr->getGraphPrior().getLabels();
     }
-    void setLabels(const std::vector<Label>&labels) {
-        m_dataModelPtr->getGraphPriorRef().setLabels(labels);
+    void setLabels(const std::vector<Label>&labels, bool reduce=false) {
+        m_dataModelPtr->getGraphPriorRef().setLabels(labels, reduce);
     }
 
     const double getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const ;
@@ -272,8 +272,8 @@ public:
     const std::vector<std::vector<Label>>& getNestedLabels() const {
         return m_dataModelPtr->getGraphPrior().getNestedLabels();
     }
-    void setNestedLabels(const std::vector<std::vector<Label>>& labels) {
-        m_dataModelPtr->getGraphPriorRef().setNestedLabels(labels);
+    void setNestedLabels(const std::vector<std::vector<Label>>& labels, bool reduce=false) {
+        m_dataModelPtr->getGraphPriorRef().setNestedLabels(labels, reduce);
     }
 
     const double getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const ;

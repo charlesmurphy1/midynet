@@ -57,7 +57,7 @@ py::class_<VertexLabelReconstructionMCMC<Label>, MCMC> declareVertexLabelReconst
         .def("get_graph", &VertexLabelReconstructionMCMC<Label>::getGraph)
         .def("set_graph", &VertexLabelReconstructionMCMC<Label>::setGraph, py::arg("graph"))
         .def("get_labels", &VertexLabelReconstructionMCMC<Label>::getLabels)
-        .def("set_labels", &VertexLabelReconstructionMCMC<Label>::setLabels, py::arg("labels"))
+        .def("set_labels", &VertexLabelReconstructionMCMC<Label>::setLabels, py::arg("labels"), py::arg("reduce")=false)
         .def("insert_callback", [](VertexLabelReconstructionMCMC<Label>& self, std::string key, CallBack<MCMC>& callback){
             self.insertCallBack(key, callback); }, py::arg("key"), py::arg("callback"))
         .def("insert_callback", [](VertexLabelReconstructionMCMC<Label>& self, std::string key, CallBack<VertexLabelReconstructionMCMC<Label>>& callback){
@@ -78,6 +78,8 @@ py::class_<NestedVertexLabelReconstructionMCMC<Label>, MCMC> declareNestedVertex
         .def("get_graph", &NestedVertexLabelReconstructionMCMC<Label>::getGraph)
         .def("set_graph", &NestedVertexLabelReconstructionMCMC<Label>::setGraph, py::arg("graph"))
         .def("get_labels", &NestedVertexLabelReconstructionMCMC<Label>::getLabels)
+        .def("get_nested_labels", &NestedVertexLabelReconstructionMCMC<Label>::getNestedLabels)
+        .def("set_nested_labels", &NestedVertexLabelReconstructionMCMC<Label>::setNestedLabels, py::arg("labels"), py::arg("reduce")=false)
         .def("insert_callback", [](NestedVertexLabelReconstructionMCMC<Label>& self, std::string key, CallBack<MCMC>& callback){
             self.insertCallBack(key, callback); }, py::arg("key"), py::arg("callback"))
         .def("insert_callback", [](NestedVertexLabelReconstructionMCMC<Label>& self, std::string key, CallBack<NestedVertexLabelReconstructionMCMC<Label>>& callback){
@@ -115,7 +117,7 @@ py::class_<VertexLabeledGraphReconstructionMCMC<Label>, GraphReconstructionMCMC<
             py::arg("dynamics"), py::arg("sample_label_prob")=0.5, py::arg("beta_prior")=1, py::arg("beta_likelihood")=1)
         .def(py::init<double, double, double>(), py::arg("sample_label_prob")=0.5, py::arg("beta_prior")=1, py::arg("beta_likelihood")=1)
         .def("get_labels", &VertexLabeledGraphReconstructionMCMC<Label>::getLabels)
-        .def("set_labels", &VertexLabeledGraphReconstructionMCMC<Label>::setLabels, py::arg("labels"))
+        .def("set_labels", &VertexLabeledGraphReconstructionMCMC<Label>::setLabels, py::arg("labels"), py::arg("reduce")=false)
         // .def("get_log_acceptance_prob_from_label_move", &VertexLabeledGraphReconstructionMCMC<Label>::getLogAcceptanceProbFromLabelMove, py::arg("move"))
         ;
 }
@@ -128,7 +130,7 @@ py::class_<NestedVertexLabeledGraphReconstructionMCMC<Label>, GraphReconstructio
         .def(py::init<double, double, double>(), py::arg("sample_label_prob")=0.5, py::arg("beta_prior")=1, py::arg("beta_likelihood")=1)
         .def("get_labels", &NestedVertexLabeledGraphReconstructionMCMC<Label>::getLabels)
         .def("get_nested_labels", &NestedVertexLabeledGraphReconstructionMCMC<Label>::getNestedLabels)
-        .def("set_nested_labels", &NestedVertexLabeledGraphReconstructionMCMC<Label>::setNestedLabels, py::arg("labels"))
+        .def("set_nested_labels", &NestedVertexLabeledGraphReconstructionMCMC<Label>::setNestedLabels, py::arg("labels"), py::arg("reduce")=false)
         // .def("get_log_acceptance_prob_from_label_move", &NestedVertexLabeledGraphReconstructionMCMC<Label>::getLogAcceptanceProbFromLabelMove, py::arg("move"))
         ;
 }
