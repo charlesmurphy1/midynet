@@ -13,9 +13,11 @@
 
 namespace FastMIDyNet{
 
-CounterMap<size_t> BlockPrior::computeVertexCounts(const BlockSequence& state) {
-    CounterMap<size_t> vertexCount;
+CounterMap<BlockIndex> BlockPrior::computeVertexCounts(const BlockSequence& state) {
+    CounterMap<BlockIndex> vertexCount;
     for (auto blockIdx: state) {
+        if (blockIdx < 0)
+            continue;
         vertexCount.increment(blockIdx);
     }
     return vertexCount;
@@ -26,9 +28,9 @@ bool BlockPrior::isValidBlockMove(const BlockMove& move) const {
 }
 
 void BlockPrior::checkBlockSequenceConsistencyWithVertexCounts(
-    std::string prefix, const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCounts
+    std::string prefix, const BlockSequence& blockSeq, CounterMap<BlockIndex> expectedVertexCounts
 ) {
-    CounterMap<size_t> actualVertexCounts = computeVertexCounts(blockSeq);
+    CounterMap<BlockIndex> actualVertexCounts = computeVertexCounts(blockSeq);
     if (actualVertexCounts.size() != expectedVertexCounts.size())
         throw ConsistencyError(
             prefix,
@@ -87,7 +89,10 @@ void BlockUniformHyperPrior::sampleState() {
         vertexCounts.push_back(nr);
     }
 
-    m_state = sampleRandomPermutation( vertexCounts );
+    std::vector<size_t> blocks = sampleRandomPermutation( vertexCounts );
+    m_state.clear();
+    for (auto b : blocks)
+        m_state.push_back(b);
     m_vertexCounts = computeVertexCounts(m_state);
 }
 

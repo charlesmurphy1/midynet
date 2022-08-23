@@ -10,19 +10,19 @@
 namespace FastMIDyNet{
 
 template<typename Label>
-class VertexLabelMCMC: public MCMC{
+class VertexLabelReconstructionMCMC: public MCMC{
 protected:
     VertexLabeledRandomGraph<Label>* m_graphPriorPtr = nullptr;
-    CallBackMap<VertexLabelMCMC<Label>> m_labelCallBacks;
+    CallBackMap<VertexLabelReconstructionMCMC<Label>> m_labelCallBacks;
 
     double _getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const;
 public:
-    VertexLabelMCMC(
+    VertexLabelReconstructionMCMC(
         VertexLabeledRandomGraph<Label>& graphPrior,
         double betaLikelihood=1,
         double betaPrior=1):
     MCMC(betaLikelihood, betaPrior){ m_labelCallBacks.setMCMC(*this); setGraphPrior(graphPrior); }
-    VertexLabelMCMC(
+    VertexLabelReconstructionMCMC(
         double betaLikelihood=1,
         double betaPrior=1):
     MCMC(betaLikelihood, betaPrior){ m_labelCallBacks.setMCMC(*this); }
@@ -48,25 +48,29 @@ public:
 
     // Callbacks related
     using MCMC::insertCallBack;
-    void insertCallBack(std::pair<std::string, CallBack<VertexLabelMCMC<Label>>*> pair) {
+    void insertCallBack(std::pair<std::string, CallBack<VertexLabelReconstructionMCMC<Label>>*> pair) {
         m_labelCallBacks.insert(pair);
     }
-    void insertCallBack(std::string key, CallBack<VertexLabelMCMC<Label>>& callback) { insertCallBack({key, &callback}); }
+    void insertCallBack(std::string key, CallBack<VertexLabelReconstructionMCMC<Label>>& callback) { insertCallBack({key, &callback}); }
     void removeCallBack(std::string key) override {
         if ( m_mcmcCallBacks.contains(key) )
             m_mcmcCallBacks.remove(key);
         if( m_labelCallBacks.contains(key) )
             m_labelCallBacks.remove(key);
         else
-            throw std::runtime_error("VertexLabelMCMC: callback of key `" + key + "` cannot be removed.");
+            throw std::runtime_error("VertexLabelReconstructionMCMC: callback of key `" + key + "` cannot be removed.");
     }
-    const CallBack<VertexLabelMCMC<Label>>& getLabelCallBack(std::string key){ return m_labelCallBacks.get(key); }
+    const CallBack<VertexLabelReconstructionMCMC<Label>>& getLabelCallBack(std::string key){ return m_labelCallBacks.get(key); }
 
     virtual void reset() { MCMC::reset(); m_labelCallBacks.clear(); }
     void onBegin() override { MCMC::onBegin(); m_labelCallBacks.onBegin(); }
     void onEnd() override { MCMC::onEnd(); m_labelCallBacks.onEnd(); }
     void onSweepBegin() override { MCMC::onSweepBegin(); m_labelCallBacks.onSweepBegin(); }
-    void onSweepEnd() override { MCMC::onSweepEnd(); m_labelCallBacks.onSweepEnd(); }
+    void onSweepEnd() override {
+        m_graphPriorPtr->reduceLabels();
+        MCMC::onSweepEnd();
+        m_labelCallBacks.onSweepEnd();
+    }
     void onStepBegin() override { MCMC::onStepBegin(); m_labelCallBacks.onStepBegin(); }
     void onStepEnd() override { MCMC::onStepEnd(); m_labelCallBacks.onStepEnd(); }
 
@@ -87,7 +91,7 @@ public:
 
     void checkSelfSafety() const override {
         if (m_graphPriorPtr == nullptr)
-            throw SafetyError("VertexLabelMCMC", "m_graphPriorPtr");
+            throw SafetyError("VertexLabelReconstructionMCMC", "m_graphPriorPtr");
         m_graphPriorPtr->checkSafety();
     }
     void checkSelfConsistency() const override {
@@ -102,11 +106,11 @@ public:
     }
 };
 
-using BlockLabelMCMC =  VertexLabelMCMC<BlockIndex>;
+using PartitionReconstructionMCMC =  VertexLabelReconstructionMCMC<BlockIndex>;
 
 
 template<typename Label>
-double VertexLabelMCMC<Label>::_getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const {
+double VertexLabelReconstructionMCMC<Label>::_getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const {
     double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_graphPriorPtr->getLogLikelihoodRatioFromLabelMove(move);
     double logPriorRatio = (m_betaPrior == 0) ? 0 : m_betaPrior * m_graphPriorPtr->getLogPriorRatioFromLabelMove(move);
     double logProposalRatio = m_graphPriorPtr->getLogProposalRatioFromLabelMove(move);
@@ -119,7 +123,7 @@ double VertexLabelMCMC<Label>::_getLogAcceptanceProbFromLabelMove(const LabelMov
 }
 
 template<typename Label>
-bool VertexLabelMCMC<Label>::doMetropolisHastingsStep() {
+bool VertexLabelReconstructionMCMC<Label>::doMetropolisHastingsStep() {
     LabelMove<Label> move = m_graphPriorPtr->proposeLabelMove();
     if (not m_graphPriorPtr->isValidLabelMove(move))
         return m_isLastAccepted = false;
@@ -135,19 +139,19 @@ bool VertexLabelMCMC<Label>::doMetropolisHastingsStep() {
 }
 
 template<typename Label>
-class NestedVertexLabelMCMC: public MCMC{
+class NestedVertexLabelReconstructionMCMC: public MCMC{
 protected:
     NestedVertexLabeledRandomGraph<Label>* m_graphPriorPtr = nullptr;
-    CallBackMap<NestedVertexLabelMCMC<Label>> m_labelCallBacks;
+    CallBackMap<NestedVertexLabelReconstructionMCMC<Label>> m_labelCallBacks;
 
     double _getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const;
 public:
-    NestedVertexLabelMCMC(
+    NestedVertexLabelReconstructionMCMC(
         NestedVertexLabeledRandomGraph<Label>& graphPrior,
         double betaLikelihood=1,
         double betaPrior=1):
     MCMC(betaLikelihood, betaPrior){ m_labelCallBacks.setMCMC(*this); setGraphPrior(graphPrior); }
-    NestedVertexLabelMCMC(
+    NestedVertexLabelReconstructionMCMC(
         double betaLikelihood=1,
         double betaPrior=1):
     MCMC(betaLikelihood, betaPrior){ m_labelCallBacks.setMCMC(*this); }
@@ -175,19 +179,19 @@ public:
     // Callbacks related
 
     using MCMC::insertCallBack;
-    void insertCallBack(std::pair<std::string, CallBack<NestedVertexLabelMCMC<Label>>*> pair) {
+    void insertCallBack(std::pair<std::string, CallBack<NestedVertexLabelReconstructionMCMC<Label>>*> pair) {
         m_labelCallBacks.insert(pair);
     }
-    void insertCallBack(std::string key, CallBack<NestedVertexLabelMCMC<Label>>& callback) { insertCallBack({key, &callback}); }
+    void insertCallBack(std::string key, CallBack<NestedVertexLabelReconstructionMCMC<Label>>& callback) { insertCallBack({key, &callback}); }
     void removeCallBack(std::string key) override {
         if ( m_mcmcCallBacks.contains(key) )
             m_mcmcCallBacks.remove(key);
         if( m_labelCallBacks.contains(key) )
             m_labelCallBacks.remove(key);
         else
-            throw std::runtime_error("NestedVertexLabelMCMC: callback of key `" + key + "` cannot be removed.");
+            throw std::runtime_error("NestedVertexLabelReconstructionMCMC: callback of key `" + key + "` cannot be removed.");
     }
-    const CallBack<NestedVertexLabelMCMC<Label>>& getLabelCallBack(std::string key){ return m_labelCallBacks.get(key); }
+    const CallBack<NestedVertexLabelReconstructionMCMC<Label>>& getLabelCallBack(std::string key){ return m_labelCallBacks.get(key); }
 
 
     void reset() { MCMC::reset(); m_labelCallBacks.clear(); }
@@ -216,7 +220,7 @@ public:
 
     void checkSelfSafety() const override {
         if (m_graphPriorPtr == nullptr)
-            throw SafetyError("NestedVertexLabelMCMC", "m_graphPriorPtr");
+            throw SafetyError("NestedVertexLabelReconstructionMCMC", "m_graphPriorPtr");
         m_graphPriorPtr->checkSafety();
 
     }
@@ -232,11 +236,11 @@ public:
     }
 };
 
-using NestedBlockLabelMCMC =  NestedVertexLabelMCMC<BlockIndex>;
+using NestedPartitionReconstructionMCMC =  NestedVertexLabelReconstructionMCMC<BlockIndex>;
 
 
 template<typename Label>
-double NestedVertexLabelMCMC<Label>::_getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const {
+double NestedVertexLabelReconstructionMCMC<Label>::_getLogAcceptanceProbFromLabelMove(const LabelMove<Label>& move) const {
     double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_graphPriorPtr->getLogLikelihoodRatioFromLabelMove(move);
     double logPriorRatio = (m_betaPrior == 0) ? 0 : m_betaPrior * m_graphPriorPtr->getLogPriorRatioFromLabelMove(move);
     double logProposalRatio = m_graphPriorPtr->getLogProposalRatioFromLabelMove(move);
@@ -249,7 +253,7 @@ double NestedVertexLabelMCMC<Label>::_getLogAcceptanceProbFromLabelMove(const La
 }
 
 template<typename Label>
-bool NestedVertexLabelMCMC<Label>::doMetropolisHastingsStep() {
+bool NestedVertexLabelReconstructionMCMC<Label>::doMetropolisHastingsStep() {
     LabelMove<Label> move = m_graphPriorPtr->proposeLabelMove();
     if (not m_graphPriorPtr->isValidLabelMove(move))
         return m_isLastAccepted = false;

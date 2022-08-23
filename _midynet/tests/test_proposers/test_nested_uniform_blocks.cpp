@@ -94,7 +94,7 @@ public:
     const std::vector<std::set<BlockIndex>>& getAvailableLabels() { return m_availableLabels; }
 
     void printAvails(){
-        std::cout << "avails: ";
+        std::cout << "avails: " << std::endl;
         Level l=0;
         for (const auto& avails : getAvailableLabels()){
             std::cout << "\t Level " << l << ":";
@@ -107,7 +107,7 @@ public:
     }
 
     void printEmpties(){
-        std::cout << "empties: ";
+        std::cout << "empties: " << std::endl;
         Level l=0;
         for (const auto& empties : getEmptyLabels()){
             std::cout << "\t Level " << l << ":";
@@ -153,7 +153,8 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, proposeNewLabelMove_returnValid
     if (move.prevLabel != move.nextLabel){
         EXPECT_TRUE(move.addedLabels == 1);
         EXPECT_EQ(move.prevLabel, graphPrior.getLabelOfIdx(0, move.level));
-        EXPECT_NE(proposer.getEmptyLabels()[move.level].count(move.nextLabel), 0);
+        if (proposer.getEmptyLabels()[move.level].size() != 0)
+            EXPECT_NE(proposer.getEmptyLabels()[move.level].count(move.nextLabel), 0);
     }
 }
 
@@ -327,7 +328,8 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveAddi
     }
     const auto empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();
     proposer.applyLabelMove(move);
-    EXPECT_NE(empties, proposer.getEmptyLabels());
+    if (empties[move.level].size() > 0)
+        EXPECT_NE(empties, proposer.getEmptyLabels());
     EXPECT_NE(avails, proposer.getAvailableLabels());
     EXPECT_EQ(avails[move.level].size() + 1, proposer.getAvailableLabels()[move.level].size());
 }
@@ -395,10 +397,10 @@ TEST_F(TestRestrictedUniformNestedBlockProposer, applyLabelMove_forBlockMoveDest
     graphPrior.applyLabelMove(move);
     proposer.applyLabelMove(move);
     EXPECT_NE(empties, proposer.getEmptyLabels());
-    EXPECT_EQ(empties.size() - 1, proposer.getEmptyLabels().size());
+    EXPECT_EQ(empties.size(), proposer.getEmptyLabels().size());
     EXPECT_NE(avails, proposer.getAvailableLabels());
     EXPECT_EQ(avails[move.level].size() - 1, proposer.getAvailableLabels()[move.level].size());
-    EXPECT_EQ(avails.size() - 1, proposer.getAvailableLabels().size());
+    EXPECT_EQ(avails.size(), proposer.getAvailableLabels().size());
 }
 
 }

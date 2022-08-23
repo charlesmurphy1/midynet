@@ -27,9 +27,10 @@ void NestedBlockPrior::_applyLabelMove(const BlockMove& move) {
         m_vertexCounts.increment(move.nextLabel);
         m_state[move.vertexIndex] = move.nextLabel;
     }
+
     if (move.addedLabels == -1)
         destroyBlock(move);
-}
+ }
 
 
 const double NestedBlockPrior::_getLogPriorRatioFromLabelMove(const BlockMove& move) const {
@@ -40,8 +41,8 @@ const double NestedBlockPrior::_getLogPriorRatioFromLabelMove(const BlockMove& m
     return logLikelihoodAfter - logLikelihoodBefore;
 }
 
-std::vector<CounterMap<size_t>> NestedBlockPrior::computeNestedVertexCounts(const std::vector<BlockSequence>& nestedState) {
-    std::vector<CounterMap<size_t>> nestedVertexCount(nestedState.size());
+std::vector<CounterMap<BlockIndex>> NestedBlockPrior::computeNestedVertexCounts(const std::vector<BlockSequence>& nestedState) {
+    std::vector<CounterMap<BlockIndex>> nestedVertexCount(nestedState.size());
     Level level = 0;
     for (const auto& b: nestedState){
         for (auto blockIdx: b)
@@ -51,8 +52,8 @@ std::vector<CounterMap<size_t>> NestedBlockPrior::computeNestedVertexCounts(cons
     return nestedVertexCount;
 }
 
-std::vector<CounterMap<size_t>> NestedBlockPrior::computeNestedAbsoluteVertexCounts(const std::vector<BlockSequence>& nestedState) {
-    std::vector<CounterMap<size_t>> nestedAbsVertexCount(nestedState.size());
+std::vector<CounterMap<BlockIndex>> NestedBlockPrior::computeNestedAbsoluteVertexCounts(const std::vector<BlockSequence>& nestedState) {
+    std::vector<CounterMap<BlockIndex>> nestedAbsVertexCount(nestedState.size());
     Level level = 0;
     size_t nr, id;
     for (const auto& b: nestedState){
@@ -79,7 +80,9 @@ void NestedBlockPrior::createNewBlock(const BlockMove& move){
         m_nestedAbsVertexCounts[move.level + 1].increment(0, getSize());
 
         m_nestedBlockCountPriorPtr->createNewLevel();
-    } else {
+    } else if (move.nextLabel < m_nestedState[move.level + 1].size()){
+        m_nestedState[move.level + 1][move.nextLabel] = m_nestedState[move.level + 1][move.prevLabel];
+     } else {
         m_nestedState[move.level + 1].push_back(m_nestedState[move.level + 1][move.prevLabel]);
         m_nestedVertexCounts[move.level + 1].increment(m_nestedState[move.level + 1][move.prevLabel]);
     }
@@ -97,6 +100,8 @@ std::vector<BlockSequence> NestedBlockPrior::reduceHierarchy(const std::vector<B
         id = 0, i = 0;
         BlockSequence relabeled;
         for (auto b : reducedState[l]){
+            if (b < 0)
+                continue;
             if (remap.count(b) == 0){
                 remap.insert({b, id});
                 if (l != depth - 1)
@@ -128,6 +133,9 @@ const double NestedBlockPrior::getLogLikelihood() const {
 
 bool NestedBlockPrior::isValidBlockMove(const BlockMove& move) const {
     // level of move is greater than depth
+    if (move.prevLabel < 0)
+        return false;
+        // {std::cout << "CODE 0" << std::endl; return false;}
     if (move.level >= getDepth())
         return false;
         // {std::cout << "CODE 1" << std::endl; return false;}
@@ -207,7 +215,10 @@ const BlockSequence NestedBlockUniformHyperPrior::sampleState(Level level) const
     for (auto nr : vertexCountList){
         vertexCounts.push_back(nr);
     }
-    return sampleRandomPermutation( vertexCounts );
+    std::vector<BlockIndex> blocks;
+    for(auto b : sampleRandomPermutation( vertexCounts ))
+        blocks.push_back(b);
+    return blocks;
 }
 
 const double NestedBlockUniformHyperPrior::getLogLikelihoodAtLevel(Level level) const {

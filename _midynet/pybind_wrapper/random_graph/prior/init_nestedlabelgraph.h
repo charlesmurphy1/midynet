@@ -34,8 +34,8 @@ void initNestedLabelGraphPrior(py::module& m){
         .def("get_block_of_id", [](const NestedLabelGraphPrior& self, BaseGraph::VertexIndex vertex, Level level){ return self.getBlockOfIdx(vertex, level); })
         .def("get_nested_block_of_id", [](const NestedLabelGraphPrior& self, BlockIndex vertex, Level level){ return self.getNestedBlockOfIdx(vertex, level); })
         .def("get_depth", &NestedLabelGraphPrior::getDepth)
-        .def("set_nested_partition", &NestedLabelGraphPrior::setNestedPartition, "nested_partition")
-        .def("reduce_hierarchy", &NestedLabelGraphPrior::reduceHierarchy, py::arg("min_level")=0)
+        .def("set_nested_partition", &NestedLabelGraphPrior::setNestedPartition, py::arg("nested_partition"))
+        .def("reduce_partition", [](NestedLabelGraphPrior& self, Level minLevel){ return self.reducePartition(minLevel); }, py::arg("min_level"))
         ;
 
     py::class_<NestedStochasticBlockLabelGraphPrior, NestedLabelGraphPrior>(m, "NestedStochasticBlockLabelGraphPrior")

@@ -45,6 +45,10 @@ def to_batch(x, size):
         yield x[i : i + size]
 
 
+def logbase(x, base=np.e):
+    return np.log(x) / np.log(base)
+
+
 def to_nary(x, base=2, dim=None):
     if type(x) is int or type(x) is float:
         x = np.array([x])

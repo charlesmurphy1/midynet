@@ -89,9 +89,9 @@ public:
     const size_t getMaxBlockCountFromPartition(const BlockSequence& blocks) const { return *max_element(blocks.begin(), blocks.end()) + 1; }
     const size_t getEffectiveBlockCount() const { return m_vertexCounts.size(); }
     const size_t getEffectiveBlockCountFromPartition(const BlockSequence& blocks) const { return computeVertexCounts(blocks).size(); }
-    const CounterMap<size_t>& getVertexCounts() const { return m_vertexCounts; };
+    const CounterMap<BlockIndex>& getVertexCounts() const { return m_vertexCounts; };
     const BlockIndex getBlockOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
-    static CounterMap<size_t> computeVertexCounts(const BlockSequence&);
+    static CounterMap<BlockIndex> computeVertexCounts(const BlockSequence&);
 
     /* sampling methods */
 
@@ -111,7 +111,7 @@ public:
     }
 
     /* Consistency methods */
-    static void checkBlockSequenceConsistencyWithVertexCounts(std::string prefix, const BlockSequence& blockSeq, CounterMap<size_t> expectedVertexCounts) ;
+    static void checkBlockSequenceConsistencyWithVertexCounts(std::string prefix, const BlockSequence& blockSeq, CounterMap<BlockIndex> expectedVertexCounts) ;
 
     void computationFinished() const override {
         m_isProcessed=false;
@@ -155,6 +155,8 @@ public:
         }
         return reducedBlocks;
     }
+
+    virtual void reduceState() { setState(reducePartition(m_state)); }
 
 };
 

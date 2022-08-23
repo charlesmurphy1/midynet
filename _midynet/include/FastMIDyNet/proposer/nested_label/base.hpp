@@ -83,7 +83,7 @@ public:
     const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
         Level level = NestedBaseClass::sampleLevel();
         if ( m_uniform01(rng) < m_labelCreationProb )
-            return {vertex, m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), m_nestedGraphPriorPtr->getNestedLabelCount()[level], 1, level};
+            return {vertex, m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), (int)m_nestedGraphPriorPtr->getNestedLabelCount()[level], 1, level};
         else
             return {vertex, m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level), -1, level};
     }
@@ -129,7 +129,11 @@ public:
     const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
         Level level = sampleLevel();
         Label prevLabel = m_nestedGraphPriorPtr->getLabelOfIdx(vertex, level);
-        Label nextLabel = *sampleUniformlyFrom(m_emptyLabels[level].begin(), m_emptyLabels[level].end());
+        Label nextLabel;
+        if (m_emptyLabels[level].size() == 0)
+            nextLabel = *m_availableLabels[level].rbegin() + 1;
+        else
+            nextLabel = *sampleUniformlyFrom(m_emptyLabels[level].begin(), m_emptyLabels[level].end());
         LabelMove<Label> move = {vertex, prevLabel, nextLabel, 1, level};
         if ( destroyingLabel(move) )
             return {vertex, prevLabel, prevLabel, 0, level};
@@ -140,17 +144,23 @@ public:
         m_emptyLabels.clear();
         m_availableLabels.clear();
         for (Level l=0; l<m_nestedGraphPriorPtr->getDepth(); ++l){
-            m_emptyLabels.push_back({m_nestedGraphPriorPtr->getNestedLabelCount(l)});
+            m_emptyLabels.push_back({});
             m_availableLabels.push_back({});
-            for (const auto& nr: graphPrior.getNestedVertexCounts(l))
-                m_availableLabels[l].insert(nr.first);
+            for (Label r=0; r<m_nestedGraphPriorPtr->getNestedLabelCount(l); ++r){
+                if ( graphPrior.getNestedVertexCounts(l).get(r) == 0)
+                    m_emptyLabels[l].insert(r);
+                else
+                    m_availableLabels[l].insert(r);
+            }
+
         }
     }
 
     void applyLabelMove(const LabelMove<Label>& move) override {
-        // graph prior must be updated before proposer
-        if ( move.addedLabels==-1 )
-            setUpWithNestedPrior(*m_nestedGraphPriorPtr);
+        if ( move.addedLabels==-1 ){
+            m_emptyLabels[move.level].insert(move.prevLabel);
+            m_availableLabels[move.level].erase(move.prevLabel);
+        }
         if ( move.addedLabels==1 ){
             m_availableLabels[move.level].insert(move.nextLabel);
             m_emptyLabels[move.level].erase(move.nextLabel);
@@ -159,10 +169,10 @@ public:
                 m_availableLabels.push_back({0});
             }
         }
-        if (m_emptyLabels[move.level].size() == 0)
-            m_emptyLabels[move.level].insert(
-                *max_element(m_availableLabels[move.level].begin(), m_availableLabels[move.level].end()) + 1
-            );
+        // if (m_emptyLabels[move.level].size() == 0)
+        //     m_emptyLabels[move.level].insert(
+        //         *max_element(m_availableLabels[move.level].begin(), m_availableLabels[move.level].end()) + 1
+        //     );
 
     }
 

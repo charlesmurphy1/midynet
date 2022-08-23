@@ -144,6 +144,7 @@ public:
     }
 
     virtual bool isValidGraphMove(const GraphMove& move) const { return true; }
+    virtual void reduceLabels() { }
 };
 
 template <typename Label>

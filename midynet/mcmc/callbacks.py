@@ -34,11 +34,11 @@ def CollectGraphOnSweep(labeled=False, nested=False):
     return cb._CollectGraphOnSweep()
 
 
-def CollectPartitionOnSweep(nested=False, type="reconstruction"):
-    if nested and type == "reconstruction":
-        return cb._CollectNestedPartitionOnSweepForReconstruction()
-    elif nested and type == "community":
+def CollectPartitionOnSweep(nested=False, type="community"):
+    if nested and type == "community":
         return cb._CollectNestedPartitionOnSweepForCommunity()
-    elif not nested and type == "reconstruction":
-        return cb._CollectPartitionOnSweepForReconstruction()
-    return cb._CollectPartitionOnSweepForCommunity()
+    elif nested and type == "reconstruction":
+        return cb._CollectNestedPartitionOnSweepForReconstruction()
+    elif not nested and type == "community":
+        return cb._CollectPartitionOnSweepForCommunity()
+    return cb._CollectPartitionOnSweepForReconstruction()

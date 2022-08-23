@@ -32,6 +32,7 @@ py::class_<VertexLabeledRandomGraph<Label>, RandomGraph, PyVertexLabeledRandomGr
         .def("apply_label_move", &VertexLabeledRandomGraph<Label>::applyLabelMove, py::arg("move"))
         .def("propose_label_move", &VertexLabeledRandomGraph<Label>::proposeLabelMove)
         .def("is_valid_label_move", &VertexLabeledRandomGraph<Label>::isValidLabelMove, py::arg("move"))
+        .def("reduce_labels", &VertexLabeledRandomGraph<Label>::reduceLabels)
         ;
 }
 

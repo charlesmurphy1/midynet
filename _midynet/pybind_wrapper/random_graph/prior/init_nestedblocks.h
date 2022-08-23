@@ -36,7 +36,7 @@ void initNestedBlockPrior(py::module& m){
         .def("get_nested_abs_vertex_counts", [](const NestedBlockPrior& self, Level level){ return self.getNestedAbsVertexCounts(level); })
         .def("get_block_of_id", [](const NestedBlockPrior& self, BaseGraph::VertexIndex vertex, Level level){ return self.getBlockOfIdx(vertex, level); })
         .def("get_nested_block_of_id", [](const NestedBlockPrior& self, BlockIndex vertex, Level level){ return self.getNestedBlockOfIdx(vertex, level); })
-        .def("reduce_hierarchy", [](NestedBlockPrior&self, Level minLevel=0){ self.reduceHierarchy(minLevel);}, py::arg("min_level")=0)
+        .def("reduce_state", [](NestedBlockPrior&self, Level minLevel){ self.reduceState(minLevel);}, py::arg("min_level")=0)
         .def("sample_state", [](const NestedBlockPrior& self, Level level){ return self.sampleState(level); }, py::arg("level") )
         .def("sample_state", [](NestedBlockPrior& self){ self.sampleState(); } )
         .def("is_valid_block_move", &NestedBlockPrior::isValidBlockMove, py::arg("move") )

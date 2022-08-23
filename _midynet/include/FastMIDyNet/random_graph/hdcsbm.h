@@ -94,6 +94,9 @@ public:
         setUpLikelihood();
     }
 
+    void reduceLabels() override {
+        m_nestedLabelGraphPrior.reducePartition(); m_degreePriorPtr->recomputeConsistentState();
+    }
     void checkSelfConsistency() const override {
         NestedVertexLabeledRandomGraph<BlockIndex>::checkSelfConsistency();
         m_degreePriorPtr->checkSelfConsistency();

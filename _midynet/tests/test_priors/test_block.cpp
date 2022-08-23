@@ -73,7 +73,7 @@ TEST_F(BlockPriorTest, computeVertexCountsInBlock_forSomeBlockSeq_returnCorrectV
     BlockSequence blockSeq = BlockSequence(GRAPH_SIZE, 0);
     blockSeq[0] = BLOCK_COUNT - 1;
 
-    CounterMap<size_t> actualVertexCount = prior.computeVertexCounts(blockSeq);
+    CounterMap<BlockIndex> actualVertexCount = prior.computeVertexCounts(blockSeq);
     EXPECT_EQ(actualVertexCount[0], GRAPH_SIZE - 1);
     EXPECT_EQ(actualVertexCount[BLOCK_COUNT - 1], 1);
 }
@@ -159,7 +159,7 @@ class BlockDeltaPriorTest: public::testing::Test{
 
         bool isCorrectBlockSequence(const BlockSequence& blockSeq){
             if (blockSeq.size() != BLOCK_SEQ.size()) return false;
-            for (size_t i=0; i<blockSeq.size(); ++i){
+            for (BlockIndex i=0; i<blockSeq.size(); ++i){
                 if (blockSeq[i] != BLOCK_SEQ[i]) return false;
             }
             return true;

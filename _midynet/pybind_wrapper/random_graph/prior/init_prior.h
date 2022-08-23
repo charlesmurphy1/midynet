@@ -43,10 +43,14 @@ declareVertexLabeledPriorBaseClass(py::module& m, std::string pyName){
 
 void initPriorBaseClass(pybind11::module& m){
     declarePriorBaseClass<size_t>(m, "UnIntPrior");
+    declarePriorBaseClass<int>(m, "IntPrior");
     declareVertexLabeledPriorBaseClass<size_t, BlockIndex>(m, "UnIntVertexLabeledPrior");
+    declareVertexLabeledPriorBaseClass<int, BlockIndex>(m, "IntVertexLabeledPrior");
 
     declarePriorBaseClass<std::vector<size_t>>(m, "UnIntVectorPrior");
+    declarePriorBaseClass<std::vector<int>>(m, "IntVectorPrior");
     declareVertexLabeledPriorBaseClass<std::vector<size_t>, BlockIndex>(m, "UnIntVectorVertexLabeledPrior");
+    declareVertexLabeledPriorBaseClass<std::vector<int>, BlockIndex>(m, "IntVectorVertexLabeledPrior");
 
     declarePriorBaseClass<MultiGraph>(m, "MultigraphPrior");
     declareVertexLabeledPriorBaseClass<MultiGraph, BlockIndex>(m, "MultigraphVertexLabeledPrior");

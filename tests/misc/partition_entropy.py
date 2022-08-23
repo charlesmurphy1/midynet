@@ -3,16 +3,18 @@ import numpy as np
 
 
 def main():
-    N, E, B = 100, 250, 5
+    N, E, B = 3, 3, 2
     test_model = midynet.random_graph.PlantedPartitionModel(N, E, B)
-    prior_model = midynet.random_graph.StochasticBlockModelFamily(
-        N, E, block_hyperprior=True, block_proposer_type="mixed"
+    graph_model = midynet.random_graph.StochasticBlockModelFamily(
+        N, E, block_prior_type="hyper", block_proposer_type="mixed"
     )
-    prior_model.set_state(test_model.get_state())
+    graph_model.set_state(test_model.get_state())
     mf = midynet.metrics.util.get_posterior_entropy_partition_meanfield(
-        prior_model, num_sweeps=1000, burn_per_vertex=10
+        graph_model, num_sweeps=1000, burn_per_vertex=10
     )
-    print(mf)
+
+    exact = midynet.metrics.util.get_posterior_entropy_partition_exact(graph_model)
+    print(mf, exact)
 
 
 if __name__ == "__main__":

@@ -29,7 +29,7 @@ static const FastMIDyNet::DegreeSequence DEGREES = {
     0, 4, 4, 2, 1
 };
 
-static LabelGraph getLabelGraph(const FastMIDyNet::MultiGraph& graph, const std::vector<size_t>& vertexBlocks) {
+static LabelGraph getLabelGraph(const FastMIDyNet::MultiGraph& graph, const std::vector<BlockIndex>& vertexBlocks) {
     size_t blockNumber = 1;
     for (auto block: vertexBlocks)
         if (block >= blockNumber) blockNumber = block+1;

@@ -87,8 +87,8 @@ void VertexLabeledDegreePrior::_applyGraphMove(const GraphMove& move){
     applyGraphMoveToState(move);
 }
 void VertexLabeledDegreePrior::_applyLabelMove(const BlockMove& move) {
-    m_labelGraphPriorPtr->applyLabelMove(move);
     applyLabelMoveToDegreeCounts(move);
+    m_labelGraphPriorPtr->applyLabelMove(move);
 }
 
 void VertexLabeledDegreePrior::checkDegreeSequenceConsistencyWithEdgeCount(const DegreeSequence& degreeSeq, size_t expectedEdgeCount){
@@ -164,8 +164,8 @@ void VertexLabeledDegreeUniformPrior::sampleState(){
     vector<list<size_t>> degreeSeqInBlocks(getBlockPrior().getBlockCount());
     vector<list<size_t>::iterator> ptr_degreeSeqInBlocks(getBlockPrior().getBlockCount());
     const BlockSequence& blockSeq = getBlockPrior().getState();
-    const CounterMap<size_t>& edgeCounts = m_labelGraphPriorPtr->getEdgeCounts();
-    const CounterMap<size_t>& vertexCounts = getBlockPrior().getVertexCounts();
+    const CounterMap<BlockIndex>& edgeCounts = m_labelGraphPriorPtr->getEdgeCounts();
+    const CounterMap<BlockIndex>& vertexCounts = getBlockPrior().getVertexCounts();
     for (size_t r = 0; r < getBlockPrior().getBlockCount(); r++) {
         degreeSeqInBlocks[r] = sampleRandomWeakComposition(edgeCounts[r], vertexCounts[r]);
         ptr_degreeSeqInBlocks[r] = degreeSeqInBlocks[r].begin();
@@ -184,8 +184,8 @@ void VertexLabeledDegreeUniformPrior::sampleState(){
 
 const double VertexLabeledDegreeUniformPrior::getLogLikelihood() const{
     double logLikelihood = 0;
-    const CounterMap<size_t>& edgeCounts = m_labelGraphPriorPtr->getEdgeCounts();
-    const CounterMap<size_t>& vertexCounts = getBlockPrior().getVertexCounts();
+    const CounterMap<BlockIndex>& edgeCounts = m_labelGraphPriorPtr->getEdgeCounts();
+    const CounterMap<BlockIndex>& vertexCounts = getBlockPrior().getVertexCounts();
 
     for (size_t r = 0; r < getBlockPrior().getBlockCount(); r++)
         if (vertexCounts[r] > 0)

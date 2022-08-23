@@ -92,6 +92,7 @@ public:
     const bool isStubLabeled() const { return m_stubLabeled; }
     const bool withSelfLoops() const { return m_withSelfLoops; }
     const bool withParallelEdges() const { return m_withParallelEdges; }
+    void reduceLabels() override { m_labelGraphPriorPtr->reducePartition(); }
 
     void checkSelfConsistency() const override{
         VertexLabeledRandomGraph<BlockIndex>::checkSelfConsistency();

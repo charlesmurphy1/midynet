@@ -279,7 +279,7 @@ TEST_F(LabelGraphErdosRenyiPriorTest, getLogLikelihoodRatio_forSomeLabelMove_ret
 }
 
 TEST_F(LabelGraphErdosRenyiPriorTest, getLogLikelihoodRatio_forSomeLabelMoveAddingNewBlock_returnCorrectLogLikelihoodRatio){
-    BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockCount(), 1};
+    BlockMove move = {0, blockPrior.getBlockOfIdx(0), (int)blockPrior.getBlockCount(), 1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
     prior.applyLabelMove(move);
@@ -416,7 +416,7 @@ TEST_F(LabelPlantedPartitionPriorTest, getLogLikelihoodRatio_forSomeLabelMove_re
 }
 
 TEST_F(LabelPlantedPartitionPriorTest, getLogLikelihoodRatio_forSomeLabelMoveAddingNewBlock_returnCorrectLogLikelihoodRatio){
-    BlockMove move = {0, blockPrior.getBlockOfIdx(0), blockPrior.getBlockCount(), 1};
+    BlockMove move = {0, blockPrior.getBlockOfIdx(0), (int)blockPrior.getBlockCount(), 1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
     double logLikelihoodBeforeMove = prior.getLogLikelihood();
     prior.applyLabelMove(move);

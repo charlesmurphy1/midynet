@@ -23,7 +23,7 @@ def get_config(
         f"recon-{graph_prior}-{data_model}",
         data_model,
         graph_prior,
-        metrics=["mutualinfo"],
+        metrics=["mutual_info"],
         path=PATH_TO_DATA / "exploration" / f"recon-{graph_prior}-{data_model}",
         num_procs=num_procs,
         seed=seed,
@@ -45,12 +45,12 @@ def get_config(
     config.graph_prior.set_value("size", N)
     config.graph_prior.set_value("edge_count", E)
     config.data_model.set_value("num_steps", T)
-    config.metrics.mutualinfo.set_value("num_samples", num_procs)
-    config.metrics.mutualinfo.set_value("burn_per_vertex", 5)
-    config.metrics.mutualinfo.set_value("start_from_original", False)
-    config.metrics.mutualinfo.set_value("initial_burn", 2000)
-    config.metrics.mutualinfo.set_value("num_sweeps", 100)
-    config.metrics.mutualinfo.set_value("method", "meanfield")
+    config.metrics.mutual_info.set_value("num_samples", num_procs)
+    config.metrics.mutual_info.set_value("burn_per_vertex", 5)
+    config.metrics.mutual_info.set_value("start_from_original", False)
+    config.metrics.mutual_info.set_value("initial_burn", 2000)
+    config.metrics.mutual_info.set_value("num_sweeps", 100)
+    config.metrics.mutual_info.set_value("method", "meanfield")
 
     resources = {
         "account": "def-aallard",
@@ -64,7 +64,9 @@ def get_config(
 
 
 def main():
-    for graph_prior, data_model in itertools.product(["erdosrenyi"], ["glauber"]):
+    for graph_prior, data_model in itertools.product(
+        ["stochastic_block_model"], ["glauber"]
+    ):
         config = get_config(
             graph_prior, data_model, num_procs=1, time="16:00:00", mem=12
         )

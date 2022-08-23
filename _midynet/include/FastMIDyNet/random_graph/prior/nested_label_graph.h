@@ -19,9 +19,9 @@ protected:
     void applyGraphMoveToState(const GraphMove& move) override ;
     void applyLabelMoveToState(const BlockMove& move) override ;
 
-    void destroyBlock(const BlockMove& move) override {
-        recomputeStateFromGraph();
-    }
+    // void destroyBlock(const BlockMove& move) override {
+    //     recomputeStateFromGraph();
+    // }
 
     void recomputeStateFromGraph() override ;
     std::vector<CounterMap<BlockIndex>> computeNestedEdgeCountsFromNestedState(
@@ -117,8 +117,12 @@ public:
         throw DepletedMethodError("NestedLabelGraphPrior", "setPartition", "setNestedPartition");
     }
 
-    void reduceHierarchy(Level minLevel=0) {
-        m_nestedBlockPriorPtr->reduceHierarchy(minLevel);
+    void reducePartition(Level minLevel) {
+        m_nestedBlockPriorPtr->reduceState(minLevel);
+        recomputeStateFromGraph();
+    }
+    virtual void reducePartition(){
+        m_nestedBlockPriorPtr->reduceState();
         recomputeStateFromGraph();
     }
 

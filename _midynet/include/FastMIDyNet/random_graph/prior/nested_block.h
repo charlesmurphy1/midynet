@@ -14,6 +14,8 @@ protected:
 
     void _applyLabelMove(const BlockMove& move) override ;
     const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override ;
+    virtual void createNewBlock(const BlockMove& move) ;
+    virtual void destroyBlock(const BlockMove& move) { };
 
 public:
     /* Constructors */
@@ -95,7 +97,8 @@ public:
     static std::vector<CounterMap<BlockIndex>> computeNestedVertexCounts(const std::vector<std::vector<BlockIndex>>&);
     static std::vector<CounterMap<BlockIndex>> computeNestedAbsoluteVertexCounts(const std::vector<std::vector<BlockIndex>>&);
     static std::vector<BlockSequence> reduceHierarchy(const std::vector<BlockSequence>& nestedState, Level minLevel=0) ;
-    void reduceHierarchy(Level minLevel=0) { setNestedState(reduceHierarchy(m_nestedState, minLevel)); }
+    void reduceState(Level minLevel) { setNestedState(reduceHierarchy(m_nestedState, minLevel)); }
+    void reduceState() override { reduceState(0); }
 
     /* sampling methods */
     void sampleState() override{
@@ -124,8 +127,6 @@ public:
     bool creatingNewLevel(const BlockMove& move) const {
         return move.level == m_nestedVertexCounts.size() - 1 and move.addedLabels == 1;
     }
-    virtual void createNewBlock(const BlockMove& move) ;
-    virtual void destroyBlock(const BlockMove& move) { };
 
     /* Consistency methods */
     void computationFinished() const override {
@@ -144,7 +145,7 @@ public:
     bool isValidBlockMove(const BlockMove& move) const ;
 
     void checkNestedStateConsistencyWithAbsVertexCounts() const {
-        std::vector<CounterMap<size_t>> actualNestedAbsVertexCount = computeNestedAbsoluteVertexCounts(m_nestedState);
+        std::vector<CounterMap<BlockIndex>> actualNestedAbsVertexCount = computeNestedAbsoluteVertexCounts(m_nestedState);
         for (Level l=0; l<getDepth(); ++l){
             std::string prefix = "NestedBlockPrior (l=" + std::to_string(l) + ")";
             size_t N = 0;
@@ -249,9 +250,9 @@ public:
     const BlockSequence sampleState(Level level) const override;
 
     void destroyBlock(const BlockMove& move) override {
-        BlockIndex r = getNestedBlockOfIdx(move.prevLabel, move.level + 1);
-        m_nestedVertexCounts[move.level + 1].decrement(r);
-        reduceHierarchy(move.level);
+        BlockIndex prevLabel = m_nestedState[move.level + 1][move.prevLabel];
+        m_nestedState[move.level + 1][move.prevLabel] = -1;
+        m_nestedVertexCounts[move.level + 1].decrement(prevLabel);
     }
 
 };

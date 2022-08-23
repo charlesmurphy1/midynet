@@ -38,7 +38,6 @@ void initBlockCountPrior(py::module& m){
     py::class_<NestedBlockCountPrior, BlockCountPrior, PyNestedBlockCountPrior<>>(m, "NestedBlockCountPrior")
         .def(py::init<>())
         .def("get_depth", &NestedBlockCountPrior::getDepth)
-        .def("get_depth", &NestedBlockCountPrior::getDepth)
         .def("get_nested_state", [](const NestedBlockCountPrior& self){ return self.getNestedState(); })
         .def("get_nested_state", [](const NestedBlockCountPrior& self, Level level){ return self.getNestedState(level); }, py::arg("level"))
         .def("create_new_level", &NestedBlockCountPrior::createNewLevel)

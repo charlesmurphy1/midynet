@@ -51,47 +51,47 @@ py::class_<CollectEdgeMultiplicityOnSweep<MCMCType>, SweepCollector<MCMCType>> d
 void initCollectors(py::module& m){
     /* Collect base classes */
     declareCollectorBaseClass<MCMC>(m, "Collector");
-    declareCollectorBaseClass<BlockLabelMCMC>(m, "BlockCollector");
-    declareCollectorBaseClass<NestedBlockLabelMCMC>(m, "NestedBlockCollector");
-    declareCollectorBaseClass<GraphReconstructionMCMC<>>(m, "GraphReconstructionCollector");
-    declareCollectorBaseClass<BlockLabeledGraphReconstructionMCMC>(m, "BlockLabeledGraphReconstructionCollector");
-    declareCollectorBaseClass<NestedBlockLabeledGraphReconstructionMCMC>(m, "NestedBlockLabeledGraphReconstructionCollector");
+    declareCollectorBaseClass<PartitionReconstructionMCMC>(m, "BlockCollector");
+    declareCollectorBaseClass<NestedPartitionReconstructionMCMC>(m, "NestedBlockCollector");
+    declareCollectorBaseClass<GraphReconstructionMCMCBase>(m, "GraphReconstructionCollector");
+    declareCollectorBaseClass<BlockLabeledGraphReconstructionMCMCBase>(m, "BlockLabeledGraphReconstructionCollector");
+    declareCollectorBaseClass<NestedBlockLabeledGraphReconstructionMCMCBase>(m, "NestedBlockLabeledGraphReconstructionCollector");
 
     /* StepCollect base classes */
     declareCollectorSubClass<StepCollector<MCMC>, Collector<MCMC>, PyCollector<MCMC, StepCollector<MCMC>>>(m, "StepCollector");
-    declareCollectorSubClass<StepCollector<BlockLabelMCMC>, Collector<BlockLabelMCMC>, PyCollector<BlockLabelMCMC, StepCollector<BlockLabelMCMC>>>(m, "BlockStepCollector");
-    declareCollectorSubClass<StepCollector<NestedBlockLabelMCMC>, Collector<NestedBlockLabelMCMC>, PyCollector<NestedBlockLabelMCMC, StepCollector<NestedBlockLabelMCMC>>>(m, "NestedBlockStepCollector");
-    declareCollectorSubClass<StepCollector<GraphReconstructionMCMC<>>, Collector<GraphReconstructionMCMC<>>, PyCollector<GraphReconstructionMCMC<>, StepCollector<GraphReconstructionMCMC<>>>>(m, "GraphReconstructionStepCollector");
-    declareCollectorSubClass<StepCollector<BlockLabeledGraphReconstructionMCMC>, Collector<BlockLabeledGraphReconstructionMCMC>,  PyCollector<BlockLabeledGraphReconstructionMCMC, StepCollector<BlockLabeledGraphReconstructionMCMC>>>(m, "BlockLabeledGraphReconstructionStepCollector");
-    declareCollectorSubClass<StepCollector<NestedBlockLabeledGraphReconstructionMCMC>, Collector<NestedBlockLabeledGraphReconstructionMCMC>,  PyCollector<NestedBlockLabeledGraphReconstructionMCMC, StepCollector<NestedBlockLabeledGraphReconstructionMCMC>>>(m, "NestedBlockLabeledGraphReconstructionStepCollector");
+    declareCollectorSubClass<StepCollector<PartitionReconstructionMCMC>, Collector<PartitionReconstructionMCMC>, PyCollector<PartitionReconstructionMCMC, StepCollector<PartitionReconstructionMCMC>>>(m, "PartitionReconstructionStepCollector");
+    declareCollectorSubClass<StepCollector<NestedPartitionReconstructionMCMC>, Collector<NestedPartitionReconstructionMCMC>, PyCollector<NestedPartitionReconstructionMCMC, StepCollector<NestedPartitionReconstructionMCMC>>>(m, "NestedPartitionReconstructionStepCollector");
+    declareCollectorSubClass<StepCollector<GraphReconstructionMCMCBase>, Collector<GraphReconstructionMCMCBase>, PyCollector<GraphReconstructionMCMCBase, StepCollector<GraphReconstructionMCMCBase>>>(m, "GraphReconstructionStepCollector");
+    declareCollectorSubClass<StepCollector<BlockLabeledGraphReconstructionMCMCBase>, Collector<BlockLabeledGraphReconstructionMCMCBase>,  PyCollector<BlockLabeledGraphReconstructionMCMCBase, StepCollector<BlockLabeledGraphReconstructionMCMCBase>>>(m, "BlockLabeledGraphReconstructionStepCollector");
+    declareCollectorSubClass<StepCollector<NestedBlockLabeledGraphReconstructionMCMCBase>, Collector<NestedBlockLabeledGraphReconstructionMCMCBase>,  PyCollector<NestedBlockLabeledGraphReconstructionMCMCBase, StepCollector<NestedBlockLabeledGraphReconstructionMCMCBase>>>(m, "NestedBlockLabeledGraphReconstructionStepCollector");
 
     /* SweepCollector base classes */
     declareCollectorSubClass<SweepCollector<MCMC>, Collector<MCMC>, PyCollector<MCMC, SweepCollector<MCMC>>>(m, "SweepCollector");
-    declareCollectorSubClass<SweepCollector<BlockLabelMCMC>, Collector<BlockLabelMCMC>, PyCollector<BlockLabelMCMC, SweepCollector<BlockLabelMCMC>>>(m, "BlockSweepCollector");
-    declareCollectorSubClass<SweepCollector<NestedBlockLabelMCMC>, Collector<NestedBlockLabelMCMC>, PyCollector<NestedBlockLabelMCMC, SweepCollector<NestedBlockLabelMCMC>>>(m, "NestedBlockSweepCollector");
-    declareCollectorSubClass<SweepCollector<GraphReconstructionMCMC<>>, Collector<GraphReconstructionMCMC<>>, PyCollector<GraphReconstructionMCMC<>, SweepCollector<GraphReconstructionMCMC<>>>>(m, "GraphReconstructionSweepCollector");
-    declareCollectorSubClass<SweepCollector<BlockLabeledGraphReconstructionMCMC>, Collector<BlockLabeledGraphReconstructionMCMC>,  PyCollector<BlockLabeledGraphReconstructionMCMC, SweepCollector<BlockLabeledGraphReconstructionMCMC>>>(m, "BlockLabeledGraphReconstructionSweepCollector");
-    declareCollectorSubClass<SweepCollector<NestedBlockLabeledGraphReconstructionMCMC>, Collector<NestedBlockLabeledGraphReconstructionMCMC>,  PyCollector<NestedBlockLabeledGraphReconstructionMCMC, SweepCollector<NestedBlockLabeledGraphReconstructionMCMC>>>(m, "NestedBlockLabeledGraphReconstructionSweepCollector");
+    declareCollectorSubClass<SweepCollector<PartitionReconstructionMCMC>, Collector<PartitionReconstructionMCMC>, PyCollector<PartitionReconstructionMCMC, SweepCollector<PartitionReconstructionMCMC>>>(m, "PartitionReconstructionSweepCollector");
+    declareCollectorSubClass<SweepCollector<NestedPartitionReconstructionMCMC>, Collector<NestedPartitionReconstructionMCMC>, PyCollector<NestedPartitionReconstructionMCMC, SweepCollector<NestedPartitionReconstructionMCMC>>>(m, "NestedPartitionReconstructionSweepCollector");
+    declareCollectorSubClass<SweepCollector<GraphReconstructionMCMCBase>, Collector<GraphReconstructionMCMCBase>, PyCollector<GraphReconstructionMCMCBase, SweepCollector<GraphReconstructionMCMCBase>>>(m, "GraphReconstructionSweepCollector");
+    declareCollectorSubClass<SweepCollector<BlockLabeledGraphReconstructionMCMCBase>, Collector<BlockLabeledGraphReconstructionMCMCBase>,  PyCollector<BlockLabeledGraphReconstructionMCMCBase, SweepCollector<BlockLabeledGraphReconstructionMCMCBase>>>(m, "BlockLabeledGraphReconstructionSweepCollector");
+    declareCollectorSubClass<SweepCollector<NestedBlockLabeledGraphReconstructionMCMCBase>, Collector<NestedBlockLabeledGraphReconstructionMCMCBase>,  PyCollector<NestedBlockLabeledGraphReconstructionMCMCBase, SweepCollector<NestedBlockLabeledGraphReconstructionMCMCBase>>>(m, "NestedBlockLabeledGraphReconstructionSweepCollector");
 
     /* Graph collector classes */
-    declareCollectorSubClass<CollectGraphOnSweep<GraphReconstructionMCMC<>>, SweepCollector<GraphReconstructionMCMC<>>>(m, "_CollectGraphOnSweep")
-        .def("get_data", &CollectGraphOnSweep<GraphReconstructionMCMC<>>::getData);
+    declareCollectorSubClass<CollectGraphOnSweep<GraphReconstructionMCMCBase>, SweepCollector<GraphReconstructionMCMCBase>>(m, "_CollectGraphOnSweep")
+        .def("get_data", &CollectGraphOnSweep<GraphReconstructionMCMCBase>::getData);
     declareCollectorSubClass<CollectBlockLabeledGraphOnSweep, BlockLabeledGraphReconstructionSweepCollector>(m, "_CollectBlockLabeledGraphOnSweep")
         .def("get_data", &CollectBlockLabeledGraphOnSweep::getData);
     declareCollectorSubClass<CollectNestedBlockLabeledGraphOnSweep, NestedBlockLabeledGraphReconstructionSweepCollector>(m, "_CollectNestedBlockLabeledGraphOnSweep")
         .def("get_data", &CollectNestedBlockLabeledGraphOnSweep::getData);
 
     /* Edge multiplicity collector classes */
-    declareEdgeMultiplicityCollector<GraphReconstructionMCMC<>>(m, "_CollectEdgeMultiplicityOnSweep");
-    declareEdgeMultiplicityCollector<BlockLabeledGraphReconstructionMCMC>(m, "_CollectBlockLabeledEdgeMultiplicityOnSweep");
-    declareEdgeMultiplicityCollector<NestedBlockLabeledGraphReconstructionMCMC>(m, "_CollectNestedBlockLabeledEdgeMultiplicityOnSweep");
+    declareEdgeMultiplicityCollector<GraphReconstructionMCMCBase>(m, "_CollectEdgeMultiplicityOnSweep");
+    declareEdgeMultiplicityCollector<BlockLabeledGraphReconstructionMCMCBase>(m, "_CollectBlockLabeledEdgeMultiplicityOnSweep");
+    declareEdgeMultiplicityCollector<NestedBlockLabeledGraphReconstructionMCMCBase>(m, "_CollectNestedBlockLabeledEdgeMultiplicityOnSweep");
 
     /* Partition collector classes */
-    declareCollectorSubClass<CollectPartitionOnSweepForCommunity, BlockSweepCollector>(m, "_CollectPartitionOnSweepForCommunity")
+    declareCollectorSubClass<CollectPartitionOnSweepForCommunity, PartitionReconstructionSweepCollector>(m, "_CollectPartitionOnSweepForCommunity")
         .def("get_data", &CollectPartitionOnSweepForCommunity::getData);
     declareCollectorSubClass<CollectPartitionOnSweepForReconstruction, BlockLabeledGraphReconstructionSweepCollector>(m, "_CollectPartitionOnSweepForReconstruction")
         .def("get_data", &CollectPartitionOnSweepForReconstruction::getData);
-    declareCollectorSubClass<CollectNestedPartitionOnSweepForCommunity, NestedBlockSweepCollector>(m, "_CollectNestedPartitionOnSweepForCommunity")
+    declareCollectorSubClass<CollectNestedPartitionOnSweepForCommunity, NestedPartitionReconstructionSweepCollector>(m, "_CollectNestedPartitionOnSweepForCommunity")
         .def("get_data", &CollectNestedPartitionOnSweepForCommunity::getData);
     declareCollectorSubClass<CollectNestedPartitionOnSweepForReconstruction, NestedBlockLabeledGraphReconstructionSweepCollector>(m, "_CollectNestedPartitionOnSweepForReconstruction")
         .def("get_data", &CollectNestedPartitionOnSweepForReconstruction::getData);

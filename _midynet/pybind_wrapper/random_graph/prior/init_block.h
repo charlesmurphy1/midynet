@@ -15,7 +15,7 @@ namespace py = pybind11;
 namespace FastMIDyNet{
 
 void initBlockPrior(py::module& m){
-    py::class_<BlockPrior, BlockLabeledPrior<std::vector<size_t>>, PyBlockPrior<>>(m, "BlockPrior")
+    py::class_<BlockPrior, BlockLabeledPrior<std::vector<BlockIndex>>, PyBlockPrior<>>(m, "BlockPrior")
         .def(py::init<>())
         .def(py::init<size_t, BlockCountPrior&>(), py::arg("size"), py::arg("block_count_prior"))
         .def("get_size", &BlockPrior::getSize)
@@ -27,11 +27,12 @@ void initBlockPrior(py::module& m){
         .def("set_block_count_prior", &BlockPrior::setBlockCountPrior)
         .def("get_vertex_counts", &BlockPrior::getVertexCounts)
         .def("get_block_of_idx", &BlockPrior::getBlockOfIdx)
+        .def("reduce_state", &BlockPrior::reduceState)
         ;
 
     py::class_<BlockDeltaPrior, BlockPrior>(m, "BlockDeltaPrior")
         .def(py::init<>())
-        .def(py::init<const std::vector<size_t>&>(), py::arg("blocks"));
+        .def(py::init<const std::vector<BlockIndex>&>(), py::arg("blocks"));
 
     py::class_<BlockUniformPrior, BlockPrior>(m, "BlockUniformPrior")
         .def(py::init<>())

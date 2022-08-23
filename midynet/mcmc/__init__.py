@@ -110,7 +110,7 @@ class GraphReconstructionMCMC(MCMCWrapper):
             nested = True
         else:
             raise TypeError(
-                f"ReconstructionMCMC: wrong type `{data_wrapper.__class__}`."
+                f"GraphReconstructionMCMC: wrong type `{data_wrapper.__class__}`."
             )
 
         super().__init__(
@@ -133,14 +133,16 @@ class PartitionReconstructionMCMC(MCMCWrapper):
         else:
             graph_wrapper = graph_model
         if issubclass(graph_wrapper.__class__, _random_graph.BlockLabeledRandomGraph):
-            mcmc = _mcmc._BlockLabelMCMC(graph_wrapper, **kwargs)
+            mcmc = _mcmc._PartitionReconstructionMCMC(graph_wrapper, **kwargs)
         elif issubclass(
             graph_wrapper.__class__, _random_graph.NestedBlockLabeledRandomGraph
         ):
-            mcmc = _mcmc._NestedBlockLabelMCMC(graph_wrapper, **kwargs)
+            mcmc = _mcmc._NestedPartitionReconstructionMCMC(graph_wrapper, **kwargs)
             nested = True
         else:
-            raise TypeError(f"BlockMCMC: wrong type `{graph_wrapper.__class__}`.")
+            raise TypeError(
+                f"PartitionReconstructionMCMC: wrong type `{graph_wrapper.__class__}`."
+            )
         super().__init__(
             mcmc, verbose=verbose, graph_model=graph_model, nested=nested, **kwargs
         )

@@ -1,6 +1,8 @@
 from __future__ import annotations
 import numpy as np
 from collections import defaultdict
+from graph_tool.inference import ModeClusterState, mcmc_equilibrate
+
 from midynet.random_graph import (
     BlockLabeledRandomGraph,
     NestedBlockLabeledRandomGraph,
@@ -8,6 +10,7 @@ from midynet.random_graph import (
 from midynet.mcmc import GraphReconstructionMCMC, PartitionReconstructionMCMC
 from midynet.mcmc.callbacks import (
     CollectEdgesOnSweep,
+    CollectPartitionOnSweep,
     CollectLikelihoodOnSweep,
 )
 from midynet.config import Config
@@ -22,8 +25,7 @@ from midynet.utility import (
 __all__ = (
     "get_log_evidence",
     "get_log_posterior",
-    "get_posterior_entropy_partition_meanfield",
-    "get_posterior_entropy_partition_exact",
+    "get_posterior_entropy_partition",
 )
 
 
@@ -68,10 +70,11 @@ def get_log_evidence_meanfield(
     data_model: DynamicsWrapper, config: Config, verbose: int = 0, **kwargs
 ):
 
-    S = data_model.get_log_joint() - get_log_posterior_meanfield(
-        data_model, config, verbose, **kwargs
-    )
-    if issubclass(data_model.graph_prior.__class__, BlockLabeledRandomGraph):
+    logJoint = data_model.get_log_joint()
+    logPosterior = get_log_posterior_meanfield(data_model, config, verbose, **kwargs)
+    S = logJoint - logPosterior
+    print(S, logJoint, "-", logPosterior)
+    if data_model.graph_prior.labeled:
         S -= get_posterior_entropy_partition_meanfield(
             data_model.get_graph_prior(), config
         )
@@ -97,13 +100,7 @@ def get_log_evidence_annealed(
         if config.start_from_original:
             mcmc.set_graph(original_graph)
         else:
-            mcmc.get_data_model().sample_prior()
-
-        # if config.start_from_original:
-        #     mcmc.set_graph(original_graph)
-        # else:
-        #     mcmc.get_data_model().sample_prior()
-        #     mcmc.set_graph(mcmc.get_graph())
+            mcmc.sample_prior()
         s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
         for i in range(config.num_sweeps):
             mcmc.do_MH_sweep(burn=burn)
@@ -145,7 +142,7 @@ def get_log_evidence_exact_meanfield(
     S = data_model.get_log_joint() - get_log_posterior_exact_meanfield(
         data_model, config
     )
-    if issubclass(data_model.graph_prior.__class__, BlockLabeledRandomGraph):
+    if data_model.graph_prior.labeled:
         S -= get_log_posterior_meanfield_partition(data_model.graph_prior, config)
     return S
 
@@ -174,7 +171,7 @@ def get_log_posterior_arithmetic(data_model: DynamicsWrapper, config: Config, **
     S = data_model.get_log_joint() - get_log_evidence_arithmetic(
         data_model, config, **kwargs
     )
-    if issubclass(data_model.graph_prior.__class__, BlockLabeledRandomGraph):
+    if data_model.graph_prior.labeled:
         S -= get_log_posterior_meanfield_partition(data_model.get_graph_prior(), config)
     return S
 
@@ -183,7 +180,7 @@ def get_log_posterior_harmonic(data_model: DynamicsWrapper, config: Config, **kw
     S = data_model.get_log_joint() - get_log_evidence_harmonic(
         data_model, config, **kwargs
     )
-    if issubclass(data_model.graph_prior.__class__, BlockLabeledRandomGraph):
+    if data_model.graph_prior.labeled:
         S -= get_log_posterior_meanfield_partition(data_model.graph_prior, config)
     return S
 
@@ -192,26 +189,27 @@ def get_log_posterior_meanfield(
     data_model: DynamicsWrapper, config: Config, verbose: int = 0, **kwargs
 ):
     mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
-    graph_callback = CollectEdgesOnSweep()
-    mcmc.insert_callback("collector", graph_callback)
     original_graph = mcmc.get_graph()
-    graph_callback.collect()
-    # if not config.start_from_original:
-    #     mcmc.get_data_model().sample_prior()
-    #     mcmc.set_graph(mcmc.get_graph())
-    # if not config.start_from_original:
-    #     mcmc.get_data_model().sample_prior()
-    #
+
+    callback = CollectEdgesOnSweep(
+        labeled=data_model.graph_prior.labeled, nested=data_model.graph_prior.nested
+    )
+    mcmc.insert_callback("collector", callback)
+    callback.collect()
+    callback.collect()
+    if not config.start_from_original:
+        mcmc.sample_prior()
     burn = config.burn_per_vertex * mcmc.get_data_model().get_size()
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
 
     for i in range(config.num_sweeps):
         _s, _f = mcmc.do_MH_sweep(burn=burn)
+        print(i, _s, _f)
         s += _s
         f += _f
 
     mcmc.set_graph(original_graph)
-    logp = graph_callback.get_log_posterior_estimate(original_graph)
+    logp = callback.get_log_posterior_estimate(original_graph)
 
     mcmc.remove_callback("collector")
     return logp
@@ -296,7 +294,9 @@ def get_log_prior_meanfield(
     data_model: DynamicsWrapper, config: Config, **kwargs
 ) -> float:
     mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
-    callback = CollectEdgesOnSweep()
+    callback = CollectEdgesOnSweep(
+        labeled=data_model.graph_prior.labeled, nested=data_model.graph_prior.nested
+    )
     mcmc.insert_callback("edge", callback)
 
     randomGraph = mcmc.get_graph_prior()
@@ -314,39 +314,68 @@ def get_log_prior_meanfield(
 def get_posterior_entropy_partition_meanfield(
     graph_model: BlockLabeledRandomGraph, config: Config = None, **kwargs
 ) -> float:
-    config = Config() if config is None else config
+    config = Config(**kwargs) if config is None else config
+    print(config)
     mcmc = PartitionReconstructionMCMC(graph_model)
     callback = CollectPartitionOnSweep()
     mcmc.insert_callback("partition", callback)
     original_partition = mcmc.get_labels()
-    burn = config.burn_per_vertex * mcmc.graph_prior.get_size()
+    burn = config.burn_per_vertex * graph_model.get_size()
 
     for i in range(config.num_sweeps):
         _s, _f = mcmc.do_MH_sweep(burn=burn)
-        print(i, _s, _f)
     partitions = callback.get_data()
-    pmodes = gt.ModeClusterState(partitions)
-    gt.mcmc_equilibrate(pmodes, niter=config.num_sweeps)
+    pmodes = ModeClusterState(partitions)  # from graph-tool
+    if config.get_value("equilibrate_mode_cluster", False):
+        mcmc_equilibrate(pmodes, force_niter=10, verbose=True)  # from graph-tool
     S = pmodes.posterior_entropy(True)
+    graph_model.set_labels(original_partition)
+    print(S)
     return S
 
 
 def get_posterior_entropy_partition_exact(
-    graph_model: RandomGraph, config: Config, **kwargs
+    graph_model: RandomGraph, config: Config = None, **kwargs
 ) -> float:
 
+    config = Config(**kwargs) if config is None else config
     logp = []
     og_p = graph_model.get_labels()
     for p in enumerate_all_partitions(graph_model.get_size(), graph_model.get_size()):
         graph_model.set_labels(p)
         logp.append(graph_model.get_log_joint())
 
+    graph_model.set_labels(og_p)
+
     log_evidence = log_sum_exp(logp)
 
     entropy = 0
     for p in enumerate_all_partitions(graph_model.get_size(), graph_model.get_size()):
         graph_model.set_labels(p)
+        graph_model.reduce()
         log_posterior = graph_model.get_log_joint() - log_evidence
-        entropy -= np.exp(log_posterior) * log_posterior
+        print(p, log_posterior)
+        if not np.isinf(log_posterior):
+            entropy -= np.exp(log_posterior) * log_posterior
 
     return 0
+
+
+def get_posterior_entropy_partition(
+    graph_model: RandomGraph, config: Config, **kwargs
+) -> float:
+    method = config.get_value("method", "meanfield")
+    functions = {
+        "exact": get_posterior_entropy_partition_exact,
+        "meanfield": get_posterior_entropy_partition_meanfield,
+        "annealed": get_posterior_entropy_partition_meanfield,
+        "arithmetic": get_posterior_entropy_partition_meanfield,
+        "harmonic": get_posterior_entropy_partition_meanfield,
+    }
+    if method in functions:
+        return functions[method](graph_model, config, **kwargs)
+    else:
+        message = (
+            f"Invalid method {method}, valid methods are {list(functions.keys())}."
+        )
+        raise ValueError(message)

@@ -26,7 +26,9 @@ __all__ = (
 
 
 class RandomGraphWrapper(_Wrapper):
-    def __init__(self, graph_model, **kwargs):
+    def __init__(self, graph_model, labeled=False, nested=False, **kwargs):
+        self.labeled = labeled
+        self.nested = nested
         super().__init__(graph_model, params=kwargs)
 
 
@@ -138,6 +140,8 @@ class StochasticBlockModelFamily(RandomGraphWrapper):
         label_creation_prob: float = 0.5,
         shift: float = 1,
     ):
+        labeled = True
+        nested = False
 
         if likelihood_type == "degree_corrected":
             if label_graph_prior_type == "nested":
@@ -152,6 +156,7 @@ class StochasticBlockModelFamily(RandomGraphWrapper):
                     label_creation_prob=label_creation_prob,
                     shift=shift,
                 )
+                nested = True
             else:
                 wrapped = _random_graph.DegreeCorrectedStochasticBlockModelFamily(
                     size,
@@ -182,6 +187,7 @@ class StochasticBlockModelFamily(RandomGraphWrapper):
                     label_creation_prob=label_creation_prob,
                     shift=shift,
                 )
+                nested = True
             else:
                 wrapped = _random_graph.StochasticBlockModelFamily(
                     size,
@@ -216,4 +222,6 @@ class StochasticBlockModelFamily(RandomGraphWrapper):
             sample_label_count_prob=sample_label_count_prob,
             label_creation_prob=label_creation_prob,
             shift=shift,
+            labeled=labeled,
+            nested=nested,
         )

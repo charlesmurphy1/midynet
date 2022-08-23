@@ -89,6 +89,7 @@ public:
 
     const LabelGraphPrior& getLabelGraphPrior() const { return *m_labelGraphPriorPtr; }
     const NestedLabelGraphPrior& getNestedLabelGraphPrior() const { return m_nestedLabelGraphPrior; }
+    void reduceLabels() override { m_nestedLabelGraphPrior.reducePartition(); }
 
     void setEdgeCountPrior(EdgeCountPrior& prior) { m_nestedLabelGraphPrior.setEdgeCountPrior(prior); }
 

@@ -4,19 +4,13 @@
 #include "FastMIDyNet/exceptions.h"
 #include "FastMIDyNet/types.h"
 #include "FastMIDyNet/rng.h"
+#include "FastMIDyNet/utility/functions.h"
 #include "prior.hpp"
 
 
 namespace FastMIDyNet{
 
 class BlockCountPrior: public BlockLabeledPrior<size_t> {
-public:
-    using BlockLabeledPrior<size_t>::BlockLabeledPrior;
-    virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
-    virtual const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
-    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
-    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const { throw DepletedMethodError("BlockCount", "getLogLikelihoodRatioFromLabelMove"); }
-    void setStateFromPartition(const BlockSequence& blocks) { setState(*max_element(blocks.begin(), blocks.end()) + 1);}
 protected:
     void _applyGraphMove(const GraphMove& move) override { }
     void _applyLabelMove(const BlockMove& move) override { throw DepletedMethodError("BlockCount", "_applyLabelMove"); }
@@ -24,6 +18,13 @@ protected:
     const double _getLogPrior() const override { return 0; }
     const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return 0; }
     const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override { return 0; }
+public:
+    using BlockLabeledPrior<size_t>::BlockLabeledPrior;
+    virtual const double getLogLikelihoodFromState(const size_t&) const = 0;
+    virtual const double getLogLikelihood() const override { return getLogLikelihoodFromState(m_state); }
+    const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const { return 0; }
+    const double getLogLikelihoodRatioFromLabelMove(const BlockMove& move) const { throw DepletedMethodError("BlockCount", "getLogLikelihoodRatioFromLabelMove"); }
+    void setStateFromPartition(const BlockSequence& blocks) { setState(*max_element(blocks.begin(), blocks.end()) + 1);}
 };
 
 class BlockCountDeltaPrior: public BlockCountPrior{
@@ -122,6 +123,7 @@ class BlockCountUniformPrior: public BlockCountPrior{
 class NestedBlockCountPrior: public BlockCountPrior {
 protected:
     std::vector<size_t> m_nestedState;
+    size_t m_depth;
 public:
     const double getLogLikelihoodFromState(const size_t&) const override {
          throw DepletedMethodError("NestedBlockCount", "getLogLikelihoodFromState");
@@ -131,21 +133,33 @@ public:
         return getLogLikelihoodFromNestedState(m_nestedState);
     }
 
-    const size_t getDepth() const { return m_nestedState.size(); }
+    const size_t getDepth() const { return m_depth; }
     const std::vector<size_t>& getNestedState() const { return m_nestedState; }
     const size_t& getNestedState(Level level) const { return m_nestedState[level]; }
     void createNewLevel() {
         m_nestedState.push_back(1);
+        ++m_depth;
     }
     void destroyLastLevel() {
         m_nestedState.pop_back();
+        --m_depth;
     }
     void setNestedState(const std::vector<size_t>& nestedBlockCounts) {
         m_nestedState = nestedBlockCounts;
         m_state = nestedBlockCounts[0];
+        m_depth = m_nestedState.size();
+        for (auto it = m_nestedState.rbegin() + 1; it != m_nestedState.rend(); ++it){
+            if (*it == 1)
+                --m_depth;
+            else
+                break;
+        }
+
     }
     void setNestedState(const size_t blockCount, Level level) {
         m_nestedState[level] = blockCount;
+        if (level < m_depth - 1 and blockCount == 1)
+            m_depth = level + 1;
         if (level == 0)
             m_state = blockCount;
     }
@@ -162,7 +176,20 @@ public:
                 "m_state", "value=" + std::to_string(m_state),
                 "m_nestedState[0]", "value=" + std::to_string(m_nestedState[0])
             );
-    };
+        size_t actualDepth = m_nestedState.size();
+        for (auto it = m_nestedState.rbegin() + 1; it != m_nestedState.rend(); ++it){
+            if (*it == 1)
+                --actualDepth;
+            else
+                break;
+        }
+        if (m_depth != actualDepth)
+            throw ConsistencyError(
+                "NestedBlockCountPrior",
+                "m_depth", "value=" + std::to_string(m_depth),
+                "m_nestedState", "depth=" + std::to_string(actualDepth)
+            );
+    }
 };
 
 // #include "FastMIDyNet/utility/functions.h"

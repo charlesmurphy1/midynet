@@ -47,43 +47,43 @@ py::class_<MCMC, NestedRandomVariable, PyMCMC<>> declareMCMCBaseClass(py::module
 }
 
 template<typename Label>
-py::class_<VertexLabelMCMC<Label>, MCMC> declareVertexLabelMCMCClass(py::module& m, std::string pyName){
-    return py::class_<VertexLabelMCMC<Label>, MCMC>(m, pyName.c_str())
+py::class_<VertexLabelReconstructionMCMC<Label>, MCMC> declareVertexLabelReconstructionMCMCClass(py::module& m, std::string pyName){
+    return py::class_<VertexLabelReconstructionMCMC<Label>, MCMC>(m, pyName.c_str())
         .def(py::init<VertexLabeledRandomGraph<Label>&, double, double>(),
             py::arg("graph_prior"), py::arg("beta_prior")=1, py::arg("beta_likelihood")=1)
         .def(py::init<double, double>(), py::arg("beta_prior")=1, py::arg("beta_likelihood")=1)
-        .def("set_graph_prior", &VertexLabelMCMC<Label>::setGraphPrior, py::arg("graph_prior"))
-        .def("get_graph_prior", &VertexLabelMCMC<Label>::getGraphPrior)
-        .def("get_graph", &VertexLabelMCMC<Label>::getGraph)
-        .def("set_graph", &VertexLabelMCMC<Label>::setGraph, py::arg("graph"))
-        .def("get_labels", &VertexLabelMCMC<Label>::getLabels)
-        .def("set_labels", &VertexLabelMCMC<Label>::setLabels, py::arg("labels"))
-        .def("insert_callback", [](VertexLabelMCMC<Label>& self, std::string key, CallBack<MCMC>& callback){
+        .def("set_graph_prior", &VertexLabelReconstructionMCMC<Label>::setGraphPrior, py::arg("graph_prior"))
+        .def("get_graph_prior", &VertexLabelReconstructionMCMC<Label>::getGraphPrior)
+        .def("get_graph", &VertexLabelReconstructionMCMC<Label>::getGraph)
+        .def("set_graph", &VertexLabelReconstructionMCMC<Label>::setGraph, py::arg("graph"))
+        .def("get_labels", &VertexLabelReconstructionMCMC<Label>::getLabels)
+        .def("set_labels", &VertexLabelReconstructionMCMC<Label>::setLabels, py::arg("labels"))
+        .def("insert_callback", [](VertexLabelReconstructionMCMC<Label>& self, std::string key, CallBack<MCMC>& callback){
             self.insertCallBack(key, callback); }, py::arg("key"), py::arg("callback"))
-        .def("insert_callback", [](VertexLabelMCMC<Label>& self, std::string key, CallBack<VertexLabelMCMC<Label>>& callback){
+        .def("insert_callback", [](VertexLabelReconstructionMCMC<Label>& self, std::string key, CallBack<VertexLabelReconstructionMCMC<Label>>& callback){
             self.insertCallBack(key, callback); }, py::arg("key"), py::arg("callback"))
-        .def("get_label_callback", &VertexLabelMCMC<Label>::getLabelCallBack, py::arg("key"))
-        // .def("get_log_acceptance_prob_from_label_move", &VertexLabelMCMC<Label>::getLogAcceptanceProbFromLabelMove, py::arg("move"))
+        .def("get_label_callback", &VertexLabelReconstructionMCMC<Label>::getLabelCallBack, py::arg("key"))
+        // .def("get_log_acceptance_prob_from_label_move", &VertexLabelReconstructionMCMC<Label>::getLogAcceptanceProbFromLabelMove, py::arg("move"))
         ;
 }
 
 template<typename Label>
-py::class_<NestedVertexLabelMCMC<Label>, MCMC> declareNestedVertexLabelMCMCClass(py::module& m, std::string pyName){
-    return py::class_<NestedVertexLabelMCMC<Label>, MCMC>(m, pyName.c_str())
+py::class_<NestedVertexLabelReconstructionMCMC<Label>, MCMC> declareNestedVertexLabelReconstructionMCMCClass(py::module& m, std::string pyName){
+    return py::class_<NestedVertexLabelReconstructionMCMC<Label>, MCMC>(m, pyName.c_str())
         .def(py::init<NestedVertexLabeledRandomGraph<Label>&, double, double>(),
             py::arg("graph_prior"), py::arg("beta_prior")=1, py::arg("beta_likelihood")=1)
         .def(py::init<double, double>(), py::arg("beta_prior")=1, py::arg("beta_likelihood")=1)
-        .def("set_graph_prior", &NestedVertexLabelMCMC<Label>::setGraphPrior, py::arg("graph_prior"))
-        .def("get_graph_prior", &NestedVertexLabelMCMC<Label>::getGraphPrior)
-        .def("get_graph", &NestedVertexLabelMCMC<Label>::getGraph)
-        .def("set_graph", &NestedVertexLabelMCMC<Label>::setGraph, py::arg("graph"))
-        .def("get_labels", &NestedVertexLabelMCMC<Label>::getLabels)
-        .def("insert_callback", [](NestedVertexLabelMCMC<Label>& self, std::string key, CallBack<MCMC>& callback){
+        .def("set_graph_prior", &NestedVertexLabelReconstructionMCMC<Label>::setGraphPrior, py::arg("graph_prior"))
+        .def("get_graph_prior", &NestedVertexLabelReconstructionMCMC<Label>::getGraphPrior)
+        .def("get_graph", &NestedVertexLabelReconstructionMCMC<Label>::getGraph)
+        .def("set_graph", &NestedVertexLabelReconstructionMCMC<Label>::setGraph, py::arg("graph"))
+        .def("get_labels", &NestedVertexLabelReconstructionMCMC<Label>::getLabels)
+        .def("insert_callback", [](NestedVertexLabelReconstructionMCMC<Label>& self, std::string key, CallBack<MCMC>& callback){
             self.insertCallBack(key, callback); }, py::arg("key"), py::arg("callback"))
-        .def("insert_callback", [](NestedVertexLabelMCMC<Label>& self, std::string key, CallBack<NestedVertexLabelMCMC<Label>>& callback){
+        .def("insert_callback", [](NestedVertexLabelReconstructionMCMC<Label>& self, std::string key, CallBack<NestedVertexLabelReconstructionMCMC<Label>>& callback){
             self.insertCallBack(key, callback); }, py::arg("key"), py::arg("callback"))
-        .def("get_label_callback", &NestedVertexLabelMCMC<Label>::getLabelCallBack, py::arg("key"))
-        // .def("get_log_acceptance_prob_from_label_move", &NestedVertexLabelMCMC<Label>::getLogAcceptanceProbFromLabelMove, py::arg("move"))
+        .def("get_label_callback", &NestedVertexLabelReconstructionMCMC<Label>::getLabelCallBack, py::arg("key"))
+        // .def("get_log_acceptance_prob_from_label_move", &NestedVertexLabelReconstructionMCMC<Label>::getLogAcceptanceProbFromLabelMove, py::arg("move"))
         ;
 }
 

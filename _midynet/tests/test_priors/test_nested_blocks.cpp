@@ -258,9 +258,11 @@ TEST_F(NestedBlockPriorTest, isValidBlockMove_forMoveAtSomeLevelNotCreatingLabel
 
 TEST_F(NestedBlockPriorTest, reduceHierarchy_forSomeState_returnReduced){
 
-    prior.sample();
-    while(prior.getDepth() != 5)
-        prior.sample();
+    // prior.sample();
+    // while(prior.getDepth() != 5)
+    //     prior.sample();
+    BlockMove move = proposeNestedBlockMove(0, 0, 5, false, true);
+    prior.applyLabelMove(move);
     const auto nestedState = prior.getNestedState();
     const auto reducedNestedState = prior.reduceHierarchy(nestedState);
 
@@ -476,13 +478,15 @@ TEST_F(NestedBlockUniformHyperPriorTest, getLogLikelihoodRatioFromLabelMove_forV
 
 
 TEST_F(NestedBlockUniformHyperPriorTest, reduceHierarchy_forSomeState_returnSameLikelihood){
-    prior.sample();
-    while(prior.getDepth() != 5)
-        prior.sample();
+    BlockMove move = proposeNestedBlockMove(0, 3, 5, false, true);
+
+    prior.applyLabelMove(move);
     const auto nestedState = prior.getNestedState();
     double before = prior.getLogLikelihood();
     const auto reducedNestedState = prior.reduceHierarchy(nestedState);
     prior.setNestedState(reducedNestedState);
     double after = prior.getLogLikelihood();
     EXPECT_NEAR(before, after, 1e-6);
+    // displayMatrix(nestedState, "b", true);
+    // displayMatrix(reducedNestedState, "[reduced]b", true);
 }

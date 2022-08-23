@@ -31,6 +31,7 @@ void initLabelGraphPrior(py::module& m){
         .def("set_edge_count_prior", &LabelGraphPrior::setEdgeCountPrior)
         .def("get_block_prior", &LabelGraphPrior::getBlockPrior)
         .def("set_block_prior", &LabelGraphPrior::setBlockPrior)
+        .def("reduce_partition", &LabelGraphPrior::reducePartition)
         ;
 
 

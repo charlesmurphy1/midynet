@@ -68,7 +68,7 @@ public:
         const BlockSequence& blocks,
         const LabelGraph& labelGraph,
         size_t blockCount){
-            double weight, degree;
+            double weight=0, degree=0;
 
             for (const auto& neighbor : graph.getNeighboursOfIdx(vertex)){
                 BlockIndex t = blocks[neighbor.vertexIndex];
@@ -102,7 +102,8 @@ TEST_F(TestRestrictedMixedNestedBlockProposer, proposeNewLabelMove_returnValidMo
     if (move.prevLabel != move.nextLabel){
         EXPECT_TRUE(move.addedLabels == 1);
         EXPECT_EQ(move.prevLabel, graphPrior.getLabelOfIdx(0, move.level));
-        EXPECT_NE(proposer.getEmptyLabels()[move.level].count(move.nextLabel), 0);
+        if (proposer.getEmptyLabels()[move.level].size() != 0)
+            EXPECT_NE(proposer.getEmptyLabels()[move.level].count(move.nextLabel), 0);
     }
 }
 
@@ -138,13 +139,8 @@ TEST_F(TestRestrictedMixedNestedBlockProposer, getLogProposalProb_forSomeLabelMo
     }
 
     proposer.setUpWithNestedPrior(graphPrior);
-    // displayMatrix(graphPrior.getNestedLabels(), "b", true);
-    // proposer.printAvails();
-    // proposer.printEmpties();
     for (size_t i=0; i<numSamples; ++i){
-        // std::cout << "here1" << std::endl;
         BlockMove move = proposer.proposeMove(0);
-        // std::cout << "here2" << std::endl;
         counter.increment({move.nextLabel, move.level});
     }
 
@@ -158,7 +154,6 @@ TEST_F(TestRestrictedMixedNestedBlockProposer, getLogProposalProb_forSomeLabelMo
             dB = -1;
 
         BlockMove move = {0, prevLabel, nextLabel, dB, level};
-        std::cout << move << std::endl;
         double expected = exp(proposer.getLogProposalProb(move));
         double actual = (double)s.second / (double)numSamples;
 
@@ -176,8 +171,6 @@ TEST_F(TestRestrictedMixedNestedBlockProposer, getLogProposalProb_forSomeLabelMo
             );
 
         truth /= depth;
-
-        // std::cout << " -> expected=" << expected << " actual=" << actual << " truth=" << truth <<  std::endl;
 
         if (prevLabel != nextLabel){
             EXPECT_NEAR(expected, actual, tol);
@@ -341,7 +334,8 @@ TEST_F(TestRestrictedMixedNestedBlockProposer, applyLabelMove_forBlockMoveAdding
     }
     const auto empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();
     proposer.applyLabelMove(move);
-    EXPECT_NE(empties, proposer.getEmptyLabels());
+    if (empties[move.level].size() != 0)
+        EXPECT_NE(empties, proposer.getEmptyLabels());
     EXPECT_NE(avails, proposer.getAvailableLabels());
     EXPECT_EQ(avails[move.level].size() + 1, proposer.getAvailableLabels()[move.level].size());
 }
@@ -409,10 +403,10 @@ TEST_F(TestRestrictedMixedNestedBlockProposer, applyLabelMove_forBlockMoveDestro
     graphPrior.applyLabelMove(move);
     proposer.applyLabelMove(move);
     EXPECT_NE(empties, proposer.getEmptyLabels());
-    EXPECT_EQ(empties.size() - 1, proposer.getEmptyLabels().size());
+    EXPECT_EQ(empties.size(), proposer.getEmptyLabels().size());
     EXPECT_NE(avails, proposer.getAvailableLabels());
     EXPECT_EQ(avails[move.level].size() - 1, proposer.getAvailableLabels()[move.level].size());
-    EXPECT_EQ(avails.size() - 1, proposer.getAvailableLabels().size());
+    EXPECT_EQ(avails.size(), proposer.getAvailableLabels().size());
 }
 
 }

@@ -88,7 +88,7 @@ metrics_dict = {
     "graph_reconstruction_entropy": metrics.GraphReconstructionEntropyMetrics,
     "reconstructability": metrics.ReconstructabilityMetrics,
     "predictability": metrics.PredictabilityMetrics,
-    "mutualinfo": metrics.MutualInformationMetrics,
+    "mutual_info": metrics.MutualInformationMetrics,
 }
 
 

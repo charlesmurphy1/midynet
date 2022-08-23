@@ -18,7 +18,6 @@ namespace FastMIDyNet{
 template <typename BaseClass = LabelGraphPrior>
 class PyLabelGraphPrior: public PyVertexLabeledPrior< LabelGraph, BlockIndex, BaseClass> {
 protected:
-    void destroyBlock(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, destroyBlock, move); }
     void applyGraphMoveToState(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyGraphMoveToState, move); }
     void applyLabelMoveToState(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, applyLabelMoveToState, move); }
     void recomputeStateFromGraph() override { PYBIND11_OVERRIDE(void, BaseClass, recomputeStateFromGraph, ); }

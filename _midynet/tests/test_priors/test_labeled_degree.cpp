@@ -312,7 +312,7 @@ TEST_F(VertexLabeledDegreeUniformHyperPriorTest, getLogLikelihoodRatioFromLabelM
 TEST_F(VertexLabeledDegreeUniformHyperPriorTest, getLogLikelihoodRatioFromLabelMove_forLabelMoveAddingNewBlock_returnCorrectRatio){
     BaseGraph::VertexIndex idx = 0;
     auto g = generateDCSBM(blockPrior.getState(), prior.getLabelGraphPrior().getState(), prior.getState());
-    BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), blockPrior.getVertexCounts().size(), 1};
+    BlockMove move = {idx, blockPrior.getBlockOfIdx(idx), (int)blockPrior.getVertexCounts().size(), 1};
     double actualLogLikelihoodRatio = prior.getLogLikelihoodRatioFromLabelMove(move);
 
     double logLikelihoodBefore = prior.getLogLikelihood();

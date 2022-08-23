@@ -53,11 +53,11 @@ py::class_<CallBackMap<MCMCType>> declareCallBackMap(py::module& m, std::string 
 
 void initCallBacks(py::module& m){
     declareCallBack<MCMC>(m, "CallBack");
-    declareCallBack<VertexLabelMCMC<BlockIndex>>(m, "BlockCallBack");
-    declareCallBack<NestedVertexLabelMCMC<BlockIndex>>(m, "NestedBlockCallBack");
-    declareCallBack<GraphReconstructionMCMC<RandomGraph>>(m, "GraphReconstructionCallBack");
-    declareCallBack<VertexLabeledGraphReconstructionMCMC<BlockIndex>>(m, "BlockGraphReconstructionCallBack");
-    declareCallBack<NestedVertexLabeledGraphReconstructionMCMC<BlockIndex>>(m, "NestedBlockGraphReconstructionCallBack");
+    declareCallBack<PartitionReconstructionMCMC>(m, "PartitionReconstructionCallBack");
+    declareCallBack<NestedPartitionReconstructionMCMC>(m, "NestedPartitionReconstructionCallBack");
+    declareCallBack<GraphReconstructionMCMCBase>(m, "GraphReconstructionCallBack");
+    declareCallBack<BlockLabeledGraphReconstructionMCMCBase>(m, "BlockGraphReconstructionCallBack");
+    declareCallBack<NestedBlockLabeledGraphReconstructionMCMCBase>(m, "NestedBlockGraphReconstructionCallBack");
     initVerbose(m);
     initActions(m);
     initCollectors(m);

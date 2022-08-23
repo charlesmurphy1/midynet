@@ -350,7 +350,7 @@ TEST(SBMTest, construction_returnSafeObject){
 
 TEST(UniformSBMTest, construction_returnSafeObject){
     seedWithTime();
-    for (size_t i=0; i<100; ++i){
+    for (size_t i=0; i<1; ++i){
         StochasticBlockModelFamily randomGraph(100, 250, 0, true, true);
         EXPECT_NO_THROW(randomGraph.checkSafety());
         randomGraph.sample();

@@ -55,7 +55,7 @@ class NestedLabelGraphPriorTest: public ::testing::Test {
                     continue;
                 if (creatingNewBlock){
                     addedLabels = 1;
-                    s = prior.getNestedBlockCount(level);
+                    s = (int)prior.getNestedBlockCount(level);
                 } else{
                     s = sampleUniformly(0, (int) prior.getNestedBlockCount(level) - 1);
                     if (prior.getNestedVertexCounts(level)[r] == 1 and not destroyingBlock)

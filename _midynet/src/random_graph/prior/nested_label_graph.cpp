@@ -33,8 +33,8 @@ void NestedLabelGraphPrior::applyGraphMoveToState(const GraphMove& move) {
 }
 
 void NestedLabelGraphPrior::applyLabelMoveToState(const BlockMove& move) {
-    if (m_nestedBlockPriorPtr->destroyingBlock(move))
-        return;
+    // if (m_nestedBlockPriorPtr->destroyingBlock(move))
+    //     return;
 
     if (move.level == 0)
         LabelGraphPrior::applyLabelMoveToState(move);
@@ -59,6 +59,7 @@ void NestedLabelGraphPrior::applyLabelMoveToState(const BlockMove& move) {
 
     m_nestedEdgeCounts[move.level].decrement(move.prevLabel, degree);
     m_nestedEdgeCounts[move.level].increment(move.nextLabel, degree);
+
     for (auto neighbor: graph.getNeighboursOfIdx(vertexIndex)) {
         auto neighborBlock = blocks[neighbor.vertexIndex];
 
@@ -150,7 +151,7 @@ void NestedLabelGraphPrior::checkSelfConsistencyBetweenLevels() const{
     }
     for (Level l=1; l<getDepth(); ++l){
         graph = getNestedState(l - 1);
-        actualLabelGraph = LabelGraph(m_nestedBlockPriorPtr->getNestedMaxBlockCount(l));
+        actualLabelGraph = LabelGraph(getNestedState(l).getSize());
         for (const auto& vertex: graph){
             for (const auto& neighbor: graph.getNeighboursOfIdx(vertex)){
                 if (vertex > neighbor.vertexIndex)

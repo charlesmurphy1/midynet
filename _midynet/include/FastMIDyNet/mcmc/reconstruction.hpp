@@ -43,6 +43,7 @@ public:
         m_graphPriorPtr = &m_dataModelPtr->getGraphPriorRef();
     }
     const GraphPriorType& getGraphPrior() const { return *m_graphPriorPtr; }
+    GraphPriorType& getGraphPriorRef() const { return *m_graphPriorPtr; }
 
     const MultiGraph& getGraph() const { return m_dataModelPtr->getGraph(); }
     void setGraph(const MultiGraph& graph) { m_dataModelPtr->setGraph(graph); }
@@ -116,8 +117,6 @@ public:
     }
 };
 
-using ReconstructionFromDynamicsMCMC = GraphReconstructionMCMC<std::vector<VertexState>>;
-
 template<typename GraphPriorType>
 double GraphReconstructionMCMC<GraphPriorType>::_getLogAcceptanceProbFromGraphMove(const GraphMove& move) const {
     double logLikelihoodRatio = (m_betaLikelihood == 0) ? 0 : m_betaLikelihood * m_dataModelPtr->getLogLikelihoodRatioFromGraphMove(move);
@@ -146,6 +145,10 @@ bool GraphReconstructionMCMC<GraphPriorType>::doMetropolisHastingsStep() {
     return m_isLastAccepted;
 }
 
+using GraphReconstructionMCMCBase = GraphReconstructionMCMC<>;
+using BlockLabeledGraphReconstructionMCMCBase = GraphReconstructionMCMC<VertexLabeledRandomGraph<BlockIndex>>;
+using NestedBlockLabeledGraphReconstructionMCMCBase = GraphReconstructionMCMC<NestedVertexLabeledRandomGraph<BlockIndex>>;
+
 
 template<typename Label>
 class VertexLabeledGraphReconstructionMCMC: public GraphReconstructionMCMC<VertexLabeledRandomGraph<Label>>{
@@ -173,6 +176,11 @@ public:
         double betaPrior=1):
     BaseClass(betaLikelihood, betaPrior),
     m_sampleLabelProb(sampleLabelProb){ }
+    void onSweepEnd() override {
+        BaseClass::m_graphPriorPtr->reduceLabels();
+        MCMC::onSweepEnd();
+        BaseClass::m_graphCallBacks.onSweepEnd();
+    }
 
     const std::vector<Label>& getLabels() const {
         return m_dataModelPtr->getGraphPrior().getLabels();
@@ -251,6 +259,12 @@ public:
     BaseClass(betaLikelihood, betaPrior),
     m_sampleLabelProb(sampleLabelProb){ }
 
+
+    void onSweepEnd() override {
+        BaseClass::m_graphPriorPtr->reduceLabels();
+        MCMC::onSweepEnd();
+        BaseClass::m_graphCallBacks.onSweepEnd();
+    }
     const std::vector<Label>& getLabels() const {
         return m_dataModelPtr->getGraphPrior().getLabels();
     }

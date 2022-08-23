@@ -39,8 +39,8 @@ void StochasticBlockModelLikelihood::getDiffEdgeMatMapFromBlockMove(
 const double StubLabeledStochasticBlockModelLikelihood::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const {
     const BlockSequence& blockSeq = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getState();
     const MultiGraph& labelGraph = (*m_labelGraphPriorPtrPtr)->getState();
-    const CounterMap<size_t>& edgeCounts = (*m_labelGraphPriorPtrPtr)->getEdgeCounts();
-    const CounterMap<size_t>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
+    const CounterMap<BlockIndex>& edgeCounts = (*m_labelGraphPriorPtrPtr)->getEdgeCounts();
+    const CounterMap<BlockIndex>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
     double logLikelihoodRatioTerm = 0;
 
     IntMap<std::pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
@@ -87,7 +87,7 @@ const double StubLabeledStochasticBlockModelLikelihood::getLogLikelihoodRatioAdj
 const double StubLabeledStochasticBlockModelLikelihood::getLogLikelihood() const {
 
     const MultiGraph& labelGraph = (*m_labelGraphPriorPtrPtr)->getState() ;
-    const CounterMap<size_t>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
+    const CounterMap<BlockIndex>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
 
     double logLikelihood = 0;
 
@@ -116,8 +116,8 @@ const double StubLabeledStochasticBlockModelLikelihood::getLogLikelihoodRatioFro
         return 0;
     const BlockSequence& blockSeq = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getState();
     const MultiGraph& edgeMat = (*m_labelGraphPriorPtrPtr)->getState();
-    const CounterMap<size_t>& edgeCounts = (*m_labelGraphPriorPtrPtr)->getEdgeCounts();
-    const CounterMap<size_t>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
+    const CounterMap<BlockIndex>& edgeCounts = (*m_labelGraphPriorPtrPtr)->getEdgeCounts();
+    const CounterMap<BlockIndex>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
     const size_t& degree = m_statePtr->getDegreeOfIdx(move.vertexIndex);
     double logLikelihoodRatio = 0;
 
@@ -144,7 +144,7 @@ const double StubLabeledStochasticBlockModelLikelihood::getLogLikelihoodRatioFro
 const double UniformStochasticBlockModelLikelihood::getLogLikelihood() const {
 
     const MultiGraph& labelGraph = (*m_labelGraphPriorPtrPtr)->getState() ;
-    const CounterMap<size_t>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
+    const CounterMap<BlockIndex>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
     const auto& likelihoodFunction = (*m_withParallelEdgesPtr) ? logMultisetCoefficient: logBinomialCoefficient;
 
 
@@ -171,7 +171,7 @@ const double UniformStochasticBlockModelLikelihood::getLogLikelihood() const {
 
 const double UniformStochasticBlockModelLikelihood::getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const {
     const MultiGraph& labelGraph = (*m_labelGraphPriorPtrPtr)->getState();
-    const CounterMap<size_t>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
+    const CounterMap<BlockIndex>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
     const auto& likelihoodFunction = (*m_withParallelEdgesPtr) ? logMultisetCoefficient: logBinomialCoefficient;
     double logLikelihoodRatio = 0;
 
@@ -198,7 +198,7 @@ const double UniformStochasticBlockModelLikelihood::getLogLikelihoodRatioFromLab
     if (move.prevLabel == move.nextLabel or move.level > 0)
         return 0;
     const MultiGraph& labelGraph = (*m_labelGraphPriorPtrPtr)->getState();
-    const CounterMap<size_t>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
+    const CounterMap<BlockIndex>& vertexCounts = (*m_labelGraphPriorPtrPtr)->getBlockPrior().getVertexCounts();
     const auto& likelihoodFunction = (*m_withParallelEdgesPtr) ? logMultisetCoefficient: logBinomialCoefficient;
 
     double logLikelihoodRatio = 0;

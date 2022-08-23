@@ -66,8 +66,12 @@ public:
         m_labelGraphPriorPtr->isRoot(false);
     }
 
-    const BlockIndex& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
+    const size_t& getDegreeOfIdx(BaseGraph::VertexIndex idx) const { return m_state[idx]; }
     virtual const VertexLabeledDegreeCountsMap& getDegreeCounts() const { return m_degreeCounts; }
+    void reducePartition() {
+        m_labelGraphPriorPtr->reducePartition();
+        recomputeConsistentState();
+    }
 
 
     virtual const double getLogLikelihoodRatioFromGraphMove(const GraphMove&) const = 0;

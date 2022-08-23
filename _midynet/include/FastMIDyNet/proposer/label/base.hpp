@@ -94,7 +94,7 @@ public:
         LabelProposer<Label>(sampleLabelCountProb), m_labelCreationProb(labelCreationProb) {}
     const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
         if ( m_uniform01(rng) < m_labelCreationProb )
-            return {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), m_graphPriorPtr->getLabelCount(), 1};
+            return {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), (int)m_graphPriorPtr->getLabelCount(), 1};
         else
             return {vertex, m_graphPriorPtr->getLabelOfIdx(vertex), m_graphPriorPtr->getLabelOfIdx(vertex), -1};
     }
@@ -128,7 +128,12 @@ public:
     using LabelProposer<Label>::LabelProposer;
     const LabelMove<Label> proposeNewLabelMove(const BaseGraph::VertexIndex& vertex) const override {
         Label prevLabel = m_graphPriorPtr->getLabelOfIdx(vertex);
-        Label nextLabel = *sampleUniformlyFrom(m_emptyLabels.begin(), m_emptyLabels.end());
+
+        Label nextLabel;
+        if (m_emptyLabels.size() == 0)
+            nextLabel = *m_availableLabels.rbegin() + 1;
+        else
+            nextLabel = *sampleUniformlyFrom(m_emptyLabels.begin(), m_emptyLabels.end());
         LabelMove<Label> move = {vertex, prevLabel, nextLabel};
         if ( destroyingLabel(move) )
             return {vertex, prevLabel, prevLabel};
@@ -139,9 +144,12 @@ public:
         BaseClass::setUpWithPrior(graphPrior);
         m_emptyLabels.clear();
         m_availableLabels.clear();
-        m_emptyLabels.insert(m_graphPriorPtr->getLabelCount());
-        for (const auto& nr: graphPrior.getVertexCounts())
-            m_availableLabels.insert(nr.first);
+        for (Label r=0; r<m_graphPriorPtr->getLabelCount(); ++r){
+            if (m_graphPriorPtr->getVertexCounts().get(r) == 0)
+                m_emptyLabels.insert(r);
+            else
+                m_availableLabels.insert(r);
+        }
     }
 
     void applyLabelMove(const LabelMove<Label>& move) override {
@@ -152,9 +160,6 @@ public:
         if ( move.addedLabels==1 ){
             m_availableLabels.insert(move.nextLabel);
             m_emptyLabels.erase(move.nextLabel);
-        }
-        if (m_emptyLabels.size() == 0){
-            m_emptyLabels.insert(*max_element(m_availableLabels.begin(), m_availableLabels.end()) + 1);
         }
     }
     const std::set<Label>& getAvailableLabels() const {
@@ -172,10 +177,10 @@ public:
                 "m_availableLabels", "size=" + std::to_string(m_availableLabels.size()),
                 "m_graphPriorPtr->getLabelCount()", "count=" + std::to_string(m_graphPriorPtr->getLabelCount())
             );
-        if (m_emptyLabels.size() == 0)
-            throw ConsistencyError(
-                "RestrictedLabelProposer: `m_emptyLabels` is empty."
-            );
+        // if (m_emptyLabels.size() == 0)
+        //     throw ConsistencyError(
+        //         "RestrictedLabelProposer: `m_emptyLabels` is empty."
+        //     );
         for (const auto& b: m_graphPriorPtr->getLabels()){
             if (m_availableLabels.count(b) == 0)
                 throw ConsistencyError(

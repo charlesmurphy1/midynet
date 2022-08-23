@@ -26,6 +26,7 @@ class MetricsConfig(Config):
             K=10,
             num_betas=10,
             exp_betas=0.5,
+            equilibrate_mode_cluster=False,
         )
         return obj
 
@@ -68,9 +69,9 @@ class MetricsConfig(Config):
         return obj
 
     @classmethod
-    def mutualinfo(cls):
+    def mutual_info(cls):
         obj = cls.mcmc()
-        obj.set_value("name", "mutualinfo")
+        obj.set_value("name", "mutual_info")
         return obj
 
 
@@ -146,7 +147,7 @@ class MetricsFactory(Factory):
         return midynet.metrics.ReconstructabilityMetrics(config)
 
     @staticmethod
-    def build_mutualinfo(config: MetricsCollectionConfig):
+    def build_mutual_info(config: MetricsCollectionConfig):
         return midynet.metrics.MutualInformationMetrics(config)
 
 

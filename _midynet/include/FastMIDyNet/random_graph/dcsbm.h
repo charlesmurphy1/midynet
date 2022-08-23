@@ -89,6 +89,7 @@ public:
         return m_degreePriorPtr->getLabelGraphPrior().getEdgeCount();
     }
     const std::vector<size_t> getDegrees() const { return getDegreePrior().getState(); }
+    void reduceLabels() override { m_degreePriorPtr->reducePartition(); }
 
     virtual void checkSelfConsistency() const override {
         VertexLabeledRandomGraph<BlockIndex>::checkSelfConsistency();

@@ -17,8 +17,8 @@ void initMCMC(py::module& m){
 
     declareMCMCBaseClass(m);
 
-    declareVertexLabelMCMCClass<BlockIndex>(m, "_BlockLabelMCMC");
-    declareNestedVertexLabelMCMCClass<BlockIndex>(m, "_NestedBlockLabelMCMC");
+    declareVertexLabelReconstructionMCMCClass<BlockIndex>(m, "_PartitionReconstructionMCMC");
+    declareNestedVertexLabelReconstructionMCMCClass<BlockIndex>(m, "_NestedPartitionMCMC");
 
     declareGraphReconstructionClass<RandomGraph>(m, "_GraphReconstructionMCMC");
 

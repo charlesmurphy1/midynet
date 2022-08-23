@@ -151,7 +151,8 @@ TEST_F(TestRestrictedUniformBlockProposer, proposeNewLabelMove_returnValidMove){
     if (move.prevLabel != move.nextLabel){
         EXPECT_TRUE(move.addedLabels == 1);
         EXPECT_EQ(move.prevLabel, graphPrior.getLabelOfIdx(0));
-        EXPECT_NE(proposer.getEmptyLabels().count(move.nextLabel), 0);
+        if (proposer.getEmptyLabels().size() != 0)
+            EXPECT_NE(proposer.getEmptyLabels().count(move.nextLabel), 0);
     }
 }
 
@@ -239,7 +240,10 @@ TEST_F(TestRestrictedUniformBlockProposer, applyLabelMove_forBlockMoveAddingLabe
     const auto empties = proposer.getEmptyLabels(), avails = proposer.getAvailableLabels();
     auto move = proposer.proposeNewLabelMove(0);
     proposer.applyLabelMove(move);
-    EXPECT_NE(empties, proposer.getEmptyLabels());
+    if (empties.size() != 0 ){
+        EXPECT_NE(empties, proposer.getEmptyLabels());
+    }
+    // EXPECT_EQ(proposer.getEmptyLabels(), 0);
     if (move.prevLabel != move.nextLabel)
         EXPECT_NE(avails, proposer.getAvailableLabels());
     expectConsistencyError = true;

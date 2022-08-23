@@ -16,7 +16,7 @@ class TestVertexLabelMCMC: public::testing::Test{
     size_t numSteps=10;
 public:
     StochasticBlockModelFamily randomGraph = StochasticBlockModelFamily(10, 10, 3);
-    VertexLabelMCMC<BlockIndex> mcmc = VertexLabelMCMC<BlockIndex>(randomGraph);
+    PartitionReconstructionMCMC mcmc = PartitionReconstructionMCMC(randomGraph);
     CheckConsistencyOnSweep callback;
     bool expectConsistencyError = false;
     void SetUp(){
@@ -57,7 +57,7 @@ class TestNestedVertexLabelMCMC: public::testing::Test{
     size_t numSteps=10;
 public:
     NestedStochasticBlockModelFamily randomGraph = NestedStochasticBlockModelFamily(10, 10);
-    NestedVertexLabelMCMC<BlockIndex> mcmc = NestedVertexLabelMCMC<BlockIndex>(randomGraph);
+    NestedPartitionReconstructionMCMC mcmc = NestedPartitionReconstructionMCMC(randomGraph);
     CheckConsistencyOnStep callback;
     bool expectConsistencyError = false;
     void SetUp(){

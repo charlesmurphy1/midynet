@@ -15,13 +15,13 @@
 namespace FastMIDyNet{
 
 template <typename BaseClass = BlockPrior>
-class PyBlockPrior: public PyVertexLabeledPrior<std::vector<size_t>, BlockIndex, BaseClass> {
+class PyBlockPrior: public PyVertexLabeledPrior<std::vector<BlockIndex>, BlockIndex, BaseClass> {
 protected:
     void _applyLabelMove(const BlockMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, _applyLabelMove, move); }
     const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, _getLogPriorRatioFromLabelMove, move); }
     void setBlockCountFromPartition(const BlockSequence& blocks) override { PYBIND11_OVERRIDE(void, BaseClass, setBlockCountFromPartition, blocks); }
 public:
-    using PyVertexLabeledPrior<std::vector<size_t>, BlockIndex, BaseClass>::PyVertexLabeledPrior;
+    using PyVertexLabeledPrior<std::vector<BlockIndex>, BlockIndex, BaseClass>::PyVertexLabeledPrior;
     ~PyBlockPrior() override = default;
     /* Pure abstract methods */
 

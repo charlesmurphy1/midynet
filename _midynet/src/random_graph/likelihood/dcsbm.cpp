@@ -39,7 +39,7 @@ const double DegreeCorrectedStochasticBlockModelLikelihood::getLogLikelihood() c
     double logLikelihood = 0;
     const MultiGraph& edgeMat = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getState() ;
 
-    const CounterMap<size_t>& edgesInBlock = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getEdgeCounts();
+    const CounterMap<BlockIndex>& edgesInBlock = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getEdgeCounts();
     for (auto r : edgeMat){
         logLikelihood -= logFactorial(edgesInBlock[r]);
         for (auto s : edgeMat.getNeighboursOfIdx(r)){
@@ -63,8 +63,8 @@ const double DegreeCorrectedStochasticBlockModelLikelihood::getLogLikelihood() c
 const double DegreeCorrectedStochasticBlockModelLikelihood::getLogLikelihoodRatioEdgeTerm (const GraphMove& move) const {
     const BlockSequence& blockSeq = (*m_degreePriorPtrPtr)->getBlockPrior().getState();
     const MultiGraph& edgeMat = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getState();
-    const CounterMap<size_t>& edgeCountsInBlocks = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getEdgeCounts();
-    const CounterMap<size_t>& vertexCountsInBlocks = (*m_degreePriorPtrPtr)->getBlockPrior().getVertexCounts();
+    const CounterMap<BlockIndex>& edgeCountsInBlocks = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getEdgeCounts();
+    const CounterMap<BlockIndex>& vertexCountsInBlocks = (*m_degreePriorPtrPtr)->getBlockPrior().getVertexCounts();
     double logLikelihoodRatioTerm = 0;
 
     IntMap<std::pair<BlockIndex, BlockIndex>> diffEdgeMatMap;
@@ -133,7 +133,7 @@ const double DegreeCorrectedStochasticBlockModelLikelihood::getLogLikelihoodRati
         return 0;
     const BlockSequence& blockSeq = (*m_degreePriorPtrPtr)->getBlockPrior().getState();
     const MultiGraph& edgeMat = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getState();
-    const CounterMap<size_t>& edgesInBlock = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getEdgeCounts();
+    const CounterMap<BlockIndex>& edgesInBlock = (*m_degreePriorPtrPtr)->getLabelGraphPrior().getEdgeCounts();
     double logLikelihoodRatio = 0;
 
 
