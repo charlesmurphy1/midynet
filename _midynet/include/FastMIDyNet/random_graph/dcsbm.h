@@ -91,6 +91,9 @@ public:
         return m_degreePriorPtr->getLabelGraphPrior().getEdgeCount();
     }
     const std::vector<size_t> getDegrees() const { return getDegreePrior().getState(); }
+    const double getLabelLogJoint() const override {
+        return m_degreePriorPtr->getBlockPrior().getLogJoint();
+    }
     void reduceLabels() override {
         m_degreePriorPtr->reducePartition();
         setUp();

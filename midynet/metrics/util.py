@@ -31,7 +31,7 @@ __all__ = (
 
 
 def get_log_evidence_arithmetic(data_model: DynamicsWrapper, config: Config):
-    mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
+    mcmc = GraphReconstructionMCMC(data_model)
     logp = []
     g = mcmc.get_graph()
     for k in range(config.K):
@@ -48,7 +48,7 @@ def get_log_evidence_arithmetic(data_model: DynamicsWrapper, config: Config):
 def get_log_evidence_harmonic(
     data_model: DynamicsWrapper, config: Config, verbose: int = 0
 ):
-    mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
+    mcmc = GraphReconstructionMCMC(data_model, verbose=verbose)
     callback = CollectLikelihoodOnSweep()
     mcmc.insert_callback("collector", callback)
 
@@ -72,16 +72,16 @@ def get_log_evidence_meanfield(
 ):
 
     log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
-        data_model.graph_prior, config, **kwargs
+        data_model.graph_prior, config
     )
-    log_posterior = get_log_posterior_meanfield(data_model, config, verbose, **kwargs)
+    log_posterior = get_log_posterior_meanfield(data_model, config, verbose)
     return log_joint - log_posterior
 
 
 def get_log_evidence_annealed(
     data_model: DynamicsWrapper, config: Config, verbose: int = 0
 ):
-    mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
+    mcmc = GraphReconstructionMCMC(data_model, verbose=verbose)
     callback = CollectLikelihoodOnSweep()
     mcmc.insert_callback("collector", callback)
     original_graph = mcmc.get_graph()
@@ -161,26 +161,28 @@ def get_log_evidence(data_model: DynamicsWrapper, config: Config = None, **kwarg
         raise ValueError(message)
 
 
-def get_log_posterior_arithmetic(data_model: DynamicsWrapper, config: Config, **kwargs):
-    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
-        data_model.graph_prior, config, **kwargs
-    )
-    log_evidence = get_log_evidence_arithmetic(data_model, config, **kwargs)
-    return log_joint - log_evidence
-
-
-def get_log_posterior_harmonic(data_model: DynamicsWrapper, config: Config):
+def get_log_posterior_arithmetic(data_model: DynamicsWrapper, config: Config):
     log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
         data_model.graph_prior, config
     )
-    log_evidence = get_log_evidence_harmonic(data_model, config)
+    log_evidence = get_log_evidence_arithmetic(data_model, config)
+    return log_joint - log_evidence
+
+
+def get_log_posterior_harmonic(
+    data_model: DynamicsWrapper, config: Config, verbose: int = 0
+):
+    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
+        data_model.graph_prior, config
+    )
+    log_evidence = get_log_evidence_harmonic(data_model, config, verbose=verbose)
     return log_joint - log_evidence
 
 
 def get_log_posterior_meanfield(
     data_model: DynamicsWrapper, config: Config, verbose: int = 0
 ):
-    mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
+    mcmc = GraphReconstructionMCMC(data_model, verbose=verbose)
     original_graph = mcmc.get_graph()
 
     callback = CollectEdgesOnSweep(
@@ -206,11 +208,13 @@ def get_log_posterior_meanfield(
     return logp
 
 
-def get_log_posterior_annealed(data_model: DynamicsWrapper, config: Config):
+def get_log_posterior_annealed(
+    data_model: DynamicsWrapper, config: Config, verbose: int = 0
+):
     log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
         data_model.graph_prior, config
     )
-    log_evidence = get_log_evidence_annealed(data_model, config)
+    log_evidence = get_log_evidence_annealed(data_model, config, verbose)
     return log_joint - log_evidence
 
 
@@ -278,8 +282,10 @@ def get_log_posterior(data_model: DynamicsWrapper, config: Config = None, **kwar
         raise ValueError(message)
 
 
-def get_log_prior_meanfield(data_model: DynamicsWrapper, config: Config) -> float:
-    mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
+def get_log_prior_meanfield(
+    data_model: DynamicsWrapper, config: Config, verbose: int = 0
+) -> float:
+    mcmc = GraphReconstructionMCMC(data_model, verbose=verbose)
     callback = CollectEdgesOnSweep(
         labeled=data_model.graph_prior.labeled, nested=data_model.graph_prior.nested
     )

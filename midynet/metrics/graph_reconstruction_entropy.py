@@ -44,7 +44,7 @@ class GraphReconstructionEntropyMetrics(Metrics):
 
         return Statistics.compute(
             samples,
-            error_type=config.metrics.graph_reconstruction_entropy.get(
+            error_type=config.metrics.graph_reconstruction_entropy.get_value(
                 "error_type", "std"
             ),
         )

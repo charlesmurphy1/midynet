@@ -86,38 +86,21 @@ class GraphReconstructionMCMC(MCMCWrapper):
         if graph_prior is None:
             graph_prior = data_model.get_graph_prior()
         else:
-            if issubclass(graph_prior.__class__, _Wrapper):
-                graph_wrapper = graph_prior.wrap
-            else:
-                graph_wrapper = graph_prior
+            data_model.set_graph_prior(graph_prior)
 
-            data_model.set_graph_prior(graph_wrapper)
-        nested = False
-
-        if issubclass(data_model.__class__, _Wrapper):
-            data_wrapper = data_model.wrap
-        else:
-            data_wrapper = data_model
-
-        if issubclass(data_wrapper.__class__, _data.DataModel):
-            mcmc = _mcmc._GraphReconstructionMCMC(data_wrapper, **kwargs)
-        elif issubclass(data_wrapper.__class__, _data.BlockLabeledDataModel):
-            mcmc = _mcmc._BlockLabeledGraphReconstructionMCMC(data_wrapper, **kwargs)
-        elif issubclass(data_wrapper.__class__, _data.NestedBlockLabeledDataModel):
+        if data_model.nested:
             mcmc = _mcmc._NestedBlockLabeledGraphReconstructionMCMC(
-                data_wrapper, **kwargs
+                data_model.wrap, **kwargs
             )
-            nested = True
+        elif data_model.labeled:
+            mcmc = _mcmc._BlockLabeledGraphReconstructionMCMC(data_model.wrap, **kwargs)
         else:
-            raise TypeError(
-                f"GraphReconstructionMCMC: wrong type `{data_wrapper.__class__}`."
-            )
+            mcmc = _mcmc._GraphReconstructionMCMC(data_model.wrap, **kwargs)
 
         super().__init__(
             mcmc,
             data_model=data_model,
             graph_prior=graph_prior,
-            nested=nested,
             verbose=verbose,
             **kwargs,
         )

@@ -14,11 +14,7 @@ from .metrics import Metrics
 from .multiprocess import Expectation
 from .statistics import Statistics
 from .util import (
-    get_log_posterior_meanfield,
-    get_log_evidence_annealed,
-    get_log_evidence_arithmetic,
-    get_log_evidence_harmonic,
-    get_log_evidence_exact,
+    get_log_posterior,
     get_graph_log_evidence,
 )
 
@@ -40,7 +36,6 @@ class MutualInformation(Expectation):
 
         hxg = -data_model.get_log_likelihood()
         hg = -get_graph_log_evidence(graph_model, metric_cf)
-        hbg = -data_model.get_log_prior() if graph_model.labeled else hg
         hgx = -get_log_posterior(data_model, metric_cf)
         hx = hg + hxg - hgx
         out = {
@@ -48,10 +43,12 @@ class MutualInformation(Expectation):
             "prior": hg,
             "likelihood": hxg,
             "posterior": hgx,
-            "mutual-info": hg - hgx,
+            "mutual_info": hg - hgx,
         }
         if graph_model.labeled:
-            out["graph-joint"] = hbg
+            out["graph_joint"] = -graph_model.get_log_joint()
+            out["graph_prior"] = graph_model.get_label_log_joint()
+            out["graph_evidence"] = hg
         if metric_cf.get_value("to_bits", True):
             out = {k: v / np.log(2) for k, v in out.items()}
         return out
@@ -72,15 +69,16 @@ class MutualInformationMetrics(Metrics):
         for s in samples:
             for k, v in s.items():
                 sample_dict[k].append(v)
+
         res = {
             k: Statistics.compute(
-                v, error_type=config.metrics.mutual_info.get("error_type", "std")
+                v, error_type=config.metrics.mutual_info.get_value("error_type", "std")
             )
             for k, v in sample_dict.items()
         }
 
         out = {f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()}
-        print(out)
+        # print(out)
         return out
 
 

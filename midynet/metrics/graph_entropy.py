@@ -39,7 +39,8 @@ class GraphEntropyMetrics(Metrics):
         )
 
         return Statistics.compute(
-            samples, error_type=config.metrics.graph_entropy.get("error_type", "std")
+            samples,
+            error_type=config.metrics.graph_entropy.get_value("error_type", "std"),
         )
 
 

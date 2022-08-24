@@ -44,7 +44,7 @@ class ReconstructabilityMetrics(Metrics):
         )
         return Statistics.compute(
             samples,
-            error_type=config.metrics.reconstructability.get("error_type", "std"),
+            error_type=config.metrics.reconstructability.get_value("error_type", "std"),
         )
 
 

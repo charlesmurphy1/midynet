@@ -96,6 +96,9 @@ public:
     const bool isStubLabeled() const { return m_stubLabeled; }
     const bool withSelfLoops() const { return m_withSelfLoops; }
     const bool withParallelEdges() const { return m_withParallelEdges; }
+    const double getLabelLogJoint() const override {
+        return m_labelGraphPriorPtr->getBlockPrior().getLogJoint();
+    }
     void reduceLabels() override {
         m_labelGraphPriorPtr->reducePartition();
         setUp();

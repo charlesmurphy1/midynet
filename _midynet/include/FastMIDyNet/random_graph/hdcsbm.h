@@ -96,6 +96,9 @@ public:
         m_degreePriorPtr->isRoot(false);
         setUpLikelihood();
     }
+    const double getLabelLogJoint() const override {
+        return m_nestedLabelGraphPrior.getNestedBlockPrior().getLogJoint();
+    }
 
     void reduceLabels() override {
         m_degreePriorPtr->reducePartition();

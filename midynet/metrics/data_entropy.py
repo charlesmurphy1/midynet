@@ -39,7 +39,8 @@ class DataEntropyMetrics(Metrics):
             config.metrics.data_entropy.get_value("num_samples", 10)
         )
         return Statistics.compute(
-            samples, error_type=config.metrics.data_entropy.get("error_type", "std")
+            samples,
+            error_type=config.metrics.data_entropy.get_value("error_type", "std"),
         )
 
 

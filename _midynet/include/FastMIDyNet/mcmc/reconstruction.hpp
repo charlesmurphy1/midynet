@@ -177,7 +177,7 @@ public:
     BaseClass(betaLikelihood, betaPrior),
     m_sampleLabelProb(sampleLabelProb){ }
     void onSweepEnd() override {
-        BaseClass::m_graphPriorPtr->reduceLabels();
+        // BaseClass::m_graphPriorPtr->reduceLabels();
         MCMC::onSweepEnd();
         BaseClass::m_graphCallBacks.onSweepEnd();
     }
@@ -261,7 +261,7 @@ public:
 
 
     void onSweepEnd() override {
-        BaseClass::m_graphPriorPtr->reduceLabels();
+        // BaseClass::m_graphPriorPtr->reduceLabels();
         MCMC::onSweepEnd();
         BaseClass::m_graphCallBacks.onSweepEnd();
     }

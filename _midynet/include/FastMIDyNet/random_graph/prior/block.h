@@ -67,7 +67,7 @@ public:
 
     virtual void setState(const BlockSequence& blocks) override{
         m_vertexCounts = computeVertexCounts(blocks);
-        m_blockCountPriorPtr->setStateFromPartition(blocks);
+        setBlockCountFromPartition(blocks);
         m_state = blocks;
         m_size = blocks.size();
     }

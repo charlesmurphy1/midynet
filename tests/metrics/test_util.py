@@ -24,7 +24,7 @@ def config():
 
 @pytest.fixture
 def metrics_config():
-    c = MetricsConfig.mcmc()
+    c = MetricsConfig.mcmc("test")
     c.set_value("num_sweeps", 10)
     c.set_value("burn_per_vertex", 1)
     return c

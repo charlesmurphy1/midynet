@@ -5,3 +5,5 @@ psutil>=5.8.0
 tqdm>=4.56.0
 basegraph==1.0.0
 SamplableSet>=2.0.0
+networkx>=2.8
+netrd

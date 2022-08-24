@@ -42,7 +42,8 @@ class PredictabilityMetrics(Metrics):
             config.metrics.predictability.get_value("num_samples", 10)
         )
         return Statistics.compute(
-            samples, error_type=config.metrics.predictability.get("error_type", "std")
+            samples,
+            error_type=config.metrics.predictability.get_value("error_type", "std"),
         )
 
 

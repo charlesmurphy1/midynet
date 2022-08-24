@@ -50,6 +50,7 @@ public:
     /* Pure abstract methods */
     void setLabels(const std::vector<BlockIndex>& labels, bool reduce=false) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setLabels, labels, reduce); }
     void sampleLabels () override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleLabels,); }
+    const double getLabelLogJoint () const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLabelLogJoint,); }
 
     const std::vector<Label>& getLabels() const override  {
         PYBIND11_OVERRIDE_PURE(const std::vector<Label>&, BaseClass, getLabels, );

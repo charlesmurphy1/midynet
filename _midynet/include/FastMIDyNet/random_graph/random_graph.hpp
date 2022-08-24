@@ -188,6 +188,8 @@ public:
         return *m_labelProposerPtr;
     }
 
+    virtual const double getLabelLogJoint() const = 0;
+
     const double getLogLikelihoodRatioFromLabelMove (const LabelMove<Label>& move) const {
         return m_vertexLabeledlikelihoodModelPtr->getLogLikelihoodRatioFromLabelMove(move);
     }

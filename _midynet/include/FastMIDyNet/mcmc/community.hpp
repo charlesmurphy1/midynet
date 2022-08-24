@@ -69,7 +69,7 @@ public:
     void onEnd() override { MCMC::onEnd(); m_labelCallBacks.onEnd(); }
     void onSweepBegin() override { MCMC::onSweepBegin(); m_labelCallBacks.onSweepBegin(); }
     void onSweepEnd() override {
-        m_graphPriorPtr->reduceLabels();
+        // m_graphPriorPtr->reduceLabels();
         MCMC::onSweepEnd();
         m_labelCallBacks.onSweepEnd();
     }
@@ -200,7 +200,11 @@ public:
     void onBegin() override { MCMC::onBegin(); m_labelCallBacks.onBegin(); }
     void onEnd() override { MCMC::onEnd(); m_labelCallBacks.onEnd(); }
     void onSweepBegin() override { MCMC::onSweepBegin(); m_labelCallBacks.onSweepBegin(); }
-    void onSweepEnd() override { MCMC::onSweepEnd(); m_labelCallBacks.onSweepEnd(); }
+    void onSweepEnd() override {
+        // m_graphPriorPtr->reduceLabels();
+        MCMC::onSweepEnd();
+        m_labelCallBacks.onSweepEnd();
+    }
     void onStepBegin() override { MCMC::onStepBegin(); m_labelCallBacks.onStepBegin(); }
     void onStepEnd() override { MCMC::onStepEnd(); m_labelCallBacks.onStepEnd(); }
 

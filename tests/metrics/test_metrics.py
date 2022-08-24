@@ -89,6 +89,7 @@ metrics_dict = {
     "reconstructability": metrics.ReconstructabilityMetrics,
     "predictability": metrics.PredictabilityMetrics,
     "mutual_info": metrics.MutualInformationMetrics,
+    "heuristics": metrics.GraphReconstructionHeuristicsMetrics,
 }
 
 
@@ -102,24 +103,36 @@ def args(request):
         num_procs=1,
         seed=1,
     )
-    c.set_value("data.num_steps", 10)
-    c.set_value("data.infection_prob", [0.0, 0.5])
-    c.set_value("graph.size", 5)
-    c.set_value("graph.edge_count", 5)
+    c.set_value("data_model.num_steps", 100)
+    c.set_value("data_model.infection_prob", [0.0, 0.5])
+    c.set_value("graph_prior.size", 5)
+    c.set_value("graph_prior.edge_count", 5)
     c.set_value(
         "metrics",
         MetricsCollectionConfig.auto(request.param),
     )
-    c.metrics.get_value(request.param).set_value("num_samples", 1)
-    if "method" in c.metrics.get_value(request.param):
-        c.metrics.get_value(request.param).set_value(
-            "method", ["arithmetic", "harmonic", "meanfield", "annealed"]
+    mcf = c.metrics.get_value(request.param)
+    mcf.set_value("num_samples", 1)
+    if "method" in mcf and mcf.name != "heuristics":
+        mcf.set_value("method", ["arithmetic", "harmonic", "meanfield", "annealed"])
+        mcf.set_value("initial_burn", 1)
+        mcf.set_value("K", 2)
+        mcf.set_value("num_sweeps", 10)
+        mcf.set_value("burn_per_vertex", 1)
+        mcf.set_value("start_from_original", True)
+    elif mcf.name == "heuristics":
+        mcf.set_value(
+            "method",
+            [
+                "correlation",
+                "granger_causality",
+                "transfer_entropy",
+                "mutual_information",
+                "partial_correlation",
+                "correlation_spanning_tree",
+            ],
         )
-        c.metrics.get_value(request.param).set_value("initial_burn", 1)
-        c.metrics.get_value(request.param).set_value("K", 2)
-        c.metrics.get_value(request.param).set_value("num_sweeps", 10)
-        c.metrics.get_value(request.param).set_value("burn_per_vertex", 1)
-        c.metrics.get_value(request.param).set_value("start_from_original", True)
+    c.metrics.set_value(request.param, mcf)
     return c, metrics_dict[request.param]
 
 

@@ -1,13 +1,32 @@
 from __future__ import annotations
+import networkx as nx
 import numpy as np
+import time
 import warnings
 
-from midynet.config import Config, OptionError
+from midynet import utility
+from midynet.config import Config, OptionError, RandomGraphFactory, DataModelFactory
 from .metrics import Metrics
 from .multiprocess import Expectation
+from .statistics import Statistics
 from dataclasses import dataclass, field
 from netrd import reconstruction as _reconstruction
 from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve
+
+
+def ignore_warnings(func):
+    def wrapper(*args, **kwargs):
+        np.seterr(invalid="ignore")
+        warnings.filterwarnings("ignore")
+
+        value = func(*args, **kwargs)
+
+        np.seterr(invalid="ignore")
+        warnings.filterwarnings("ignore")
+
+        return value
+
+    return wrapper
 
 
 class ReconstructionHeuristics:
@@ -44,8 +63,9 @@ class ReconstructionHeuristics:
         self.__results__ = {}
 
     def normalize_weights(self, weights):
+        if weights.min() == weights.max():
+            return weights
         weights = (weights - weights.min()) / (weights.max() - weights.min())
-        weights -= np.eye(weights.shape[0])
         return weights
 
     def collect_confusion_matrix(self, true, pred, **kwargs):
@@ -67,24 +87,10 @@ class ReconstructionHeuristics:
         return dict(fpr=fpr, tpr=tpr, auc=auc, thresholds=thresholds)
 
 
-def ignore_warnings(func):
-    def wrapper(*args, **kwargs):
-        np.seterr(invalid="ignore")
-        warnings.filterwarnings("ignore")
-
-        value = func(*args, **kwargs)
-
-        np.seterr(invalid="ignore")
-        warnings.filterwarnings("ignore")
-
-        return value
-
-    return wrapper
-
-
 class WeightbasedReconstructionHeuristics(ReconstructionHeuristics):
-    def __init__(self, model):
+    def __init__(self, model, nanfill=None):
         self.model = model
+        self.nanfill = 0 if nanfill is None else nanfill
         super().__init__()
 
     @ignore_warnings
@@ -92,6 +98,7 @@ class WeightbasedReconstructionHeuristics(ReconstructionHeuristics):
         self.clear()
         self.model.fit(timeseries.T, **kwargs)
         weights = self.model.results["weights_matrix"]
+        weights[np.isnan(weights)] = self.nanfill
         np.fill_diagonal(weights, 0)
         self.__results__["pred"] = weights
 
@@ -146,13 +153,13 @@ class GraphReconstructionHeuristics(Expectation):
     def func(self, seed: int) -> float:
         utility.seed(seed)
 
-        graph_model = midynet.config.RandomGraphFactory.build(config.graph_prior)
-        data_model = midynet.config.DataModelFactory.build(config.data_model)
+        graph_model = RandomGraphFactory.build(self.config.graph_prior)
+        data_model = DataModelFactory.build(self.config.data_model)
         data_model.set_graph_prior(graph_model)
 
         data_model.sample()
         timeseries = np.array(data_model.get_past_states()).T
-        heuristics = get_heuristics_reconstructor(config.metrics.heuristics)
+        heuristics = get_heuristics_reconstructor(self.config.metrics.heuristics)
         heuristics.fit(timeseries)
         heuristics.compare(graph_model.get_state(), collectors=["roc"])
 
@@ -169,7 +176,6 @@ class GraphReconstructionHeuristicsMetrics(Metrics):
         samples = heuristics_auc.compute(
             config.metrics.heuristics.get_value("num_samples", 10)
         )
-
         return Statistics.compute(
-            samples, error_type=config.metrics.heuristics.get("error_type", "std")
+            samples, error_type=config.metrics.heuristics.get_value("error_type", "std")
         )
