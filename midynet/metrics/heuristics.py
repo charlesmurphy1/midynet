@@ -1,0 +1,175 @@
+from __future__ import annotations
+import numpy as np
+import warnings
+
+from midynet.config import Config, OptionError
+from .metrics import Metrics
+from .multiprocess import Expectation
+from dataclasses import dataclass, field
+from netrd import reconstruction as _reconstruction
+from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve
+
+
+class ReconstructionHeuristics:
+    def __init__(self):
+        self.clear()
+
+    @property
+    def pred(self):
+        return self.__results__["pred"]
+
+    def fit(self, timeseries, **kwargs):
+        raise NotImplementedError()
+
+    def compare(self, true_graph, measures=None, **kwargs):
+        if len(self.__results__) == 0:
+            raise ValueError("`results` must not be empty.")
+
+        measures = ["roc"] if measures is None else measures
+
+        true = np.array(true_graph.get_adjacency_matrix())
+        np.fill_diagonal(true, 0)
+        true[true > 1] = 1
+        for m in measures:
+            if hasattr(self, "collect_" + m):
+                self.__results__[m] = getattr(self, "collect_" + m)(true, self.pred)
+            else:
+                warnings.warn(
+                    f"no collector named `{m}` has been found, proceeding anyway.",
+                    RuntimeWarning,
+                )
+        return self.__results__.copy()
+
+    def clear(self):
+        self.__results__ = {}
+
+    def normalize_weights(self, weights):
+        weights = (weights - weights.min()) / (weights.max() - weights.min())
+        weights -= np.eye(weights.shape[0])
+        return weights
+
+    def collect_confusion_matrix(self, true, pred, **kwargs):
+        threshold = kwargs.get("threshold", norm_pred.mean())
+        norm_pred = self.normalize_weights(pred).reshape(-1)
+        true = true.reshape(-1)
+        cm = confusion_matrix(true, (norm_pred > threshold).astype("float").reshape(-1))
+        tn, fp, fn, tp = cm.ravel()
+
+        return dict(threshold=threshold, tn=tn, fp=fp, fn=fn, tp=tp)
+
+    def collect_roc(self, true, pred, **kwargs):
+        pred[np.isnan(pred)] = -10
+        pred = self.normalize_weights(pred).reshape(-1).astype("float")
+        true = true.reshape(-1).astype("int")
+        fpr, tpr, thresholds = roc_curve(true, pred)
+        auc = roc_auc_score(true, pred)
+
+        return dict(fpr=fpr, tpr=tpr, auc=auc, thresholds=thresholds)
+
+
+def ignore_warnings(func):
+    def wrapper(*args, **kwargs):
+        np.seterr(invalid="ignore")
+        warnings.filterwarnings("ignore")
+
+        value = func(*args, **kwargs)
+
+        np.seterr(invalid="ignore")
+        warnings.filterwarnings("ignore")
+
+        return value
+
+    return wrapper
+
+
+class WeightbasedReconstructionHeuristics(ReconstructionHeuristics):
+    def __init__(self, model):
+        self.model = model
+        super().__init__()
+
+    @ignore_warnings
+    def fit(self, timeseries, **kwargs):
+        self.clear()
+        self.model.fit(timeseries.T, **kwargs)
+        weights = self.model.results["weights_matrix"]
+        np.fill_diagonal(weights, 0)
+        self.__results__["pred"] = weights
+
+
+class GraphbasedReconstructionHeuristics(ReconstructionHeuristics):
+    def __init__(self, model):
+        self.model = model
+        super().__init__()
+
+    def fit(self, timeseries, **kwargs):
+        self.clear()
+        self.model.fit(timeseries.T, **kwargs)
+        weights = nx.to_numpy_array(self.model.results["graph"])
+        self.__results__["pred"] = weights
+
+
+def get_heuristics_reconstructor(config):
+    reconstructors = {
+        "correlation": lambda: WeightbasedReconstructionHeuristics(
+            _reconstruction.CorrelationMatrix()
+        ),
+        "granger_causality": lambda: WeightbasedReconstructionHeuristics(
+            _reconstruction.GrangerCausality()
+        ),
+        "transfer_entropy": lambda: WeightbasedReconstructionHeuristics(
+            _reconstruction.NaiveTransferEntropy()
+        ),
+        "graphical_lasso": lambda: WeightbasedReconstructionHeuristics(
+            _reconstruction.GraphicalLasso()
+        ),
+        "mutual_information": lambda: WeightbasedReconstructionHeuristics(
+            _reconstruction.MutualInformationMatrix()
+        ),
+        "partial_correlation": lambda: WeightbasedReconstructionHeuristics(
+            _reconstruction.PartialCorrelationMatrix()
+        ),
+        "correlation_spanning_tree": lambda: GraphbasedReconstructionHeuristics(
+            _reconstruction.CorrelationSpanningTree()
+        ),
+    }
+
+    if config.method in reconstructors:
+        return reconstructors[config.method]()
+    else:
+        raise OptionError(actual=config.method, expected=reconstructors.keys())
+
+
+@dataclass
+class GraphReconstructionHeuristics(Expectation):
+    config: Config = field(repr=False, default_factory=Config)
+
+    def func(self, seed: int) -> float:
+        utility.seed(seed)
+
+        graph_model = midynet.config.RandomGraphFactory.build(config.graph_prior)
+        data_model = midynet.config.DataModelFactory.build(config.data_model)
+        data_model.set_graph_prior(graph_model)
+
+        data_model.sample()
+        timeseries = np.array(data_model.get_past_states()).T
+        heuristics = get_heuristics_reconstructor(config.metrics.heuristics)
+        heuristics.fit(timeseries)
+        heuristics.compare(graph_model.get_state(), collectors=["roc"])
+
+        return heuristics.__results__["roc"]["auc"]
+
+
+class GraphReconstructionHeuristicsMetrics(Metrics):
+    def eval(self, config: Config):
+        heuristics_auc = GraphReconstructionHeuristics(
+            config=config,
+            num_procs=config.get_value("num_procs", 1),
+            seed=config.get_value("seed", int(time.time())),
+        )
+        samples = heuristics_auc.compute(
+            config.metrics.heuristics.get_value("num_samples", 10)
+        )
+
+        return Statistics.compute(
+            samples, error_type=config.metrics.heuristics.get("error_type", "std")
+        )

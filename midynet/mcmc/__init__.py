@@ -1,7 +1,7 @@
 from __future__ import annotations
 from midynet.wrapper import Wrapper as _Wrapper
-from midynet import random_graph as _random_graph
-from midynet import data as _data
+from midynet.random_graph import RandomGraphWrapper as _RandomGraphWrapper
+from midynet.data import DataModelWrapper as _DataModelWrapper
 from _midynet import mcmc as _mcmc
 
 from . import callbacks
@@ -78,8 +78,8 @@ class MCMCWrapper(_Wrapper):
 class GraphReconstructionMCMC(MCMCWrapper):
     def __init__(
         self,
-        data_model: Union[_data.DataModel, _Wrapper],
-        graph_prior: Union[_random_graph.RandomGraph, _Wrapper] = None,
+        data_model: _DataModelWrapper,
+        graph_prior: _RandomGraphWrapper = None,
         verbose=0,
         **kwargs,
     ):
@@ -124,25 +124,24 @@ class GraphReconstructionMCMC(MCMCWrapper):
 
 
 class PartitionReconstructionMCMC(MCMCWrapper):
-    def __init__(
-        self, graph_model: _random_graph.RandomGraph, verbose: int = 0, **kwargs
-    ):
-        nested = False
-        if issubclass(graph_model.__class__, _Wrapper):
-            graph_wrapper = graph_model.wrap
-        else:
-            graph_wrapper = graph_model
-        if issubclass(graph_wrapper.__class__, _random_graph.BlockLabeledRandomGraph):
-            mcmc = _mcmc._PartitionReconstructionMCMC(graph_wrapper, **kwargs)
-        elif issubclass(
-            graph_wrapper.__class__, _random_graph.NestedBlockLabeledRandomGraph
-        ):
-            mcmc = _mcmc._NestedPartitionReconstructionMCMC(graph_wrapper, **kwargs)
-            nested = True
+    def __init__(self, graph_model: RandomGraphWrapper, verbose: int = 0, **kwargs):
+        if graph_model.nested:
+            mcmc = _mcmc._NestedPartitionReconstructionMCMC(graph_model.wrap, **kwargs)
+        elif graph_model.labeled:
+            mcmc = _mcmc._PartitionReconstructionMCMC(graph_model.wrap, **kwargs)
         else:
             raise TypeError(
-                f"PartitionReconstructionMCMC: wrong type `{graph_wrapper.__class__}`."
+                f"PartitionReconstructionMCMC: wrong type `{graph_model.wrap.__class__}`."
             )
-        super().__init__(
-            mcmc, verbose=verbose, graph_model=graph_model, nested=nested, **kwargs
-        )
+        super().__init__(mcmc, verbose=verbose, graph_model=graph_model, **kwargs)
+
+    def get_labels(self):
+        if self.graph_model.nested:
+            return self.graph_model.get_nested_labels()
+        return self.graph_model.get_labels()
+
+    def set_labels(self, labels, reduce=False):
+        if self.graph_model.nested:
+            self.graph_model.set_nested_labels(labels, reduce)
+        else:
+            self.graph_model.set_labels(labels, reduce)

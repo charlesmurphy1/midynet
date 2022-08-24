@@ -43,7 +43,7 @@ class DataPredictionEntropyMetrics(Metrics):
 
         return Statistics.compute(
             samples,
-            error_type=config.metrics.data_prediction_entropy.error_type,
+            error_type=config.metrics.data_prediction_entropy.get("error_type", "std"),
         )
 
 

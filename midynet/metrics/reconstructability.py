@@ -43,7 +43,8 @@ class ReconstructabilityMetrics(Metrics):
             config.metrics.reconstructability.get_value("num_samples", 10)
         )
         return Statistics.compute(
-            samples, error_type=config.metrics.reconstructability.error_type
+            samples,
+            error_type=config.metrics.reconstructability.get("error_type", "std"),
         )
 
 

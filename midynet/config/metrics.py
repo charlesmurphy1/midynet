@@ -10,12 +10,13 @@ __all__ = ("MetricsConfig", "MetricsCollectionConfig", "MetricsFactory")
 
 class MetricsConfig(Config):
     @classmethod
-    def monte_carlo(cls):
-        return cls(num_samples=100, error_type="confidence")
+    def monte_carlo(cls, name: str):
+        return cls(name, num_samples=100, error_type="confidence")
 
     @classmethod
-    def mcmc(cls):
+    def mcmc(cls, name: str):
         obj = cls(
+            name,
             num_sweeps=1000,
             error_type="percentile",
             method="meanfield",
@@ -32,47 +33,37 @@ class MetricsConfig(Config):
 
     @classmethod
     def data_entropy(cls):
-        obj = cls.mcmc()
-        obj.set_value("name", "data_entropy")
-        return obj
+        return cls.mcmc("data_entropy")
 
     @classmethod
     def data_prediction_entropy(cls):
-        obj = cls.monte_carlo()
-        obj.set_value("name", "data_prediction_entropy")
-        return obj
+        return cls.mcmc("data_prediction_entropy")
 
     @classmethod
     def graph_entropy(cls):
-        obj = cls.monte_carlo()
-        obj.set_value("name", "graph_entropy")
-        obj.insert("num_sweeps", 1000)
-        obj.insert("method", "exact")
-        return obj
+        return cls.mcmc("graph_entropy")
 
     @classmethod
     def graph_reconstruction_entropy(cls):
-        obj = cls.mcmc()
-        obj.set_value("name", "graph_reconstruction_entropy")
-        return obj
+        return cls.mcmc("graph_reconstruction_entropy")
 
     @classmethod
     def reconstructability(cls):
-        obj = cls.mcmc()
-        obj.set_value("name", "reconstructability")
-        return obj
+        return cls.mcmc("reconstructability")
 
     @classmethod
     def predictability(cls):
-        obj = cls.mcmc()
-        obj.set_value("name", "predictability")
-        return obj
+        return cls.mcmc("predictability")
 
     @classmethod
     def mutual_info(cls):
-        obj = cls.mcmc()
-        obj.set_value("name", "mutual_info")
-        return obj
+        return cls.mcmc("mutual_info")
+
+    @classmethod
+    def heuristics(cls):
+        return cls(
+            "heuristics", method="correlation", num_samples=100, error_type="percentile"
+        )
 
 
 class MetricsCollectionConfig(Config):

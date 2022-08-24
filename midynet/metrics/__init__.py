@@ -8,6 +8,7 @@ from .graph_reconstruction_entropy import GraphReconstructionEntropyMetrics
 from .mutual_info import MutualInformationMetrics
 from .predictability import PredictabilityMetrics
 from .reconstructability import ReconstructabilityMetrics
+from .heuristics import ReconstructionHeuristics, GraphReconstructionHeuristicsMetrics
 
 __all__ = (
     "Metrics",
@@ -21,4 +22,5 @@ __all__ = (
     "MutualInformationMetrics",
     "PredictabilityMetrics",
     "ReconstructabilityMetrics",
+    "GraphReconstructionHeuristicsMetrics",
 )

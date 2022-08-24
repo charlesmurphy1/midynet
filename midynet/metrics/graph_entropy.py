@@ -10,7 +10,7 @@ from midynet.config import (
 from .metrics import Metrics
 from .multiprocess import Expectation
 from .statistics import Statistics
-from .util import get_log_prior_meanfield, get_posterior_entropy_partition_meanfield
+from .util import get_graph_log_evidence
 
 __all__ = ("GraphEntropy", "GraphEntropyMetrics")
 
@@ -23,11 +23,7 @@ class GraphEntropy(Expectation):
         utility.seed(seed)
         graph_model = RandomGraphFactory.build(self.config.graph_prior)
         graph_model.sample()
-        S = -graph_model.get_log_joint()
-        if issubclass(graph_model.__class__, BlockLabeledRandomGraph):
-            S -= get_posterior_entropy_partition_meanfield(
-                graph_model, self.config.metrics.graph_entropy
-            )
+        S = -get_graph_log_evidence(graph_model, self.config.metrics.graph_entropy)
         return S
 
 
@@ -43,7 +39,7 @@ class GraphEntropyMetrics(Metrics):
         )
 
         return Statistics.compute(
-            samples, error_type=config.metrics.graph_entropy.error_type
+            samples, error_type=config.metrics.graph_entropy.get("error_type", "std")
         )
 
 

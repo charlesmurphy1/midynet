@@ -1,7 +1,8 @@
 from __future__ import annotations
-import numpy as np
 from collections import defaultdict
-from graph_tool.inference import ModeClusterState, mcmc_equilibrate
+from scipy.special import loggamma
+import numpy as np
+import importlib
 
 from midynet.random_graph import (
     BlockLabeledRandomGraph,
@@ -25,11 +26,11 @@ from midynet.utility import (
 __all__ = (
     "get_log_evidence",
     "get_log_posterior",
-    "get_posterior_entropy_partition",
+    "get_graph_log_evidence",
 )
 
 
-def get_log_evidence_arithmetic(data_model: DynamicsWrapper, config: Config, **kwargs):
+def get_log_evidence_arithmetic(data_model: DynamicsWrapper, config: Config):
     mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
     logp = []
     g = mcmc.get_graph()
@@ -45,14 +46,14 @@ def get_log_evidence_arithmetic(data_model: DynamicsWrapper, config: Config, **k
 
 
 def get_log_evidence_harmonic(
-    data_model: DynamicsWrapper, config: Config, verbose: int = 0, **kwargs
+    data_model: DynamicsWrapper, config: Config, verbose: int = 0
 ):
     mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
     callback = CollectLikelihoodOnSweep()
     mcmc.insert_callback("collector", callback)
 
     g = mcmc.get_graph()
-    burn = config.burn_per_vertex * mcmc.get_data_model().get_size()
+    burn = config.burn_per_vertex * data_model.get_size()
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
     for i in range(config.num_sweeps):
         s, f = mcmc.do_MH_sweep(burn=burn)
@@ -67,29 +68,25 @@ def get_log_evidence_harmonic(
 
 
 def get_log_evidence_meanfield(
-    data_model: DynamicsWrapper, config: Config, verbose: int = 0, **kwargs
+    data_model: DynamicsWrapper, config: Config, verbose: int = 0
 ):
 
-    logJoint = data_model.get_log_joint()
-    logPosterior = get_log_posterior_meanfield(data_model, config, verbose, **kwargs)
-    S = logJoint - logPosterior
-    print(S, logJoint, "-", logPosterior)
-    if data_model.graph_prior.labeled:
-        S -= get_posterior_entropy_partition_meanfield(
-            data_model.get_graph_prior(), config
-        )
-    return S
+    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
+        data_model.graph_prior, config, **kwargs
+    )
+    log_posterior = get_log_posterior_meanfield(data_model, config, verbose, **kwargs)
+    return log_joint - log_posterior
 
 
 def get_log_evidence_annealed(
-    data_model: DynamicsWrapper, config: Config, verbose: int = 0, **kwargs
+    data_model: DynamicsWrapper, config: Config, verbose: int = 0
 ):
     mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
     callback = CollectLikelihoodOnSweep()
     mcmc.insert_callback("collector", callback)
     original_graph = mcmc.get_graph()
 
-    burn = config.burn_per_vertex * mcmc.get_data_model().get_size()
+    burn = config.burn_per_vertex * data_model.get_size()
     logp = []
 
     beta_k = np.linspace(0, 1, config.num_betas + 1) ** (1 / config.exp_betas)
@@ -104,7 +101,6 @@ def get_log_evidence_annealed(
         s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
         for i in range(config.num_sweeps):
             mcmc.do_MH_sweep(burn=burn)
-            mcmc.check_consistency()
         logp_k = (ub - lb) * np.array(callback.get_data())
         logp.append(log_mean_exp(logp_k))
         callback.clear()
@@ -117,7 +113,7 @@ def get_log_evidence_annealed(
     return sum(logp)
 
 
-def get_log_evidence_exact(data_model: DynamicsWrapper, config: Config, **kwargs):
+def get_log_evidence_exact(data_model: DynamicsWrapper, config: Config):
     logevidence = []
     original_graph = data_model.get_graph()
     size = data_model.get_size()
@@ -136,18 +132,16 @@ def get_log_evidence_exact(data_model: DynamicsWrapper, config: Config, **kwargs
     return log_sum_exp(logevidence)
 
 
-def get_log_evidence_exact_meanfield(
-    data_model: DynamicsWrapper, config: Config, **kwargs
-):
-    S = data_model.get_log_joint() - get_log_posterior_exact_meanfield(
-        data_model, config
+def get_log_evidence_exact_meanfield(data_model: DynamicsWrapper, config: Config):
+    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
+        data_model.graph_prior, config
     )
-    if data_model.graph_prior.labeled:
-        S -= get_log_posterior_meanfield_partition(data_model.graph_prior, config)
-    return S
+    log_posterior = get_log_posterior_exact_meanfield(data_model, config)
+    return log_joint - log_posterior
 
 
-def get_log_evidence(data_model: DynamicsWrapper, config: Config, **kwargs):
+def get_log_evidence(data_model: DynamicsWrapper, config: Config = None, **kwargs):
+    config = Config(**kwargs) if config is None else config
     method = config.get_value("method", "meanfield")
     functions = {
         "exact": get_log_evidence_exact,
@@ -168,25 +162,23 @@ def get_log_evidence(data_model: DynamicsWrapper, config: Config, **kwargs):
 
 
 def get_log_posterior_arithmetic(data_model: DynamicsWrapper, config: Config, **kwargs):
-    S = data_model.get_log_joint() - get_log_evidence_arithmetic(
-        data_model, config, **kwargs
+    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
+        data_model.graph_prior, config, **kwargs
     )
-    if data_model.graph_prior.labeled:
-        S -= get_log_posterior_meanfield_partition(data_model.get_graph_prior(), config)
-    return S
+    log_evidence = get_log_evidence_arithmetic(data_model, config, **kwargs)
+    return log_joint - log_evidence
 
 
-def get_log_posterior_harmonic(data_model: DynamicsWrapper, config: Config, **kwargs):
-    S = data_model.get_log_joint() - get_log_evidence_harmonic(
-        data_model, config, **kwargs
+def get_log_posterior_harmonic(data_model: DynamicsWrapper, config: Config):
+    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
+        data_model.graph_prior, config
     )
-    if data_model.graph_prior.labeled:
-        S -= get_log_posterior_meanfield_partition(data_model.graph_prior, config)
-    return S
+    log_evidence = get_log_evidence_harmonic(data_model, config)
+    return log_joint - log_evidence
 
 
 def get_log_posterior_meanfield(
-    data_model: DynamicsWrapper, config: Config, verbose: int = 0, **kwargs
+    data_model: DynamicsWrapper, config: Config, verbose: int = 0
 ):
     mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
     original_graph = mcmc.get_graph()
@@ -199,14 +191,13 @@ def get_log_posterior_meanfield(
     callback.collect()
     if not config.start_from_original:
         mcmc.sample_prior()
-    burn = config.burn_per_vertex * mcmc.get_data_model().get_size()
+    burn = config.burn_per_vertex * data_model.get_size()
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
 
     for i in range(config.num_sweeps):
         _s, _f = mcmc.do_MH_sweep(burn=burn)
-        print(i, _s, _f)
-        s += _s
-        f += _f
+        # s += _s
+        # f += _f
 
     mcmc.set_graph(original_graph)
     logp = callback.get_log_posterior_estimate(original_graph)
@@ -215,27 +206,23 @@ def get_log_posterior_meanfield(
     return logp
 
 
-def get_log_posterior_annealed(data_model: DynamicsWrapper, config: Config, **kwargs):
-    S = data_model.get_log_joint() - get_log_evidence_annealed(
-        data_model, config, **kwargs
+def get_log_posterior_annealed(data_model: DynamicsWrapper, config: Config):
+    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
+        data_model.graph_prior, config
     )
-    if issubclass(data_model.get_graph_prior().__class__, BlockLabeledRandomGraph):
-        S -= get_log_posterior_meanfield_partition(data_model.get_graph_prior(), config)
-    return S
+    log_evidence = get_log_evidence_annealed(data_model, config)
+    return log_joint - log_evidence
 
 
-def get_log_posterior_exact(data_model: DynamicsWrapper, config: Config, **kwargs):
-    S = data_model.get_log_joint() - get_log_evidence_exact(
-        data_model, config, **kwargs
+def get_log_posterior_exact(data_model: DynamicsWrapper, config: Config):
+    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
+        data_model.graph_prior, config
     )
-    if issubclass(data_model.get_graph_prior().__class__, BlockLabeledRandomGraph):
-        S -= get_log_posterior_exact_partition(data_model.get_graph_prior(), config)
-    return S
+    log_evidence = get_log_evidence_exact(data_model, config)
+    return log_joint - log_evidence
 
 
-def get_log_posterior_exact_meanfield(
-    data_model: DynamicsWrapper, config: Config, **kwargs
-):
+def get_log_posterior_exact_meanfield(data_model: DynamicsWrapper, config: Config):
     original_graph = data_model.get_graph()
     size = data_model.get_size()
     graph_prior = data_model.graph_prior
@@ -270,7 +257,8 @@ def get_log_posterior_exact_meanfield(
     return log_posterior
 
 
-def get_log_posterior(data_model: DynamicsWrapper, config: Config, **kwargs):
+def get_log_posterior(data_model: DynamicsWrapper, config: Config = None, **kwargs):
+    config = Config(**kwargs) if config is None else config
     method = config.get_value("method", "meanfield")
     functions = {
         "exact": get_log_posterior_exact,
@@ -282,7 +270,7 @@ def get_log_posterior(data_model: DynamicsWrapper, config: Config, **kwargs):
         "annealed": get_log_posterior_annealed,
     }
     if method in functions:
-        return functions[method](data_model, config, **kwargs)
+        return functions[method](data_model, config)
     else:
         message = (
             f"Invalid method {method}, valid methods" + f"are {list(functions.keys())}."
@@ -290,9 +278,7 @@ def get_log_posterior(data_model: DynamicsWrapper, config: Config, **kwargs):
         raise ValueError(message)
 
 
-def get_log_prior_meanfield(
-    data_model: DynamicsWrapper, config: Config, **kwargs
-) -> float:
+def get_log_prior_meanfield(data_model: DynamicsWrapper, config: Config) -> float:
     mcmc = GraphReconstructionMCMC(data_model, verbose=kwargs.get("verbose", 0))
     callback = CollectEdgesOnSweep(
         labeled=data_model.graph_prior.labeled, nested=data_model.graph_prior.nested
@@ -311,70 +297,114 @@ def get_log_prior_meanfield(
     return hg
 
 
-def get_posterior_entropy_partition_meanfield(
-    graph_model: BlockLabeledRandomGraph, config: Config = None, **kwargs
-) -> float:
-    config = Config(**kwargs) if config is None else config
-    print(config)
-    mcmc = PartitionReconstructionMCMC(graph_model)
-    callback = CollectPartitionOnSweep()
-    mcmc.insert_callback("partition", callback)
-    original_partition = mcmc.get_labels()
-    burn = config.burn_per_vertex * graph_model.get_size()
+def get_graph_log_evidence_meanfield(graph_model: RandomGraphWrapper, config: Config):
+    if importlib.util.find_spec("graph_tool"):
+        from graph_tool.inference import ModeClusterState, mcmc_equilibrate
+    else:
+        import warnings
 
-    for i in range(config.num_sweeps):
+        warnings.warn("`graph_tool` has not been found, proceeding anyway.")
+        return 0.0
+    og_p = graph_model.get_labels()
+    burn = config.get_value("burn_per_vertex", 10) * graph_model.get_size()
+
+    mcmc = PartitionReconstructionMCMC(graph_model)
+    if not config.get_value("start_from_original", True):
+        mcmc.sample_prior()
+
+    _, _ = mcmc.do_MH_sweep(burn=config.get_value("initial_burn", burn))
+
+    callback = CollectPartitionOnSweep()
+    mcmc.insert_callback("partitions", callback)
+
+    for i in range(config.get_value("num_sweeps", 100)):
         _s, _f = mcmc.do_MH_sweep(burn=burn)
-        print(graph_model.get_labels())
+
     partitions = callback.get_data()
-    print(partitions)
     pmodes = ModeClusterState(partitions)  # from graph-tool
     if config.get_value("equilibrate_mode_cluster", False):
-        mcmc_equilibrate(pmodes, force_niter=10, verbose=True)  # from graph-tool
-    S = pmodes.posterior_entropy(True)
-    graph_model.set_labels(original_partition)
-    return S
+        mcmc_equilibrate(pmodes, force_niter=10, verbose=True)
+    samples = []
+    for p in partitions:
+        graph_model.set_labels(p)
+        samples.append(graph_model.get_log_joint() + loggamma(1 + len(np.unique(p))))
+
+    log_evidence = np.mean(samples) + pmodes.posterior_entropy()
+    graph_model.set_labels(og_p)
+    return log_evidence
 
 
-def get_posterior_entropy_partition_exact(
-    graph_model: RandomGraph, config: Config = None, **kwargs
+def get_graph_log_evidence_exact(
+    graph_model: RandomGraphWrapper, config: Config
 ) -> float:
+    if graph_model.nested:
+        raise TypeError("`graph_model` must not be nested.")
 
-    config = Config(**kwargs) if config is None else config
     logp = []
     og_p = graph_model.get_labels()
-    for p in enumerate_all_partitions(graph_model.get_size(), graph_model.get_size()):
-        graph_model.set_labels(p)
+    for p in enumerate_all_partitions(
+        graph_model.get_size(), graph_model.get_size() - 1
+    ):
+        graph_model.set_labels(p, False)
         logp.append(graph_model.get_log_joint())
 
     log_evidence = log_sum_exp(logp)
-
-    entropy = 0
-    z = 0
-    for p in enumerate_all_partitions(graph_model.get_size(), graph_model.get_size()):
-        graph_model.set_labels(p)
-        log_posterior = graph_model.get_log_joint() - log_evidence
-        z += np.exp(log_posterior)
-        print(p, graph_model.get_labels(), log_posterior, graph_model.get_label_count())
-        if not np.isinf(log_posterior):
-            entropy -= np.exp(log_posterior) * log_posterior
-    print(f"{entropy=}, {z=}")
     graph_model.set_labels(og_p)
-    return entropy
+    return log_evidence
 
 
-def get_posterior_entropy_partition(
-    graph_model: RandomGraph, config: Config, **kwargs
+def get_graph_log_evidence_annealed(
+    graph_model: RandomGraphWrapper, config: Config, verbose=False
 ) -> float:
+
+    mcmc = PartitionReconstructionMCMC(graph_model)
+    callback = CollectLikelihoodOnSweep()
+    mcmc.insert_callback("likelihoods", callback)
+    og_p = mcmc.get_labels()
+
+    burn = config.get_value("burn_per_vertex", 10) * graph_model.get_size()
+    logp = []
+
+    beta_k = np.linspace(0, 1, config.get_value("num_betas", 100) + 1) ** (
+        1 / config.get_value("exp_betas", 0.5)
+    )
+    for lb, ub in zip(beta_k[:-1], beta_k[1:]):
+        if verbose:
+            print(f"beta: {lb}")
+        mcmc.set_beta_likelihood(lb)
+        if config.get_value("start_from_original", True):
+            mcmc.set_labels(og_p)
+        else:
+            mcmc.sample_prior()
+        s, f = mcmc.do_MH_sweep(burn=config.get_value("initial_burn", burn))
+
+        for i in range(config.get_value("num_sweeps", 1000)):
+            mcmc.do_MH_sweep(burn=burn)
+        logp_k = (ub - lb) * np.array(callback.get_data())
+        logp.append(log_mean_exp(logp_k))
+        callback.clear()
+
+    log_evidence = sum(logp)
+    graph_model.set_labels(og_p)
+    return log_evidence
+
+
+def get_graph_log_evidence(
+    graph_model: RandomGraphWrapper, config: Config = None, **kwargs
+) -> float:
+    config = Config(**kwargs) if config is None else config
+
     method = config.get_value("method", "meanfield")
+
+    if not graph_model.labeled:
+        return graph_model.get_log_joint()
     functions = {
-        "exact": get_posterior_entropy_partition_exact,
-        "meanfield": get_posterior_entropy_partition_meanfield,
-        "annealed": get_posterior_entropy_partition_meanfield,
-        "arithmetic": get_posterior_entropy_partition_meanfield,
-        "harmonic": get_posterior_entropy_partition_meanfield,
+        "exact": get_graph_log_evidence_exact,
+        "meanfield": get_graph_log_evidence_meanfield,
+        "annealed": get_graph_log_evidence_annealed,
     }
     if method in functions:
-        return functions[method](graph_model, config, **kwargs)
+        return functions[method](graph_model, config)
     else:
         message = (
             f"Invalid method {method}, valid methods are {list(functions.keys())}."
