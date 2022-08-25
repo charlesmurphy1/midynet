@@ -45,6 +45,7 @@ public:
     }
 
     virtual void sample() = 0;
+    virtual void sampleState() = 0;
     virtual void samplePrior() = 0;
     virtual const double getLogLikelihood() const = 0 ;
     virtual const double getLogPrior() const = 0 ;

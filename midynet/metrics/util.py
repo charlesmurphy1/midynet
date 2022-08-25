@@ -24,9 +24,15 @@ from midynet.utility import (
 )
 
 __all__ = (
-    "get_log_evidence",
-    "get_log_posterior",
-    "get_graph_log_evidence",
+    "get_log_evidence_arithmetic",
+    "get_log_evidence_harmonic",
+    "get_log_evidence_annealed",
+    "get_log_evidence_exact",
+    "get_log_posterior_meanfield",
+    "get_log_posterior_exact_meanfield",
+    "get_graph_log_evidence_meanfield",
+    "get_graph_log_evidence_annealed",
+    "get_graph_log_evidence_exact",
 )
 
 
@@ -67,17 +73,6 @@ def get_log_evidence_harmonic(
     return log_mean_exp(logp)
 
 
-def get_log_evidence_meanfield(
-    data_model: DynamicsWrapper, config: Config, verbose: int = 0
-):
-
-    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
-        data_model.graph_prior, config
-    )
-    log_posterior = get_log_posterior_meanfield(data_model, config, verbose)
-    return log_joint - log_posterior
-
-
 def get_log_evidence_annealed(
     data_model: DynamicsWrapper, config: Config, verbose: int = 0
 ):
@@ -94,7 +89,7 @@ def get_log_evidence_annealed(
         if verbose:
             print(f"beta: {lb}")
         mcmc.set_beta_likelihood(lb)
-        if config.start_from_original:
+        if config.get_value("start_from_original", False):
             mcmc.set_graph(original_graph)
         else:
             mcmc.sample_prior()
@@ -132,10 +127,14 @@ def get_log_evidence_exact(data_model: DynamicsWrapper, config: Config):
     return log_sum_exp(logevidence)
 
 
+def get_log_evidence_meanfield(data_model: DynamicsWrapper, config: Config):
+    log_joint = data_model.get_log_joint()
+    log_posterior = get_log_posterior_meanfield(data_model, config)
+    return log_joint - log_posterior
+
+
 def get_log_evidence_exact_meanfield(data_model: DynamicsWrapper, config: Config):
-    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
-        data_model.graph_prior, config
-    )
+    log_joint = data_model.get_log_joint()
     log_posterior = get_log_posterior_exact_meanfield(data_model, config)
     return log_joint - log_posterior
 
@@ -162,9 +161,7 @@ def get_log_evidence(data_model: DynamicsWrapper, config: Config = None, **kwarg
 
 
 def get_log_posterior_arithmetic(data_model: DynamicsWrapper, config: Config):
-    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
-        data_model.graph_prior, config
-    )
+    log_joint = data_model.get_log_joint()
     log_evidence = get_log_evidence_arithmetic(data_model, config)
     return log_joint - log_evidence
 
@@ -172,10 +169,14 @@ def get_log_posterior_arithmetic(data_model: DynamicsWrapper, config: Config):
 def get_log_posterior_harmonic(
     data_model: DynamicsWrapper, config: Config, verbose: int = 0
 ):
-    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
-        data_model.graph_prior, config
-    )
+    log_joint = data_model.get_log_joint()
     log_evidence = get_log_evidence_harmonic(data_model, config, verbose=verbose)
+    return log_joint - log_evidence
+
+
+def get_log_posterior_annealed(data_model: DynamicsWrapper, config: Config):
+    log_joint = data_model.get_log_joint()
+    log_evidence = get_log_evidence_annealed(data_model, config)
     return log_joint - log_evidence
 
 
@@ -190,16 +191,13 @@ def get_log_posterior_meanfield(
     )
     mcmc.insert_callback("collector", callback)
     callback.collect()
-    callback.collect()
-    if not config.start_from_original:
+    if not config.get_value("start_from_original", False):
         mcmc.sample_prior()
     burn = config.burn_per_vertex * data_model.get_size()
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
 
     for i in range(config.num_sweeps):
         _s, _f = mcmc.do_MH_sweep(burn=burn)
-        # s += _s
-        # f += _f
 
     mcmc.set_graph(original_graph)
     logp = callback.get_log_posterior_estimate(original_graph)
@@ -211,17 +209,13 @@ def get_log_posterior_meanfield(
 def get_log_posterior_annealed(
     data_model: DynamicsWrapper, config: Config, verbose: int = 0
 ):
-    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
-        data_model.graph_prior, config
-    )
+    log_joint = data_model.get_log_joint()
     log_evidence = get_log_evidence_annealed(data_model, config, verbose)
     return log_joint - log_evidence
 
 
 def get_log_posterior_exact(data_model: DynamicsWrapper, config: Config):
-    log_joint = data_model.get_log_likelihood() + get_graph_log_evidence(
-        data_model.graph_prior, config
-    )
+    log_joint = data_model.get_log_joint()
     log_evidence = get_log_evidence_exact(data_model, config)
     return log_joint - log_evidence
 
@@ -312,22 +306,24 @@ def get_graph_log_evidence_meanfield(graph_model: RandomGraphWrapper, config: Co
         warnings.warn("`graph_tool` has not been found, proceeding anyway.")
         return 0.0
     og_p = graph_model.get_labels()
+    og_g = graph_model.get_state()
     burn = config.get_value("burn_per_vertex", 10) * graph_model.get_size()
 
     mcmc = PartitionReconstructionMCMC(graph_model)
     if not config.get_value("start_from_original", True):
-        mcmc.sample_prior()
+        graph_model.sample()
+        graph_model.set_state(og_g)
 
     _, _ = mcmc.do_MH_sweep(burn=config.get_value("initial_burn", burn))
 
-    callback = CollectPartitionOnSweep()
+    callback = CollectPartitionOnSweep(nested=graph_model.nested)
     mcmc.insert_callback("partitions", callback)
 
     for i in range(config.get_value("num_sweeps", 100)):
         _s, _f = mcmc.do_MH_sweep(burn=burn)
 
     partitions = callback.get_data()
-    pmodes = ModeClusterState(partitions)  # from graph-tool
+    pmodes = ModeClusterState(partitions, nested=graph_model.nested)  # from graph-tool
     if config.get_value("equilibrate_mode_cluster", False):
         mcmc_equilibrate(pmodes, force_niter=10, verbose=True)
     samples = []

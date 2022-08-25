@@ -102,6 +102,9 @@ public:
         const VertexState& prevVertexState,
         const VertexNeighborhoodState& neighborhoodState
     ) const;
+    const std::vector<double> getTransitionProbs( const BaseGraph::VertexIndex vertex ) const {
+        return getTransitionProbs(m_state[vertex], m_neighborsState[vertex]);
+    }
 
     const double getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const override ;
     void applyGraphMoveToSelf(const GraphMove& move) override;
@@ -235,7 +238,7 @@ void Dynamics<GraphPriorType>::syncUpdateState(){
     const auto& graph = BaseClass::getGraph();
 
     for (const auto idx: graph){
-        transProbs = getTransitionProbs(m_state[idx], m_neighborsState[idx]);
+        transProbs = getTransitionProbs(idx);
         futureState[idx] = generateCategorical<double, size_t>(transProbs);
     }
     for (const auto idx: graph)

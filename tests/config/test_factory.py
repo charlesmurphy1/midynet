@@ -108,7 +108,7 @@ data_setup = [
 metrics_setup = [
     pytest.param(
         ExperimentConfig.reconstruction(
-            "test", "glauber", "erdosrenyi", metrics=["data_entropy"]
+            "test", "glauber", "erdosrenyi", metrics=["recon_information"]
         ),
         MetricsFactory,
         lambda obj: None,

@@ -16,6 +16,7 @@ public:
     using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
     /* Pure abstract methods */
     void sample() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sample, ); }
+    void sampleState() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleState, ); }
     void samplePrior() override { PYBIND11_OVERRIDE_PURE(void, BaseClass, samplePrior, ); }
     const double getLogLikelihood() const override {
         PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLogLikelihood, );

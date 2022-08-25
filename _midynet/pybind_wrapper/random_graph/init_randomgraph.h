@@ -24,7 +24,7 @@ py::class_<VertexLabeledRandomGraph<Label>, RandomGraph, PyVertexLabeledRandomGr
         .def("get_label_graph", &VertexLabeledRandomGraph<Label>::getLabelGraph)
         .def("get_label_of_idx", [](const VertexLabeledRandomGraph<Label>& self, BaseGraph::VertexIndex vertex) { return self.getLabelOfIdx(vertex); }, py::arg("vertex"))
         .def("set_labels", &VertexLabeledRandomGraph<Label>::setLabels, py::arg("labels"), py::arg("reduce")=false)
-        .def("sample_labels", &VertexLabeledRandomGraph<Label>::sampleLabels)
+        .def("sample_only_labels", &VertexLabeledRandomGraph<Label>::sampleOnlyLabels)
         .def("get_label_log_joint", &VertexLabeledRandomGraph<Label>::getLabelLogJoint)
         .def("get_log_likelihood_ratio_from_label_move", &VertexLabeledRandomGraph<Label>::getLogLikelihoodRatioFromLabelMove, py::arg("move"))
         .def("get_log_prior_ratio_from_label_move", &VertexLabeledRandomGraph<Label>::getLogPriorRatioFromLabelMove, py::arg("move"))

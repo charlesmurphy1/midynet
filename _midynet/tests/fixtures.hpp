@@ -181,6 +181,7 @@ public:
 
     }
     void sample() override { }
+    void sampleState() override { }
     void samplePrior() override { }
     const double getLogLikelihood() const override { return 1; }
     const double getLogPrior() const override { return 2; }

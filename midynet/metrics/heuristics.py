@@ -29,7 +29,7 @@ def ignore_warnings(func):
     return wrapper
 
 
-class ReconstructionHeuristics:
+class ReconstructionHeuristicsMethod:
     def __init__(self):
         self.clear()
 
@@ -87,7 +87,7 @@ class ReconstructionHeuristics:
         return dict(fpr=fpr, tpr=tpr, auc=auc, thresholds=thresholds)
 
 
-class WeightbasedReconstructionHeuristics(ReconstructionHeuristics):
+class WeightbasedReconstructionHeuristicsMethod(ReconstructionHeuristicsMethod):
     def __init__(self, model, nanfill=None):
         self.model = model
         self.nanfill = 0 if nanfill is None else nanfill
@@ -103,7 +103,7 @@ class WeightbasedReconstructionHeuristics(ReconstructionHeuristics):
         self.__results__["pred"] = weights
 
 
-class GraphbasedReconstructionHeuristics(ReconstructionHeuristics):
+class GraphbasedReconstructionHeuristicsMethod(ReconstructionHeuristicsMethod):
     def __init__(self, model):
         self.model = model
         super().__init__()
@@ -117,25 +117,25 @@ class GraphbasedReconstructionHeuristics(ReconstructionHeuristics):
 
 def get_heuristics_reconstructor(config):
     reconstructors = {
-        "correlation": lambda: WeightbasedReconstructionHeuristics(
+        "correlation": lambda: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.CorrelationMatrix()
         ),
-        "granger_causality": lambda: WeightbasedReconstructionHeuristics(
+        "granger_causality": lambda: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.GrangerCausality()
         ),
-        "transfer_entropy": lambda: WeightbasedReconstructionHeuristics(
+        "transfer_entropy": lambda: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.NaiveTransferEntropy()
         ),
-        "graphical_lasso": lambda: WeightbasedReconstructionHeuristics(
+        "graphical_lasso": lambda: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.GraphicalLasso()
         ),
-        "mutual_information": lambda: WeightbasedReconstructionHeuristics(
+        "mutual_information": lambda: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.MutualInformationMatrix()
         ),
-        "partial_correlation": lambda: WeightbasedReconstructionHeuristics(
+        "partial_correlation": lambda: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.PartialCorrelationMatrix()
         ),
-        "correlation_spanning_tree": lambda: GraphbasedReconstructionHeuristics(
+        "correlation_spanning_tree": lambda: GraphbasedReconstructionHeuristicsMethod(
             _reconstruction.CorrelationSpanningTree()
         ),
     }
@@ -147,7 +147,7 @@ def get_heuristics_reconstructor(config):
 
 
 @dataclass
-class GraphReconstructionHeuristics(Expectation):
+class ReconstructionHeuristics(Expectation):
     config: Config = field(repr=False, default_factory=Config)
 
     def func(self, seed: int) -> float:
@@ -166,9 +166,9 @@ class GraphReconstructionHeuristics(Expectation):
         return heuristics.__results__["roc"]["auc"]
 
 
-class GraphReconstructionHeuristicsMetrics(Metrics):
+class ReconstructionHeuristicsMetrics(Metrics):
     def eval(self, config: Config):
-        heuristics_auc = GraphReconstructionHeuristics(
+        heuristics_auc = ReconstructionHeuristics(
             config=config,
             num_procs=config.get_value("num_procs", 1),
             seed=config.get_value("seed", int(time.time())),

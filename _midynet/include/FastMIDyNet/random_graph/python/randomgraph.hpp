@@ -19,8 +19,9 @@ protected:
     void _applyGraphMove(const GraphMove& move) override { PYBIND11_OVERRIDE(void, BaseClass, _applyGraphMove, move); }
     const double _getLogPrior() const override { PYBIND11_OVERRIDE(const double, BaseClass, _getLogPrior); }
     const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override { PYBIND11_OVERRIDE(const double, BaseClass, _getLogPriorRatioFromGraphMove, move); }
-    void _samplePrior() override { PYBIND11_OVERRIDE(void, BaseClass, _samplePrior, ); }
+    void sampleOnlyPrior() override { PYBIND11_OVERRIDE(void, BaseClass, sampleOnlyPrior, ); }
     void setUpLikelihood() override { PYBIND11_OVERRIDE(void, BaseClass, setUpLikelihood, ); }
+    void computeConsistentState() override { PYBIND11_OVERRIDE(void, BaseClass, computeConsistentState, ); }
 public:
     using PyNestedRandomVariable<BaseClass>::PyNestedRandomVariable;
 
@@ -31,7 +32,6 @@ public:
 
     /* Abstract methods */
     void setUp() override { PYBIND11_OVERRIDE(void, BaseClass, setUp, ); }
-    void setState(const MultiGraph& state) override { PYBIND11_OVERRIDE(void, BaseClass, setState, state); }
     const bool isCompatible(const MultiGraph& graph) const override { PYBIND11_OVERRIDE(bool, BaseClass, isCompatible, graph); }
     bool isSafe() const override { PYBIND11_OVERRIDE(bool, BaseClass, isSafe, ); }
     void checkSelfSafety() const override { PYBIND11_OVERRIDE(void, BaseClass, checkSelfSafety, ); }
@@ -49,7 +49,7 @@ public:
 
     /* Pure abstract methods */
     void setLabels(const std::vector<BlockIndex>& labels, bool reduce=false) override { PYBIND11_OVERRIDE_PURE(void, BaseClass, setLabels, labels, reduce); }
-    void sampleLabels () override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleLabels,); }
+    void sampleOnlyLabels () override { PYBIND11_OVERRIDE_PURE(void, BaseClass, sampleOnlyLabels,); }
     const double getLabelLogJoint () const override { PYBIND11_OVERRIDE_PURE(const double, BaseClass, getLabelLogJoint,); }
 
     const std::vector<Label>& getLabels() const override  {

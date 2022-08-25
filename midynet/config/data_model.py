@@ -21,9 +21,8 @@ class DataModelConfig(Config):
         coupling: float = 1.0,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
-        async_mode: bool = True,
         normalize: bool = True,
-        num_active: int = 2**31 - 1,
+        num_active: int = -1,
     ) -> DynamicsConfig:
         return cls(
             name="glauber",
@@ -31,7 +30,6 @@ class DataModelConfig(Config):
             coupling=coupling,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
-            async_mode=async_mode,
             normalize=normalize,
             num_active=num_active,
         )
@@ -50,7 +48,6 @@ class DataModelConfig(Config):
         recovery_prob: float = 0.1,
         auto_activation_prob=0.001,
         auto_deactivation_prob=0,
-        async_mode: bool = True,
         normalize: bool = True,
         num_active: int = 1,
     ) -> DynamicsConfig:
@@ -61,7 +58,6 @@ class DataModelConfig(Config):
             recovery_prob=recovery_prob,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
-            async_mode=async_mode,
             normalize=normalize,
             num_active=num_active,
         )
@@ -76,7 +72,6 @@ class DataModelConfig(Config):
         eta: float = 0.5,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
-        async_mode: bool = True,
         normalize: bool = True,
         num_active: int = 1,
     ) -> DynamicsConfig:
@@ -89,7 +84,6 @@ class DataModelConfig(Config):
             eta=eta,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
-            async_mode=async_mode,
             normalize=normalize,
             num_active=num_active,
         )
@@ -103,7 +97,7 @@ class DataModelConfig(Config):
     @classmethod
     def cowan_backward(cls, **kwargs):
         cfg = cls.cowan(**kwargs)
-        cfg.set_value("num_active", 2**31 - 1)
+        cfg.set_value("num_active", -1)
         return cfg
 
     @classmethod
@@ -146,7 +140,7 @@ class DataModelFactory(Factory):
             coupling=config.coupling,
             auto_activation_prob=config.auto_activation_prob,
             auto_deactivation_prob=config.auto_deactivation_prob,
-            async_mode=config.async_mode,
+            async_mode=False,
             normalize=config.normalize,
             num_active=config.num_active,
         )
@@ -159,7 +153,7 @@ class DataModelFactory(Factory):
             recovery_prob=config.recovery_prob,
             auto_activation_prob=config.auto_activation_prob,
             auto_deactivation_prob=config.auto_deactivation_prob,
-            async_mode=config.async_mode,
+            async_mode=False,
             normalize=config.normalize,
             num_active=config.num_active,
         )
@@ -174,7 +168,7 @@ class DataModelFactory(Factory):
             eta=config.eta,
             auto_activation_prob=config.auto_activation_prob,
             auto_deactivation_prob=config.auto_deactivation_prob,
-            async_mode=config.async_mode,
+            async_mode=False,
             normalize=config.normalize,
             num_active=config.num_active,
         )

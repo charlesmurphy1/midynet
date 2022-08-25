@@ -38,11 +38,12 @@ protected:
     virtual void _applyGraphMove(const GraphMove&);
     virtual const double _getLogPrior() const { return 0; }
     virtual const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const { return 0; }
-    virtual void _samplePrior() { };
+    virtual void sampleOnlyPrior() { };
     virtual void setUpLikelihood() {
         m_likelihoodModelPtr->m_statePtr = &m_state;
     }
     virtual void setUp();
+    virtual void computeConsistentState() { }
 
 public:
     RandomGraph(size_t size, bool withSelfLoops=true, bool withParallelEdges=true):
@@ -64,6 +65,7 @@ public:
 
     virtual void setState(const MultiGraph& state) {
         m_state = state;
+        computeConsistentState();
         setUp();
     }
     const size_t getSize() const { return m_size; }
@@ -92,7 +94,7 @@ public:
 
     void sample() {
         try{
-            samplePrior();
+            processRecursiveFunction([&](){ sampleOnlyPrior(); });
             sampleState();
             setUp();
         } catch (std::invalid_argument){
@@ -107,8 +109,13 @@ public:
     void sampleState() {
         setState(m_likelihoodModelPtr->sample());
         computationFinished();
-    };
-    void samplePrior() {  processRecursiveFunction([&](){ _samplePrior(); }); };
+    }
+    void samplePrior() {
+        processRecursiveFunction([&](){
+            sampleOnlyPrior();
+            computeConsistentState();
+        });
+    }
 
     const double getLogLikelihood() const { return m_likelihoodModelPtr->getLogLikelihood(); }
     const double getLogLikelihoodRatioFromGraphMove (const GraphMove& move) const { return m_likelihoodModelPtr->getLogLikelihoodRatioFromGraphMove(move); }
@@ -173,7 +180,7 @@ public:
     const Label& getLabelOfIdx(BaseGraph::VertexIndex vertexIdx) const { return getLabels()[vertexIdx]; }
 
     virtual void setLabels(const std::vector<Label>&, bool reduce=false) = 0;
-    virtual void sampleLabels() = 0;
+    virtual void sampleOnlyLabels() = 0;
 
 
 

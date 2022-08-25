@@ -27,7 +27,7 @@ protected:
     const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override {
         return m_degreePriorPtr->getLogJointRatioFromGraphMove(move);
     }
-    void _samplePrior() override { m_degreePriorPtr->sample(); }
+    void sampleOnlyPrior() override { m_degreePriorPtr->sample(); }
     void setUpLikelihood() {
         m_likelihoodModel.m_statePtr = &m_state;
         m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
@@ -41,6 +41,9 @@ protected:
             m_degreePriorPtr->isRoot(false);
             m_degreePriorPtr->setSize(m_size);
         }
+    void computeConsistentState() override {
+        m_degreePriorPtr->setGraph(m_state);
+    }
 public:
 
     DegreePrior& getDegreePriorRef() const { return *m_degreePriorPtr; }

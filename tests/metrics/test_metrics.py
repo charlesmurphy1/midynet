@@ -82,14 +82,14 @@ def test_basemetrics_load(base_metrics):
 
 
 metrics_dict = {
-    "data_entropy": metrics.DataEntropyMetrics,
-    "data_prediction_entropy": metrics.DataPredictionEntropyMetrics,
-    "graph_entropy": metrics.GraphEntropyMetrics,
-    "graph_reconstruction_entropy": metrics.GraphReconstructionEntropyMetrics,
-    "reconstructability": metrics.ReconstructabilityMetrics,
-    "predictability": metrics.PredictabilityMetrics,
-    "mutual_info": metrics.MutualInformationMetrics,
-    "heuristics": metrics.GraphReconstructionHeuristicsMetrics,
+    # "data_entropy": metrics.DataEntropyMetrics,
+    # "data_prediction_entropy": metrics.DataPredictionEntropyMetrics,
+    # "graph_entropy": metrics.GraphEntropyMetrics,
+    # "graph_reconstruction_entropy": metrics.GraphReconstructionEntropyMetrics,
+    # "reconstructability": metrics.ReconstructabilityMetrics,
+    # "predictability": metrics.PredictabilityMetrics,
+    "recon_information": metrics.ReconstructionInformationMeasuresMetrics,
+    "heuristics": metrics.ReconstructionHeuristicsMetrics,
 }
 
 

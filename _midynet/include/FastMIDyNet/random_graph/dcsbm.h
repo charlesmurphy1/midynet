@@ -32,7 +32,7 @@ protected:
     const double _getLogPrior() const override { return m_degreePriorPtr->getLogJoint(); }
     const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override { return m_degreePriorPtr->getLogJointRatioFromGraphMove(move); }
     const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override { return m_degreePriorPtr->getLogJointRatioFromLabelMove(move); }
-    void _samplePrior() override { m_degreePriorPtr->sample(); }
+    void sampleOnlyPrior() override { m_degreePriorPtr->sample(); }
     void setUpLikelihood() override {
         m_likelihoodModel.m_statePtr = &m_state;
         m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
@@ -47,15 +47,13 @@ protected:
             m_degreePriorPtr->isRoot(false);
         }
 
+    void computeConsistentState() override {
+        m_degreePriorPtr->setGraph(m_state);
+    }
 public:
 
-    void sampleLabels() override {
+    void sampleOnlyLabels() override {
         m_degreePriorPtr->samplePartition();
-    }
-
-    void setState(const MultiGraph& state) override {
-        RandomGraph::setState(state);
-        m_degreePriorPtr->setGraph(m_state);
     }
     void setLabels(const std::vector<BlockIndex>& labels, bool reduce=false) override {
         m_degreePriorPtr->setPartition(labels);

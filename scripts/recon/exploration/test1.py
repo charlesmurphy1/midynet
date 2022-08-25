@@ -23,7 +23,7 @@ def get_config(
         f"recon-{graph_prior}-{data_model}",
         data_model,
         graph_prior,
-        metrics=["mutual_info"],
+        metrics=["information"],
         path=PATH_TO_DATA / "exploration" / f"recon-{graph_prior}-{data_model}",
         num_procs=num_procs,
         seed=seed,
@@ -31,26 +31,31 @@ def get_config(
     N = 100
     E = 250
     T = 100
-    if data_model == "sis":
-        coupling = np.linspace(0, 1, 20)
-        config.data_model.set_value("infection_prob", coupling)
-        config.data_model.set_value("normalize", False)
-        config.data_model.set_value("recovery_prob", 0.5)
-    else:
-        coupling = np.concatenate([np.linspace(0, 1, 10), np.linspace(1, 4, 10)])
-        if data_model == "glauber":
-            config.data_model.set_value("coupling", coupling)
-        else:
-            config.data_model.set_value("nu", coupling)
+    # if data_model == "sis":
+    #     coupling = np.linspace(0, 1, 20)
+    #     config.data_model.set_value("infection_prob", coupling)
+    #     config.data_model.set_value("normalize", False)
+    #     config.data_model.set_value("recovery_prob", 0.5)
+    # else:
+    #     coupling = np.concatenate([np.linspace(0, 1, 10), np.linspace(1, 4, 10)])
+    #     if data_model == "glauber":
+    #         config.data_model.set_value("coupling", coupling)
+    #     else:
+    #         config.data_model.set_value("nu", coupling)
+    config.data_model.set_value("coupling", [0, 0.1, 0.5, 1, 2])
+    config.data_model.set_value("num_active", 50)
     config.graph_prior.set_value("size", N)
     config.graph_prior.set_value("edge_count", E)
+    # config.graph_prior.set_value("block_count", 3)
+    # config.graph_prior.set_value("block_prior_type", "hyper")
+    # config.graph_prior.set_value("prior_type", "hyper")
     config.data_model.set_value("num_steps", T)
-    config.metrics.mutual_info.set_value("num_samples", num_procs)
-    config.metrics.mutual_info.set_value("burn_per_vertex", 5)
-    config.metrics.mutual_info.set_value("start_from_original", False)
-    config.metrics.mutual_info.set_value("initial_burn", 2000)
-    config.metrics.mutual_info.set_value("num_sweeps", 100)
-    config.metrics.mutual_info.set_value("method", "meanfield")
+    config.metrics.information.set_value("num_samples", num_procs)
+    config.metrics.information.set_value("burn_per_vertex", 5)
+    config.metrics.information.set_value("start_from_original", False)
+    config.metrics.information.set_value("initial_burn", 2000)
+    config.metrics.information.set_value("num_sweeps", 100)
+    config.metrics.information.set_value("method", "meanfield")
 
     resources = {
         "account": "def-aallard",

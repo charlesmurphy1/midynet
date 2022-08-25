@@ -14,7 +14,7 @@ def experiment():
         "test",
         "sis",
         "erdosrenyi",
-        metrics=["data_prediction_entropy", "graph_entropy"],
+        metrics=["heuristics", "recon_information"],
         path="./testing/experiments/test-dir",
         num_procs=4,
         seed=1,
@@ -22,10 +22,11 @@ def experiment():
     coupling = np.linspace(0, 0.5, 2).tolist()
     config.set_value("data_model.infection_prob", coupling)
     config.set_value("data_model.recovery_prob", 0.5)
-    config.set_value("data_model.num_steps", 100)
+    config.set_value("data_model.num_steps", 10)
     config.set_value("graph_prior.size", 10)
     config.set_value("graph_prior.edge_count.state", [0, 5])
-    config.set_value("metrics.dynamics_prediction_entropy.num_samples", 5)
+    config.set_value("metrics.recon_information.num_samples", 1)
+    config.set_value("metrics.recon_information.num_sweeps", 10)
 
     exp = Experiment(
         config,

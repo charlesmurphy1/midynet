@@ -236,20 +236,20 @@ def test_baseconfig_load(m_config):
 
 
 def test_metrics_config_auto():
-    metrics = MetricsConfig.auto("data_entropy")
+    metrics = MetricsConfig.auto("recon_information")
     assert len(metrics.sequence()) == 1
 
 
 def test_metrics_collection_config_auto():
-    metrics_config = MetricsCollectionConfig.auto("data_entropy")
-    assert "data_entropy" in metrics_config
-    assert "data_entropy" in metrics_config.metrics_names
+    metrics_config = MetricsCollectionConfig.auto("recon_information")
+    assert "recon_information" in metrics_config
+    assert "recon_information" in metrics_config.metrics_names
 
-    metrics_config = MetricsCollectionConfig.auto(["data_entropy", "graph_entropy"])
-    assert "data_entropy" in metrics_config
-    assert "graph_entropy" in metrics_config
-    assert "data_entropy" in metrics_config.metrics_names
-    assert "graph_entropy" in metrics_config.metrics_names
+    metrics_config = MetricsCollectionConfig.auto(["recon_information", "heuristics"])
+    assert "recon_information" in metrics_config
+    assert "heuristics" in metrics_config
+    assert "recon_information" in metrics_config.metrics_names
+    assert "heuristics" in metrics_config.metrics_names
     assert not metrics_config.is_sequenced()
     assert len(metrics_config.sequence()) == 1
 
@@ -259,7 +259,7 @@ def test_experiment_config_reconstruction():
         "test",
         "sis",
         "erdosrenyi",
-        metrics=["data_entropy", "graph_entropy"],
+        metrics=["recon_information", "heuristics"],
     )
     assert "name" in exp
     assert "data_model" in exp

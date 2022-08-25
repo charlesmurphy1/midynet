@@ -37,7 +37,7 @@ protected:
     const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override {
         return m_labelGraphPriorPtr->getLogJointRatioFromLabelMove(move);
     }
-    void _samplePrior() override { m_labelGraphPriorPtr->sample(); }
+    void sampleOnlyPrior() override { m_labelGraphPriorPtr->sample(); }
     void setUpLikelihood() override {
         m_sbmLikelihoodModelUPtr->m_statePtr = &m_state;
         m_sbmLikelihoodModelUPtr->m_withSelfLoopsPtr = &m_withSelfLoops;
@@ -61,15 +61,13 @@ protected:
             m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelUPtr.get();
             setLabelGraphPrior(prior);
         }
+        void computeConsistentState() override {
+            m_labelGraphPriorPtr->setGraph(m_state);
+        }
 public:
 
-    void sampleLabels() override {
+    void sampleOnlyLabels() override {
         m_labelGraphPriorPtr->samplePartition();
-    }
-
-    void setState(const MultiGraph& state) override{
-        RandomGraph::setState(state);
-        m_labelGraphPriorPtr->setGraph(m_state);
     }
     void setLabels(const std::vector<BlockIndex>& labels, bool reduce=false) override {
         m_labelGraphPriorPtr->setPartition(labels);

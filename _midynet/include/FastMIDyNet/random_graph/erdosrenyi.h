@@ -25,7 +25,7 @@ protected:
     const double _getLogPriorRatioFromGraphMove(const GraphMove& move) const override {
         return m_edgeCountPriorPtr->getLogJointRatioFromGraphMove(move);
     }
-    void _samplePrior() override { m_edgeCountPriorPtr->sample(); }
+    void sampleOnlyPrior() override { m_edgeCountPriorPtr->sample(); }
     void setUpLikelihood() {
         m_likelihoodModel.m_statePtr = &m_state;
         m_likelihoodModel.m_graphSizePtr = &m_size;
@@ -39,6 +39,9 @@ protected:
     ErdosRenyiModelBase(size_t graphSize, EdgeCountPrior& edgeCountPrior, bool withSelfLoops=true, bool withParallelEdges=true):
         RandomGraph(graphSize, m_likelihoodModel, withSelfLoops, withParallelEdges),
         m_edgeCountPriorPtr(&edgeCountPrior){ setUpLikelihood(); }
+    void computeConsistentState() override {
+        m_edgeCountPriorPtr->setState(m_state.getTotalEdgeNumber());
+    }
 public:
 
     const size_t getEdgeCount() const { return m_edgeCountPriorPtr->getState(); }

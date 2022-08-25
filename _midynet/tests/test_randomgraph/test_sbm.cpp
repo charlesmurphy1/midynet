@@ -111,6 +111,8 @@ TEST_P(SBMParametrizedTest, applyMove_forRemovedEdge){
 TEST_P(SBMParametrizedTest, applyMove_forRemovedEdgeAndAddedEdge){
     BaseGraph::Edge addedEdge = {10, 11};
     BaseGraph::Edge removedEdge = findEdge();
+    while(addedEdge == removedEdge)
+        removedEdge = findEdge();
     size_t removedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
     size_t addedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
     FastMIDyNet::GraphMove move = {{removedEdge}, {addedEdge}};

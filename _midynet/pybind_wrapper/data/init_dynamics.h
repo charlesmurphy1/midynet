@@ -43,8 +43,10 @@ py::class_<Dynamics<GraphPriorType>, DataModel<GraphPriorType>, PyDynamics<Graph
             py::arg("num_updates")=1)
         .def("get_transition_prob", &Dynamics<GraphPriorType>::getTransitionProb,
             py::arg("prev_vertex_state"), py::arg("next_vertex_state"), py::arg("neighbor_state"))
-        .def("get_transition_probs", &Dynamics<GraphPriorType>::getTransitionProbs,
-            py::arg("prev_vertex_state"), py::arg("neighbor_state"))
+        .def("get_transition_probs",
+            [](const Dynamics<GraphPriorType>& self, BaseGraph::VertexIndex vertex) {
+                return self.getTransitionProbs(vertex);
+            }, py::arg("vertex"))
         ;
 }
 

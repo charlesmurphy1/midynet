@@ -18,7 +18,10 @@ protected:
         size_t A = (*m_withSelfLoopsPtr) ? N * (N + 1) / 2 : N * (N - 1) / 2;
         if (A > edgeCount and not *m_withParallelEdgesPtr)
             return -INFINITY;
-        return (*m_withParallelEdgesPtr) ? logMultisetCoefficient(A, edgeCount) : logBinomialCoefficient(A, edgeCount);
+        if (*m_withParallelEdgesPtr)
+            return -logMultisetCoefficient(A, edgeCount);
+        else
+            return -logBinomialCoefficient(A, edgeCount);
     };
 public:
 

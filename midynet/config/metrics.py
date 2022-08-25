@@ -31,33 +31,33 @@ class MetricsConfig(Config):
         )
         return obj
 
-    @classmethod
-    def data_entropy(cls):
-        return cls.mcmc("data_entropy")
+    # @classmethod
+    # def data_entropy(cls):
+    #     return cls.mcmc("data_entropy")
+    #
+    # @classmethod
+    # def data_prediction_entropy(cls):
+    #     return cls.mcmc("data_prediction_entropy")
+    #
+    # @classmethod
+    # def graph_entropy(cls):
+    #     return cls.mcmc("graph_entropy")
+    #
+    # @classmethod
+    # def graph_reconstruction_entropy(cls):
+    #     return cls.mcmc("graph_reconstruction_entropy")
+    #
+    # @classmethod
+    # def reconstructability(cls):
+    #     return cls.mcmc("reconstructability")
+    #
+    # @classmethod
+    # def predictability(cls):
+    #     return cls.mcmc("predictability")
 
     @classmethod
-    def data_prediction_entropy(cls):
-        return cls.mcmc("data_prediction_entropy")
-
-    @classmethod
-    def graph_entropy(cls):
-        return cls.mcmc("graph_entropy")
-
-    @classmethod
-    def graph_reconstruction_entropy(cls):
-        return cls.mcmc("graph_reconstruction_entropy")
-
-    @classmethod
-    def reconstructability(cls):
-        return cls.mcmc("reconstructability")
-
-    @classmethod
-    def predictability(cls):
-        return cls.mcmc("predictability")
-
-    @classmethod
-    def mutual_info(cls):
-        return cls.mcmc("mutual_info")
+    def recon_information(cls):
+        return cls.mcmc("recon_information")
 
     @classmethod
     def heuristics(cls):
@@ -113,33 +113,37 @@ class MetricsFactory(Factory):
             )
             raise TypeError(message)
 
-    @staticmethod
-    def build_data_entropy(config: MetricsCollectionConfig):
-        return midynet.metrics.DataEntropyMetrics(config)
+    # @staticmethod
+    # def build_data_entropy(config: MetricsCollectionConfig):
+    #     return midynet.metrics.DataEntropyMetrics(config)
+    #
+    # @staticmethod
+    # def build_data_prediction_entropy(config: MetricsCollectionConfig):
+    #     return midynet.metrics.DataPredictionEntropyMetrics(config)
+    #
+    # @staticmethod
+    # def build_predictability(config: MetricsCollectionConfig):
+    #     return midynet.metrics.PredictabilityMetrics(config)
+    #
+    # @staticmethod
+    # def build_graph_entropy(config: MetricsCollectionConfig):
+    #     return midynet.metrics.GraphEntropyMetrics(config)
+    #
+    # @staticmethod
+    # def build_graph_reconstruction_entropy(config: MetricsCollectionConfig):
+    #     return midynet.metrics.GraphReconstructionEntropyMetrics(config)
+    #
+    # @staticmethod
+    # def build_reconstructability(config: MetricsCollectionConfig):
+    #     return midynet.metrics.ReconstructabilityMetrics(config)
 
     @staticmethod
-    def build_data_prediction_entropy(config: MetricsCollectionConfig):
-        return midynet.metrics.DataPredictionEntropyMetrics(config)
+    def build_recon_information(config: MetricsCollectionConfig):
+        return midynet.metrics.ReconstructionInformationMeasuresMetrics(config)
 
     @staticmethod
-    def build_predictability(config: MetricsCollectionConfig):
-        return midynet.metrics.PredictabilityMetrics(config)
-
-    @staticmethod
-    def build_graph_entropy(config: MetricsCollectionConfig):
-        return midynet.metrics.GraphEntropyMetrics(config)
-
-    @staticmethod
-    def build_graph_reconstruction_entropy(config: MetricsCollectionConfig):
-        return midynet.metrics.GraphReconstructionEntropyMetrics(config)
-
-    @staticmethod
-    def build_reconstructability(config: MetricsCollectionConfig):
-        return midynet.metrics.ReconstructabilityMetrics(config)
-
-    @staticmethod
-    def build_mutual_info(config: MetricsCollectionConfig):
-        return midynet.metrics.MutualInformationMetrics(config)
+    def build_heuristics(config: MetricsCollectionConfig):
+        return midynet.metrics.ReconstructionHeuristicsMetrics(config)
 
 
 if __name__ == "__main__":

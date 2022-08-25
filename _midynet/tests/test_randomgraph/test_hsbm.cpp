@@ -132,6 +132,8 @@ TEST_P(HSBMParametrizedTest, applyGraphMove_forRemovedEdge){
 TEST_P(HSBMParametrizedTest, applyGraphMove_forRemovedEdgeAndAddedEdge){
     BaseGraph::Edge addedEdge = {0, 2};
     BaseGraph::Edge removedEdge = findEdge();
+    while(addedEdge == removedEdge)
+        removedEdge = findEdge();
     size_t removedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(removedEdge);
     size_t addedEdgeMultBefore = randomGraph.getState().getEdgeMultiplicityIdx(addedEdge);
     FastMIDyNet::GraphMove move = {{removedEdge}, {addedEdge}};

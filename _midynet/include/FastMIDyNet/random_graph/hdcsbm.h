@@ -28,7 +28,7 @@ protected:
     const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override {
         return m_degreePriorPtr->getLogJointRatioFromLabelMove(move);
     }
-    void _samplePrior() override { m_degreePriorPtr->sample(); }
+    void sampleOnlyPrior() override { m_degreePriorPtr->sample(); }
     void setUpLikelihood() override {
         m_likelihoodModel.m_statePtr = &m_state;
         m_likelihoodModel.m_degreePriorPtrPtr = &m_degreePriorPtr;
@@ -43,6 +43,9 @@ protected:
         m_nestedLabelGraphPrior(graphSize, EdgeCountPrior){
             setDegreePrior(degreePrior);
         }
+    void computeConsistentState() override {
+        m_degreePriorPtr->setGraph(m_state);
+    }
 public:
 
 
@@ -65,13 +68,8 @@ public:
 
 
 
-    void sampleLabels() override {
+    void sampleOnlyLabels() override {
         m_degreePriorPtr->samplePartition();
-    }
-
-    void setState(const MultiGraph& state) override{
-        RandomGraph::setState(state);
-        m_degreePriorPtr->setGraph(m_state);
     }
     void setNestedLabels(const std::vector<BlockSequence>& labels, bool reduce=false) override {
         m_nestedLabelGraphPrior.setNestedPartition(labels);

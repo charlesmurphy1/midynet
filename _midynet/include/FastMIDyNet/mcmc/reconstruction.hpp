@@ -51,6 +51,9 @@ public:
     void sample() override {
         m_dataModelPtr->sample();
     }
+    void sampleState() override {
+        m_dataModelPtr->sampleState();
+    }
     void samplePrior() override {
         m_dataModelPtr->samplePrior();
     }

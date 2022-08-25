@@ -25,7 +25,7 @@ public:
     GraphPriorType& getGraphPriorRef() const { return *m_graphPriorPtr; }
     void setGraphPrior(GraphPriorType& randomGraph) {
         m_graphPriorPtr = &randomGraph;
-        m_graphPriorPtr->isRoot(false);
+        // m_graphPriorPtr->isRoot(false);
         computeConsistentState();
     }
     const size_t getSize() const { return m_graphPriorPtr->getSize(); }

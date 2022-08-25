@@ -27,7 +27,7 @@ protected:
     const double _getLogPriorRatioFromLabelMove(const BlockMove& move) const override {
         return m_nestedLabelGraphPrior.getLogJointRatioFromLabelMove(move);
     }
-    void _samplePrior() override { m_nestedLabelGraphPrior.sample(); }
+    void sampleOnlyPrior() override { m_nestedLabelGraphPrior.sample(); }
     void setUpLikelihood() override {
         m_sbmLikelihoodModelUPtr->m_statePtr = &m_state;
         m_sbmLikelihoodModelUPtr->m_withSelfLoopsPtr = &m_withSelfLoops;
@@ -51,6 +51,9 @@ protected:
             m_likelihoodModelPtr = m_vertexLabeledlikelihoodModelPtr = m_sbmLikelihoodModelUPtr.get();
             setUpLikelihood();
         }
+        void computeConsistentState() override {
+            m_nestedLabelGraphPrior.setGraph(m_state);
+        }
 public:
 
     const size_t getEdgeCount() const { return m_nestedLabelGraphPrior.getEdgeCount(); }
@@ -71,13 +74,8 @@ public:
 
 
 
-    void sampleLabels() override {
+    void sampleOnlyLabels() override {
         m_nestedLabelGraphPrior.samplePartition();
-    }
-
-    void setState(const MultiGraph& state) override{
-        RandomGraph::setState(state);
-        m_nestedLabelGraphPrior.setGraph(m_state);
     }
     void setNestedLabels(const std::vector<BlockSequence>& labels, bool reduce=false) override {
         m_nestedLabelGraphPrior.setNestedPartition(labels);
