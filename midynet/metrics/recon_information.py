@@ -42,7 +42,7 @@ class ReconstructionInformationMeasures(Expectation):
         method = metrics_cf.get_value("method", "meanfield")
         graph_evidence_method = metrics_cf.get_value("graph_evidence_method", method)
         if not graph_model.labeled:
-            hg = -graph_model.get_log_prior()
+            hg = -graph_model.get_log_joint()
         elif graph_evidence_method == "exact":
             hg = -get_graph_log_evidence_exact(graph_model, metrics_cf)
         elif graph_evidence_method == "annealed":
