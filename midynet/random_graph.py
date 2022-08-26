@@ -37,7 +37,6 @@ class ErdosRenyiModel(RandomGraphWrapper):
         self,
         size: int = 100,
         edge_count: float = 250,
-        likelihood_type: str = "uniform",
         canonical: bool = False,
         with_self_loops: bool = True,
         with_parallel_edges: bool = True,
@@ -55,7 +54,6 @@ class ErdosRenyiModel(RandomGraphWrapper):
             wrapped,
             size=size,
             edge_count=edge_count,
-            likelihood_type=likelihood_type,
             canonical=canonical,
             with_self_loops=with_self_loops,
             with_parallel_edges=with_parallel_edges,
@@ -64,26 +62,30 @@ class ErdosRenyiModel(RandomGraphWrapper):
 
 
 class ConfigurationModelFamily(RandomGraphWrapper):
+    available_degree_prior_types = ["uniform", "hyper"]
+
     def __init__(
         self,
         size: int = 100,
         edge_count: float = 250,
-        prior_type: str = "uniform",
+        degree_prior_type: str = "uniform",
         canonical: bool = False,
         edge_proposer_type: str = "uniform",
     ):
+        if degree_prior_type not in self.available_degree_prior_types:
+            raise OptionError(degree_prior_type, self.available_degree_prior_types)
         wrapped = _random_graph.ConfigurationModelFamily(
             size,
             edge_count,
             canonical=canonical,
-            hyperprior=(prior_type == "hyperprior"),
+            hyperprior=(degree_prior_type == "hyperprior"),
             edge_proposer_type=edge_proposer_type,
         )
         super().__init__(
             wrapped,
             size=size,
             edge_count=edge_count,
-            prior_type=prior_type,
+            degree_prior_type=degree_prior_type,
             canonical=canonical,
             edge_proposer_type=edge_proposer_type,
         )
@@ -122,6 +124,11 @@ class PlantedPartitionModel(RandomGraphWrapper):
 
 
 class StochasticBlockModelFamily(RandomGraphWrapper):
+    available_likelihood_types = ["uniform", "stub_labeled", "degree_corrected"]
+    available_block_prior_types = ["uniform", "hyper"]
+    available_label_graph_prior_types = ["uniform", "planted", "nested"]
+    available_degree_prior_types = ["uniform", "hyper"]
+
     def __init__(
         self,
         size: int = 100,
@@ -142,6 +149,16 @@ class StochasticBlockModelFamily(RandomGraphWrapper):
     ):
         labeled = True
         nested = False
+        if likelihood_type not in self.available_likelihood_types:
+            raise OptionError(likelihood_type, self.available_likelihood_types)
+        if block_prior_type not in self.available_block_prior_types:
+            raise OptionError(block_prior_type, self.available_block_prior_types)
+        if label_graph_prior_type not in self.available_label_graph_prior_types:
+            raise OptionError(
+                label_graph_prior_type, self.available_label_graph_prior_types
+            )
+        if degree_prior_type not in self.available_degree_prior_types:
+            raise OptionError(degree_prior_type, self.available_degree_prior_types)
 
         if likelihood_type == "degree_corrected":
             if label_graph_prior_type == "nested":

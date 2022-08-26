@@ -32,6 +32,19 @@ class MetricsConfig(Config):
         return obj
 
     # @classmethod
+    # def partition_mcmc(cls, name: str):
+    #     return cls(
+    #         name,
+    #         num_sweeps=1000,
+    #         burn_per_vertex=5,
+    #         equilibriate=True,
+    #         start_from_original=False,
+    #         num_iter=10,
+    #         num_betas=10,
+    #         exp_betas=0.5,
+    #     )
+
+    # @classmethod
     # def data_entropy(cls):
     #     return cls.mcmc("data_entropy")
     #

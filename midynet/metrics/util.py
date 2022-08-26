@@ -3,6 +3,7 @@ from collections import defaultdict
 from scipy.special import loggamma
 import numpy as np
 import importlib
+import time
 
 from midynet.random_graph import (
     BlockLabeledRandomGraph,
@@ -183,7 +184,8 @@ def get_log_posterior_annealed(data_model: DynamicsWrapper, config: Config):
 def get_log_posterior_meanfield(
     data_model: DynamicsWrapper, config: Config, verbose: int = 0
 ):
-    mcmc = GraphReconstructionMCMC(data_model, verbose=verbose)
+    graph_model = data_model.graph_prior
+    mcmc = GraphReconstructionMCMC(data_model)
     original_graph = mcmc.get_graph()
 
     callback = CollectEdgesOnSweep(
@@ -196,8 +198,26 @@ def get_log_posterior_meanfield(
     burn = config.burn_per_vertex * data_model.get_size()
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
 
+    # x = np.array(mcmc.get_data_model().get_past_states())
+
+    # import matplotlib.pyplot as plt
+    #
+    # plt.plot(x.sum(0))
+    # plt.show()
+
     for i in range(config.num_sweeps):
+        t0 = time.time()
         _s, _f = mcmc.do_MH_sweep(burn=burn)
+        t1 = time.time()
+        if verbose:
+            print(
+                f"Sweep {i}:",
+                f"time={t1 - t0}",
+                f"successes={_s}",
+                f"failures={burn - _s}",
+                f"likelihood={data_model.get_log_likelihood()}",
+                f"prior={mcmc.get_log_prior()}",
+            )
 
     mcmc.set_graph(original_graph)
     logp = callback.get_log_posterior_estimate(original_graph)
@@ -326,6 +346,9 @@ def get_graph_log_evidence_meanfield(graph_model: RandomGraphWrapper, config: Co
     pmodes = ModeClusterState(partitions, nested=graph_model.nested)  # from graph-tool
     if config.get_value("equilibrate_mode_cluster", False):
         mcmc_equilibrate(pmodes, force_niter=10, verbose=True)
+        # for i in range(config.get_value("num_sweeps", 100)):
+        #     print(i, pmodes.entropy(), pmodes.mcmc_sweep())
+    print(pmodes.get_wr())
     samples = []
     for p in partitions:
         graph_model.set_labels(p)

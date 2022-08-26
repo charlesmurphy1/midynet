@@ -16,49 +16,47 @@ __all__ = (
 
 
 class MCMCVerbose(_Wrapper):
-    def __init__(self, types=None):
-        callbacks = self.collect_types(types)
-        return _Wrapper(callbacks.VerboseToConsole(callbacks), callbacks=callbacks)
+    verbose_types = [
+        "failure_counter",
+        "success_counter",
+        "mean_ratio",
+        "max_ratio",
+        "min_ratio",
+        "timer",
+    ]
 
-    @staticmethod
-    def collect_types(types=None):
+    def __init__(self, types=None):
+        cbs = self.collect_types(types)
+        super().__init__(_mcmc.callbacks.VerboseToConsole(cbs), callbacks=cbs)
+
+    def collect_types(self, types=None):
         verbose = []
         if types is None:
-            verbose = [
-                getattr(cls, k)()
-                for k in cls.__dict__.keys()
-                if k[:6] == "build_" and k != "build_file" and k != "build_console"
+            verbose_collection = [
+                getattr(self, "build_" + k)() for k in self.verbose_types
             ]
         else:
-            verbose = [
-                getattr(cls, k)()
-                for k in cls.__dict__.keys()
-                if k[:6] == "build_" and k[:6] in types
+            verbose_collection = [
+                getattr(self, k)() for k in types if k in self.verbose_types
             ]
-        return verbose
+        return verbose_collection
 
-    @staticmethod
-    def build_failure_counter():
+    def build_failure_counter(self):
         return callbacks.FailureCounterVerbose()
 
-    @staticmethod
-    def build_success_counter():
+    def build_success_counter(self):
         return callbacks.SuccessCounterVerbose()
 
-    @staticmethod
-    def build_timer():
+    def build_timer(self):
         return callbacks.TimerVerbose()
 
-    @staticmethod
-    def build_mean_ratio():
+    def build_mean_ratio(self):
         return callbacks.MeanLogJointRatioVerbose()
 
-    @staticmethod
-    def build_max_ratio():
+    def build_max_ratio(self):
         return callbacks.MaximumLogJointRatioVerbose()
 
-    @staticmethod
-    def build_min_ratio():
+    def build_min_ratio(self):
         return callbacks.MinimumLogJointRatioVerbose()
 
 
@@ -66,10 +64,10 @@ class MCMCWrapper(_Wrapper):
     def __init__(self, mcmc: _mcmc.MCMC, verbose=0, **kwargs):
         if verbose == 1:
             v = MCMCVerbose()
-            self.insert_callback(v.wrap)
-        elif issubclass(verbose.__class__, callbacks.VerboseDisplay):
+            mcmc.insert_callback("verbose", v.wrap)
+        elif issubclass(verbose.__class__, _mcmc.callbacks.VerboseDisplay):
             v = verbose
-            self.insert_callback(v)
+            mcmc.insert_callback("verbose", v)
         else:
             v = None
         super().__init__(mcmc, verbose=v, **kwargs)

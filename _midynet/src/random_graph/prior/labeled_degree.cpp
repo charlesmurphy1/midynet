@@ -274,33 +274,45 @@ const double VertexLabeledDegreeUniformHyperPrior::getLogLikelihood() const {
     return logP;
 }
 const double VertexLabeledDegreeUniformHyperPrior::getLogLikelihoodRatioFromGraphMove(const GraphMove& move) const {
-    IntMap<std::pair<BlockIndex, size_t>> diffDegreeMap;
+    IntMap<BaseGraph::VertexIndex> diffDegreeMap;
+    IntMap<std::pair<BlockIndex, size_t>> diffDegreeCountMap;
     IntMap<BlockIndex> diffEdgeMap;
     for (auto edge : move.addedEdges){
-        size_t ki = m_state[edge.first], kj = m_state[edge.second];
-        BlockIndex r = getBlockPrior().getBlockOfIdx(edge.first), s = getBlockPrior().getBlockOfIdx(edge.second);
-        diffDegreeMap.increment({r, ki + 1});
-        diffDegreeMap.decrement({r, ki});
-        diffDegreeMap.increment({s, kj + 1});
-        diffDegreeMap.decrement({s, kj});
+        // size_t ki = m_state[edge.first], kj = m_state[edge.second];
+        // BlockIndex r = getBlockPrior().getBlockOfIdx(edge.first), s = getBlockPrior().getBlockOfIdx(edge.second);
+        // diffDegreeMap.increment({r, ki + 1});
+        // diffDegreeMap.decrement({r, ki});
+        // diffDegreeMap.increment({s, kj + 1});
+        // diffDegreeMap.decrement({s, kj});
+        diffDegreeMap.increment(edge.first);
+        diffDegreeMap.increment(edge.second);
 
         diffEdgeMap.increment(getBlockPrior().getBlockOfIdx(edge.first));
         diffEdgeMap.increment(getBlockPrior().getBlockOfIdx(edge.second));
     }
     for (auto edge : move.removedEdges){
-        size_t ki = m_state[edge.first], kj = m_state[edge.second];
-        BlockIndex r = getBlockPrior().getBlockOfIdx(edge.first), s = getBlockPrior().getBlockOfIdx(edge.second);
-        diffDegreeMap.increment({r, ki - 1});
-        diffDegreeMap.decrement({r, ki});
-        diffDegreeMap.increment({s, kj - 1});
-        diffDegreeMap.decrement({s, kj});
+        // size_t ki = m_state[edge.first], kj = m_state[edge.second];
+        // BlockIndex r = getBlockPrior().getBlockOfIdx(edge.first), s = getBlockPrior().getBlockOfIdx(edge.second);
+        // diffDegreeMap.increment({r, ki - 1});
+        // diffDegreeMap.decrement({r, ki});
+        // diffDegreeMap.increment({s, kj - 1});
+        // diffDegreeMap.decrement({s, kj});
+        diffDegreeMap.decrement(edge.first);
+        diffDegreeMap.decrement(edge.second);
 
         diffEdgeMap.decrement(getBlockPrior().getBlockOfIdx(edge.first));
         diffEdgeMap.decrement(getBlockPrior().getBlockOfIdx(edge.second));
     }
 
+    for (auto diff: diffDegreeMap){
+        BlockIndex r = getBlockPrior().getBlockOfIdx(diff.first);
+        BlockIndex k = m_state[diff.first];
+        diffDegreeCountMap.increment({r, k}, diff.second);
+
+    }
+
     double logLikelihoodRatio = 0;
-    for (auto diff : diffDegreeMap){
+    for (auto diff : diffDegreeCountMap){
         logLikelihoodRatio += logFactorial(m_degreeCounts.get(diff.first) + diff.second);
         logLikelihoodRatio -= logFactorial(m_degreeCounts.get(diff.first));
     }

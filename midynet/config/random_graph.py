@@ -46,7 +46,7 @@ class RandomGraphConfig(Config):
         cls,
         size: int = 100,
         edge_count: float = 250,
-        prior_type: str = "uniform",
+        degree_prior_type: str = "uniform",
         canonical: bool = False,
         edge_proposer_type: str = "uniform",
     ):
@@ -54,7 +54,7 @@ class RandomGraphConfig(Config):
             name="configuration",
             size=size,
             edge_count=edge_count,
-            prior_type=prior_type,
+            degree_prior_type=degree_prior_type,
             canonical=canonical,
             edge_proposer_type=edge_proposer_type,
         )
@@ -159,7 +159,7 @@ class RandomGraphFactory(Factory):
         return ConfigurationModelFamily(
             config.size,
             config.edge_count,
-            prior_type=config.prior_type,
+            degree_prior_type=config.degree_prior_type,
             canonical=config.canonical,
             edge_proposer_type=config.edge_proposer_type,
         )

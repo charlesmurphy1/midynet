@@ -264,6 +264,97 @@ def draw_graph(
             drawPieMarker([p[0]], [p[1]], marginals[i], colors=colors, ax=ax)
 
 
+def plot_statistics(
+    x,
+    y,
+    ax=None,
+    fill=True,
+    fill_alpha=0.2,
+    fill_color=None,
+    bar=True,
+    spacing=1,
+    interpolate=None,
+    interp_num_points=1000,
+    error_scaling=1,
+    **kwargs,
+):
+    ax = plt.gca() if ax is None else ax
+    c = kwargs.get("color", "grey")
+    a = kwargs.get("alpha", 1)
+    index = np.argsort(x)
+    x = np.array(x)
+    marker = kwargs.pop("marker", markers[0])
+    linestyle = kwargs.pop("linestyle", linestyles[0])
+    kwargs.pop("ls", None)
+    if interpolate is not None:
+        interpF = interp1d(x, y["mid"], kind=interpolate)
+        interpX = np.linspace(min(x), max(x), interp_num_points)
+        interpY = interpF(interpX)
+        interpErrorLowF = interp1d(
+            x,
+            y["mid"] - np.abs(y["low"]) / error_scaling,
+            kind=interpolate,
+        )
+        interpErrorHighF = interp1d(
+            x,
+            y["mid"] + np.abs(y["high"]) / error_scaling,
+            kind=interpolate,
+        )
+        interpErrorLowY = interpErrorLowF(interpX)
+        interpErrorHighY = interpErrorHighF(interpX)
+
+        ax.plot(interpX, interpY, marker="None", linestyle=linestyle, **kwargs)
+
+        if fill:
+            fill_color = c if fill_color is None else fill_color
+            ax.fill_between(
+                interpX,
+                interpErrorLowY,
+                interpErrorHighY,
+                color=fill_color,
+                alpha=a * fill_alpha,
+                linestyle="None",
+            )
+    else:
+        ax.plot(
+            x[index],
+            y["mid"][index],
+            marker="None",
+            linestyle=linestyle,
+            **kwargs,
+        )
+        if fill:
+            fill_color = c if fill_color is None else fill_color
+            ax.fill_between(
+                x[index],
+                y["mid"][index] - np.abs(y["low"][index]) / error_scaling,
+                y["mid"][index] + np.abs(y["high"][index]) / error_scaling,
+                color=fill_color,
+                alpha=a * fill_alpha,
+                linestyle="None",
+            )
+    ax.plot(
+        x[index[::spacing]],
+        y["mid"][index[::spacing]],
+        marker=marker,
+        linestyle="None",
+        **kwargs,
+    )
+
+    if bar:
+        ax.errorbar(
+            x[index],
+            y["mid"][index],
+            np.vstack((np.abs(y["low"][index]), np.abs(y["high"][index])))
+            / error_scaling,
+            ecolor=c,
+            marker="None",
+            linestyle="None",
+            **kwargs,
+        )
+    return ax
+
+
 def main():
     for k, p in palettes.items():
         p.save_discrete_image("discrete-palettes/" + p.name + ".png")
