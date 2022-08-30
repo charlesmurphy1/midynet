@@ -27,52 +27,6 @@ jobs:
                     sudo apt install gcc-9 g++ cmake
                     pip install --upgrade pip
 
-            - name: Installing basegraph==1.0.0
-              shell: bash
-              run: |
-                    cd _midynet/base_graph
-                    [ ! -d "./build" ] && mkdir build
-                    cd build
-                    cmake ..
-                    make -j4
-                    cd ..
-                    pip install .
-
-            - name: Installing SamplableSet==2.2.0
-              shell: bash
-              run: |
-                    echo Installing SamplableSet==2.2.0
-                    cd _midynet/SamplableSet/src
-                    [ ! -d "./build" ] && mkdir build
-                    cd build
-                    cmake ..
-                    make -j4
-                    cd ../..
-                    pip install .
-
-            - name: Installing graphinf==0.1
-              shell: bash
-              run: |
-                    echo Installing graphinf==0.1
-                    cd _midynet/SamplableSet/src
-                    [ ! -d "./build" ] && mkdir build
-                    cd build
-                    cmake ..
-                    make -j4
-                    cd ../..
-                    pip install .
-
-            - name: Building midynet backend and run c++ tests
-              shell: bash
-              run: |
-                    echo Build backend and tests
-                    cd _midynet
-                    [ ! -d "./build" ] && mkdir build
-                    cd build
-                    cmake ..
-                    make -j4
-                    ctest -C Debug --output-on-failure --verbose
-
             - name: Installing dev-dependencies
               shell: bash
               run: |
