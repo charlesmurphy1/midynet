@@ -6,7 +6,7 @@ from midynet.config import (
     MetricsConfig,
     ExperimentConfig,
 )
-from midynet.mcmc import GraphReconstructionMCMC
+from graphinf.mcmc import GraphReconstructionMCMC
 
 DISPLAY = False
 

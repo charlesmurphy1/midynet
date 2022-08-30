@@ -4,7 +4,7 @@ import numpy as np
 import time
 import warnings
 
-from midynet import utility
+from graphinf.utility import seed as gi_seed
 from midynet.config import Config, OptionError, RandomGraphFactory, DataModelFactory
 from .metrics import Metrics
 from .multiprocess import Expectation
@@ -151,7 +151,7 @@ class ReconstructionHeuristics(Expectation):
     config: Config = field(repr=False, default_factory=Config)
 
     def func(self, seed: int) -> float:
-        utility.seed(seed)
+        gi_seed(seed)
 
         graph_model = RandomGraphFactory.build(self.config.graph_prior)
         data_model = DataModelFactory.build(self.config.data_model)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Set, Any
-from graphinf.data.dynamics import (
+from graphinf.data_model.dynamics import (
     Dynamics,
     CowanDynamics,
     DegreeDynamics,

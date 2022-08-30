@@ -3,8 +3,7 @@ import numpy as np
 
 from dataclasses import dataclass, field
 from collections import defaultdict
-from midynet import utility
-from midynet.random_graph import BlockLabeledRandomGraph
+from graphinf.utility import seed as gi_seed
 from midynet.config import (
     Config,
     RandomGraphFactory,
@@ -29,7 +28,7 @@ class ReconstructionInformationMeasures(Expectation):
     config: Config = field(repr=False, default_factory=Config)
 
     def func(self, seed: int) -> float:
-        utility.seed(seed)
+        gi_seed(seed)
         graph_model = RandomGraphFactory.build(self.config.graph_prior)
         data_model = DataModelFactory.build(self.config.data_model)
         data_model.set_graph_prior(graph_model)

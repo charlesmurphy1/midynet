@@ -5,19 +5,20 @@ import numpy as np
 import importlib
 import time
 
-from midynet.random_graph import (
+from graphinf.random_graph import (
     BlockLabeledRandomGraph,
     NestedBlockLabeledRandomGraph,
 )
-from midynet.mcmc import GraphReconstructionMCMC, PartitionReconstructionMCMC
-from midynet.mcmc.callbacks import (
+from graphinf.mcmc import GraphReconstructionMCMC, PartitionReconstructionMCMC
+from graphinf.mcmc.callbacks import (
     CollectEdgesOnSweep,
     CollectPartitionOnSweep,
     CollectLikelihoodOnSweep,
 )
+from graphinf.utility import get_weighted_edge_list
+
 from midynet.config import Config
 from midynet.utility import (
-    get_weighted_edge_list,
     enumerate_all_graphs,
     enumerate_all_partitions,
     log_mean_exp,

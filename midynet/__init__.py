@@ -4,8 +4,6 @@ from . import metrics
 from . import experiments
 from .metadata import __version__
 
-utility.seedWithTime()
-
 __all__ = (
     "utility",
     "config",

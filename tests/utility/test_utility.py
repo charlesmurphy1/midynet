@@ -1,6 +1,15 @@
 import math
 import pytest
-from midynet.utility import enumerate_all_graphs, log_binom, log_multiset
+from scipy.special import loggamma
+from midynet.utility import enumerate_all_graphs
+
+
+def log_binom(n, k):
+    return loggamma(n + 1) - loggamma(n - k + 1) - loggamma(k + 1)
+
+
+def log_multiset(n, k):
+    return log_binom(n + k - 1, k)
 
 
 def test_enumerate_all_simple_graphs_of_3_vertices_and_3_edges():

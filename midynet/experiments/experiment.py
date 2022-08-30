@@ -6,11 +6,10 @@ import time
 import typing
 
 from dataclasses import dataclass, field
-from _midynet import utility
+from graphinf.utility import seed as gi_seed
 from midynet.config import Config, MetricsFactory
 from midynet.metrics import Metrics
 from midynet.utility import (
-    seed,
     LoggerDict,
     Verbose,
     delete_path,
@@ -80,7 +79,7 @@ class Experiment:
         self.path.mkdir(exist_ok=True, parents=True)
         random.seed(self.seed)
         np.random.seed(self.seed)
-        seed(self.seed)
+        gi_seed(self.seed)
         if clean:
             self.clean()
 

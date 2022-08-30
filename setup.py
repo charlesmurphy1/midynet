@@ -3,17 +3,16 @@ import sys
 import setuptools
 import importlib
 import pathlib
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 description = "Package for the analysis of stochastic processes on random graphs with information theory."
-
 if importlib.util.find_spec("graphinf") is None:
     current_dir = os.getcwd()
-    p = pathlib.Path("submodules/graphinf/")
+    p = pathlib.Path("modules/graphinf/")
     os.chdir(p)
     print("Installing graphinf")
-    os.system("python setup.py install")
+    os.system("pip install .")
     os.chdir(current_dir)
 
 
@@ -25,7 +24,7 @@ setup(
     url="https://github.com/charlesmurphy1/fast-midynet",
     license="MIT",
     description=description,
-    packages=["midynet"],
+    packages=find_packages(),
     install_requires=[
         "pybind11>=2.3",
         "numpy>=1.20.3",
