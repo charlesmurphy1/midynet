@@ -1,4 +1,4 @@
-name: C++ build and tests
+name: Unit tests
 
 on:
     - push
@@ -10,10 +10,10 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
-            # - name: Set up Python 3.9
-            #   uses: actions/setup-python@v2
-            #   with:
-            #         python-version: 3.9
+            - name: Set up Python 3.9
+              uses: actions/setup-python@v2
+              with:
+                    python-version: 3.9
 
             - name: Loading submodules
               shell: bash
@@ -21,15 +21,11 @@ jobs:
                     git submodule init
                     git submodule update
 
-            # - name: Install C++ dependencies
-            #   shell: bash
-            #   run: |
-            #         sudo apt install gcc-9 g++ cmake
-            #         pip install --upgrade pip
             - name: Install C++ dependencies
               shell: bash
               run: |
                     sudo apt install gcc-9 g++ cmake
+                    pip install --upgrade pip
 
             - name: Installing basegraph==1.0.0
               shell: bash
@@ -39,6 +35,8 @@ jobs:
                     cd build
                     cmake ..
                     make -j4
+                    cd ..
+                    pip install .
 
             - name: Installing SamplableSet==2.2.0
               shell: bash
@@ -49,6 +47,20 @@ jobs:
                     cd build
                     cmake ..
                     make -j4
+                    cd ../..
+                    pip install .
+
+            - name: Installing graphinf==0.1
+              shell: bash
+              run: |
+                    echo Installing graphinf==0.1
+                    cd _midynet/SamplableSet/src
+                    [ ! -d "./build" ] && mkdir build
+                    cd build
+                    cmake ..
+                    make -j4
+                    cd ../..
+                    pip install .
 
             - name: Building midynet backend and run c++ tests
               shell: bash
@@ -59,8 +71,21 @@ jobs:
                     cd build
                     cmake ..
                     make -j4
+                    ctest -C Debug --output-on-failure --verbose
 
+            - name: Installing dev-dependencies
+              shell: bash
+              run: |
+                    pip install -r requirements_dev.txt
+                    pip install -r requirements.txt
+                    pip install pybind11
+
+            - name: Installing midynet==0.0.1
+              shell: bash
+              run: |
+                    [ -d "./build" ] && rm -r build
+                    pip install .[testing]
 
             - name: Run tests
               shell: bash
-              run: ctest -C Debug --output-on-failure --verbose
+              run: pytest ./tests

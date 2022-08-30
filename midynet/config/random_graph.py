@@ -4,15 +4,15 @@ from typing import Union, Optional
 from itertools import combinations_with_replacement
 
 from basegraph.core import UndirectedMultigraph
-from midynet.random_graph import (
+from graphinf.random_graph import (
     ErdosRenyiModel,
-    ConfigurationModel,
+    PoissonModel,
+    NegativeBinomialModel,
     ConfigurationModelFamily,
     PlantedPartitionModel,
     StochasticBlockModelFamily,
 )
 
-from midynet.utility.degree_sequences import poisson_degreeseq, nbinom_degreeseq
 from .config import Config
 from .factory import Factory, UnavailableOption
 
@@ -165,16 +165,14 @@ class RandomGraphFactory(Factory):
         )
 
     @staticmethod
-    def build_poisson(config: RandomGraphConfig) -> ConfigurationModel:
-        avgk = 2 * config.edge_count / config.size
-        degrees = poisson_degreeseq(config.size, avgk).tolist()
-        return ConfigurationModel(degrees)
+    def build_poisson(config: RandomGraphConfig) -> PoissonModel:
+        return PoissonModel(config.size, config.edge_count)
 
     @staticmethod
-    def build_nbinom(config: RandomGraphConfig) -> ConfigurationModel:
-        avgk = 2 * config.edge_count / config.size
-        degrees = nbinom_degreeseq(config.size, avgk, config.heterogeneity).tolist()
-        return ConfigurationModel(degrees)
+    def build_nbinom(config: RandomGraphConfig) -> NegativeBinomialModel:
+        return NegativeBinomialModel(
+            config.size, config.edge_count, config.heterogeneity
+        )
 
     @staticmethod
     def build_stochastic_block_model(
