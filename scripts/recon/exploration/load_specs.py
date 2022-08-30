@@ -2,7 +2,7 @@ import json
 import os
 import pathlib
 
-SPECS = json.load(open("../specs.json", "r"))
+SPECS = json.load(open("specs.json", "r"))
 if os.getenv("SERVER_NAME") in SPECS:
     SPECS = SPECS[os.getenv("SERVER_NAME")]
 else:

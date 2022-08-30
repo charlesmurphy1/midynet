@@ -14,11 +14,13 @@ from midynet.scripts import ScriptManager
 def get_config(
     expname=None,
     graph_prior="erdosrenyi",
+    data_model="glauber",
     num_procs=32,
     time="24:00:00",
     mem=12,
     seed=None,
 ):
+    path_to_exp = PATH_TO_DATA / "exploration" / f"recon-{graph_prior}-{data_model}"
     data_model = "glauber"
     likelihood_type = "uniform"
     if graph_prior == "degree_corrected_stochastic_block_model":
@@ -34,7 +36,7 @@ def get_config(
         data_model,
         graph_prior,
         metrics=["recon_information"],
-        path=PATH_TO_DATA / "exploration" / f"recon-{graph_prior}-{data_model}",
+        path=path_to_exp,
         num_procs=num_procs,
         seed=seed,
     )
@@ -43,7 +45,7 @@ def get_config(
     T = 500
     coupling = np.concatenate([np.linspace(0, 1, 10), np.linspace(1, 4, 10)])
     config.data_model.set_value("coupling", coupling)
-    config.data_model.set_value("num_active", 50)
+    config.data_model.set_value("num_active", int(N / 2))
     config.graph_prior.set_value("size", N)
     config.graph_prior.set_value("likelihood_type", likelihood_type)
     config.graph_prior.set_value("block_prior_type", block_prior_type)
@@ -78,7 +80,7 @@ def main():
     ]:
         expname = f"recon-{graph_prior}-glauber"
         config = get_config(
-            expname, graph_prior=graph_prior, num_procs=40, time="24:00:00", mem=12
+            expname, graph_prior=graph_prior, num_procs=1, time="24:00:00", mem=12
         )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
