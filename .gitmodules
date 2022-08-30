@@ -1,0 +1,3 @@
+[submodule "modules/graphinf"]
+	path = modules/graphinf
+	url = https://github.com/charlesmurphy1/graphinf
