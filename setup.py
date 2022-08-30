@@ -7,13 +7,13 @@ from setuptools import setup, find_packages
 
 
 description = "Package for the analysis of stochastic processes on random graphs with information theory."
-if importlib.util.find_spec("graphinf") is None:
-    current_dir = os.getcwd()
-    p = pathlib.Path("modules/graphinf/")
-    os.chdir(p)
-    print("Installing graphinf")
-    os.system("pip install .")
-    os.chdir(current_dir)
+# if importlib.util.find_spec("graphinf") is None:
+#     current_dir = os.getcwd()
+#     p = pathlib.Path("modules/graphinf/")
+#     os.chdir(p)
+#     os.chdir(current_dir)
+# print("Installing graphinf")
+os.system("pip install modules/graphinf")
 
 
 setup(
