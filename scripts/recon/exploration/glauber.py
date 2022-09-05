@@ -42,8 +42,8 @@ def get_config(
         num_procs=num_procs,
         seed=seed,
     )
-    N = 3
-    E = 3
+    N = 4
+    E = 4
     T = 100
     coupling = np.concatenate([np.linspace(0, 2, 20)])
     config.data_model.set_value("coupling", coupling)

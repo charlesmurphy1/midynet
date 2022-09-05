@@ -15,11 +15,10 @@ from graphinf.mcmc.callbacks import (
     CollectPartitionOnSweep,
     CollectLikelihoodOnSweep,
 )
-from graphinf.utility import get_weighted_edge_list
+from graphinf.utility import get_weighted_edge_list, enumerate_all_graphs
 
 from midynet.config import Config
 from midynet.utility import (
-    enumerate_all_graphs,
     enumerate_all_partitions,
     log_mean_exp,
     log_sum_exp,
@@ -369,9 +368,7 @@ def get_graph_log_evidence_exact(
 
     logp = []
     og_p = graph_model.get_labels()
-    for p in enumerate_all_partitions(
-        graph_model.get_size(), graph_model.get_size() - 1
-    ):
+    for p in enumerate_all_partitions(graph_model.get_size()):
         graph_model.set_labels(p, False)
         logp.append(graph_model.get_log_joint())
 

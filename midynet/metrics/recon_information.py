@@ -19,6 +19,7 @@ from .util import (
     get_graph_log_evidence_annealed,
     get_graph_log_evidence_exact,
 )
+from graphinf.random_graph import ErdosRenyiModel
 
 __all__ = ("MutualInformation", "MutualInformationMetrics")
 
@@ -31,15 +32,13 @@ class ReconstructionInformationMeasures(Expectation):
         gi_seed(seed)
         graph_model = RandomGraphFactory.build(self.config.graph_prior)
         data_model = DataModelFactory.build(self.config.data_model)
+        metrics_cf = self.config.metrics.recon_information
+        method = metrics_cf.get_value("method", "meanfield")
+        graph_evidence_method = metrics_cf.get_value("graph_evidence_method", method)
+
         data_model.set_graph_prior(graph_model)
         data_model.sample()
 
-        metrics_cf = self.config.metrics.recon_information
-
-        hxg = -data_model.get_log_likelihood()
-
-        method = metrics_cf.get_value("method", "meanfield")
-        graph_evidence_method = metrics_cf.get_value("graph_evidence_method", method)
         if not graph_model.labeled:
             hg = -graph_model.get_log_joint()
         elif graph_evidence_method == "exact":
@@ -49,6 +48,7 @@ class ReconstructionInformationMeasures(Expectation):
         else:
             hg = -get_graph_log_evidence_meanfield(graph_model, metrics_cf)
 
+        hxg = -data_model.get_log_likelihood()
         if method == "meanfield":
             hgx = -get_log_posterior_meanfield(data_model, metrics_cf)
             hx = hg + hxg - hgx
@@ -70,6 +70,7 @@ class ReconstructionInformationMeasures(Expectation):
             out["graph_posterior"] = out["graph_joint"] - out["graph_evidence"]
         if metrics_cf.get_value("to_bits", True):
             out = {k: v / np.log(2) for k, v in out.items()}
+        # print(out, graph_model.params)
         return out
 
 
@@ -88,7 +89,6 @@ class ReconstructionInformationMeasuresMetrics(Metrics):
         for s in samples:
             for k, v in s.items():
                 sample_dict[k].append(v)
-
         res = {
             k: Statistics.compute(
                 v,
