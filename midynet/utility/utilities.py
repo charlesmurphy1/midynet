@@ -125,10 +125,31 @@ def enumerate_all_graphs(
         yield g
 
 
-def enumerate_all_partitions(size, block_count=None):
-    block_count = size if block_count is None else block_count
+def reduce_partition(p, max_label=None):
+    max_label = np.max(p) if max_label is None else max_label
+    b = np.array(p)
+    n = np.array([np.sum(b == r) for r in np.arange(max_label + 1)])
+    index_map = {}
+
+    s = 0
+    for r, _n in enumerate(n):
+        if _n > 0:
+            index_map[r] = s
+            s += 1
+    return tuple(index_map[_p] for _p in p)
+
+
+def enumerate_all_partitions(size, block_count=None, reduce=True):
+    block_count = size - 1 if block_count is None else block_count
+    s = set()
     for i in range(block_count**size):
-        yield tuple(to_nary(i, block_count, dim=size).squeeze().astype("int").tolist())
+        p = tuple(to_nary(i, block_count, dim=size).squeeze().astype("int").tolist())
+        if reduce:
+            p = reduce_partition(p)
+            if p in s:
+                continue
+            s.add(p)
+        yield p
 
 
 if __name__ == "__main__":

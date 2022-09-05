@@ -286,6 +286,8 @@ def plot_statistics(
     marker = kwargs.pop("marker", markers[0])
     linestyle = kwargs.pop("linestyle", linestyles[0])
     kwargs.pop("ls", None)
+    label = kwargs.pop("label", None)
+
     if interpolate is not None:
         interpF = interp1d(x, y["mid"], kind=interpolate)
         interpX = np.linspace(min(x), max(x), interp_num_points)
@@ -340,6 +342,11 @@ def plot_statistics(
         linestyle="None",
         **kwargs,
     )
+
+    if label is not None:
+        ax.plot(
+            x[0], y["mid"][0], marker=marker, linestyle=linestyle, label=label, **kwargs
+        )
 
     if bar:
         ax.errorbar(

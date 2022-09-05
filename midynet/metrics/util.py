@@ -123,7 +123,9 @@ def get_log_evidence_exact(data_model: DynamicsWrapper, config: Config):
         counter += 1
         if data_model.get_graph_prior().is_compatible(g):
             data_model.set_graph(g)
-            logevidence.append(data_model.get_log_joint())
+            likelihood = data_model.get_log_likelihood()
+            prior = get_graph_log_evidence(data_model.get_graph_prior(), config)
+            logevidence.append(prior + likelihood)
 
     data_model.set_graph(original_graph)
     return log_sum_exp(logevidence)
@@ -154,7 +156,7 @@ def get_log_evidence(data_model: DynamicsWrapper, config: Config = None, **kwarg
         "annealed": get_log_evidence_annealed,
     }
     if method in functions:
-        return functions[method](data_model, config, **kwargs)
+        return functions[method](data_model, config)
     else:
         message = (
             f"Invalid method {method}, valid methods" + f"are {list(functions.keys())}."
@@ -349,7 +351,6 @@ def get_graph_log_evidence_meanfield(graph_model: RandomGraphWrapper, config: Co
         mcmc_equilibrate(pmodes, force_niter=10, verbose=True)
         # for i in range(config.get_value("num_sweeps", 100)):
         #     print(i, pmodes.entropy(), pmodes.mcmc_sweep())
-    print(pmodes.get_wr())
     samples = []
     for p in partitions:
         graph_model.set_labels(p)

@@ -20,7 +20,9 @@ def get_config(
     mem=12,
     seed=None,
 ):
-    path_to_exp = PATH_TO_DATA / "exploration" / f"recon-{graph_prior}-{data_model}"
+    path_to_exp = (
+        PATH_TO_DATA / "small-exploration" / f"recon-{graph_prior}-{data_model}"
+    )
     data_model = "glauber"
     likelihood_type = "uniform"
     if graph_prior == "degree_corrected_stochastic_block_model":
@@ -40,10 +42,10 @@ def get_config(
         num_procs=num_procs,
         seed=seed,
     )
-    N = 100
-    E = 250
-    T = 500
-    coupling = np.concatenate([np.linspace(0, 1, 10), np.linspace(1, 4, 10)])
+    N = 3
+    E = 3
+    T = 100
+    coupling = np.concatenate([np.linspace(0, 2, 20)])
     config.data_model.set_value("coupling", coupling)
     config.data_model.set_value("num_active", int(N / 2))
     config.graph_prior.set_value("size", N)
@@ -52,13 +54,13 @@ def get_config(
     config.graph_prior.set_value("degree_prior_type", degree_prior_type)
     config.graph_prior.set_value("edge_count", E)
     config.data_model.set_value("num_steps", T)
-    config.metrics.recon_information.set_value("num_samples", num_procs)
+    config.metrics.recon_information.set_value("num_samples", 100 * num_procs)
     config.metrics.recon_information.set_value("burn_per_vertex", 10)
     config.metrics.recon_information.set_value("start_from_original", False)
     config.metrics.recon_information.set_value("equilibrate_mode_cluster", True)
     config.metrics.recon_information.set_value("initial_burn", 2000)
     config.metrics.recon_information.set_value("num_sweeps", 1000)
-    config.metrics.recon_information.set_value("method", "meanfield")
+    config.metrics.recon_information.set_value("method", "exact")
 
     resources = {
         "account": "def-aallard",
@@ -80,7 +82,7 @@ def main():
     ]:
         expname = f"recon-{graph_prior}-glauber"
         config = get_config(
-            expname, graph_prior=graph_prior, num_procs=1, time="24:00:00", mem=12
+            expname, graph_prior=graph_prior, num_procs=4, time="24:00:00", mem=12
         )
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],

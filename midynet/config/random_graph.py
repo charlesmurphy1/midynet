@@ -88,7 +88,7 @@ class RandomGraphConfig(Config):
         edge_count: float = 250,
         block_count: int = 0,
         likelihood_type: str = "uniform",
-        block_prior_type: str = "uniform",
+        block_prior_type: str = "hyper",
         label_graph_prior_type: str = "uniform",
         degree_prior_type: str = "uniform",
         canonical: bool = False,
