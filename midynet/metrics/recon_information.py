@@ -70,7 +70,7 @@ class ReconstructionInformationMeasures(Expectation):
             out["graph_posterior"] = out["graph_joint"] - out["graph_evidence"]
         if metrics_cf.get_value("to_bits", True):
             out = {k: v / np.log(2) for k, v in out.items()}
-        # print(out, graph_model.params)
+        print(out)
         return out
 
 

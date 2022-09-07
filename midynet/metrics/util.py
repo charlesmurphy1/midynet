@@ -201,7 +201,7 @@ def get_log_posterior_meanfield(
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
 
     # x = np.array(mcmc.get_data_model().get_past_states())
-
+    #
     # import matplotlib.pyplot as plt
     #
     # plt.plot(x.sum(0))
@@ -347,7 +347,7 @@ def get_graph_log_evidence_meanfield(graph_model: RandomGraphWrapper, config: Co
     partitions = callback.get_data()
     pmodes = ModeClusterState(partitions, nested=graph_model.nested)  # from graph-tool
     if config.get_value("equilibrate_mode_cluster", False):
-        mcmc_equilibrate(pmodes, force_niter=10, verbose=True)
+        mcmc_equilibrate(pmodes, force_niter=1, verbose=True)
         # for i in range(config.get_value("num_sweeps", 100)):
         #     print(i, pmodes.entropy(), pmodes.mcmc_sweep())
     samples = []
