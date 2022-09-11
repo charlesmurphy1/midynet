@@ -63,7 +63,6 @@ class Metrics:
                 if formatted_data[name][key].shape == ():
                     formatted_data[name][key] = formatted_data[name][key].reshape(1)
                 formatted_data[name][key][:] = np.nan
-
                 for i, c in enumerate(self.config.named_sequence(name)):
                     index = self.get_config_indices(c)
                     formatted_data[name][key][index] = value[i]

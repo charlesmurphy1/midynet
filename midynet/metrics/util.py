@@ -38,16 +38,15 @@ __all__ = (
 
 
 def get_log_evidence_arithmetic(data_model: DynamicsWrapper, config: Config):
-    mcmc = GraphReconstructionMCMC(data_model)
     logp = []
-    g = mcmc.get_graph()
+    g = data_model.get_graph()
     for k in range(config.K):
         logp_k = []
         for m in range(config.num_sweeps):
-            mcmc.sample_prior()
-            logp_k.append(mcmc.get_log_likelihood())
+            data_model.sample_prior()
+            logp_k.append(data_model.get_log_likelihood())
         logp.append(log_mean_exp(logp_k))
-    mcmc.set_graph(g)
+    data_model.set_graph(g)
 
     return np.mean(logp)
 
@@ -91,9 +90,9 @@ def get_log_evidence_annealed(
             print(f"beta: {lb}")
         mcmc.set_beta_likelihood(lb)
         if config.get_value("start_from_original", False):
-            mcmc.set_graph(original_graph)
+            data_model.set_graph(original_graph)
         else:
-            mcmc.sample_prior()
+            data_model.sample_prior()
         s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
         for i in range(config.num_sweeps):
             mcmc.do_MH_sweep(burn=burn)
@@ -196,7 +195,7 @@ def get_log_posterior_meanfield(
     mcmc.insert_callback("collector", callback)
     callback.collect()
     if not config.get_value("start_from_original", False):
-        mcmc.sample_prior()
+        data_model.sample_prior()
     burn = config.burn_per_vertex * data_model.get_size()
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
 
@@ -397,9 +396,9 @@ def get_graph_log_evidence_annealed(
             print(f"beta: {lb}")
         mcmc.set_beta_likelihood(lb)
         if config.get_value("start_from_original", True):
-            mcmc.set_labels(og_p)
+            data_model.set_labels(og_p)
         else:
-            mcmc.sample_prior()
+            data_model.sample_prior()
         s, f = mcmc.do_MH_sweep(burn=config.get_value("initial_burn", burn))
 
         for i in range(config.get_value("num_sweeps", 1000)):

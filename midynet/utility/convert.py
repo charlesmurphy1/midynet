@@ -25,7 +25,7 @@ def convert_basegraph_to_networkx(bs_graph: bs.UndirectedMultigraph) -> nx.Graph
 
 
 def convert_basegraph_to_graphtool(bs_graph: bs.UndirectedMultigraph) -> gt.Graph:
-    gt_graph = gt.Graph()
+    gt_graph = gt.Graph(directed=False)
     for v in bs_graph:
         for u in bs_graph.get_out_edges_of_idx(v):
             if v > u.vertex_index:

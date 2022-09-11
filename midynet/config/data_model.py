@@ -17,20 +17,22 @@ class DataModelConfig(Config):
     @classmethod
     def glauber(
         cls,
-        num_steps: int = 100,
+        length: int = 100,
         coupling: float = 1.0,
+        past_length: int = 0,
+        initial_burn: int = 0,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
-        normalize: bool = True,
         num_active: int = -1,
     ) -> DynamicsConfig:
         return cls(
             name="glauber",
-            num_steps=num_steps,
+            length=length,
             coupling=coupling,
+            past_length=past_length,
+            initial_burn=initial_burn,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
-            normalize=normalize,
             num_active=num_active,
         )
 
@@ -43,48 +45,52 @@ class DataModelConfig(Config):
     @classmethod
     def sis(
         cls,
-        num_steps: int = 100,
+        length: int = 100,
         infection_prob: float = 0.1,
         recovery_prob: float = 0.1,
+        past_length: int = 0,
+        initial_burn: int = 0,
         auto_activation_prob=0.001,
         auto_deactivation_prob=0,
-        normalize: bool = True,
         num_active: int = 1,
     ) -> DynamicsConfig:
         return cls(
             name="sis",
-            num_steps=num_steps,
+            length=length,
             infection_prob=infection_prob,
             recovery_prob=recovery_prob,
+            past_length=past_length,
+            initial_burn=initial_burn,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
-            normalize=normalize,
             num_active=num_active,
         )
 
     @classmethod
     def cowan(
         cls,
-        num_steps: int = 100,
+        length: int = 100,
         nu: float = 1.0,
         a: float = 8.0,
         mu: float = 1.0,
         eta: float = 0.5,
+        past_length: int = 0,
+        initial_burn: int = 0,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
-        normalize: bool = True,
         num_active: int = 1,
     ) -> DynamicsConfig:
         return cls(
             name="cowan",
-            num_steps=num_steps,
+            length=length,
             nu=nu,
             a=a,
             mu=mu,
             eta=eta,
+            past_length=past_length,
+            initial_burn=initial_burn,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
-            normalize=normalize,
             num_active=num_active,
         )
 
@@ -103,7 +109,7 @@ class DataModelConfig(Config):
     @classmethod
     def degree(
         cls,
-        num_steps: int = 100,
+        length: int = 100,
         C: float = 1.0,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
@@ -111,7 +117,7 @@ class DataModelConfig(Config):
     ) -> DynamicsConfig:
         return cls(
             name="degree",
-            num_steps=num_steps,
+            length=length,
             C=C,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
@@ -136,43 +142,34 @@ class DataModelFactory(Factory):
     @staticmethod
     def build_glauber(config: DataModelConfig):
         return GlauberDynamics(
-            num_steps=config.num_steps,
+            length=config.length,
             coupling=config.coupling,
             auto_activation_prob=config.auto_activation_prob,
             auto_deactivation_prob=config.auto_deactivation_prob,
-            async_mode=False,
-            normalize=config.normalize,
-            num_active=config.num_active,
         )
 
     @staticmethod
     def build_sis(config: DataModelConfig):
         return SISDynamics(
-            num_steps=config.num_steps,
+            length=config.length,
             infection_prob=config.infection_prob,
             recovery_prob=config.recovery_prob,
             auto_activation_prob=config.auto_activation_prob,
             auto_deactivation_prob=config.auto_deactivation_prob,
-            async_mode=False,
-            normalize=config.normalize,
-            num_active=config.num_active,
         )
 
     @staticmethod
     def build_cowan(config: DataModelConfig):
         return CowanDynamics(
-            num_steps=config.num_steps,
+            length=config.length,
             nu=config.nu,
             a=config.a,
             mu=config.mu,
             eta=config.eta,
             auto_activation_prob=config.auto_activation_prob,
             auto_deactivation_prob=config.auto_deactivation_prob,
-            async_mode=False,
-            normalize=config.normalize,
-            num_active=config.num_active,
         )
 
     @staticmethod
     def build_degree(config: DataModelConfig):
-        return DegreeDynamics(num_steps=config.num_steps, C=config.C)
+        return DegreeDynamics(length=config.length, C=config.C)

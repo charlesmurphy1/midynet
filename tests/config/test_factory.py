@@ -87,7 +87,7 @@ def sample_dynamics(obj):
     c = RandomGraphConfig.erdosrenyi(10, 25)
     g = RandomGraphFactory.build(c)
     obj.set_graph_prior(g)
-    obj.set_num_steps(10)
+    obj.set_length(10)
     obj.sample()
 
 

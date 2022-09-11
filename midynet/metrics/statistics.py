@@ -6,8 +6,19 @@ __all__ = ("Statistics",)
 
 
 class Statistics:
-    def __init__(self, data):
+    def __init__(self, **data):
         self.__data__ = data
+
+    @classmethod
+    def load_from(cls, data_dict, key=None):
+        if key is None:
+            return cls(**data_dict)
+        data = {}
+        for k, v in data_dict.items():
+            name, stat_name = k.split("-")
+            if name == key:
+                data[stat_name] = v
+        return cls(**data)
 
     def __repr__(self):
         return f"Statistics(mid={self.__data__['mid']})"
@@ -16,7 +27,7 @@ class Statistics:
         return self.__data__["mid"].shape
 
     def copy(self):
-        return Statistics(copy.deepcopy(self.__data__))
+        return Statistics(**copy.deepcopy(self.__data__))
 
     def __contains__(self, key):
         return key in self.__data__
@@ -51,7 +62,7 @@ class Statistics:
             data["high"] += other.__data__["high"]
         else:
             data["mid"] += other
-        return Statistics(data)
+        return Statistics(**data)
 
     def __sub__(self, other):
         data = self.copy().__data__
@@ -62,7 +73,7 @@ class Statistics:
         else:
             data["mid"] -= other
 
-        return Statistics(data)
+        return Statistics(**data)
 
     def __mul__(self, other):
         data = self.copy().__data__
@@ -80,7 +91,7 @@ class Statistics:
             data["mid"] *= other
             data["low"] *= other
             data["high"] *= other
-        return Statistics(data)
+        return Statistics(**data)
 
     def __truediv__(self, other):
         data = self.copy().__data__
@@ -110,7 +121,7 @@ class Statistics:
             data["mid"] /= other
             data["low"] /= other
             data["high"] /= other
-        return Statistics(data)
+        return Statistics(**data)
 
     def __ge__(self, other):
         return self["mid"] >= other["mid"]
