@@ -35,24 +35,15 @@ class ReconstructionInformationMeasures(Expectation):
         metrics_cf = self.config.metrics.recon_information
 
         data_model.set_graph_prior(graph_model)
-        data_model.sample()
+        x0 = data_model.get_random_state(
+            # self.config.data_model.get_value("num_active", -1)
+        )
+        data_model.sample(x0)
         out = {}
 
         # computing full
         og = data_model.get_graph()
 
-        l = data_model.get_log_likelihood()
-        pr = data_model.get_log_prior()
-        e = get_log_evidence(data_model, metrics_cf)
-        po = l + pr - e
-
-        import midynet
-
-        _hx = []
-
-        for _g in midynet.utility.enumerate_all_graphs(5, 5, False, False):
-            data_model.set_graph(_g)
-            _hx.append(data_model.get_log_joint())
         data_model.set_graph(og)
         full = self.gather(data_model, metrics_cf)
         out.update(full)
@@ -82,7 +73,7 @@ class ReconstructionInformationMeasures(Expectation):
         if graph_model.labeled:
             out["graph_joint"] = graph_model.get_log_joint()
             out["graph_prior"] = graph_model.get_label_log_joint()
-            out["graph_evidence"] = -hg
+            out["graph_evidence"] = -full["prior"]
             out["graph_posterior"] = out["graph_joint"] - out["graph_evidence"]
         if metrics_cf.get_value("to_bits", True):
             out = {k: v / np.log(2) for k, v in out.items()}
@@ -151,7 +142,8 @@ class ReconstructionInformationMeasuresMetrics(Metrics):
         po = out["posterior-mid"]
         pr = out["prior-mid"]
         mi = e - l
-        print(f"{e=}, {l=}, {pr=}, {po=}, {mi=}")
+        # print(f"{e=}, {l=}, {pr=}, {po=}, {mi=}")
+        print(out)
         return out
 
 
