@@ -40,7 +40,7 @@ class Statistics:
         return self.__data__["mid"].shape
 
     def copy(self):
-        return Statistics(**copy.deepcopy(self.__data__))
+        return Statistics(copy.deepcopy(self.__data__))
 
     def __contains__(self, key):
         return key in self.__data__
@@ -75,7 +75,7 @@ class Statistics:
             data["high"] += other.__data__["high"]
         else:
             data["mid"] += other
-        return Statistics(**data)
+        return Statistics(data)
 
     def __sub__(self, other):
         data = self.copy().__data__
@@ -86,7 +86,7 @@ class Statistics:
         else:
             data["mid"] -= other
 
-        return Statistics(**data)
+        return Statistics(data)
 
     def __mul__(self, other):
         data = self.copy().__data__
@@ -104,7 +104,7 @@ class Statistics:
             data["mid"] *= other
             data["low"] *= other
             data["high"] *= other
-        return Statistics(**data)
+        return Statistics(data)
 
     def __truediv__(self, other):
         data = self.copy().__data__
@@ -134,7 +134,7 @@ class Statistics:
             data["mid"] /= other
             data["low"] /= other
             data["high"] /= other
-        return Statistics(**data)
+        return Statistics(data)
 
     def __ge__(self, other):
         return self["mid"] >= other["mid"]
