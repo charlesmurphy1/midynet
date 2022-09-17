@@ -47,28 +47,30 @@ class ReconstructionInformationMeasures(Expectation):
         data_model.set_graph(og)
         full = self.gather(data_model, metrics_cf)
         out.update(full)
+
         # computing past
-        if self.config.data_model.get_value("past_length", 0) > 0:
-            data_model.set_length(self.config.data_model.past_length)
-            past = self.gather(data_model, metrics_cf)
-            future = {k: full[k] - past[k] for k in past.keys()}
-            out.update({k + "_past": v for k, v in past.items()})
-            out.update({k + "_future": v for k, v in future.items()})
-            data_model.set_length(self.config.data_model.length)
-        elif (
-            "past_length" in self.config.data_model
-            and self.config.data_model.past_length == 0
-        ):
-            out.update(
-                {
-                    "likelihood_past": 0,
-                    "evidence_past": 0,
-                    "posterior_past": full["prior"],
-                    "likelihood_future": full["likelihood"],
-                    "evidence_future": full["evidence"],
-                    "posterior_future": full["prior"],
-                }
-            )
+        if "past_length" in self.config.data_model:
+            if self.config.data_model.get_value("past_length", 0) > 0:
+                data_model.set_length(self.config.data_model.past_length)
+                past = self.gather(data_model, metrics_cf)
+                future = {k: full[k] - past[k] for k in past.keys()}
+                out.update({k + "_past": v for k, v in past.items()})
+                out.update({k + "_future": v for k, v in future.items()})
+                data_model.set_length(self.config.data_model.length)
+            elif (
+                "past_length" in self.config.data_model
+                and self.config.data_model.past_length == 0
+            ):
+                out.update(
+                    {
+                        "likelihood_past": 0,
+                        "evidence_past": 0,
+                        "posterior_past": full["prior"],
+                        "likelihood_future": full["likelihood"],
+                        "evidence_future": full["evidence"],
+                        "posterior_future": full["prior"],
+                    }
+                )
 
         if graph_model.labeled:
             out["graph_joint"] = graph_model.get_log_joint()
@@ -142,8 +144,8 @@ class ReconstructionInformationMeasuresMetrics(Metrics):
         po = out["posterior-mid"]
         pr = out["prior-mid"]
         mi = e - l
-        # print(f"{e=}, {l=}, {pr=}, {po=}, {mi=}")
-        print(out)
+        print(f"{e=}, {l=}, {pr=}, {po=}, {mi=}")
+        # print(out)
         return out
 
 

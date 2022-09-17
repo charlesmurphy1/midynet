@@ -26,7 +26,7 @@ def main():
 
     args = parser.parse_args()
     config = midynet.config.Config.load(args.path_to_config)
-    exp = midynet.experiments.Experiment(
+    exp = midynet.Experiment(
         config,
         args.verbose,
         loggers=LoggerDict(time=TimeLogger(), memory=MemoryLogger()),
