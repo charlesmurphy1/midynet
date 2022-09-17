@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import copy
+import datetime
 import itertools
 import pathlib
 import pickle
 import typing
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Set, Union
+
 
 # import tqdm
 
@@ -56,6 +58,7 @@ class Config:
         self.__sequence__ = None  # type: Optional[list[Config]]
         self.__self_hash__ = -1  # type: int
         self.__named_sequence__ = {}  # type: Dict[str, list[Config]]
+        self.__time_of_creation__ = datetime.datetime.now()  # type: datetime.date
 
         self.insert("name", name, unique=True)
         for k, v in kwargs.items():
@@ -79,7 +82,7 @@ class Config:
         return s
 
     def __repr__(self) -> str:
-        return str(self)
+        return self.format()
 
     def __contains__(self, key: str) -> bool:
         return key in self.keys(recursively=True)
@@ -156,6 +159,16 @@ class Config:
         else:
             message = "unhashable type, must not be sequenced."
             raise TypeError(message)
+
+    def when(self, date=True, time=True):
+        if "__time_of_creation__" not in self.__dict__:
+            return None
+        if date and time:
+            return self.__time_of_creation__
+        elif date:
+            return self.__time_of_creation__.date()
+        else:
+            return self.__time_of_creation__.time()
 
     @classmethod
     def auto(

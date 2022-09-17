@@ -1,6 +1,5 @@
 import basegraph.core as bs
 import networkx as nx
-import graph_tool.all as gt
 
 
 def get_edgelist(bs_graph: bs.UndirectedMultigraph) -> list[tuple[int, int]]:
@@ -24,7 +23,12 @@ def convert_basegraph_to_networkx(bs_graph: bs.UndirectedMultigraph) -> nx.Graph
     return nx_graph
 
 
-def convert_basegraph_to_graphtool(bs_graph: bs.UndirectedMultigraph) -> gt.Graph:
+def convert_basegraph_to_graphtool(bs_graph: bs.UndirectedMultigraph):
+    if importlib.find_spec("graph_tool"):
+        import graph_tool.all as gt
+    else:
+        raise RuntimeError("Could not find `graph_tool`.")
+
     gt_graph = gt.Graph(directed=False)
     for v in bs_graph:
         for u in bs_graph.get_out_edges_of_idx(v):
@@ -47,6 +51,6 @@ def reduce_partition(partition: list[int]) -> list[int]:
     return reduced_partition
 
 
-def convert_gt_blockstate_to_partition(block_state: gt.BlockState) -> list[int]:
+def convert_gt_blockstate_to_partition(block_state) -> list[int]:
     partition = block_state.get_blocks().a
     return reduce_partition(partition)

@@ -20,7 +20,7 @@ def split_into_chunks(
     d, r = divmod(len(container), num_chunks)
     for i in range(num_chunks):
         si = (d + 1) * (i if i < r else r) + d * (0 if i < r else i - r)
-        yield container[si:si + (d + 1 if i < r else d)]
+        yield container[si : si + (d + 1 if i < r else d)]
 
 
 @dataclass
@@ -30,9 +30,7 @@ class ScriptManager:
     path_to_scripts: pathlib.Path = field(
         repr=True, default_factory=pathlib.Path, init=True
     )
-    path_to_log: Optional[pathlib.Path] = field(
-        repr=True, default=None, init=True
-    )
+    path_to_log: Optional[pathlib.Path] = field(repr=True, default=None, init=True)
 
     def __post_init__(self):
         if isinstance(self.path_to_scripts, str):
@@ -57,8 +55,7 @@ class ScriptManager:
     ):
         script = "#!/bin/bash\n"
         resources = (
-            config.get_value("resources", {})
-            if resources is None else resources
+            config.get_value("resources", {}) if resources is None else resources
         )
         for k, r in resources.items():
             script += f"{resource_prefix} --{k}={r}\n"
@@ -106,7 +103,7 @@ class ScriptManager:
         path_to_script.unlink()
         path_to_config.unlink()
 
-    def run(self, config: Config, teardown=True, **kwargs):
+    def run(self, config: Config, teardown=False, **kwargs):
         config = [config] if issubclass(config.__class__, Config) else config
         # tag = kwargs.pop("tag")
         tag = kwargs.pop("tag") if "tag" in kwargs else int(time.time())
@@ -123,9 +120,7 @@ class ScriptManager:
     def split_param(
         configs, param_key: str, num_chunks: int = None, label_with="value"
     ):
-        configs = (
-            [configs] if issubclass(configs.__class__, Config) else configs
-        )
+        configs = [configs] if issubclass(configs.__class__, Config) else configs
         splitted_configs = []
         for c in configs:
             p = c.get_param(param_key)
@@ -144,9 +139,7 @@ class ScriptManager:
                 if label_with == "value":
                     new_config.set_value("name", new_config.name + "." + ext)
                 elif isinstance(label_with, list):
-                    new_config.set_value(
-                        "name", new_config.name + "." + label_with[i]
-                    )
+                    new_config.set_value("name", new_config.name + "." + label_with[i])
                 else:
                     new_config.set_value("name", new_config.name + f".{i}")
                 new_config.set_value("path", new_config.path / new_config.name)
