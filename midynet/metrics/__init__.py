@@ -1,6 +1,7 @@
 from .metrics import Metrics
 from .multiprocess import MultiProcess, Expectation
-from .statistics import Statistics
+
+# from .statistics import Statistics
 
 # from .data_entropy import DataEntropyMetrics
 # from .data_prediction_entropy import DataPredictionEntropyMetrics
@@ -15,7 +16,6 @@ __all__ = (
     "Metrics",
     "MultiProcess",
     "Expectation",
-    "Statistics",
     "ReconstructionInformationMeasuresMetrics",
     "GraphReconstructionHeuristicsMetrics",
 )

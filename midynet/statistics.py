@@ -6,8 +6,21 @@ __all__ = ("Statistics",)
 
 
 class Statistics:
-    def __init__(self, **data):
-        self.__data__ = data
+    def __init__(self, data_dict, name=None):
+        if name is not None:
+            self.__data__ = {}
+            for k, v in data_dict.items():
+                k = k.split("-")
+                if k[0] == name:
+                    self.__data__[k[1]] = v
+            # self.__data__ = {
+            #     k[len(name) + 1 :]: v
+            #     for k, v in data_dict.items()
+            #     if k[: len(name)] == name
+            # }
+            # assert "mid" in self.__dict__
+        else:
+            self.__data__ = data_dict
 
     @classmethod
     def load_from(cls, data_dict, key=None):

@@ -8,7 +8,7 @@ from graphinf.utility import seed as gi_seed
 from midynet.config import Config, OptionError, RandomGraphFactory, DataModelFactory
 from .metrics import Metrics
 from .multiprocess import Expectation
-from .statistics import Statistics
+from midynet.statistics import Statistics
 from dataclasses import dataclass, field
 from netrd import reconstruction as _reconstruction
 from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve

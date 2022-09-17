@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from midynet.config import ExperimentConfig
-from midynet.experiments import Experiment
+from midynet import Experiment
 from midynet.utility.loggers import MemoryLogger, TimeLogger
 
 DISPLAY = False

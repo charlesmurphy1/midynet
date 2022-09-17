@@ -11,7 +11,7 @@ from midynet.config import (
 )
 from .metrics import Metrics
 from .multiprocess import Expectation
-from .statistics import Statistics
+from midynet.statistics import Statistics
 from .util import (
     get_log_posterior_meanfield,
     get_log_evidence,
