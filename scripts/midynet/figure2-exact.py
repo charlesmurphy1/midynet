@@ -10,36 +10,34 @@ from midynet.config import ExperimentConfig
 from midynet.scripts import ScriptManager
 
 
-def get_config(
-    dynamics="sis", num_procs=32, time="24:00:00", mem=12, seed=None
-):
-    config = ExperimentConfig.default(
-        f"figure2-exact-{dynamics}",
-        dynamics,
-        "ser",
-        metrics=["mutualinfo"],
-        path=PATH_TO_DATA / "figure2" / f"exact-{dynamics}",
+def get_config(data_model="sis", num_procs=32, time="24:00:00", mem=12, seed=None):
+    config = ExperimentConfig.reconstruction(
+        f"figure2-exact-{data_model}",
+        data_model,
+        "erdosrenyi",
+        metrics=["recon_information"],
+        path=PATH_TO_DATA / "figure2" / f"exact-{data_model}",
         num_procs=num_procs,
         seed=seed,
     )
     N = 5
     E = 5
-    T = np.unique(np.logspace(0, 4, 100).astype("int"))
-    if dynamics == "sis":
-        config.dynamics.set_value("recovery_prob", 0.5)
-        coupling = np.array([1, 2, 4]) * config.dynamics.recovery_prob
-        config.dynamics.set_value("auto_infection_prob", 1e-4)
-    elif dynamics == "ising":
-        coupling = [0.5, 1, 2]
-    elif dynamics == "cowan":
-        coupling = [1, 2, 4]
-    config.dynamics.set_coupling(coupling)
+    T = np.unique(np.logspace(1, 2, 10).astype("int"))
+    if data_model == "sis":
+        config.data_model.set_value("recovery_prob", 0.5)
+        config.data_model.set_value("infection_prob", [0.25, 0.5, 1])
+        config.data_model.set_value("auto_infection_prob", 1e-4)
+    elif data_model == "glauber":
+        config.data_model.set_value("coupling", [0.25, 0.5, 1])
+    elif data_model == "cowan":
+        config.data_model.set_value("nu", [0.5, 1, 2])
+    config.data_model.set_value("length", T)
+    config.data_model.set_value("past_length", [0.5, -1, -5, 0])
 
-    config.graph.set_value("size", N)
-    config.graph.edge_count.set_value("state", E)
-    config.dynamics.set_value("num_steps", T)
-    config.metrics.mutualinfo.set_value("num_samples", 1000)
-    config.metrics.mutualinfo.set_value("method", "exact")
+    config.graph_prior.set_value("size", N)
+    config.graph_prior.set_value("edge_count", E)
+    config.metrics.recon_information.set_value("num_samples", 1 * num_procs)
+    config.metrics.recon_information.set_value("method", "exact")
     resources = {
         "account": "def-aallard",
         "time": time,
@@ -52,8 +50,8 @@ def get_config(
 
 
 def main():
-    for dynamics in ["ising", "sis", "cowan"]:
-        config = get_config(dynamics, num_procs=40, time="1:00:00", mem=12)
+    for data_model in ["glauber", "sis", "cowan"]:
+        config = get_config(data_model, num_procs=1, time="1:00:00", mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,

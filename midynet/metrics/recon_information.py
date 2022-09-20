@@ -36,7 +36,7 @@ class ReconstructionInformationMeasures(Expectation):
 
         data_model.set_graph_prior(graph_model)
         x0 = data_model.get_random_state(
-            # self.config.data_model.get_value("num_active", -1)
+            self.config.data_model.get_value("num_active", -1)
         )
         data_model.sample(x0)
         out = {}
@@ -50,17 +50,8 @@ class ReconstructionInformationMeasures(Expectation):
 
         # computing past
         if "past_length" in self.config.data_model:
-            if self.config.data_model.get_value("past_length", 0) > 0:
-                data_model.set_length(self.config.data_model.past_length)
-                past = self.gather(data_model, metrics_cf)
-                future = {k: full[k] - past[k] for k in past.keys()}
-                out.update({k + "_past": v for k, v in past.items()})
-                out.update({k + "_future": v for k, v in future.items()})
-                data_model.set_length(self.config.data_model.length)
-            elif (
-                "past_length" in self.config.data_model
-                and self.config.data_model.past_length == 0
-            ):
+
+            if self.config.data_model.past_length == 0:
                 out.update(
                     {
                         "likelihood_past": 0,
@@ -68,9 +59,21 @@ class ReconstructionInformationMeasures(Expectation):
                         "posterior_past": full["prior"],
                         "likelihood_future": full["likelihood"],
                         "evidence_future": full["evidence"],
-                        "posterior_future": full["prior"],
+                        "posterior_future": full["posterior"],
                     }
                 )
+            else:
+                past_length = self.config.data_model.past_length
+                if isinstance(past_length, float):
+                    past_length = int(past_length * self.config.data_model.length)
+                elif past_length < 0:
+                    past_length = self.config.data_model.length + past_length
+                data_model.set_length(past_length)
+                past = self.gather(data_model, metrics_cf)
+                future = {k: full[k] - past[k] for k in past.keys()}
+                out.update({k + "_past": v for k, v in past.items()})
+                out.update({k + "_future": v for k, v in future.items()})
+                data_model.set_length(self.config.data_model.length)
 
         if graph_model.labeled:
             out["graph_joint"] = graph_model.get_log_joint()

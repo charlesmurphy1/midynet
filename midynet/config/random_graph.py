@@ -92,6 +92,7 @@ class RandomGraphConfig(Config):
         label_graph_prior_type: str = "uniform",
         degree_prior_type: str = "uniform",
         canonical: bool = False,
+        exact: bool = False,
         with_self_loops: bool = True,
         with_parallel_edges: bool = True,
         edge_proposer_type: str = "uniform",
@@ -110,6 +111,7 @@ class RandomGraphConfig(Config):
             label_graph_prior_type=label_graph_prior_type,
             degree_prior_type=degree_prior_type,
             canonical=canonical,
+            exact=exact,
             with_self_loops=with_self_loops,
             with_parallel_edges=with_parallel_edges,
             edge_proposer_type=edge_proposer_type,
@@ -118,6 +120,11 @@ class RandomGraphConfig(Config):
             label_creation_prob=label_creation_prob,
             shift=shift,
         )
+
+    @classmethod
+    def degree_corrected_stochastic_block_model(cls, **kwargs):
+        kwargs["likelihood_type"] = "degree_corrected"
+        return cls.stochastic_block_model(**kwargs)
 
     @classmethod
     def planted_partition(

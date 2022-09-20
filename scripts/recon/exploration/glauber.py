@@ -24,10 +24,6 @@ def get_config(
     mem=12,
     seed=None,
 ):
-    likelihood_type = "uniform"
-    if graph_prior == "degree_corrected_stochastic_block_model":
-        graph_prior = "stochastic_block_model"
-        likelihood_type = "degree_corrected"
     block_prior_type = "hyper"
     degree_prior_type = "hyper"
 
@@ -53,7 +49,6 @@ def get_config(
     config.data_model.set_value("coupling", coupling)
     config.data_model.set_value("num_active", int(size / 2))
     config.graph_prior.set_value("size", size)
-    config.graph_prior.set_value("likelihood_type", likelihood_type)
     config.graph_prior.set_value("block_prior_type", block_prior_type)
     config.graph_prior.set_value("degree_prior_type", degree_prior_type)
     config.graph_prior.set_value("edge_count", edge_count)
