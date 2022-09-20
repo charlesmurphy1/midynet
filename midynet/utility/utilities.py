@@ -140,13 +140,17 @@ def reduce_partition(p, max_label=None):
 
 
 def enumerate_all_partitions(size, block_count=None, reduce=True):
-    block_count = size - 1 if block_count is None else block_count
+    B = size if block_count is None else block_count
     s = set()
-    for i in range(block_count**size):
-        p = tuple(to_nary(i, block_count, dim=size).squeeze().astype("int").tolist())
+    for i in range(B**size):
+        p = tuple(to_nary(i, B, dim=size).squeeze().astype("int").tolist())
+        labels = np.unique(p)
+        if block_count is not None and len(labels) != block_count:
+            continue
+
         if reduce:
             p = reduce_partition(p)
-            if p in s:
+            if p in s or (block_count is not None and len(labels) != block_count):
                 continue
             s.add(p)
         yield p
