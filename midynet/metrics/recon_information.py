@@ -57,9 +57,11 @@ class ReconstructionInformationMeasures(Expectation):
                         "likelihood_past": 0,
                         "evidence_past": 0,
                         "posterior_past": full["prior"],
+                        "prior_past": full["prior"],
                         "likelihood_future": full["likelihood"],
                         "evidence_future": full["evidence"],
                         "posterior_future": full["posterior"],
+                        "prior_future": full["prior"],
                     }
                 )
             else:

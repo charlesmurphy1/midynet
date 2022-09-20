@@ -22,7 +22,7 @@ def get_config(data_model="sis", num_procs=32, time="24:00:00", mem=12, seed=Non
     )
     N = 5
     E = 5
-    T = np.unique(np.logspace(1, 2, 10).astype("int"))
+    T = np.unique(np.logspace(1, 4, 100).astype("int"))
     if data_model == "sis":
         config.data_model.set_value("recovery_prob", 0.5)
         config.data_model.set_value("infection_prob", [0.25, 0.5, 1])
@@ -36,7 +36,7 @@ def get_config(data_model="sis", num_procs=32, time="24:00:00", mem=12, seed=Non
 
     config.graph_prior.set_value("size", N)
     config.graph_prior.set_value("edge_count", E)
-    config.metrics.recon_information.set_value("num_samples", 1 * num_procs)
+    config.metrics.recon_information.set_value("num_samples", 50 * num_procs)
     config.metrics.recon_information.set_value("method", "exact")
     resources = {
         "account": "def-aallard",
@@ -51,7 +51,7 @@ def get_config(data_model="sis", num_procs=32, time="24:00:00", mem=12, seed=Non
 
 def main():
     for data_model in ["glauber", "sis", "cowan"]:
-        config = get_config(data_model, num_procs=1, time="1:00:00", mem=12)
+        config = get_config(data_model, num_procs=40, time="12:00:00", mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,
