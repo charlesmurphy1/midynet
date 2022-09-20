@@ -36,6 +36,8 @@ def get_config(data_model="sis", num_procs=32, time="24:00:00", mem=12, seed=Non
 
     config.graph_prior.set_value("size", N)
     config.graph_prior.set_value("edge_count", E)
+    config.graph_prior.set_value("with_self_loops", False)
+    config.graph_prior.set_value("with_parallel_edges", False)
     config.metrics.recon_information.set_value("num_samples", 50 * num_procs)
     config.metrics.recon_information.set_value("method", "exact")
     resources = {
