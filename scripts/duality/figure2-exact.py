@@ -10,37 +10,35 @@ from midynet.config import ExperimentConfig
 from midynet.scripts import ScriptManager
 
 
-def get_config(dynamics="sis", num_procs=32, time="24:00:00", mem=12, seed=None, t=0):
+def get_config(data_model="sis", num_procs=32, time="24:00:00", mem=12, seed=None):
     config = ExperimentConfig.reconstruction(
-        f"test1-{dynamics}-t{t}",
-        dynamics,
+        f"figure2-exact-{data_model}",
+        data_model,
         "erdosrenyi",
         metrics=["recon_information"],
-        path=PATH_TO_DATA / "exploration" / f"test1-{dynamics}-t{t}",
+        path=PATH_TO_DATA / "figure2" / f"exact-{data_model}",
         num_procs=num_procs,
         seed=seed,
     )
     N = 5
     E = 5
-    T = 20
-    if dynamics == "sis":
-        config.data_model.set_value("infection_prob", 0.5)
+    T = np.unique(np.logspace(1, 3, 20).astype("int"))
+    if data_model == "sis":
         config.data_model.set_value("recovery_prob", 0.5)
+        config.data_model.set_value("infection_prob", [0.25, 0.5, 1])
         config.data_model.set_value("auto_infection_prob", 1e-4)
-    elif dynamics == "glauber":
-        config.data_model.set_value("coupling", np.linspace(0, 2, 20))
+    elif data_model == "glauber":
+        config.data_model.set_value("coupling", [0.25, 0.5, 1])
+    elif data_model == "cowan":
+        config.data_model.set_value("nu", [0.5, 1, 2])
+    config.data_model.set_value("length", T)
+    config.data_model.set_value("past_length", [0.5, -5, 0])
 
-    elif dynamics == "cowan":
-        config.data_model.set_value("nu", 1)
-
-    config.graph_prior.set_value("with_self_loops", False)
-    config.graph_prior.set_value("with_parallel_edges", False)
     config.graph_prior.set_value("size", N)
     config.graph_prior.set_value("edge_count", E)
-    config.data_model.set_value("past_length", t)
-    config.data_model.set_value("length", T)
-    config.data_model.set_value("num_active", -1)
-    config.metrics.recon_information.set_value("num_samples", 500 * num_procs)
+    config.graph_prior.set_value("with_self_loops", False)
+    config.graph_prior.set_value("with_parallel_edges", False)
+    config.metrics.recon_information.set_value("num_samples", 200 * num_procs)
     config.metrics.recon_information.set_value("method", "exact")
     resources = {
         "account": "def-aallard",
@@ -54,8 +52,8 @@ def get_config(dynamics="sis", num_procs=32, time="24:00:00", mem=12, seed=None,
 
 
 def main():
-    for t in [0, 5, 10, 15, 19]:
-        config = get_config("glauber", num_procs=4, time="1:00:00", mem=12, t=t)
+    for data_model in ["glauber"]:
+        config = get_config(data_model, num_procs=40, time="12:00:00", mem=12)
         script = ScriptManager(
             executable=PATH_TO_RUN_EXEC["run"],
             execution_command=EXECUTION_COMMAND,

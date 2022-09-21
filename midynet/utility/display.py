@@ -221,7 +221,7 @@ def drawPieMarker(xs, ys, ratios, colors, size=60, ax=None):
 
 
 def draw_graph(
-    graph: bs.UndirectedMultigraph,
+    graph,
     labels=None,
     ax=None,
     pos=None,

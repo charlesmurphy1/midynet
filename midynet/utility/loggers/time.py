@@ -19,7 +19,7 @@ class TimeLogger(Logger):
 
     def on_task_end(self):
         self.end = datetime.now()
-        self.log["end"] = self.begin.strftime("%Y-%m-%d %H:%M:%S")
+        self.log["end"] = self.end.strftime("%Y-%m-%d %H:%M:%S")
         days, hours, mins, secs = self.format_diff(self.begin, self.end)
         self.log["time"] = f"{days:0=2d}-{hours:0=2d}:{mins:0=2d}:{secs:0=2d}"
         self.log["total"] = self.format_diff(self.begin, self.end, to_sec=True)
