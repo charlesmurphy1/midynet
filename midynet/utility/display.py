@@ -7,7 +7,7 @@ import networkx as nx
 from typing import Optional, Union
 from cycler import cycler
 from palettable.palette import Palette
-
+from scipy.interpolate import interp1d
 from .convert import get_edgelist, convert_basegraph_to_networkx
 
 __all__ = (
