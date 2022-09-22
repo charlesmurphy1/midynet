@@ -73,7 +73,7 @@ class DataModelConfig(Config):
         nu: float = 1.0,
         a: float = 8.0,
         mu: float = 1.0,
-        eta: float = 0.5,
+        eta: float = 0.1,
         past_length: int = 0,
         initial_burn: int = 0,
         auto_activation_prob=0,
@@ -113,7 +113,7 @@ class DataModelConfig(Config):
         C: float = 1.0,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
-        num_active: int = 2**31 - 1,
+        num_active: int = 2 ** 31 - 1,
     ) -> DynamicsConfig:
         return cls(
             name="degree",

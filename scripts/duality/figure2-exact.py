@@ -24,13 +24,14 @@ def get_config(data_model="sis", num_procs=32, time="24:00:00", mem=12, seed=Non
     E = 5
     T = np.unique(np.logspace(1, 2, 20).astype("int"))
     if data_model == "sis":
-        config.data_model.set_value("recovery_prob", 0.5)
+        config.data_model.set_value("recovery_prob", 0.1)
         config.data_model.set_value("infection_prob", [0.25, 0.5, 1])
         config.data_model.set_value("auto_infection_prob", 1e-4)
     elif data_model == "glauber":
         config.data_model.set_value("coupling", [0.25, 0.5, 1])
     elif data_model == "cowan":
         config.data_model.set_value("nu", [0.5, 1, 2])
+        config.data_model.set_value("eta", 0.1)
     config.data_model.set_value("length", T)
     config.data_model.set_value("past_length", [0])
 
