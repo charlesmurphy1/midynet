@@ -39,6 +39,13 @@ def convert_basegraph_to_graphtool(bs_graph: bs.UndirectedMultigraph):
     return gt_graph
 
 
+def convert_graphtool_to_basegraph(gt_graph) -> bs.UndirectedMultigraph:
+    bs_graph = bs.UndirectedMultigraph(gt_graph.num_vertices())
+    for e in gt_graph.edges():
+        bs_graph.add_edge_idx(*e)
+    return bs_graph
+
+
 def reduce_partition(partition: list[int]) -> list[int]:
     remap = {}
     id = 0

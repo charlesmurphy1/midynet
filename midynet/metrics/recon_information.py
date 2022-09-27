@@ -6,7 +6,7 @@ from collections import defaultdict
 from graphinf.utility import seed as gi_seed
 from midynet.config import (
     Config,
-    RandomGraphFactory,
+    GraphFactory,
     DataModelFactory,
 )
 from .metrics import Metrics
@@ -30,15 +30,21 @@ class ReconstructionInformationMeasures(Expectation):
 
     def func(self, seed: int) -> float:
         gi_seed(seed)
-        graph_model = RandomGraphFactory.build(self.config.graph_prior)
+        prior = GraphFactory.build(self.config.prior)
         data_model = DataModelFactory.build(self.config.data_model)
         metrics_cf = self.config.metrics.recon_information
 
-        data_model.set_graph_prior(graph_model)
+        data_model.set_graph_prior(prior)
+        if self.config.target == "None":
+            prior.sample()
+            g0 = prior.get_state()
+        else:
+            g0 = prior.get_state()
         x0 = data_model.get_random_state(
             self.config.data_model.get_value("num_active", -1)
         )
-        data_model.sample(x0)
+        data_model.set_graph(g0)
+        data_model.sample_state(x0)
         out = {}
 
         # computing full
@@ -72,9 +78,9 @@ class ReconstructionInformationMeasures(Expectation):
             out["posterior_past"] = past["posterior"]
             out["mutualinfo_past"] = past["prior"] - past["posterior"]
 
-        if graph_model.labeled:
-            out["graph_joint"] = graph_model.get_log_joint()
-            out["graph_prior"] = graph_model.get_label_log_joint()
+        if prior.labeled:
+            out["graph_joint"] = prior.get_log_joint()
+            out["graph_prior"] = prior.get_label_log_joint()
             out["graph_evidence"] = -full["prior"]
             out["graph_posterior"] = out["graph_joint"] - out["graph_evidence"]
         if metrics_cf.get_value("to_bits", True):

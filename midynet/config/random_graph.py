@@ -1,6 +1,6 @@
 import numpy as np
 from math import floor, ceil
-from typing import Union, Optional
+from typing import Union, Optional, Any
 from itertools import combinations_with_replacement
 
 from basegraph.core import UndirectedMultigraph
@@ -16,10 +16,19 @@ from graphinf.random_graph import (
 from .config import Config
 from .factory import Factory, UnavailableOption
 
-__all__ = ("RandomGraphConfig", "RandomGraphFactory")
+__all__ = ("GraphConfig", "GraphFactory")
 
 
-class RandomGraphConfig(Config):
+class GraphConfig(Config):
+    @classmethod
+    def auto(cls, config_type: Any, *others: Any, **kwargs: Any):
+        if isinstance(config_type, str) and config_type[:2] == "gt":
+            graph = config_type[3:]
+            return cls(name="gtdata", graph_name=graph)
+        if isinstance(config_type, str) or issubclass(type(config_type), Config):
+            return cls.__auto__(config_type, *others, **kwargs)
+        return [cls.__auto__(c, *others, **kwargs) for c in config_type]
+
     @classmethod
     def erdosrenyi(
         cls,
@@ -149,9 +158,17 @@ class RandomGraphConfig(Config):
         )
 
 
-class RandomGraphFactory(Factory):
+class GraphFactory(Factory):
     @staticmethod
-    def build_erdosrenyi(config: RandomGraphConfig) -> ErdosRenyiModel:
+    def build_gtdata(config: GraphConfig) -> UndirectedMultigraph:
+        from graph_tool import collection
+        from midynet.utility.convert import convert_graphtool_to_basegraph
+
+        gt_graph = collection.data[config.graph_name]
+        return convert_graphtool_to_basegraph(gt_graph)
+
+    @staticmethod
+    def build_erdosrenyi(config: GraphConfig) -> ErdosRenyiModel:
         return ErdosRenyiModel(
             config.size,
             config.edge_count,
@@ -162,7 +179,7 @@ class RandomGraphFactory(Factory):
         )
 
     @staticmethod
-    def build_configuration(config: RandomGraphConfig) -> ConfigurationModelFamily:
+    def build_configuration(config: GraphConfig) -> ConfigurationModelFamily:
         return ConfigurationModelFamily(
             config.size,
             config.edge_count,
@@ -172,18 +189,18 @@ class RandomGraphFactory(Factory):
         )
 
     @staticmethod
-    def build_poisson(config: RandomGraphConfig) -> PoissonModel:
+    def build_poisson(config: GraphConfig) -> PoissonModel:
         return PoissonModel(config.size, config.edge_count)
 
     @staticmethod
-    def build_nbinom(config: RandomGraphConfig) -> NegativeBinomialModel:
+    def build_nbinom(config: GraphConfig) -> NegativeBinomialModel:
         return NegativeBinomialModel(
             config.size, config.edge_count, config.heterogeneity
         )
 
     @staticmethod
     def build_stochastic_block_model(
-        config: RandomGraphConfig,
+        config: GraphConfig,
     ) -> StochasticBlockModelFamily:
         return StochasticBlockModelFamily(
             size=config.size,
@@ -204,7 +221,7 @@ class RandomGraphFactory(Factory):
         )
 
     @staticmethod
-    def build_planted_partition(config: RandomGraphConfig):
+    def build_planted_partition(config: GraphConfig):
         return PlantedPartitionModel(
             size=config.size,
             edge_count=config.edge_count,

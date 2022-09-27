@@ -8,7 +8,7 @@ from midynet import metrics
 from midynet.config import (
     Config,
     DataModelConfig,
-    RandomGraphConfig,
+    GraphConfig,
     MetricsCollectionConfig,
     ExperimentConfig,
 )
@@ -31,9 +31,9 @@ def base_metrics():
     d[0].set_value("coupling", coupling)
     d[1].set_value("infection_prob", infection_prob)
 
-    g = RandomGraphConfig.auto("erdosrenyi")
+    g = GraphConfig.auto("erdosrenyi")
     g.set_value("size", N)
-    config = Config(name="test", data_model=d, graph=g)
+    config = Config(name="test", data_model=d, prior=g)
     return DummyMetrics(config=config)
 
 
@@ -105,8 +105,8 @@ def args(request):
     )
     c.set_value("data_model.num_steps", 100)
     c.set_value("data_model.infection_prob", [0.0, 0.5])
-    c.set_value("graph_prior.size", 5)
-    c.set_value("graph_prior.edge_count", 5)
+    c.set_value("prior.size", 5)
+    c.set_value("prior.edge_count", 5)
     c.set_value(
         "metrics",
         MetricsCollectionConfig.auto(request.param),

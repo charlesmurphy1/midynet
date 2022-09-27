@@ -7,7 +7,7 @@ from typing import List, Optional, Union
 from midynet.config import (
     Config,
     DataModelConfig,
-    RandomGraphConfig,
+    GraphConfig,
     MetricsCollectionConfig,
 )
 
@@ -18,7 +18,8 @@ class ExperimentConfig(Config):
     requirements: set[str] = {
         "name",
         "data_model",
-        "graph_prior",
+        "prior",
+        "target",
         "metrics",
         "path",
         "num_procs",
@@ -30,7 +31,8 @@ class ExperimentConfig(Config):
         cls,
         name: str,
         data_model: str,
-        graph_prior: str,
+        prior: str,
+        target: str = "None",
         metrics: Optional[List[str]] = None,
         path: Union[str, pathlib.Path] = ".",
         num_procs: int = 1,
@@ -38,12 +40,18 @@ class ExperimentConfig(Config):
         seed: Optional[int] = None,
         data_model_params=None,
         graph_params=None,
+        target_params=None,
     ) -> ExperimentConfig:
         data_model_params = {} if data_model_params is None else data_model_params
         graph_params = {} if graph_params is None else graph_params
+        target_params = {} if target_params is None else target_params
         obj = cls(name=name)
         obj.insert("data_model", DataModelConfig.auto(data_model, **data_model_params))
-        obj.insert("graph_prior", RandomGraphConfig.auto(graph_prior, **graph_params))
+        obj.insert("prior", GraphConfig.auto(prior, **graph_params))
+        obj.insert(
+            "target",
+            GraphConfig.auto(target, **target_params) if target != "None" else "None",
+        )
         obj.insert(
             "metrics",
             MetricsCollectionConfig.auto(metrics if metrics is not None else []),
@@ -89,7 +97,7 @@ class ExperimentConfig(Config):
     ) -> ExperimentConfig:
         graph_params = {} if graph_params is None else graph_params
         obj = cls(name=name)
-        obj.insert("graph", RandomGraphConfig.auto(graph, **graph_params))
+        obj.insert("graph", GraphConfig.auto(graph, **graph_params))
         obj.insert(
             "metrics",
             MetricsCollectionConfig.auto(metrics if metrics is not None else []),
