@@ -2,8 +2,8 @@ import pytest
 from itertools import product
 
 from midynet.config import (
-    RandomGraphConfig,
-    RandomGraphFactory,
+    GraphConfig,
+    GraphFactory,
     DataModelConfig,
     DataModelFactory,
     MetricsFactory,
@@ -12,71 +12,69 @@ from midynet.config import (
 
 random_graph_setup = [
     pytest.param(
-        RandomGraphConfig.erdosrenyi(100, 250),
-        RandomGraphFactory,
+        GraphConfig.erdosrenyi(100, 250),
+        GraphFactory,
         lambda obj: obj.sample(),
         id="er",
     ),
     pytest.param(
-        RandomGraphConfig.configuration(100, 250),
-        RandomGraphFactory,
+        GraphConfig.configuration(100, 250),
+        GraphFactory,
         lambda obj: obj.sample(),
         id="cm",
     ),
     pytest.param(
-        RandomGraphConfig.poisson(100, 250),
-        RandomGraphFactory,
+        GraphConfig.poisson(100, 250),
+        GraphFactory,
         lambda obj: obj.sample(),
         id="pcm",
     ),
     pytest.param(
-        RandomGraphConfig.nbinom(100, 250),
-        RandomGraphFactory,
+        GraphConfig.nbinom(100, 250),
+        GraphFactory,
         lambda obj: obj.sample(),
         id="nbcm",
     ),
     pytest.param(
-        RandomGraphConfig.stochastic_block_model(100, 250),
-        RandomGraphFactory,
+        GraphConfig.stochastic_block_model(100, 250),
+        GraphFactory,
         lambda obj: obj.sample(),
         id="sbm",
     ),
     pytest.param(
-        RandomGraphConfig.stochastic_block_model(
+        GraphConfig.stochastic_block_model(
             100, 250, likelihood_type="degree_corrected"
         ),
-        RandomGraphFactory,
+        GraphFactory,
         lambda obj: obj.sample(),
         id="dcsbm",
     ),
     pytest.param(
-        RandomGraphConfig.stochastic_block_model(100, 250),
-        RandomGraphFactory,
+        GraphConfig.stochastic_block_model(100, 250),
+        GraphFactory,
         lambda obj: obj.sample(),
         id="sbm",
     ),
     pytest.param(
-        RandomGraphConfig.stochastic_block_model(
-            100, 250, label_graph_prior_type="nested"
-        ),
-        RandomGraphFactory,
+        GraphConfig.stochastic_block_model(100, 250, label_graph_prior_type="nested"),
+        GraphFactory,
         lambda obj: obj.sample(),
         id="hsbm",
     ),
     pytest.param(
-        RandomGraphConfig.stochastic_block_model(
+        GraphConfig.stochastic_block_model(
             100,
             250,
             likelihood_type="degree_corrected",
             label_graph_prior_type="nested",
         ),
-        RandomGraphFactory,
+        GraphFactory,
         lambda obj: obj.sample(),
         id="hdcsbm",
     ),
     pytest.param(
-        RandomGraphConfig.planted_partition(size=100, edge_count=250, block_count=4),
-        RandomGraphFactory,
+        GraphConfig.planted_partition(size=100, edge_count=250, block_count=4),
+        GraphFactory,
         lambda obj: obj.sample(),
         id="pp",
     ),
@@ -84,8 +82,8 @@ random_graph_setup = [
 
 
 def sample_dynamics(obj):
-    c = RandomGraphConfig.erdosrenyi(10, 25)
-    g = RandomGraphFactory.build(c)
+    c = GraphConfig.erdosrenyi(10, 25)
+    g = GraphFactory.build(c)
     obj.set_graph_prior(g)
     obj.set_length(10)
     obj.sample()
@@ -136,6 +134,13 @@ def test_build_from_config(config, factory, run):
 def test_run_after_creation(config, factory, run):
     obj = factory.build(config)
     run(obj)
+
+
+def test_loading_graph():
+    c = GraphConfig.auto("gt-karate")
+    g = GraphFactory.build(c)
+    assert g.get_size() == 34
+    assert g.get_total_edge_number() == 78
 
 
 if __name__ == "__main__":

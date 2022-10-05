@@ -7,7 +7,7 @@ from .factory import (
     UnavailableOption,
 )
 
-from .random_graph import RandomGraphConfig, RandomGraphFactory
+from .random_graph import GraphConfig, GraphFactory
 from .data_model import DataModelConfig, DataModelFactory
 from .metrics import MetricsConfig, MetricsCollectionConfig, MetricsFactory
 from .experiment import ExperimentConfig

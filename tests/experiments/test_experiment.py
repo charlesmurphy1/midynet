@@ -23,8 +23,8 @@ def experiment():
     config.set_value("data_model.infection_prob", coupling)
     config.set_value("data_model.recovery_prob", 0.5)
     config.set_value("data_model.num_steps", 10)
-    config.set_value("graph_prior.size", 10)
-    config.set_value("graph_prior.edge_count.state", [0, 5])
+    config.set_value("prior.size", 10)
+    config.set_value("prior.edge_count.state", [0, 5])
     config.set_value("metrics.recon_information.num_samples", 1)
     config.set_value("metrics.recon_information.num_sweeps", 10)
 
