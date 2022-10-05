@@ -33,6 +33,7 @@ def get_config(data_model="sis", num_procs=32, time="24:00:00", mem=12, seed=Non
         config.data_model.set_value("nu", [0.5, 1, 2])
         config.data_model.set_value("eta", 0.1)
     config.data_model.set_value("length", T)
+    config.data_model.set_value("past_length", [0, -5, 0.5])
 
     config.graph_prior.set_value("size", N)
     config.graph_prior.set_value("edge_count", E)
