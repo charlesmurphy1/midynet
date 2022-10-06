@@ -16,7 +16,7 @@ def get_config(data_model="sis", num_procs=32, time="24:00:00", mem=12, seed=Non
         data_model,
         "erdosrenyi",
         metrics=["recon_information"],
-        path=PATH_TO_DATA / "figure2" / f"exact-{data_model}",
+        path=PATH_TO_DATA / "figure7" / f"exact-{data_model}",
         num_procs=num_procs,
         seed=seed,
     )
@@ -35,10 +35,10 @@ def get_config(data_model="sis", num_procs=32, time="24:00:00", mem=12, seed=Non
     config.data_model.set_value("length", T)
     config.data_model.set_value("past_length", [0, -5, 0.5])
 
-    config.graph_prior.set_value("size", N)
-    config.graph_prior.set_value("edge_count", E)
-    config.graph_prior.set_value("with_self_loops", False)
-    config.graph_prior.set_value("with_parallel_edges", False)
+    config.prior.set_value("size", N)
+    config.prior.set_value("edge_count", E)
+    config.prior.set_value("with_self_loops", False)
+    config.prior.set_value("with_parallel_edges", False)
     config.metrics.recon_information.set_value("num_samples", 100 * num_procs)
     config.metrics.recon_information.set_value("method", "exact")
     resources = {
