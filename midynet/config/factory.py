@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from .config import Config
+from pyhectiqlab import Config
 
 __all__ = (
     "UnavailableOption",

@@ -2,7 +2,7 @@ from __future__ import annotations
 import typing
 
 import midynet.metrics
-from .config import Config
+from pyhectiqlab import Config
 from .factory import Factory, OptionError, MissingRequirementsError
 
 __all__ = ("MetricsConfig", "MetricsCollectionConfig", "MetricsFactory")
@@ -75,7 +75,10 @@ class MetricsConfig(Config):
     @classmethod
     def heuristics(cls):
         return cls(
-            "heuristics", method="correlation", num_samples=100, error_type="percentile"
+            "heuristics",
+            method="correlation",
+            num_samples=100,
+            error_type="percentile",
         )
 
 
@@ -92,7 +95,12 @@ class MetricsCollectionConfig(Config):
         if isinstance(config_types, str):
             config_types = [config_types]
         obj = cls(**{a: MetricsConfig.auto(a) for a in config_types})
-        obj.insert("metrics_names", config_types, force_non_sequence=True, unique=True)
+        obj.insert(
+            "metrics_names",
+            config_types,
+            force_non_sequence=True,
+            unique=True,
+        )
         return obj
 
 
@@ -102,21 +110,27 @@ class MetricsFactory(Factory):
         if issubclass(type(config), Config) and config.unmet_requirements():
             raise MissingRequirementsError(config)
         options = {
-            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
+            k[6:]: getattr(cls, k)
+            for k in cls.__dict__.keys()
+            if k[:6] == "build_"
         }
         metrics = config.metrics
         if isinstance(metrics, MetricsConfig):
             if metrics.name in options:
                 return options[metrics.name](config)
             else:
-                raise OptionError(actual=metrics.name, expected=list(options.keys()))
+                raise OptionError(
+                    actual=metrics.name, expected=list(options.keys())
+                )
         elif isinstance(metrics, MetricsCollectionConfig):
             collections = {}
             for name in metrics.metrics_names:
                 if name in options:
                     collections[name] = options[name](config)
                 else:
-                    raise OptionError(actual=name, expected=list(options.keys()))
+                    raise OptionError(
+                        actual=name, expected=list(options.keys())
+                    )
             return collections
         else:
             message = (
@@ -152,7 +166,9 @@ class MetricsFactory(Factory):
 
     @staticmethod
     def build_recon_information(config: MetricsCollectionConfig):
-        return midynet.metrics.ReconstructionInformationMeasuresMetrics(config)
+        return midynet.metrics.ReconstructionInformationMeasuresMetrics(
+            config
+        )
 
     @staticmethod
     def build_heuristics(config: MetricsCollectionConfig):

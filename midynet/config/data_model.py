@@ -7,7 +7,7 @@ from graphinf.data_model.dynamics import (
     SISDynamics,
     GlauberDynamics,
 )
-from .config import Config
+from pyhectiqlab import Config
 from .factory import Factory, OptionError
 
 __all__ = ("DataModelConfig", "DataModelFactory")

@@ -1,5 +1,4 @@
-from .parameter import Parameter
-from .config import Config
+from .config import Config, MetaConfig, ParameterSequence
 from .factory import (
     Factory,
     MissingRequirementsError,
@@ -14,8 +13,9 @@ from .experiment import ExperimentConfig
 
 
 __all__ = (
+    "ParameterSequence",
     "Config",
-    "Parameter",
+    "MetaConfig",
     "Factory",
     "MissingRequirementsError",
     "OptionError",

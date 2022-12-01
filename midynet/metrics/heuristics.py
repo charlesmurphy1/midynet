@@ -5,7 +5,8 @@ import time
 import warnings
 
 from graphinf.utility import seed as gi_seed
-from midynet.config import Config, OptionError, GraphFactory, DataModelFactory
+from pyhectiqlab import Config
+from midynet.config import OptionError, GraphFactory, DataModelFactory
 from .metrics import Metrics
 from .multiprocess import Expectation
 from midynet.statistics import Statistics
@@ -51,7 +52,9 @@ class ReconstructionHeuristicsMethod:
         true[true > 1] = 1
         for m in measures:
             if hasattr(self, "collect_" + m):
-                self.__results__[m] = getattr(self, "collect_" + m)(true, self.pred)
+                self.__results__[m] = getattr(self, "collect_" + m)(
+                    true, self.pred
+                )
             else:
                 warnings.warn(
                     f"no collector named `{m}` has been found, proceeding anyway.",
@@ -72,7 +75,9 @@ class ReconstructionHeuristicsMethod:
         threshold = kwargs.get("threshold", norm_pred.mean())
         norm_pred = self.normalize_weights(pred).reshape(-1)
         true = true.reshape(-1)
-        cm = confusion_matrix(true, (norm_pred > threshold).astype("float").reshape(-1))
+        cm = confusion_matrix(
+            true, (norm_pred > threshold).astype("float").reshape(-1)
+        )
         tn, fp, fn, tp = cm.ravel()
 
         return dict(threshold=threshold, tn=tn, fp=fp, fn=fn, tp=tp)
@@ -87,7 +92,9 @@ class ReconstructionHeuristicsMethod:
         return dict(fpr=fpr, tpr=tpr, auc=auc, thresholds=thresholds)
 
 
-class WeightbasedReconstructionHeuristicsMethod(ReconstructionHeuristicsMethod):
+class WeightbasedReconstructionHeuristicsMethod(
+    ReconstructionHeuristicsMethod
+):
     def __init__(self, model, nanfill=None):
         self.model = model
         self.nanfill = 0 if nanfill is None else nanfill
@@ -103,7 +110,9 @@ class WeightbasedReconstructionHeuristicsMethod(ReconstructionHeuristicsMethod):
         self.__results__["pred"] = weights
 
 
-class GraphbasedReconstructionHeuristicsMethod(ReconstructionHeuristicsMethod):
+class GraphbasedReconstructionHeuristicsMethod(
+    ReconstructionHeuristicsMethod
+):
     def __init__(self, model):
         self.model = model
         super().__init__()
@@ -143,7 +152,9 @@ def get_heuristics_reconstructor(config):
     if config.method in reconstructors:
         return reconstructors[config.method]()
     else:
-        raise OptionError(actual=config.method, expected=reconstructors.keys())
+        raise OptionError(
+            actual=config.method, expected=reconstructors.keys()
+        )
 
 
 @dataclass
@@ -159,7 +170,9 @@ class ReconstructionHeuristics(Expectation):
 
         data_model.sample()
         timeseries = np.array(data_model.get_past_states()).T
-        heuristics = get_heuristics_reconstructor(self.config.metrics.heuristics)
+        heuristics = get_heuristics_reconstructor(
+            self.config.metrics.heuristics
+        )
         heuristics.fit(timeseries)
         heuristics.compare(graph_model.get_state(), collectors=["roc"])
 
@@ -177,5 +190,8 @@ class ReconstructionHeuristicsMetrics(Metrics):
             config.metrics.heuristics.get_value("num_samples", 10)
         )
         return Statistics.compute(
-            samples, error_type=config.metrics.heuristics.get_value("error_type", "std")
+            samples,
+            error_type=config.metrics.heuristics.get_value(
+                "error_type", "std"
+            ),
         )

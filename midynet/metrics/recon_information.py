@@ -4,8 +4,8 @@ import numpy as np
 from dataclasses import dataclass, field
 from collections import defaultdict
 from graphinf.utility import seed as gi_seed
+from pyhectiqlab import Config
 from midynet.config import (
-    Config,
     GraphFactory,
     DataModelFactory,
 )
@@ -67,7 +67,9 @@ class ReconstructionInformationMeasures(Expectation):
             else:
                 past_length = self.config.data_model.past_length
                 if isinstance(past_length, float):
-                    past_length = int(past_length * self.config.data_model.length)
+                    past_length = int(
+                        past_length * self.config.data_model.length
+                    )
                 elif past_length < 0:
                     past_length = self.config.data_model.length + past_length
                 data_model.set_length(past_length)
@@ -82,23 +84,31 @@ class ReconstructionInformationMeasures(Expectation):
             out["graph_joint"] = prior.get_log_joint()
             out["graph_prior"] = prior.get_label_log_joint()
             out["graph_evidence"] = -full["prior"]
-            out["graph_posterior"] = out["graph_joint"] - out["graph_evidence"]
+            out["graph_posterior"] = (
+                out["graph_joint"] - out["graph_evidence"]
+            )
         if metrics_cf.get_value("to_bits", True):
             out = {k: v / np.log(2) for k, v in out.items()}
         return out
 
     def gather(self, data_model, metrics_cf):
         method = metrics_cf.get_value("method", "meanfield")
-        graph_evidence_method = metrics_cf.get_value("graph_evidence_method", method)
+        graph_evidence_method = metrics_cf.get_value(
+            "graph_evidence_method", method
+        )
 
         og = data_model.get_graph()
 
         if not data_model.graph_prior.labeled:
             prior = -data_model.graph_prior.get_log_joint()
         elif graph_evidence_method == "exact":
-            prior = -get_graph_log_evidence_exact(data_model.graph_prior, metrics_cf)
+            prior = -get_graph_log_evidence_exact(
+                data_model.graph_prior, metrics_cf
+            )
         elif graph_evidence_method == "annealed":
-            prior = -get_graph_log_evidence_annealed(data_model.graph_prior, metrics_cf)
+            prior = -get_graph_log_evidence_annealed(
+                data_model.graph_prior, metrics_cf
+            )
         else:
             prior = -get_graph_log_evidence_meanfield(
                 data_model.graph_prior, metrics_cf
@@ -115,7 +125,10 @@ class ReconstructionInformationMeasures(Expectation):
 
         data_model.set_graph(og)
         return dict(
-            prior=prior, likelihood=likelihood, posterior=posterior, evidence=evidence
+            prior=prior,
+            likelihood=likelihood,
+            posterior=posterior,
+            evidence=evidence,
         )
 
 
@@ -144,7 +157,9 @@ class ReconstructionInformationMeasuresMetrics(Metrics):
             for k, v in sample_dict.items()
         }
 
-        out = {f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()}
+        out = {
+            f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()
+        }
         e = out["evidence-mid"]
         l = out["likelihood-mid"]
         po = out["posterior-mid"]

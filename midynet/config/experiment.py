@@ -4,8 +4,8 @@ import time
 
 from typing import List, Optional, Union
 
+from pyhectiqlab import Config
 from midynet.config import (
-    Config,
     DataModelConfig,
     GraphConfig,
     MetricsCollectionConfig,

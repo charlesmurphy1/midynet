@@ -7,7 +7,8 @@ import typing
 
 from dataclasses import dataclass, field
 from graphinf.utility import seed as gi_seed
-from midynet.config import Config, MetricsFactory
+from pyhectiqlab import Config
+from midynet.config import MetricsFactory
 from midynet.metrics import Metrics
 from midynet.utility import (
     LoggerDict,
@@ -22,12 +23,18 @@ __all__ = ["Experiment"]
 class Experiment:
     config: Config = field(repr=False, init=True)
     verbose: Verbose = field(default_factory=Verbose, init=True)
-    loggers: LoggerDict = field(repr=False, default_factory=LoggerDict, init=True)
+    loggers: LoggerDict = field(
+        repr=False, default_factory=LoggerDict, init=True
+    )
     name: str = field(default="exp", init=False)
     path: pathlib.Path = field(default_factory=pathlib.Path, init=False)
-    config_filename: str = field(repr=False, default="config.pickle", init=False)
+    config_filename: str = field(
+        repr=False, default="config.pickle", init=False
+    )
     log_filename: str = field(repr=False, default="log.json", init=False)
-    seed: int = field(repr=False, default_factory=lambda: int(time.time()), init=False)
+    seed: int = field(
+        repr=False, default_factory=lambda: int(time.time()), init=False
+    )
     metrics: typing.Dict[str, Metrics] = field(
         repr=False, default_factory=dict, init=False
     )
@@ -128,7 +135,9 @@ class Experiment:
 
     @classmethod
     def load_from_file(cls, path: pathlib.Path):
-        path = pathlib.Path(path) if not isinstance(path, pathlib.Path) else path
+        path = (
+            pathlib.Path(path) if not isinstance(path, pathlib.Path) else path
+        )
         abs_path = path.resolve()
         config = Config.load(abs_path)
         config.set_value("path", abs_path.parents[0])
@@ -147,7 +156,9 @@ class Experiment:
         config_filename="config.pickle",
     ):
         path = pathlib.Path(path) if isinstance(path, str) else path
-        destination = path / name if destination is None else destination / name
+        destination = (
+            path / name if destination is None else destination / name
+        )
         prohibited = [] if prohibited is None else prohibited
         others = []
         config = None
