@@ -7,19 +7,21 @@ from typing import Optional, Tuple
 
 
 class MetricsLog:
-    def __init__(self, name, logging_freq=1):
+    def __init__(self, name: str, logging_freq: int = 1):
         self.name = name
         self.logging_freq = logging_freq
 
     def setup(self) -> None:
         self.counter = 0
 
-    def update(self, logger: Logger) -> str:
+    def update(self, logger: Logger) -> None:
         raise NotImplementedError()
 
 
 class ProgressLog(MetricsLog):
-    def __init__(self, name, logging_freq=1, total: Optional[int] = None):
+    def __init__(
+        self, name: str, logging_freq: int = 1, total: Optional[int] = None
+    ):
         super().__init__(self, name, logging_freq=logging_freq)
         self.total = total
 
@@ -49,11 +51,11 @@ class ProgressLog(MetricsLog):
             days=days, hours=hours, minutes=minutes, seconds=seconds
         )
 
-    def setup(self):
+    def setup(self) -> None:
         super().setup(self)
         self.begin = datetime.now()
 
-    def update(self, logger: Logger):
+    def update(self, logger: Logger) -> None:
         self.counter += 1
         self.now = datetime.now()
         self.from_start = self.timedelta_to_second(self.now - self.begin)
@@ -73,7 +75,7 @@ class ProgressLog(MetricsLog):
 
 
 class MemoryLog(MetricsLog):
-    def __init__(self, name, logging_freq=1, unit="gb"):
+    def __init__(self, name: str, logging_freq: int = 1, unit: str = "gb"):
         super().__init__(self, name, logging_freq)
         if unit == "b":
             self.factor = 1
@@ -89,11 +91,11 @@ class MemoryLog(MetricsLog):
                 + "`[b, kb, mb, gb]`."
             )
 
-    def setup(self):
+    def setup(self) -> None:
         super().setup(self)
         self.memory_usage = []
 
-    def update(self, logger: Logger):
+    def update(self, logger: Logger) -> None:
         self.memory_usage.append(
             round(psutil.virtual_memory().used / self.factor, 4)
         )
