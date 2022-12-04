@@ -19,7 +19,6 @@ from .util import (
     get_graph_log_evidence_annealed,
     get_graph_log_evidence_exact,
 )
-from graphinf.random_graph import ErdosRenyiModel
 
 __all__ = ("MutualInformation", "MutualInformationMetrics")
 

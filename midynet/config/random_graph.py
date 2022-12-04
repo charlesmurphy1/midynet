@@ -13,15 +13,15 @@ from graphinf.random_graph import (
     StochasticBlockModelFamily,
 )
 
-from pyhectiqlab import Config
+from midynet.config import MetaConfig, Config
 from .factory import Factory, UnavailableOption
 
 __all__ = ("GraphConfig", "GraphFactory")
 
 
-class GraphConfig(Config):
+class GraphConfig(MetaConfig):
     @classmethod
-    def auto(cls, config: str or Config, *args, **kwargs):
+    def auto(cls, config: str or MetaConfig or Config, *args, **kwargs):
         if config in cls.__dict__:
             return getattr(cls, config)(*args, **kwargs)
         elif isinstance(config, cls):

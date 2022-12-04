@@ -7,13 +7,13 @@ from graphinf.data_model.dynamics import (
     SISDynamics,
     GlauberDynamics,
 )
-from pyhectiqlab import Config
-from .factory import Factory, OptionError
+from midynet.config import Config, MetaConfig
+from .factory import Factory, OptionError, MissingRequirementsError
 
 __all__ = ("DataModelConfig", "DataModelFactory")
 
 
-class DataModelConfig(Config):
+class DataModelConfig(MetaConfig):
     @classmethod
     def glauber(
         cls,
@@ -24,7 +24,7 @@ class DataModelConfig(Config):
         auto_activation_prob=0,
         auto_deactivation_prob=0,
         num_active: int = -1,
-    ) -> DynamicsConfig:
+    ):
         return cls(
             name="glauber",
             length=length,
@@ -37,12 +37,6 @@ class DataModelConfig(Config):
         )
 
     @classmethod
-    def ising(cls, **kwargs):
-        cfg = cls.glauber(**kwargs)
-        cfg.set_value("name", "ising")
-        return cfg
-
-    @classmethod
     def sis(
         cls,
         length: int = 100,
@@ -53,7 +47,7 @@ class DataModelConfig(Config):
         auto_activation_prob=0.001,
         auto_deactivation_prob=0,
         num_active: int = 1,
-    ) -> DynamicsConfig:
+    ):
         return cls(
             name="sis",
             length=length,
@@ -79,7 +73,7 @@ class DataModelConfig(Config):
         auto_activation_prob=0,
         auto_deactivation_prob=0,
         num_active: int = 1,
-    ) -> DynamicsConfig:
+    ):
         return cls(
             name="cowan",
             length=length,
@@ -113,8 +107,8 @@ class DataModelConfig(Config):
         C: float = 1.0,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
-        num_active: int = 2 ** 31 - 1,
-    ) -> DynamicsConfig:
+        num_active: int = 2**31 - 1,
+    ):
         return cls(
             name="degree",
             length=length,
@@ -128,10 +122,10 @@ class DataModelConfig(Config):
 class DataModelFactory(Factory):
     @classmethod
     def build(cls, config: Config) -> Any:
-        if config.unmet_requirements():
-            raise MissingRequirementsError(config)
         options = {
-            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
+            k[6:]: getattr(cls, k)
+            for k in cls.__dict__.keys()
+            if k[:6] == "build_"
         }
         name = config.name
         if name in options:

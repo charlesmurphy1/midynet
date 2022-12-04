@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from itertools import product
-from typing import Iterable, List
+from typing import List
 from pyhectiqlab import Config as Config
 from copy import deepcopy
 
@@ -17,15 +17,21 @@ class MetaConfig(Config):
         super().__init__(**kwargs)
         self.name = name
 
+    def get(self, key, default=None):
+        if key in self:
+            return self._state[key]
+        components = key.split(self.separator)
+        if components[0] in self:
+            subkey = self.separator.join(components[1:])
+            assert not isinstance(
+                self._state[components[0]], (list, tuple, set)
+            ), f"In get: Component {components[0]} of key {key} must not be iterable."
+            return self._state[components[0]].get(subkey, default)
+
+        return default
+
     def __len__(self):
         return len(list(self.to_sequence()))
-
-    def sequenced_items(self):
-        for k, v in self._state.items():
-            if isinstance(v, ParameterSequence):
-                yield k, v
-            elif issubclass(v.__class__, MetaConfig) and v.is_sequenced():
-                yield k, v.to_sequence()
 
     @property
     def dict(self):
@@ -69,15 +75,25 @@ class MetaConfig(Config):
         return config
 
     @classmethod
-    def auto(cls, config: str or MetaConfig, *args, **kwargs):
-        if config in cls.__dict__:
-            return getattr(cls, config)(*args, **kwargs)
-        elif isinstance(config, cls):
-            return config
-        else:
-            t = config if isinstance(config, str) else type(config)
-            message = f"Invalid config type `{t}` for auto build of object `{cls.__name__}`."
-            raise TypeError(message)
+    def auto(
+        cls, config: str or MetaConfig or List[MetaConfig], *args, **kwargs
+    ):
+        configs = [config] if not isinstance(config, list) else config
+        res = []
+        for config in configs:
+            if config in cls.__dict__:
+                res.append(getattr(cls, config)(*args, **kwargs))
+            elif isinstance(config, cls):
+                res.append(config)
+            else:
+                t = config if isinstance(config, str) else type(config)
+                message = f"Invalid config type `{t}` for auto build of object `{cls.__name__}`."
+                raise TypeError(message)
+        if len(res) == 1:
+            res = res[0]
+        elif len(res) == 0:
+            return
+        return ParameterSequence(res)
 
     def is_sequenced(self):
         for k, v in self._state.items():
@@ -87,6 +103,12 @@ class MetaConfig(Config):
                 return True
         return False
 
+    def as_sequence(self, key):
+        if isinstance(self._state[key], ParameterSequence):
+            return
+        if isinstance(self._state[key], (list, tuple, set)):
+            self._state[key] = ParameterSequence(self._state[key])
+
     def to_sequence(self):
         if not self.is_sequenced():
             yield self
@@ -95,9 +117,13 @@ class MetaConfig(Config):
         keys_to_scan = []
         values_to_scan = []
 
-        for k, v in self.sequenced_items():
-            keys_to_scan.append(k)
-            values_to_scan.append(v)
+        for k, v in self._state.items():
+            if isinstance(v, ParameterSequence):
+                keys_to_scan.append(k)
+                values_to_scan.append(v)
+            elif issubclass(v.__class__, MetaConfig) and v.is_sequenced():
+                keys_to_scan.append(k)
+                values_to_scan.append(v.to_sequence())
         for values in product(*values_to_scan):
             config = self.copy()
             for k, v in zip(keys_to_scan, values):
@@ -106,14 +132,14 @@ class MetaConfig(Config):
                 for c in config.to_sequence():
                     ext = self.extension(c)
                     c.name = self.name + (ext if ext != "" else "")
-                    yield c
+                    yield Config(**c)
             else:
                 ext = self.extension(config)
                 config.name = self.name + (ext if ext != "" else "")
-                yield config
+                yield Config(**config)
 
     def copy(self):
-        return self.__class__(**self._state)
+        return self.__class__(**self._state.copy())
 
     def extension(self, config):
         ext = ""
@@ -125,3 +151,36 @@ class MetaConfig(Config):
             elif issubclass(v.__class__, MetaConfig):
                 ext += self[k].extension(config[k])
         return ext
+
+    def summarize_subconfig(self, config: Config):
+        values = {}
+        for k, v in self._state.items():
+            if isinstance(v, ParameterSequence) and not issubclass(
+                v[0].__class__, Config
+            ):
+                values[k] = config._state[k]
+            elif isinstance(v, ParameterSequence) and issubclass(
+                v[0].__class__, MetaConfig
+            ):
+                for vv in v:
+                    if vv.name != config._state[k].name:
+                        continue
+                    values.update(
+                        {
+                            k + self.separator + _k: _v
+                            for _k, _v in vv.summarize_subconfig(
+                                config._state[k]
+                            ).items()
+                        }
+                    )
+                    break
+            elif issubclass(v.__class__, MetaConfig):
+                values.update(
+                    {
+                        k + self.separator + _k: _v
+                        for _k, _v in v.summarize_subconfig(
+                            config._state[k]
+                        ).items()
+                    }
+                )
+        return values
