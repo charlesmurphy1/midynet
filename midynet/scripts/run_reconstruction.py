@@ -1,11 +1,11 @@
 import os
 import argparse
 import pyhectiqlab
+import logging
 
 import midynet
 
-
-def main():
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Run a reconstruction numerical experiment."
     )
@@ -36,7 +36,7 @@ def main():
 
     run = pyhectiqlab.Run(args.name, project="dynamica/midynet")
     run.add_config(config)
-    logger = run.add_log_stream("pyhectiqlab")
+    logger = run.add_log_stream(level=20)
     metrics = midynet.config.MetricsFactory.build(config)
 
     run.running()
@@ -46,7 +46,4 @@ def main():
         path_to_metrics = metrics[k].to_pickle(config.path)
         run.add_artifact(path_to_metrics)
     run.completed()
-
-
-if __name__ == "__main__":
-    main()
+    run.logs_buffer.flush_cache()
