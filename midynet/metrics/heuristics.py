@@ -51,7 +51,9 @@ class ReconstructionHeuristicsMethod:
         true[true > 1] = 1
         for m in measures:
             if hasattr(self, "collect_" + m):
-                self.__results__[m] = getattr(self, "collect_" + m)(true, self.pred)
+                self.__results__[m] = getattr(self, "collect_" + m)(
+                    true, self.pred
+                )
             else:
                 warnings.warn(
                     f"no collector named `{m}` has been found, proceeding anyway.",
@@ -72,7 +74,9 @@ class ReconstructionHeuristicsMethod:
         threshold = kwargs.get("threshold", norm_pred.mean())
         norm_pred = self.normalize_weights(pred).reshape(-1)
         true = true.reshape(-1)
-        cm = confusion_matrix(true, (norm_pred > threshold).astype("float").reshape(-1))
+        cm = confusion_matrix(
+            true, (norm_pred > threshold).astype("float").reshape(-1)
+        )
         tn, fp, fn, tp = cm.ravel()
 
         return dict(threshold=threshold, tn=tn, fp=fp, fn=fn, tp=tp)
@@ -82,12 +86,16 @@ class ReconstructionHeuristicsMethod:
         pred = self.normalize_weights(pred).reshape(-1).astype("float")
         true = true.reshape(-1).astype("int")
         fpr, tpr, thresholds = roc_curve(true, pred)
+        if len(np.unique(true)) == 1:
+            return dict(fpr=0, tpr=0, auc=0, thresholds=0)
         auc = roc_auc_score(true, pred)
 
         return dict(fpr=fpr, tpr=tpr, auc=auc, thresholds=thresholds)
 
 
-class WeightbasedReconstructionHeuristicsMethod(ReconstructionHeuristicsMethod):
+class WeightbasedReconstructionHeuristicsMethod(
+    ReconstructionHeuristicsMethod
+):
     def __init__(self, model, nanfill=None):
         self.model = model
         self.nanfill = 0 if nanfill is None else nanfill
@@ -103,7 +111,9 @@ class WeightbasedReconstructionHeuristicsMethod(ReconstructionHeuristicsMethod):
         self.__results__["pred"] = weights
 
 
-class GraphbasedReconstructionHeuristicsMethod(ReconstructionHeuristicsMethod):
+class GraphbasedReconstructionHeuristicsMethod(
+    ReconstructionHeuristicsMethod
+):
     def __init__(self, model):
         self.model = model
         super().__init__()
@@ -143,12 +153,15 @@ def get_heuristics_reconstructor(config):
     if config.method in reconstructors:
         return reconstructors[config.method]()
     else:
-        raise OptionError(actual=config.method, expected=reconstructors.keys())
+        raise OptionError(
+            actual=config.method, expected=reconstructors.keys()
+        )
 
 
-@dataclass
 class ReconstructionHeuristics(Expectation):
-    config: Config = field(repr=False, default_factory=Config)
+    def __init__(self, config: Config, **kwargs):
+        self.config = config
+        super().__init__(**kwargs)
 
     def func(self, seed: int) -> float:
         gi_seed(seed)
@@ -159,7 +172,9 @@ class ReconstructionHeuristics(Expectation):
 
         data_model.sample()
         timeseries = np.array(data_model.get_past_states()).T
-        heuristics = get_heuristics_reconstructor(self.config.metrics.heuristics)
+        heuristics = get_heuristics_reconstructor(
+            self.config.metrics.heuristics
+        )
         heuristics.fit(timeseries)
         heuristics.compare(graph_model.get_state(), collectors=["roc"])
 
@@ -170,12 +185,13 @@ class ReconstructionHeuristicsMetrics(Metrics):
     def eval(self, config: Config):
         heuristics_auc = ReconstructionHeuristics(
             config=config,
-            num_procs=config.get_value("num_procs", 1),
-            seed=config.get_value("seed", int(time.time())),
+            num_procs=config.get("num_procs", 1),
+            seed=config.get("seed", int(time.time())),
         )
         samples = heuristics_auc.compute(
-            config.metrics.heuristics.get_value("num_samples", 10)
+            config.metrics.heuristics.get("num_samples", 10)
         )
         return Statistics.compute(
-            samples, error_type=config.metrics.heuristics.get_value("error_type", "std")
+            samples,
+            error_type=config.metrics.heuristics.get("error_type", "std"),
         )

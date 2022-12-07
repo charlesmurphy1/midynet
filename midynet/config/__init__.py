@@ -1,5 +1,4 @@
-from .parameter import Parameter
-from .config import Config
+from .config import Config, ParameterSequence
 from .factory import (
     Factory,
     MissingRequirementsError,
@@ -14,18 +13,18 @@ from .experiment import ExperimentConfig
 
 
 __all__ = (
+    "ParameterSequence",
     "Config",
-    "Parameter",
     "Factory",
     "MissingRequirementsError",
     "OptionError",
     "UnavailableOption",
-    "RandomGraphConfig",
+    "GraphConfig",
     "DataModelConfig",
     "MetricsConfig",
     "MetricsCollectionConfig",
     "ExperimentConfig",
     "DataModelFactory",
-    "RandomGraphFactory",
+    "GraphFactory",
     "MetricsFactory",
 )

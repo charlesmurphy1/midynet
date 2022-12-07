@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from .config import Config
+from midynet.config import Config
 
 __all__ = (
     "UnavailableOption",
@@ -44,8 +44,6 @@ class MissingRequirementsError(Exception):
 class Factory:
     @classmethod
     def build(cls, config: Config) -> Any:
-        if config.unmet_requirements():
-            raise MissingRequirementsError(config)
         options = {
             k[6:]: getattr(cls, k)
             for k in cls.__dict__.keys()

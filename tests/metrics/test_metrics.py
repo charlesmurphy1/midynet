@@ -1,40 +1,54 @@
 import pathlib
 from dataclasses import dataclass
 
+import time
 import numpy as np
 import pytest
 
 from midynet import metrics
 from midynet.config import (
+    ParameterSequence,
     Config,
     DataModelConfig,
     GraphConfig,
+    MetricsConfig,
     MetricsCollectionConfig,
     ExperimentConfig,
 )
 
 
-@dataclass
 class DummyMetrics(metrics.Metrics):
-    value: float = np.pi
-
     def eval(self, config):
-        return {"dummy": self.value}
+        # time.sleep(0.1)
+        return {"dummy": np.pi}
+
+
+class DummyLogger:
+    def __init__(self, name="Dummy"):
+        self.name = name
+
+    def info(self, msg):
+        print(msg)
 
 
 @pytest.fixture
-def base_metrics():
+def config():
     coupling = np.linspace(0, 10, 2)
     infection_prob = np.linspace(0, 10, 2)
     N = [10, 100]
     d = DataModelConfig.auto(["glauber", "sis"])
-    d[0].set_value("coupling", coupling)
-    d[1].set_value("infection_prob", infection_prob)
+    d[0].coupling = ParameterSequence(coupling.tolist())
+    d[1].infection_prob = ParameterSequence(infection_prob.tolist())
 
     g = GraphConfig.auto("erdosrenyi")
-    g.set_value("size", N)
+    g.size = N
     config = Config(name="test", data_model=d, prior=g)
-    return DummyMetrics(config=config)
+    return config
+
+
+@pytest.fixture
+def basemetrics():
+    return DummyMetrics("test")
 
 
 def test_basemetrics_set_up():
@@ -49,45 +63,32 @@ def test_basemetrics_eval():
     pass
 
 
-def test_basemetrics_compute(base_metrics):
-    base_metrics.compute()
-    for name, data in base_metrics.data.items():
-        for key, value in data.items():
-            assert np.all(value == np.pi)
+def test_basemetrics_compute(config, basemetrics):
+    basemetrics.compute(config, logger=None)
+    for name, data in basemetrics.data.items():
+        assert "dummy" in data
+        assert (
+            "data_model.coupling"
+            if name == "test.glauber"
+            else "data_model.infection_prob"
+        ) in data
+        assert np.all(data.dummy == np.pi)
 
 
-def test_basemetrics_format_data(base_metrics):
-    base_metrics.compute()
+def test_basemetrics_to_pickle(config, basemetrics):
+    basemetrics.compute(config)
+    # basemetrics.to_pickle(config.path)
+    # pathlib.Path("metrics.pkl").unlink()
 
 
-def test_basemetrics_flatten(base_metrics):
-    base_metrics.compute()
-    flat_data = base_metrics.flatten(base_metrics.data)
-    for name, data in flat_data.items():
-        for key, value in data.items():
-            assert np.all(value == np.pi)
-
-
-def test_basemetrics_save(base_metrics):
-    base_metrics.compute()
-    base_metrics.save("metrics.pickle")
-    pathlib.Path("metrics.pickle").unlink()
-
-
-def test_basemetrics_load(base_metrics):
-    base_metrics.compute()
-    base_metrics.save("metrics.pickle")
-    base_metrics.load("metrics.pickle")
-    pathlib.Path("metrics.pickle").unlink()
+def test_basemetrics_read_pickle(config, basemetrics):
+    basemetrics.compute(config)
+    # basemetrics.to_pickle("metrics.pkl")
+    # basemetrics.read_pickle("metrics.pkl")
+    # pathlib.Path("metrics.pkl").unlink()
 
 
 metrics_dict = {
-    # "data_entropy": metrics.DataEntropyMetrics,
-    # "data_prediction_entropy": metrics.DataPredictionEntropyMetrics,
-    # "graph_entropy": metrics.GraphEntropyMetrics,
-    # "graph_reconstruction_entropy": metrics.GraphReconstructionEntropyMetrics,
-    # "reconstructability": metrics.ReconstructabilityMetrics,
-    # "predictability": metrics.PredictabilityMetrics,
     "recon_information": metrics.ReconstructionInformationMeasuresMetrics,
     "heuristics": metrics.ReconstructionHeuristicsMetrics,
 }
@@ -103,43 +104,45 @@ def args(request):
         num_procs=1,
         seed=1,
     )
-    c.set_value("data_model.num_steps", 100)
-    c.set_value("data_model.infection_prob", [0.0, 0.5])
-    c.set_value("prior.size", 5)
-    c.set_value("prior.edge_count", 5)
-    c.set_value(
-        "metrics",
-        MetricsCollectionConfig.auto(request.param),
-    )
-    mcf = c.metrics.get_value(request.param)
-    mcf.set_value("num_samples", 1)
-    if "method" in mcf and mcf.name != "heuristics":
-        mcf.set_value("method", ["arithmetic", "harmonic", "meanfield", "annealed"])
-        mcf.set_value("initial_burn", 1)
-        mcf.set_value("K", 2)
-        mcf.set_value("num_sweeps", 10)
-        mcf.set_value("burn_per_vertex", 1)
-        mcf.set_value("start_from_original", True)
-    elif mcf.name == "heuristics":
-        mcf.set_value(
-            "method",
-            [
-                "correlation",
-                "granger_causality",
-                "transfer_entropy",
-                "mutual_information",
-                "partial_correlation",
-                "correlation_spanning_tree",
-            ],
-        )
-    c.metrics.set_value(request.param, mcf)
+    c.data_model.num_steps = 5
+    c.data_model.infection_prob = [0.0, 0.5]
+    c.data_model.as_sequence("infection_prob")
+    c.prior.size = 3
+    c.prior.edge_count = 2
+    c.metrics = MetricsCollectionConfig.auto(request.param)
+    name = c.metrics.metrics_names[0]
+    if name == "recon_information":
+        c.metrics.recon_information.method = [
+            "arithmetic",
+            "harmonic",
+            "meanfield",
+            "annealed",
+        ]
+        c.metrics.recon_information.as_sequence("method")
+        c.metrics.recon_information.initial_burn = 1
+        c.metrics.recon_information.K = 2
+        c.metrics.recon_information.num_sweeps = 10
+        c.metrics.recon_information.burn_per_vertex = 1
+        c.metrics.recon_information.start_from_original = True
+        c.metrics.recon_information.num_samples = 1
+    elif name == "heuristics":
+        c.metrics.heuristics.method = [
+            "correlation",
+            "granger_causality",
+            "transfer_entropy",
+            "mutual_information",
+            "partial_correlation",
+            "correlation_spanning_tree",
+        ]
+        c.metrics.heuristics.as_sequence("method")
+        c.metrics.heuristics.num_samples = 1
     return c, metrics_dict[request.param]
 
 
 def test_eval(args):
     config, metrics = args
-    m = metrics(config)
-    for c in config.sequence():
+    m = metrics()
+    for c in config.to_sequence():
         m.eval(c)
 
 

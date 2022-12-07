@@ -9,11 +9,10 @@ from graphinf.random_graph import (
     PoissonModel,
     NegativeBinomialModel,
     ConfigurationModelFamily,
-    PlantedPartitionModel,
     StochasticBlockModelFamily,
 )
 
-from .config import Config
+from midynet.config import Config, ParameterSequence
 from .factory import Factory, UnavailableOption
 
 __all__ = ("GraphConfig", "GraphFactory")
@@ -21,13 +20,23 @@ __all__ = ("GraphConfig", "GraphFactory")
 
 class GraphConfig(Config):
     @classmethod
-    def auto(cls, config_type: Any, *others: Any, **kwargs: Any):
-        if isinstance(config_type, str) and config_type[:2] == "gt":
-            graph = config_type[3:]
-            return cls(name="gtdata", graph_name=graph)
-        if isinstance(config_type, str) or issubclass(type(config_type), Config):
-            return cls.__auto__(config_type, *others, **kwargs)
-        return [cls.__auto__(c, *others, **kwargs) for c in config_type]
+    def auto(cls, config: str or Config, *args, **kwargs):
+        configs = [config] if not isinstance(config, list) else config
+        res = []
+        for c in configs:
+            if c in cls.__dict__:
+                res.append(getattr(cls, c)(*args, **kwargs))
+            elif isinstance(c, cls):
+                res.append(c)
+            else:
+                t = c if isinstance(c, str) else type(c)
+                message = f"Invalid config type `{t}` for auto build of object `{cls.__name__}`."
+                raise TypeError(message)
+        if len(res) == 1:
+            return res[0]
+        elif len(res) == 0:
+            return
+        return ParameterSequence(res)
 
     @classmethod
     def erdosrenyi(
@@ -43,6 +52,7 @@ class GraphConfig(Config):
         return cls(
             name="erdosrenyi",
             size=size,
+            likelihood_type=likelihood_type,
             edge_count=edge_count,
             canonical=canonical,
             with_self_loops=with_self_loops,

@@ -20,3 +20,5 @@ fast-midynet.sublime-workspace
 dist/
 *.coverage
 *.tox
+
+archive-*

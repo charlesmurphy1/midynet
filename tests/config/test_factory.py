@@ -56,7 +56,9 @@ random_graph_setup = [
         id="sbm",
     ),
     pytest.param(
-        GraphConfig.stochastic_block_model(100, 250, label_graph_prior_type="nested"),
+        GraphConfig.stochastic_block_model(
+            100, 250, label_graph_prior_type="nested"
+        ),
         GraphFactory,
         lambda obj: obj.sample(),
         id="hsbm",
@@ -73,7 +75,9 @@ random_graph_setup = [
         id="hdcsbm",
     ),
     pytest.param(
-        GraphConfig.planted_partition(size=100, edge_count=250, block_count=4),
+        GraphConfig.planted_partition(
+            size=100, edge_count=250, block_count=4
+        ),
         GraphFactory,
         lambda obj: obj.sample(),
         id="pp",
@@ -90,57 +94,65 @@ def sample_dynamics(obj):
 
 
 data_setup = [
-    pytest.param(DataModelConfig.sis(), DataModelFactory, sample_dynamics, id="sis"),
     pytest.param(
-        DataModelConfig.glauber(), DataModelFactory, sample_dynamics, id="glauber"
+        DataModelConfig.sis(), DataModelFactory, sample_dynamics, id="sis"
+    ),
+    pytest.param(
+        DataModelConfig.glauber(),
+        DataModelFactory,
+        sample_dynamics,
+        id="glauber",
     ),
     pytest.param(
         DataModelConfig.cowan(), DataModelFactory, sample_dynamics, id="cowan"
     ),
     pytest.param(
-        DataModelConfig.degree(), DataModelFactory, sample_dynamics, id="degree"
+        DataModelConfig.degree(),
+        DataModelFactory,
+        sample_dynamics,
+        id="degree",
     ),
 ]
 
 
-metrics_setup = [
-    pytest.param(
-        ExperimentConfig.reconstruction(
-            "test", "glauber", "erdosrenyi", metrics=["recon_information"]
-        ),
-        MetricsFactory,
-        lambda obj: None,
-        id="metrics",
-    )
-]
+# metrics_setup = [
+#     pytest.param(
+#         ExperimentConfig.reconstruction(
+#             "test", "glauber", "erdosrenyi", metrics=["recon_information"]
+#         ),
+#         MetricsFactory,
+#         lambda obj: None,
+#         id="metrics",
+#     )
+# ]
 
 
 @pytest.mark.parametrize(
     "config, factory, run",
-    [*random_graph_setup, *data_setup, *metrics_setup],
+    [*random_graph_setup, *data_setup],
 )
 def test_build_from_config(config, factory, run):
-    factory.build(config)
+    run(factory.build(config))
 
 
-@pytest.mark.parametrize(
-    "config, factory, run",
-    [
-        *random_graph_setup,
-        *metrics_setup,
-        *data_setup,
-    ],
-)
-def test_run_after_creation(config, factory, run):
-    obj = factory.build(config)
-    run(obj)
+# @pytest.mark.parametrize(
+#     "config, factory, run",
+#     [
+#         *random_graph_setup,
+#         *metrics_setup,
+#         *data_setup,
+#     ],
+# )
+# def test_run_after_creation(config, factory, run):
+#     obj = factory.build(config)
+#     run(obj)
 
 
-def test_loading_graph():
-    c = GraphConfig.auto("gt-karate")
-    g = GraphFactory.build(c)
-    assert g.get_size() == 34
-    assert g.get_total_edge_number() == 78
+# def test_loading_graph():
+#     c = GraphConfig.auto("gt-karate")
+#     g = GraphFactory.build(c)
+#     assert g.get_size() == 34
+#     assert g.get_total_edge_number() == 78
 
 
 if __name__ == "__main__":
