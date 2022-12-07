@@ -9,28 +9,34 @@ from graphinf.random_graph import (
     PoissonModel,
     NegativeBinomialModel,
     ConfigurationModelFamily,
-    PlantedPartitionModel,
     StochasticBlockModelFamily,
 )
 
-from midynet.config import MetaConfig, Config
+from midynet.config import Config, ParameterSequence
 from .factory import Factory, UnavailableOption
 
 __all__ = ("GraphConfig", "GraphFactory")
 
 
-class GraphConfig(MetaConfig):
+class GraphConfig(Config):
     @classmethod
-    def auto(cls, config: str or MetaConfig or Config, *args, **kwargs):
-        if config in cls.__dict__:
-            return getattr(cls, config)(*args, **kwargs)
-        elif isinstance(config, cls):
-            return config
-        else:
-            t = config if isinstance(config, str) else type(config)
-
-            message = f"Invalid config type `{t}` for auto build of object `{cls.__name__}`."
-            raise TypeError(message)
+    def auto(cls, config: str or Config, *args, **kwargs):
+        configs = [config] if not isinstance(config, list) else config
+        res = []
+        for c in configs:
+            if c in cls.__dict__:
+                res.append(getattr(cls, c)(*args, **kwargs))
+            elif isinstance(c, cls):
+                res.append(c)
+            else:
+                t = c if isinstance(c, str) else type(c)
+                message = f"Invalid config type `{t}` for auto build of object `{cls.__name__}`."
+                raise TypeError(message)
+        if len(res) == 1:
+            return res[0]
+        elif len(res) == 0:
+            return
+        return ParameterSequence(res)
 
     @classmethod
     def erdosrenyi(

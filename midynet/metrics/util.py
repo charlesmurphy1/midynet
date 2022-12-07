@@ -87,7 +87,7 @@ def get_log_evidence_annealed(
         if verbose:
             print(f"beta: {lb}")
         mcmc.set_beta_likelihood(lb)
-        if config.get_value("start_from_original", False):
+        if config.get("start_from_original", False):
             data_model.set_graph(original_graph)
         else:
             data_model.sample_prior()
@@ -149,7 +149,7 @@ def get_log_evidence(
     data_model: DataModelWrapper, config: Config = None, **kwargs
 ):
     config = Config(**kwargs) if config is None else config
-    method = config.get_value("method", "meanfield")
+    method = config.get("method", "meanfield")
     functions = {
         "exact": get_log_evidence_exact,
         "exact_meanfield": get_log_evidence_exact_meanfield,
@@ -206,7 +206,7 @@ def get_log_posterior_meanfield(
     )
     mcmc.insert_callback("collector", callback)
     callback.collect()
-    if not config.get_value("start_from_original", False):
+    if not config.get("start_from_original", False):
         data_model.sample_prior()
     burn = config.burn_per_vertex * data_model.get_size()
     s, f = mcmc.do_MH_sweep(burn=config.initial_burn)
@@ -289,7 +289,7 @@ def get_log_posterior(
     data_model: DataModelWrapper, config: Config = None, **kwargs
 ):
     config = Config(**kwargs) if config is None else config
-    method = config.get_value("method", "meanfield")
+    method = config.get("method", "meanfield")
     functions = {
         "exact": get_log_posterior_exact,
         "exact_meanfield": get_log_posterior_exact_meanfield,
@@ -343,26 +343,26 @@ def get_graph_log_evidence_meanfield(
         return 0.0
     og_p = graph_model.get_labels()
     og_g = graph_model.get_state()
-    burn = config.get_value("burn_per_vertex", 10) * graph_model.get_size()
+    burn = config.get("burn_per_vertex", 10) * graph_model.get_size()
 
     mcmc = PartitionReconstructionMCMC(graph_model)
-    if not config.get_value("start_from_original", True):
+    if not config.get("start_from_original", True):
         graph_model.sample()
         graph_model.set_state(og_g)
 
-    _, _ = mcmc.do_MH_sweep(burn=config.get_value("initial_burn", burn))
+    _, _ = mcmc.do_MH_sweep(burn=config.get("initial_burn", burn))
 
     callback = CollectPartitionOnSweep(nested=graph_model.nested)
     mcmc.insert_callback("partitions", callback)
 
-    for i in range(config.get_value("num_sweeps", 100)):
+    for i in range(config.get("num_sweeps", 100)):
         _s, _f = mcmc.do_MH_sweep(burn=burn)
 
     partitions = callback.get_data()
     pmodes = ModeClusterState(
         partitions, nested=graph_model.nested
     )  # from graph-tool
-    if config.get_value("equilibrate_mode_cluster", False):
+    if config.get("equilibrate_mode_cluster", False):
         mcmc_equilibrate(pmodes, force_niter=1, verbose=True)
     samples = []
     for p in partitions:
@@ -402,23 +402,23 @@ def get_graph_log_evidence_annealed(
     mcmc.insert_callback("likelihoods", callback)
     og_p = mcmc.get_labels()
 
-    burn = config.get_value("burn_per_vertex", 10) * graph_model.get_size()
+    burn = config.get("burn_per_vertex", 10) * graph_model.get_size()
     logp = []
 
-    beta_k = np.linspace(0, 1, config.get_value("num_betas", 100) + 1) ** (
-        1 / config.get_value("exp_betas", 0.5)
+    beta_k = np.linspace(0, 1, config.get("num_betas", 100) + 1) ** (
+        1 / config.get("exp_betas", 0.5)
     )
     for lb, ub in zip(beta_k[:-1], beta_k[1:]):
         if verbose:
             print(f"beta: {lb}")
         mcmc.set_beta_likelihood(lb)
-        if config.get_value("start_from_original", True):
+        if config.get("start_from_original", True):
             graph_model.set_labels(og_p)
         else:
             graph_model.sample_prior()
-        s, f = mcmc.do_MH_sweep(burn=config.get_value("initial_burn", burn))
+        s, f = mcmc.do_MH_sweep(burn=config.get("initial_burn", burn))
 
-        for i in range(config.get_value("num_sweeps", 1000)):
+        for i in range(config.get("num_sweeps", 1000)):
             mcmc.do_MH_sweep(burn=burn)
         logp_k = (ub - lb) * np.array(callback.get_data())
         logp.append(log_mean_exp(logp_k))
@@ -434,7 +434,7 @@ def get_graph_log_evidence(
 ) -> float:
     config = Config(**kwargs) if config is None else config
 
-    method = config.get_value("method", "meanfield")
+    method = config.get("method", "meanfield")
 
     if not graph_model.labeled:
         return graph_model.get_log_joint()

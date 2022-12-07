@@ -5,8 +5,7 @@ import time
 import warnings
 
 from graphinf.utility import seed as gi_seed
-from pyhectiqlab import Config
-from midynet.config import OptionError, GraphFactory, DataModelFactory
+from midynet.config import Config, OptionError, GraphFactory, DataModelFactory
 from .metrics import Metrics
 from .multiprocess import Expectation
 from midynet.statistics import Statistics
@@ -87,6 +86,8 @@ class ReconstructionHeuristicsMethod:
         pred = self.normalize_weights(pred).reshape(-1).astype("float")
         true = true.reshape(-1).astype("int")
         fpr, tpr, thresholds = roc_curve(true, pred)
+        if len(np.unique(true)) == 1:
+            return dict(fpr=0, tpr=0, auc=0, thresholds=0)
         auc = roc_auc_score(true, pred)
 
         return dict(fpr=fpr, tpr=tpr, auc=auc, thresholds=thresholds)
@@ -157,9 +158,10 @@ def get_heuristics_reconstructor(config):
         )
 
 
-@dataclass
 class ReconstructionHeuristics(Expectation):
-    config: Config = field(repr=False, default_factory=Config)
+    def __init__(self, config: Config, **kwargs):
+        self.config = config
+        super().__init__(**kwargs)
 
     def func(self, seed: int) -> float:
         gi_seed(seed)
@@ -183,15 +185,13 @@ class ReconstructionHeuristicsMetrics(Metrics):
     def eval(self, config: Config):
         heuristics_auc = ReconstructionHeuristics(
             config=config,
-            num_procs=config.get_value("num_procs", 1),
-            seed=config.get_value("seed", int(time.time())),
+            num_procs=config.get("num_procs", 1),
+            seed=config.get("seed", int(time.time())),
         )
         samples = heuristics_auc.compute(
-            config.metrics.heuristics.get_value("num_samples", 10)
+            config.metrics.heuristics.get("num_samples", 10)
         )
         return Statistics.compute(
             samples,
-            error_type=config.metrics.heuristics.get_value(
-                "error_type", "std"
-            ),
+            error_type=config.metrics.heuristics.get("error_type", "std"),
         )

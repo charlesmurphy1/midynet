@@ -1,7 +1,6 @@
 import multiprocessing as mp
 import multiprocessing.pool
 import time
-from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -24,13 +23,13 @@ class NoDaemonContext(type(mp.get_context())):
 
 class NestablePool(multiprocessing.pool.Pool):
     def __init__(self, *args, **kwargs):
-        kwargs['context'] = NoDaemonContext()
+        kwargs["context"] = NoDaemonContext()
         super(NestablePool, self).__init__(*args, **kwargs)
 
 
-@dataclass
 class MultiProcess:
-    num_procs: int = 1
+    def __init__(self, num_procs: int = 1):
+        self.num_procs = num_procs
 
     def func(self, inputs):
         raise NotImplementedError()
@@ -41,9 +40,10 @@ class MultiProcess:
         return out
 
 
-@dataclass
 class Expectation(MultiProcess):
-    seed: int = field(default_factory=lambda: int(time.time()))
+    def __init__(self, num_procs: int = 1, seed=None):
+        self.num_procs = num_procs
+        self.seed = seed if seed is not None else int(time.time())
 
     def func(self, seed: int) -> float:
         raise NotImplementedError()

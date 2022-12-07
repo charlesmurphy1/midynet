@@ -7,13 +7,13 @@ from graphinf.data_model.dynamics import (
     SISDynamics,
     GlauberDynamics,
 )
-from midynet.config import Config, MetaConfig
+from midynet.config import Config
 from .factory import Factory, OptionError, MissingRequirementsError
 
 __all__ = ("DataModelConfig", "DataModelFactory")
 
 
-class DataModelConfig(MetaConfig):
+class DataModelConfig(Config):
     @classmethod
     def glauber(
         cls,

@@ -4,16 +4,16 @@ import pytest
 
 from midynet.config import (
     Config,
-    MetaConfig,
     ParameterSequence,
     GraphConfig,
     DataModelConfig,
+    ExperimentConfig,
 )
 
 
 @pytest.fixture
 def config():
-    return MetaConfig(x=1, y=2)
+    return Config(x=1, y=2)
 
 
 def test_baseconfig_for_attributes(config):
@@ -33,8 +33,8 @@ def test_baseconfig_to_sequenc(config):
 
 @pytest.fixture
 def nested_config():
-    c = MetaConfig("sub", x=1, y=2)
-    return MetaConfig(name="base", z=3, c=c)
+    c = Config("sub", x=1, y=2)
+    return Config(name="base", z=3, c=c)
 
 
 def test_get_with_nestedconfig(nested_config):
@@ -62,7 +62,7 @@ def test_nestedconfig_to_sequence(nested_config):
 
 @pytest.fixture
 def sequenced_config():
-    return MetaConfig(x=1, y=ParameterSequence([0, 1, 2, 3]))
+    return Config(x=1, y=ParameterSequence([0, 1, 2, 3]))
 
 
 def test_sequencedconfig_for_attributes(sequenced_config):
@@ -85,9 +85,9 @@ def test_sequencedconfig_to_sequence(sequenced_config):
 
 @pytest.fixture
 def sequenced_nested_config():
-    c1 = MetaConfig(name="case1", x=1, y=ParameterSequence([0, 1, 2, 3]))
-    c2 = MetaConfig(name="case2", xx=1, yy=2)
-    return MetaConfig(name="base", z=3, c=ParameterSequence([c1, c2]))
+    c1 = Config(name="case1", x=1, y=ParameterSequence([0, 1, 2, 3]))
+    c2 = Config(name="case2", xx=1, yy=2)
+    return Config(name="base", z=3, c=ParameterSequence([c1, c2]))
 
 
 def test_sequencednestedconfig_for_attributes(sequenced_nested_config):
@@ -96,7 +96,7 @@ def test_sequencednestedconfig_for_attributes(sequenced_nested_config):
         "c" in sequenced_nested_config and len(sequenced_nested_config.c) == 2
     )
     for c in sequenced_nested_config.c:
-        assert issubclass(c.__class__, MetaConfig)
+        assert issubclass(c.__class__, Config)
 
 
 def test_sequencednestedconfig_is_sequenced(sequenced_nested_config):
@@ -107,19 +107,19 @@ def test_sequencednestedconfig_to_sequence(sequenced_nested_config):
     seq = list(sequenced_nested_config.to_sequence())
     assert len(seq) == 5
     for s in seq:
-        assert len(s.name.split(MetaConfig.separator)) == 2
+        assert len(s.name.split(Config.separator)) == 2
 
 
 def test_sequencednestedconfig_dict_and_back(sequenced_nested_config):
-    c = MetaConfig.from_dict(sequenced_nested_config.dict)
+    c = Config.from_dict(sequenced_nested_config.dict)
     assert c.dict == sequenced_nested_config.dict
 
 
 def test_highly_nested_config():
-    c1 = MetaConfig(name="case1", x=1, y=ParameterSequence([0, 1, 2, 3]))
-    c2 = MetaConfig(name="case2", x=1, y=ParameterSequence([0, 1, 2, 3]))
-    c3 = MetaConfig(name="case3", xx=1, yy=2, c=c2)
-    config = MetaConfig(
+    c1 = Config(name="case1", x=1, y=ParameterSequence([0, 1, 2, 3]))
+    c2 = Config(name="case2", x=1, y=ParameterSequence([0, 1, 2, 3]))
+    c3 = Config(name="case3", xx=1, yy=2, c=c2)
+    config = Config(
         name="base",
         z=3,
         c=ParameterSequence([c1, c3]),
@@ -127,7 +127,6 @@ def test_highly_nested_config():
     )
     for c in config.to_sequence():
         assert isinstance(c, Config)
-        # print(config.summary(c))
 
 
 @pytest.mark.parametrize(
@@ -158,6 +157,23 @@ def test_datamodel_config(config):
     c = config()
     assert "name" in c
     assert c.name == config.__name__
+
+
+def test_exp_config():
+    c = ExperimentConfig.reconstruction("test", "sis", "erdosrenyi")
+    assert "data_model" in c and issubclass(c.data_model.__class__, Config)
+    assert "prior" in c and issubclass(c.prior.__class__, Config)
+
+    c = ExperimentConfig.reconstruction(
+        "test",
+        ["sis", "glauber", "cowan"],
+        ["erdosrenyi", "configuration", "stochastic_block_model"],
+    )
+    assert "data_model" in c and issubclass(
+        c.data_model.__class__, ParameterSequence
+    )
+    assert "prior" in c and issubclass(c.prior.__class__, ParameterSequence)
+    print(c)
 
 
 if __name__ == "__main__":

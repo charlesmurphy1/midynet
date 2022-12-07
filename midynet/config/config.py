@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from itertools import product
 from typing import List
-from pyhectiqlab import Config as Config
+from pyhectiqlab import Config as BaseConfig
 from copy import deepcopy
 
 
@@ -10,7 +10,7 @@ class ParameterSequence(list):
     pass
 
 
-class MetaConfig(Config):
+class Config(BaseConfig):
     separator: str = "."
 
     def __init__(self, name="config", **kwargs):
@@ -64,20 +64,22 @@ class MetaConfig(Config):
         if isinstance(data, dict) == False:
             return data
 
-        config = MetaConfig()
+        config = Config()
         for key in data:
             if isinstance(data[key], dict):
-                config[key] = MetaConfig.from_dict(data[key])
-            elif issubclass(data[key].__class__, list):
-                config[key] = [MetaConfig.from_dict(d) for d in data[key]]
+                config[key] = Config.from_dict(data[key])
+            elif issubclass(data[key].__class__, list) and isinstance(
+                data[key][0], dict
+            ):
+                config[key] = [Config.from_dict(d) for d in data[key]]
             else:
                 config[key] = data[key]
+            if isinstance(config[key], list):
+                config.as_sequence(key)
         return config
 
     @classmethod
-    def auto(
-        cls, config: str or MetaConfig or List[MetaConfig], *args, **kwargs
-    ):
+    def auto(cls, config: str or Config or List[Config], *args, **kwargs):
         configs = [config] if not isinstance(config, list) else config
         res = []
         for config in configs:
@@ -90,7 +92,7 @@ class MetaConfig(Config):
                 message = f"Invalid config type `{t}` for auto build of object `{cls.__name__}`."
                 raise TypeError(message)
         if len(res) == 1:
-            res = res[0]
+            return res[0]
         elif len(res) == 0:
             return
         return ParameterSequence(res)
@@ -99,7 +101,7 @@ class MetaConfig(Config):
         for k, v in self._state.items():
             if isinstance(v, ParameterSequence):
                 return True
-            elif isinstance(v, MetaConfig) and v.is_sequenced():
+            elif isinstance(v, Config) and v.is_sequenced():
                 return True
         return False
 
@@ -121,7 +123,7 @@ class MetaConfig(Config):
             if isinstance(v, ParameterSequence):
                 keys_to_scan.append(k)
                 values_to_scan.append(v)
-            elif issubclass(v.__class__, MetaConfig) and v.is_sequenced():
+            elif issubclass(v.__class__, Config) and v.is_sequenced():
                 keys_to_scan.append(k)
                 values_to_scan.append(v.to_sequence())
         for values in product(*values_to_scan):
@@ -147,8 +149,8 @@ class MetaConfig(Config):
             if isinstance(v, list) and all(
                 [issubclass(vv.__class__, Config) for vv in v]
             ):
-                ext += MetaConfig.separator + config[k].name
-            elif issubclass(v.__class__, MetaConfig):
+                ext += Config.separator + config[k].name
+            elif issubclass(v.__class__, Config):
                 ext += self[k].extension(config[k])
         return ext
 
@@ -160,7 +162,7 @@ class MetaConfig(Config):
             ):
                 values[k] = config._state[k]
             elif isinstance(v, ParameterSequence) and issubclass(
-                v[0].__class__, MetaConfig
+                v[0].__class__, Config
             ):
                 for vv in v:
                     if vv.name != config._state[k].name:
@@ -174,7 +176,7 @@ class MetaConfig(Config):
                         }
                     )
                     break
-            elif issubclass(v.__class__, MetaConfig):
+            elif issubclass(v.__class__, Config):
                 values.update(
                     {
                         k + self.separator + _k: _v

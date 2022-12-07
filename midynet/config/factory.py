@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from midynet.config import Config, MetaConfig
+from midynet.config import Config
 
 __all__ = (
     "UnavailableOption",
