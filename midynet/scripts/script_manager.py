@@ -30,7 +30,9 @@ class ScriptManager:
     path_to_scripts: pathlib.Path = field(
         repr=True, default_factory=pathlib.Path, init=True
     )
-    path_to_log: Optional[pathlib.Path] = field(repr=True, default=None, init=True)
+    path_to_log: Optional[pathlib.Path] = field(
+        repr=True, default=None, init=True
+    )
 
     def __post_init__(self):
         if isinstance(self.path_to_scripts, str):
@@ -46,7 +48,7 @@ class ScriptManager:
     def write_script(
         self,
         config: Config,
-        resources: dict = None,
+        run_name: Optional[str] = None,
         resource_prefix: str = "#SBATCH",
         nametag: str = "generic",
         modules_to_load: list[str] = None,
@@ -54,10 +56,7 @@ class ScriptManager:
         extra_args: dict[str, str] = None,
     ):
         script = "#!/bin/bash\n"
-        resources = (
-            config.get_value("resources", {}) if resources is None else resources
-        )
-        for k, r in resources.items():
+        for k, r in config.resources.dict.items():
             script += f"{resource_prefix} --{k}={r}\n"
         if self.path_to_log is not None:
             script += (
@@ -74,6 +73,8 @@ class ScriptManager:
 
         path_to_config = self.path_to_scripts / f"{nametag}-config.pickle"
         script += f"{self.executable} --path_to_config {path_to_config}"
+        if run_name is not None:
+            script += f" --name {run_name.replace(' ', '_')}"
 
         extra_args = {} if extra_args is None else extra_args
         for k, v in extra_args.items():
@@ -103,9 +104,8 @@ class ScriptManager:
         path_to_script.unlink()
         path_to_config.unlink()
 
-    def run(self, config: Config, teardown=False, **kwargs):
+    def run(self, config: Config, **kwargs):
         config = [config] if issubclass(config.__class__, Config) else config
-        # tag = kwargs.pop("tag")
         tag = kwargs.pop("tag") if "tag" in kwargs else int(time.time())
 
         for c in config:
@@ -113,14 +113,14 @@ class ScriptManager:
             path_to_script = self.path_to_scripts / f"{nametag}.sh"
             os.system(f"{self.execution_command} {path_to_script}")
             tag += 1
-            if teardown:
-                self.tear_down(nametag)
 
     @staticmethod
     def split_param(
         configs, param_key: str, num_chunks: int = None, label_with="value"
     ):
-        configs = [configs] if issubclass(configs.__class__, Config) else configs
+        configs = (
+            [configs] if issubclass(configs.__class__, Config) else configs
+        )
         splitted_configs = []
         for c in configs:
             p = c.get_param(param_key)
@@ -139,10 +139,14 @@ class ScriptManager:
                 if label_with == "value":
                     new_config.set_value("name", new_config.name + "." + ext)
                 elif isinstance(label_with, list):
-                    new_config.set_value("name", new_config.name + "." + label_with[i])
+                    new_config.set_value(
+                        "name", new_config.name + "." + label_with[i]
+                    )
                 else:
                     new_config.set_value("name", new_config.name + f".{i}")
-                new_config.set_value("path", new_config.path / new_config.name)
+                new_config.set_value(
+                    "path", new_config.path / new_config.name
+                )
                 splitted_configs.append(new_config)
         return splitted_configs
 

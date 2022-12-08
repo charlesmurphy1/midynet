@@ -1,7 +1,6 @@
 import os
 import argparse
 import pyhectiqlab
-import logging
 
 import midynet
 
@@ -15,7 +14,7 @@ if __name__ == "__main__":
         "-n",
         metavar="RUN_NAME",
         help="Name of the run.",
-        required=True,
+        default=None,
     )
     parser.add_argument(
         "--path_to_config",
@@ -28,22 +27,28 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     config = midynet.config.Config.load(args.path_to_config)
+
     if not os.path.exists(config.path):
-        os.mkdir(config.path)
+        os.makedirs(config.path)
     if "recon_information" not in config.metrics.metrics_names:
         msg = f"For this script, 'recon_information' must be in 'config.metrics'."
         raise ValueError(msg)
 
-    run = pyhectiqlab.Run(args.name, project="dynamica/midynet")
-    run.add_config(config)
-    logger = run.add_log_stream(level=20)
     metrics = midynet.config.MetricsFactory.build(config)
 
-    run.running()
+    if args.name is not None:
+        run = pyhectiqlab.Run(args.name, project="dynamica/midynet")
+        run.add_config(config)
+        logger = run.add_log_stream(level=20)
+        run.running()
+    else:
+        run = None
+        logger = None
     for k in config.metrics.metrics_names:
-        logger.info(f"---Computing  {k}---")
         metrics[k].compute(config, logger=logger)
         path_to_metrics = metrics[k].to_pickle(config.path)
-        run.add_artifact(path_to_metrics)
-    run.completed()
-    run.logs_buffer.flush_cache()
+        if run is not None:
+            run.add_artifact(path_to_metrics)
+    if run is not None:
+        run.completed()
+        run.logs_buffer.flush_cache()

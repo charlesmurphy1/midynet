@@ -57,7 +57,10 @@ class ReconstructionInformationMeasures(Expectation):
         out["mutualinfo"] = full["prior"] - full["posterior"]
 
         # computing past
-        if "past_length" in self.config.data_model:
+        if (
+            "past_length" in self.config.data_model
+            and self.config.data_model.past_length > 0
+        ):
             if self.config.data_model.past_length == 0:
                 past = dict(
                     prior=full["prior"],

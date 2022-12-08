@@ -1,5 +1,7 @@
 import psutil
 import numpy as np
+import logging
+import sys
 
 from datetime import datetime, timedelta
 from logging import Logger
@@ -50,6 +52,7 @@ class ProgressLog(MetricsLog):
         self.begin = datetime.now()
 
     def update(self, logger: Optional[Logger] = None) -> None:
+        logger = logger if logger is not None else self.stdout_logger
         self.counter += 1
         self.now = datetime.now()
         self.from_start = self.timedelta_to_second(self.now - self.begin)
@@ -65,6 +68,7 @@ class ProgressLog(MetricsLog):
                 else f"{self.counter}"
             )
             msg += f"\t time remaining : {days:0=2d}-{hours:0=2d}:{mins:0=2d}:{secs:0=2d}"
+
             logger.info(msg)
 
 

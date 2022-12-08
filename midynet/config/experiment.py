@@ -72,7 +72,7 @@ class ExperimentConfig(Config):
             config.metrics.get(m).num_samples = (
                 max(1, ns // num_procs) * num_procs
             )
-        config.path = path
+        config.path = str(path)
         config.num_procs = num_procs
         config.seed = seed
 

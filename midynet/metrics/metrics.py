@@ -1,15 +1,13 @@
 import pathlib
-import pickle
 import pandas as pd
-import numpy as np
-import datetime
+import logging
+import sys
 
 from tempfile import mktemp
 from typing import Dict, Optional, Tuple
 from logging import Logger
 from collections import defaultdict
 from pyhectiqlab import Run
-
 
 from midynet.config import Config
 from midynet.metrics.logger import ProgressLog, MemoryLog
@@ -36,20 +34,39 @@ class Metrics:
 
     def compute(self, configs: Config, logger: Logger = None) -> None:
         raw_data = defaultdict(lambda: defaultdict(list))
+        params = defaultdict(lambda: defaultdict(list))
         for log in self.logs:
             log.setup(total=len(configs))
+        if logger is None:
+            logger = logging.getLogger()
+            logger.setLevel(logging.DEBUG)
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setLevel(logging.INFO)
+            formatter = logging.Formatter(
+                "%(asctime)s - %(levelname)s - %(message)s"
+            )
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+
+        logger.info(f"---Computing {self.name}---")
         for config in (
             configs.to_sequence()
             if issubclass(configs.__class__, Config)
             else [configs]
         ):
-            res = self.eval(config)
-            res.update(configs.summarize_subconfig(config))
-            for k, v in res.items():
+            for k, v in self.eval(config).items():
                 raw_data[config.name][k].append(v)
+            for k, v in configs.summarize_subconfig(config).items():
+                params[config.name][k].append(v)
             for log in self.logs:
                 log.update(logger)
-        self.data = {k: pd.DataFrame(v) for k, v in raw_data.items()}
+        self.data = {
+            k: dict(
+                metrics=pd.DataFrame(raw_data[k]),
+                params=pd.DataFrame(params[k]),
+            )
+            for k in raw_data.keys()
+        }
 
     def to_pickle(
         self, path: Optional[str or pathlib.Path] = None, **kwargs
