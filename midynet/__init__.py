@@ -2,7 +2,6 @@ from . import utility
 from . import config
 from . import metrics
 from . import scripts
-from .statistics import Statistics
 from .metadata import __version__
 
 __all__ = (
