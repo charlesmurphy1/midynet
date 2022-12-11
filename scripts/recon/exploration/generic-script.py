@@ -44,20 +44,16 @@ class TestingConfig(ExperimentConfig):
         config.metrics.recon_information.initial_burn = 2000
         config.metrics.recon_information.num_sweeps = 100
         config.metrics.recon_information.method = "exact"
-
-        config.resources = dict(
-            account="def-aallard",
-            time=time,
-            mem=f"{mem}G",
-            cpus_per_task=num_procs,
-            job_name=config.name,
-        )
         config.lock()
         return config
 
 
 def main():
 
+    if not os.path.exists("./configs"):
+        os.mkdir("./configs")
+    if not os.path.exists("./log"):
+        os.mkdir("./log")
     config = TestingConfig.default(
         prior="erdosrenyi",
         data_model="sis",
@@ -67,15 +63,29 @@ def main():
         mem=12,
         seed=None,
     )
+    resources = {
+        "account": "def-aallard",
+        "time": "24:00:00",
+        "mem": "12G",
+        "cpus-per-task": config.num_procs,
+        "job-name": config.name,
+        "output": f"log/{config.name}.out",
+    }
+    path_to_config = f"./configs/{config.name}.pkl"
+    config.save(path_to_config)
+
     script = ScriptManager(
         executable="python ../../../midynet/scripts/run_reconstruction.py",
         execution_command="bash",
         path_to_scripts="./scripts",
-        path_to_log="./log",
     )
+    args = {
+        "run_name": "local testing for recon-erdos-sis",
+        "path_to_config": path_to_config,
+        "path_to_credentials": "/Users/charlesmurphy/.hectiqlab/credentials",
+    }
     script.run(
-        config,
-        run_name="local testing for recon-erdos-sis",
+        name=config.name,
         modules_to_load=[
             "StdEnv/2020",
             "gcc/9",
@@ -83,7 +93,9 @@ def main():
             "graph-tool",
             "scipy-stack",
         ],
-        virtualenv="None",
+        virtualenv=None,
+        extra_args=args,
+        resources=resources,
     )
 
 

@@ -12,7 +12,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--name",
+        "--run_name",
         "-n",
         metavar="RUN_NAME",
         help="Name of the run.",
@@ -27,6 +27,14 @@ if __name__ == "__main__":
         help="Path to the config file (.pkl).",
         required=True,
     )
+    parser.add_argument(
+        "--path_to_credentials",
+        "-d",
+        type=str,
+        metavar="PATH_TO_CREDENTIALS",
+        help="Path to the hectiq lab credential file (usually /HOME/.hectiqlab/credentials).",
+        default=None,
+    )
 
     args = parser.parse_args()
     config = midynet.config.Config.load(args.path_to_config)
@@ -38,8 +46,13 @@ if __name__ == "__main__":
         raise ValueError(msg)
 
     metrics = midynet.config.MetricsFactory.build(config)
-    if args.name is not None:
-        run = pyhectiqlab.Run(" ".join(args.name), project="dynamica/midynet")
+    if args.path_to_credentials is not None:
+        os.environ["HECTIALAB_CREDENTIALS"] = args.path_to_credentials
+    if args.run_name is not None:
+        run = pyhectiqlab.Run(
+            " ".join(args.run_name), project="dynamica/midynet"
+        )
+        run.clear_logs()
         run.add_meta("command-line-args", value=" ".join(sys.argv))
         run.add_config(config)
         logger = run.add_log_stream(level=20)

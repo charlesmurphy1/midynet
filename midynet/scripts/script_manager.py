@@ -2,7 +2,6 @@ import os
 import pathlib
 import time
 from typing import Optional, Generator, Iterable
-from dataclasses import dataclass, field
 
 from midynet.config import Config
 
@@ -23,46 +22,33 @@ def split_into_chunks(
         yield container[si : si + (d + 1 if i < r else d)]
 
 
-@dataclass
 class ScriptManager:
-    executable: str = field(repr=True, init=True)
-    execution_command: str = field(repr=True, default="bash", init=True)
-    path_to_scripts: pathlib.Path = field(
-        repr=True, default_factory=pathlib.Path, init=True
-    )
-    path_to_log: Optional[pathlib.Path] = field(
-        repr=True, default=None, init=True
-    )
-
-    def __post_init__(self):
-        if isinstance(self.path_to_scripts, str):
-            self.path_to_scripts = pathlib.Path(self.path_to_scripts)
+    def __init__(
+        self,
+        executable,
+        execution_command: str = "bash",
+        path_to_scripts=None,
+    ):
+        self.executable = executable
+        self.execution_command = execution_command
+        self.path_to_scripts = pathlib.Path(
+            "./scripts" if path_to_scripts is None else path_to_scripts
+        )
         if not self.path_to_scripts.exists():
             self.path_to_scripts.mkdir(exist_ok=True, parents=True)
 
-        if isinstance(self.path_to_log, str):
-            self.path_to_log = pathlib.Path(self.path_to_log)
-        if self.path_to_log is not None and not self.path_to_log.exists():
-            self.path_to_log.mkdir(exist_ok=True, parents=True)
-
     def write_script(
         self,
-        config: Config,
-        run_name: Optional[str] = None,
         resource_prefix: str = "#SBATCH",
-        nametag: str = "generic",
         modules_to_load: list[str] = None,
         virtualenv: str = None,
+        resources: dict[str, str] = None,
         extra_args: dict[str, str] = None,
     ):
         script = "#!/bin/bash\n"
-        for k, r in config.resources.items():
-            script += f"{resource_prefix} --{k.replace('_', '-')}={r}\n"
-        if self.path_to_log is not None:
-            script += (
-                f"{resource_prefix} --output="
-                + f"{str(self.path_to_log)}/{config.name}.log\n"
-            )
+        resources = {} if resources is None else resources
+        for k, r in resources.items():
+            script += f"{resource_prefix} --{k}={r}\n"
 
         script += "\n"
         if modules_to_load:
@@ -70,11 +56,7 @@ class ScriptManager:
 
         if virtualenv:
             script += f"source {virtualenv}\n  \n"
-
-        path_to_config = self.path_to_scripts / f"{nametag}-config.pickle"
-        script += f"{self.executable} --path_to_config {path_to_config}"
-        if run_name is not None:
-            script += f" --name {run_name}"
+        script += f"{self.executable}"
 
         extra_args = {} if extra_args is None else extra_args
         for k, v in extra_args.items():
@@ -85,34 +67,16 @@ class ScriptManager:
             script += "deactivate\n"
         return script
 
-    def set_up(self, config: Config, **kwargs) -> int:
+    def clear(self) -> None:
+        self.path_to_scripts.unlink()
 
-        nametag = f"{config.name}-{kwargs.pop('tag')}"
-        path_to_config = self.path_to_scripts / f"{nametag}-config.pickle"
-        with path_to_config.open("wb") as f:
-            config.save(path_to_config)
-
-        path_to_script = self.path_to_scripts / f"{nametag}.sh"
-        script = self.write_script(config, nametag=nametag, **kwargs)
+    def run(self, name: str, **kwargs):
+        path_to_script = self.path_to_scripts / f"{name}.sh"
+        script = self.write_script(**kwargs)
         with path_to_script.open("w") as f:
             f.write(script)
-        return nametag
-
-    def tear_down(self, nametag: int) -> None:
-        path_to_script = self.path_to_scripts / f"{nametag}.sh"
-        path_to_config = self.path_to_scripts / f"{nametag}-config.pickle"
-        path_to_script.unlink()
-        path_to_config.unlink()
-
-    def run(self, config: Config, **kwargs):
-        config = [config] if issubclass(config.__class__, Config) else config
-        tag = kwargs.pop("tag") if "tag" in kwargs else int(time.time())
-
-        for c in config:
-            nametag = self.set_up(c, tag=tag, **kwargs)
-            path_to_script = self.path_to_scripts / f"{nametag}.sh"
-            os.system(f"{self.execution_command} {path_to_script}")
-            tag += 1
+        path_to_script = self.path_to_scripts / f"{name}.sh"
+        os.system(f"{self.execution_command} {path_to_script}")
 
     # @staticmethod
     # def split_param(

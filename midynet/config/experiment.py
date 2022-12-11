@@ -77,7 +77,6 @@ class ExperimentConfig(Config):
         config.path = str(path)
         config.num_procs = num_procs
         config.seed = seed
-        config.resources = dict()
         config.lock_types()
 
         return config
