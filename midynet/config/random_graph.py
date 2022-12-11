@@ -12,32 +12,14 @@ from graphinf.random_graph import (
     StochasticBlockModelFamily,
 )
 
-from midynet.config import Config, ParameterSequence
+from midynet.config import Config, static
 from .factory import Factory, UnavailableOption
 
 __all__ = ("GraphConfig", "GraphFactory")
 
 
+@static
 class GraphConfig(Config):
-    @classmethod
-    def auto(cls, config: str or Config, *args, **kwargs):
-        configs = [config] if not isinstance(config, list) else config
-        res = []
-        for c in configs:
-            if c in cls.__dict__:
-                res.append(getattr(cls, c)(*args, **kwargs))
-            elif isinstance(c, cls):
-                res.append(c)
-            else:
-                t = c if isinstance(c, str) else type(c)
-                message = f"Invalid config type `{t}` for auto build of object `{cls.__name__}`."
-                raise TypeError(message)
-        if len(res) == 1:
-            return res[0]
-        elif len(res) == 0:
-            return
-        return ParameterSequence(res)
-
     @classmethod
     def erdosrenyi(
         cls,
@@ -50,7 +32,7 @@ class GraphConfig(Config):
         edge_proposer_type: str = "uniform",
     ):
         return cls(
-            name="erdosrenyi",
+            "erdosrenyi",
             size=size,
             likelihood_type=likelihood_type,
             edge_count=edge_count,
@@ -70,7 +52,7 @@ class GraphConfig(Config):
         edge_proposer_type: str = "uniform",
     ):
         return cls(
-            name="configuration",
+            "configuration",
             size=size,
             edge_count=edge_count,
             degree_prior_type=degree_prior_type,
@@ -121,7 +103,7 @@ class GraphConfig(Config):
         shift: float = 1,
     ):
         return cls(
-            name="stochastic_block_model",
+            "stochastic_block_model",
             size=size,
             edge_count=edge_count,
             block_count=block_count,
@@ -157,7 +139,7 @@ class GraphConfig(Config):
         with_parallel_edges: bool = True,
     ):
         return cls(
-            name="planted_partition",
+            "planted_partition",
             size=size,
             edge_count=edge_count,
             block_count=block_count,

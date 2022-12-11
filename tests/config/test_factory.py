@@ -6,8 +6,6 @@ from midynet.config import (
     GraphFactory,
     DataModelConfig,
     DataModelFactory,
-    MetricsFactory,
-    ExperimentConfig,
 )
 
 random_graph_setup = [
@@ -74,14 +72,6 @@ random_graph_setup = [
         lambda obj: obj.sample(),
         id="hdcsbm",
     ),
-    pytest.param(
-        GraphConfig.planted_partition(
-            size=100, edge_count=250, block_count=4
-        ),
-        GraphFactory,
-        lambda obj: obj.sample(),
-        id="pp",
-    ),
 ]
 
 
@@ -135,17 +125,16 @@ def test_build_from_config(config, factory, run):
     run(factory.build(config))
 
 
-# @pytest.mark.parametrize(
-#     "config, factory, run",
-#     [
-#         *random_graph_setup,
-#         *metrics_setup,
-#         *data_setup,
-#     ],
-# )
-# def test_run_after_creation(config, factory, run):
-#     obj = factory.build(config)
-#     run(obj)
+@pytest.mark.parametrize(
+    "config, factory, run",
+    [
+        *random_graph_setup,
+        *data_setup,
+    ],
+)
+def test_run_after_creation(config, factory, run):
+    obj = factory.build(config)
+    run(obj)
 
 
 # def test_loading_graph():

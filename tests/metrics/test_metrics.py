@@ -7,7 +7,6 @@ import pytest
 
 from midynet import metrics
 from midynet.config import (
-    ParameterSequence,
     Config,
     DataModelConfig,
     GraphConfig,
@@ -37,8 +36,8 @@ def config():
     infection_prob = np.linspace(0, 10, 2)
     N = [10, 100]
     d = DataModelConfig.auto(["glauber", "sis"])
-    d[0].coupling = ParameterSequence(coupling.tolist())
-    d[1].infection_prob = ParameterSequence(infection_prob.tolist())
+    d[0].coupling = coupling.tolist()
+    d[1].infection_prob = infection_prob.tolist()
 
     g = GraphConfig.auto("erdosrenyi")
     g.size = N
@@ -66,13 +65,13 @@ def test_basemetrics_eval():
 def test_basemetrics_compute(config, basemetrics):
     basemetrics.compute(config, logger=None)
     for name, data in basemetrics.data.items():
-        assert "dummy" in data
+        assert "dummy" in data["metrics"]
         assert (
             "data_model.coupling"
             if name == "test.glauber"
             else "data_model.infection_prob"
-        ) in data
-        assert np.all(data.dummy == np.pi)
+        ) in data["params"]
+        assert np.all(data["metrics"].dummy == np.pi)
 
 
 def test_basemetrics_to_pickle(config, basemetrics):
@@ -104,7 +103,7 @@ def args(request):
         num_procs=1,
         seed=1,
     )
-    c.data_model.num_steps = 5
+    c.data_model.length = 5
     c.data_model.infection_prob = [0.0, 0.5]
     c.data_model.as_sequence("infection_prob")
     c.prior.size = 3

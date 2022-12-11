@@ -4,7 +4,6 @@ import pytest
 
 from midynet.config import (
     Config,
-    ParameterSequence,
     GraphConfig,
     DataModelConfig,
     ExperimentConfig,
@@ -13,7 +12,7 @@ from midynet.config import (
 
 @pytest.fixture
 def config():
-    return Config(x=1, y=2)
+    return Config(name="config", x=1, y=2)
 
 
 def test_baseconfig_for_attributes(config):
@@ -29,6 +28,40 @@ def test_baseconfig_to_sequenc(config):
     seq = list(config.to_sequence())
     assert len(seq) == 1
     assert seq[0].name == "config"
+
+
+def test_baseconfig_types(config):
+    config.x = 10
+    assert config.__types__["x"] == int
+
+    config.x = [1, 2, 3, 4, 5, 6, 7]
+    assert config.__types__["x"] == int
+
+    config.x = 1.1
+    assert config.__types__["x"] == float
+
+
+def test_baseconfig_in_lock_types(config):
+    config.x = 10
+    assert config.__types__["x"] == int
+
+    config.lock_types()
+
+    config.x = [1, 2, 3, 4, 5, 6, 7]
+    assert config.__types__["x"] == int
+
+    with pytest.raises(Exception):
+        config.x = 1.1
+
+    with pytest.raises(Exception):
+        config.new_params = "not ok"
+
+
+def test_baseconfig_set_attributes_with_multiple_types_raises_valueerror(
+    config,
+):
+    with pytest.raises(ValueError):
+        config.x = [1, "k"]
 
 
 @pytest.fixture
@@ -62,7 +95,7 @@ def test_nestedconfig_to_sequence(nested_config):
 
 @pytest.fixture
 def sequenced_config():
-    return Config(x=1, y=ParameterSequence([0, 1, 2, 3]))
+    return Config(name="sequenced_config", x=1, y=[0, 1, 2, 3])
 
 
 def test_sequencedconfig_for_attributes(sequenced_config):
@@ -80,14 +113,14 @@ def test_sequencedconfig_to_sequence(sequenced_config):
     seq = list(sequenced_config.to_sequence())
     assert len(seq) == 4
     for s in seq:
-        assert s.name == "config"
+        assert s.name == "sequenced_config"
 
 
 @pytest.fixture
 def sequenced_nested_config():
-    c1 = Config(name="case1", x=1, y=ParameterSequence([0, 1, 2, 3]))
+    c1 = Config(name="case1", x=1, y=[0, 1, 2, 3])
     c2 = Config(name="case2", xx=1, yy=2)
-    return Config(name="base", z=3, c=ParameterSequence([c1, c2]))
+    return Config(name="base", z=3, c=[c1, c2])
 
 
 def test_sequencednestedconfig_for_attributes(sequenced_nested_config):
@@ -116,15 +149,10 @@ def test_sequencednestedconfig_dict_and_back(sequenced_nested_config):
 
 
 def test_highly_nested_config():
-    c1 = Config(name="case1", x=1, y=ParameterSequence([0, 1, 2, 3]))
-    c2 = Config(name="case2", x=1, y=ParameterSequence([0, 1, 2, 3]))
+    c1 = Config(name="case1", x=1, y=[0, 1, 2, 3])
+    c2 = Config(name="case2", x=1, y=[0, 1, 2, 3])
     c3 = Config(name="case3", xx=1, yy=2, c=c2)
-    config = Config(
-        name="base",
-        z=3,
-        c=ParameterSequence([c1, c3]),
-        k=ParameterSequence([1, 2, 3, 4]),
-    )
+    config = Config(name="base", z=3, c=[c1, c3], k=[1, 2, 3, 4])
     for c in config.to_sequence():
         assert isinstance(c, Config)
 
@@ -133,8 +161,8 @@ def test_highly_nested_config():
     "config",
     [
         GraphConfig.erdosrenyi,
-        GraphConfig.configuration,
-        GraphConfig.stochastic_block_model,
+        # GraphConfig.configuration,
+        # GraphConfig.stochastic_block_model,
     ],
 )
 def test_graph_config(config):
@@ -143,6 +171,14 @@ def test_graph_config(config):
     assert "size" in c
     assert "edge_proposer_type" in c
     assert c.name == config.__name__
+
+    # assert that config is static
+    with pytest.raises(Exception):
+        c.new_params = "hello world"
+    with pytest.raises(Exception):
+        c.size = "hello world"
+    c.size = 12
+    c.size = [12, 24, 64]
 
 
 @pytest.mark.parametrize(
@@ -158,22 +194,30 @@ def test_datamodel_config(config):
     assert "name" in c
     assert c.name == config.__name__
 
+    # assert that config is static
+    with pytest.raises(Exception):
+        c.new_params = "hello world"
+    with pytest.raises(Exception):
+        c.length = "hello world"
+    c.length = 12
+    c.length = [12, 24, 64]
 
-def test_exp_config():
-    c = ExperimentConfig.reconstruction("test", "sis", "erdosrenyi")
-    assert "data_model" in c and issubclass(c.data_model.__class__, Config)
-    assert "prior" in c and issubclass(c.prior.__class__, Config)
 
-    c = ExperimentConfig.reconstruction(
-        "test",
-        ["sis", "glauber", "cowan"],
-        ["erdosrenyi", "configuration", "stochastic_block_model"],
-    )
-    assert "data_model" in c and issubclass(
-        c.data_model.__class__, ParameterSequence
-    )
-    assert "prior" in c and issubclass(c.prior.__class__, ParameterSequence)
-    print(c)
+# def test_exp_config():
+#     c = ExperimentConfig.reconstruction("test", "sis", "erdosrenyi")
+#     assert "data_model" in c and issubclass(c.data_model.__class__, Config)
+#     assert "prior" in c and issubclass(c.prior.__class__, Config)
+
+#     c = ExperimentConfig.reconstruction(
+#         "test",
+#         ["sis", "glauber", "cowan"],
+#         ["erdosrenyi", "configuration", "stochastic_block_model"],
+#     )
+#     assert "data_model" in c and issubclass(
+#         c.data_model.__class__, ParameterSequence
+#     )
+#     assert "prior" in c and issubclass(c.prior.__class__, ParameterSequence)
+#     print(c)
 
 
 if __name__ == "__main__":

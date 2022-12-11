@@ -16,17 +16,17 @@ def config():
     c = ExperimentConfig.reconstruction(
         name="test", data_model="sis", prior="erdosrenyi"
     )
-    c.data_model.set_value("num_steps", 5)
-    c.prior.set_value("size", 4)
-    c.prior.set_value("edge_count", 2)
+    c.data_model.length = 5
+    c.prior.size = 4
+    c.prior.edge_count = 2
     return c
 
 
 @pytest.fixture
 def metrics_config():
     c = MetricsConfig.mcmc("test")
-    c.set_value("num_sweeps", 10)
-    c.set_value("burn_per_vertex", 1)
+    c.num_sweeps = 10
+    c.burn_per_vertex = 1
     return c
 
 
@@ -40,14 +40,14 @@ def data_model(config):
 
 
 def test_log_evidence_arithmetic(data_model, metrics_config):
-    metrics_config.set_value("method", "arithmetic")
+    metrics_config.method = "arithmetic"
     logp = midynet.metrics.util.get_log_evidence(data_model, metrics_config)
     if DISPLAY:
         print("arithmetic", logp)
 
 
 def test_log_evidence_harmonic(data_model, metrics_config):
-    metrics_config.set_value("method", "harmonic")
+    metrics_config.method = "harmonic"
     logp = midynet.metrics.util.get_log_evidence(data_model, metrics_config)
 
     if DISPLAY:
@@ -55,7 +55,7 @@ def test_log_evidence_harmonic(data_model, metrics_config):
 
 
 def test_log_evidence_annealed(data_model, metrics_config):
-    metrics_config.set_value("method", "annealed")
+    metrics_config.method = "annealed"
     logp = midynet.metrics.util.get_log_evidence(data_model, metrics_config)
 
     if DISPLAY:
@@ -63,7 +63,7 @@ def test_log_evidence_annealed(data_model, metrics_config):
 
 
 def test_log_evidence_meanfield(data_model, metrics_config):
-    metrics_config.set_value("method", "meanfield")
+    metrics_config.method = "meanfield"
     logp = midynet.metrics.util.get_log_evidence(data_model, metrics_config)
 
     if DISPLAY:
@@ -71,7 +71,7 @@ def test_log_evidence_meanfield(data_model, metrics_config):
 
 
 def test_log_evidence_exact(data_model, metrics_config):
-    metrics_config.set_value("method", "exact")
+    metrics_config.method = "exact"
     logp = midynet.metrics.util.get_log_evidence(data_model, metrics_config)
 
     if DISPLAY:
@@ -79,7 +79,7 @@ def test_log_evidence_exact(data_model, metrics_config):
 
 
 def test_log_evidence_exact_meanfield(data_model, metrics_config):
-    metrics_config.set_value("method", "exact_meanfield")
+    metrics_config.method = "exact_meanfield"
     logp = midynet.metrics.util.get_log_evidence(data_model, metrics_config)
 
     if DISPLAY:
@@ -87,7 +87,9 @@ def test_log_evidence_exact_meanfield(data_model, metrics_config):
 
 
 def test_log_prior_meanfield(data_model, metrics_config):
-    logp = midynet.metrics.util.get_log_prior_meanfield(data_model, metrics_config)
+    logp = midynet.metrics.util.get_log_prior_meanfield(
+        data_model, metrics_config
+    )
 
     if DISPLAY:
         print("prior-meanfield", logp)

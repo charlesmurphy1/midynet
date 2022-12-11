@@ -7,7 +7,9 @@ DISPLAY = False
 
 @pytest.fixture
 def config():
-    yield ExperimentConfig.reconstruction("test", ["glauber", "sis"], "erdosrenyi")
+    yield ExperimentConfig.reconstruction(
+        "test", ["glauber", "sis"], "erdosrenyi"
+    )
 
 
 @pytest.fixture
@@ -27,7 +29,7 @@ def script():
 
 
 def test_write_script(config, script):
-    script = script.write_script(config, nametag="test-007", resources={})
+    script = script.write_script(config, nametag="test-007")
     if DISPLAY:
         print(script)
 
@@ -59,15 +61,15 @@ def test_run():
     pass
 
 
-def test_split_param(config, script):
-    if DISPLAY:
-        print(script.config.format())
+# def test_split_param(config, script):
+#     if DISPLAY:
+#         print(script.config)
 
-    configs = script.split_param(config, "data_model")
+#     configs = script.split_param(config, "data_model")
 
-    if DISPLAY:
-        for c in configs:
-            print(c.format())
+#     if DISPLAY:
+#         for c in configs:
+#             print(c)
 
 
 if __name__ == "__main__":

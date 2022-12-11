@@ -48,7 +48,7 @@ class Metrics:
             handler.setFormatter(formatter)
             logger.addHandler(handler)
 
-        logger.info(f"---Computing {self.name}---")
+        logger.info(f"---Computing {self.__class__.__name__}---")
         for config in (
             configs.to_sequence()
             if issubclass(configs.__class__, Config)

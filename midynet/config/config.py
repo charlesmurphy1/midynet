@@ -1,23 +1,118 @@
 from __future__ import annotations
 
 from itertools import product
-from typing import List
+from typing import Any, List, Type
 from pyhectiqlab import Config as BaseConfig
 from copy import deepcopy
+import functools
 
 
-class ParameterSequence(list):
-    pass
+def static(cls):
+    @functools.wraps(cls, updated=())
+    class StaticConfig(cls):
+        def __init__(self, *args, **kwargs):
+            cls.__init__(self, *args, **kwargs)
+            self.lock_types()
+
+    return StaticConfig
+
+
+def freeze(cls):
+    @functools.wraps(cls, updated=())
+    class FrozenConfig(cls):
+        def __init__(self, *args, **kwargs):
+            cls.__init__(self, *args, **kwargs)
+            self.lock()
+
+    return FrozenConfig
 
 
 class Config(BaseConfig):
     separator: str = "."
 
-    def __init__(self, name="config", **kwargs):
+    def __init__(self, name: str, as_seq: bool = True, **kwargs: Any):
+        self._name = name
+        self._type_lock: bool = False
+        self.__types__: dict[str, Type] = {}
+        self.__sequence_params__: list[str] = []
+        self._as_seq = as_seq
         super().__init__(**kwargs)
-        self.name = name
+        self.name: str = name
 
-    def get(self, key, default=None):
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name in [
+            "_name",
+            "_state",
+            "_lock",
+            "_type_lock",
+            "_as_seq",
+            "__types__",
+            "__sequence_params__",
+        ]:
+            object.__setattr__(self, name, value)
+        else:
+            if self._lock:
+                raise Exception("Config is locked.")
+
+            if self._type_lock and not self.is_type(value, self.type(name)):
+                raise Exception(
+                    f"In type-lock mode, `{name}` must be of type `{self.type(name).__name__}`."
+                )
+            if self._type_lock and name not in self._state:
+                raise Exception(
+                    f"In type-lock mode, new params cannot be added."
+                )
+            if isinstance(value, list) and not self.is_one_type(value):
+                raise ValueError(
+                    f"Value is `list` but contains multiple types: `{[type(v).__name__ for v in value]}`."
+                )
+            self._state[name] = value
+            self.__types__[name] = (
+                type(value) if not isinstance(value, list) else type(value[0])
+            )
+            if isinstance(value, list):
+                self.__types__[name] = type(value[0])
+                if self._as_seq:
+                    self.__sequence_params__.append(name)
+            else:
+                self.__types__[name] = type(value)
+                if name in self.__sequence_params__:
+                    self.__sequence_params__.remove(name)
+
+    def type(self, name: str) -> Type:
+        return self.__types__[name]
+
+    @property
+    def name(self):
+        return self._name
+
+    @staticmethod
+    def is_type(value: Any, expected_type: Type) -> bool:
+        return isinstance(value, expected_type) or (
+            isinstance(value, list)
+            and all([isinstance(v, expected_type) for v in value])
+        )
+
+    @staticmethod
+    def is_one_type(value: bool) -> bool:
+        if not issubclass(value.__class__, list) or len(value) == 0:
+            return True
+        t = type(value[0])
+        return all([isinstance(v, t) for v in value])
+
+    def lock(self) -> None:
+        self._lock = self._type_lock = True
+
+    def unlock(self) -> None:
+        self._lock = self._type_lock = False
+
+    def lock_types(self) -> None:
+        self._type_lock = True
+
+    def unlock_types(self) -> None:
+        self._type_lock = False
+
+    def get(self, key: str, default: Any = None) -> Any:
         if key in self:
             return self._state[key]
         components = key.split(self.separator)
@@ -30,11 +125,11 @@ class Config(BaseConfig):
 
         return default
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(list(self.to_sequence()))
 
     @property
-    def dict(self):
+    def dict(self) -> dict[str, Any]:
         """A property that converts a config to a dict. Supports nested Config."""
         d = {}
         for key, item in self._state.items():
@@ -50,7 +145,7 @@ class Config(BaseConfig):
         return d
 
     @staticmethod
-    def from_dict(data):
+    def from_dict(data: dict[str, Any]) -> Config:
         """Convert a dict to a Config object.
         `data` can be nested (dict within dict), which will generate sub configs.
         If `data` is not a dict, then the method returns `data`.
@@ -64,7 +159,7 @@ class Config(BaseConfig):
         if isinstance(data, dict) == False:
             return data
 
-        config = Config()
+        config = Config(data.get("name", "generic"))
         for key in data:
             if isinstance(data[key], dict):
                 config[key] = Config.from_dict(data[key])
@@ -76,14 +171,18 @@ class Config(BaseConfig):
                 config[key] = data[key]
             if isinstance(config[key], list):
                 config.as_sequence(key)
+        config.lock()
+        config.lock_types()
         return config
 
     @classmethod
-    def auto(cls, config: str or Config or List[Config], *args, **kwargs):
+    def auto(
+        cls, config: str or Config or List[Config], *args: Any, **kwargs: Any
+    ) -> Config or list[Config]:
         configs = [config] if not isinstance(config, list) else config
         res = []
         for config in configs:
-            if config in cls.__dict__:
+            if config in dir(cls):
                 res.append(getattr(cls, config)(*args, **kwargs))
             elif isinstance(config, cls):
                 res.append(config)
@@ -95,21 +194,30 @@ class Config(BaseConfig):
             return res[0]
         elif len(res) == 0:
             return
-        return ParameterSequence(res)
+        return res
 
-    def is_sequenced(self):
+    def is_sequenced(self) -> bool:
         for k, v in self._state.items():
-            if isinstance(v, ParameterSequence):
+            if self.is_sequence(k):
                 return True
             elif isinstance(v, Config) and v.is_sequenced():
                 return True
         return False
 
-    def as_sequence(self, key):
-        if isinstance(self._state[key], ParameterSequence):
+    def as_sequence(self, key: str) -> None:
+        if self.is_sequence(key):
             return
         if isinstance(self._state[key], (list, tuple, set)):
-            self._state[key] = ParameterSequence(self._state[key])
+            self.__sequence_params__.append(key)
+
+    def not_sequence(self, key: str) -> None:
+        if not self.is_sequence(key):
+            return
+        if key in self.__sequence_params__:
+            self.__sequence_params__.remove(key)
+
+    def is_sequence(self, key: str) -> bool:
+        return key in self.__sequence_params__
 
     def to_sequence(self):
         if not self.is_sequenced():
@@ -120,7 +228,7 @@ class Config(BaseConfig):
         values_to_scan = []
 
         for k, v in self._state.items():
-            if isinstance(v, ParameterSequence):
+            if self.is_sequence(k):
                 keys_to_scan.append(k)
                 values_to_scan.append(v)
             elif issubclass(v.__class__, Config) and v.is_sequenced():
@@ -128,6 +236,7 @@ class Config(BaseConfig):
                 values_to_scan.append(v.to_sequence())
         for values in product(*values_to_scan):
             config = self.copy()
+            config.unlock()
             for k, v in zip(keys_to_scan, values):
                 setattr(config, k, v)
             if config.is_sequenced():
@@ -157,13 +266,9 @@ class Config(BaseConfig):
     def summarize_subconfig(self, config: Config):
         values = {}
         for k, v in self._state.items():
-            if isinstance(v, ParameterSequence) and not issubclass(
-                v[0].__class__, Config
-            ):
+            if self.is_sequence(k) and not issubclass(v[0].__class__, Config):
                 values[k] = config._state[k]
-            elif isinstance(v, ParameterSequence) and issubclass(
-                v[0].__class__, Config
-            ):
+            elif self.is_sequence(k) and issubclass(v[0].__class__, Config):
                 for vv in v:
                     if vv.name != config._state[k].name:
                         continue

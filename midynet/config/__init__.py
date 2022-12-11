@@ -1,4 +1,4 @@
-from .config import Config, ParameterSequence
+from .config import Config, static, freeze
 from .factory import (
     Factory,
     MissingRequirementsError,
@@ -13,8 +13,9 @@ from .experiment import ExperimentConfig
 
 
 __all__ = (
-    "ParameterSequence",
     "Config",
+    "static",
+    "freeze",
     "Factory",
     "MissingRequirementsError",
     "OptionError",

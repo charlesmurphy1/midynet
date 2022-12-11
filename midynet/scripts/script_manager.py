@@ -56,7 +56,11 @@ class ScriptManager:
         extra_args: dict[str, str] = None,
     ):
         script = "#!/bin/bash\n"
-        for k, r in config.resources.dict.items():
+        for k, r in (
+            config.resources.dict.items()
+            if config.resources is not None
+            else dict().items()
+        ):
             script += f"{resource_prefix} --{k}={r}\n"
         if self.path_to_log is not None:
             script += (
@@ -114,41 +118,41 @@ class ScriptManager:
             os.system(f"{self.execution_command} {path_to_script}")
             tag += 1
 
-    @staticmethod
-    def split_param(
-        configs, param_key: str, num_chunks: int = None, label_with="value"
-    ):
-        configs = (
-            [configs] if issubclass(configs.__class__, Config) else configs
-        )
-        splitted_configs = []
-        for c in configs:
-            p = c.get_param(param_key)
-            if not p.is_sequenced():
-                splitted_configs.append(c)
-                continue
-            for i, val in enumerate(split_into_chunks(p.value, num_chunks)):
-                new_config = c.deepcopy()
-                new_config.set_value(param_key, val)
-                if issubclass(val.__class__, Config):
-                    ext = f"{val.name}"
-                elif isinstance(val, str):
-                    ext = f"{val}"
-                else:
-                    ext = f"{param_key.split('.')[-1]}{val}"
-                if label_with == "value":
-                    new_config.set_value("name", new_config.name + "." + ext)
-                elif isinstance(label_with, list):
-                    new_config.set_value(
-                        "name", new_config.name + "." + label_with[i]
-                    )
-                else:
-                    new_config.set_value("name", new_config.name + f".{i}")
-                new_config.set_value(
-                    "path", new_config.path / new_config.name
-                )
-                splitted_configs.append(new_config)
-        return splitted_configs
+    # @staticmethod
+    # def split_param(
+    #     configs, param_key: str, num_chunks: int = None, label_with="value"
+    # ):
+    #     configs = (
+    #         [configs] if issubclass(configs.__class__, Config) else configs
+    #     )
+    #     splitted_configs = []
+    #     for c in configs:
+    #         p = c.get_param(param_key)
+    #         if not p.is_sequenced():
+    #             splitted_configs.append(c)
+    #             continue
+    #         for i, val in enumerate(split_into_chunks(p.value, num_chunks)):
+    #             new_config = c.deepcopy()
+    #             new_config.set_value(param_key, val)
+    #             if issubclass(val.__class__, Config):
+    #                 ext = f"{val.name}"
+    #             elif isinstance(val, str):
+    #                 ext = f"{val}"
+    #             else:
+    #                 ext = f"{param_key.split('.')[-1]}{val}"
+    #             if label_with == "value":
+    #                 new_config.set_value("name", new_config.name + "." + ext)
+    #             elif isinstance(label_with, list):
+    #                 new_config.set_value(
+    #                     "name", new_config.name + "." + label_with[i]
+    #                 )
+    #             else:
+    #                 new_config.set_value("name", new_config.name + f".{i}")
+    #             new_config.set_value(
+    #                 "path", new_config.path / new_config.name
+    #             )
+    #             splitted_configs.append(new_config)
+    #     return splitted_configs
 
 
 if __name__ == "__main__":

@@ -182,6 +182,9 @@ class ReconstructionHeuristics(Expectation):
 
 
 class ReconstructionHeuristicsMetrics(Metrics):
+    def __init__(self, **kwargs):
+        super().__init__("heuristics", **kwargs)
+
     def eval(self, config: Config):
         heuristics_auc = ReconstructionHeuristics(
             config=config,
