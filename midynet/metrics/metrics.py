@@ -37,7 +37,7 @@ class Metrics:
         params = defaultdict(lambda: defaultdict(list))
         for log in self.logs:
             log.setup(total=len(configs))
-        if logger is None:
+        if logger == "stdout":
             logger = logging.getLogger()
             logger.setLevel(logging.DEBUG)
             handler = logging.StreamHandler(sys.stdout)
@@ -48,7 +48,8 @@ class Metrics:
             handler.setFormatter(formatter)
             logger.addHandler(handler)
 
-        logger.info(f"---Computing {self.__class__.__name__}---")
+        if logger is not None:
+            logger.info(f"---Computing {self.__class__.__name__}---")
         for config in (
             configs.to_sequence()
             if issubclass(configs.__class__, Config)

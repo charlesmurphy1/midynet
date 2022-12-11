@@ -17,7 +17,7 @@ def static(cls):
     return StaticConfig
 
 
-def freeze(cls):
+def frozen(cls):
     @functools.wraps(cls, updated=())
     class FrozenConfig(cls):
         def __init__(self, *args, **kwargs):
@@ -53,14 +53,13 @@ class Config(BaseConfig):
         else:
             if self._lock:
                 raise Exception("Config is locked.")
-
+            if self._type_lock and name not in self._state:
+                raise Exception(
+                    f"In type-lock mode, new param `{name}` cannot be added."
+                )
             if self._type_lock and not self.is_type(value, self.type(name)):
                 raise Exception(
                     f"In type-lock mode, `{name}` must be of type `{self.type(name).__name__}`."
-                )
-            if self._type_lock and name not in self._state:
-                raise Exception(
-                    f"In type-lock mode, new params cannot be added."
                 )
             if isinstance(value, list) and not self.is_one_type(value):
                 raise ValueError(

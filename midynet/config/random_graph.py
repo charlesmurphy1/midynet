@@ -212,17 +212,17 @@ class GraphFactory(Factory):
             shift=config.shift,
         )
 
-    @staticmethod
-    def build_planted_partition(config: GraphConfig):
-        return PlantedPartitionModel(
-            size=config.size,
-            edge_count=config.edge_count,
-            block_count=config.block_count,
-            assortativity=config.assortativity,
-            stub_labeled=config.stub_labeled,
-            with_self_loops=config.with_self_loops,
-            with_parallel_edges=config.with_parallel_edges,
-        )
+    # @staticmethod
+    # def build_planted_partition(config: GraphConfig):
+    #     return PlantedPartitionModel(
+    #         size=config.size,
+    #         edge_count=config.edge_count,
+    #         block_count=config.block_count,
+    #         assortativity=config.assortativity,
+    #         stub_labeled=config.stub_labeled,
+    #         with_self_loops=config.with_self_loops,
+    #         with_parallel_edges=config.with_parallel_edges,
+    #     )
 
 
 if __name__ == "__main__":

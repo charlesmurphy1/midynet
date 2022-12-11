@@ -6,6 +6,7 @@ from typing import List, Optional, Union
 
 from midynet.config import (
     Config,
+    static,
     DataModelConfig,
     GraphConfig,
     MetricsCollectionConfig,
@@ -31,6 +32,8 @@ class ExperimentConfig(Config):
         config.num_procs = 1
         config.seed = 1
 
+        config.lock_types()
+
         return config
 
     @classmethod
@@ -43,7 +46,6 @@ class ExperimentConfig(Config):
         metrics: Optional[List[str]] = None,
         path: Union[str, pathlib.Path] = ".",
         num_procs: int = 1,
-        num_async_process: int = 1,
         seed: Optional[int] = None,
         data_model_params=None,
         graph_params=None,
@@ -75,6 +77,8 @@ class ExperimentConfig(Config):
         config.path = str(path)
         config.num_procs = num_procs
         config.seed = seed
+        config.resources = dict()
+        config.lock_types()
 
         return config
 

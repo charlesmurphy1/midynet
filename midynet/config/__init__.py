@@ -1,4 +1,4 @@
-from .config import Config, static, freeze
+from .config import Config, static, frozen
 from .factory import (
     Factory,
     MissingRequirementsError,
@@ -15,7 +15,7 @@ from .experiment import ExperimentConfig
 __all__ = (
     "Config",
     "static",
-    "freeze",
+    "frozen",
     "Factory",
     "MissingRequirementsError",
     "OptionError",

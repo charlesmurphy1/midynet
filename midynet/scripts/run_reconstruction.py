@@ -1,5 +1,7 @@
 import os
+import sys
 import argparse
+import datetime
 import pyhectiqlab
 
 import midynet
@@ -14,6 +16,7 @@ if __name__ == "__main__":
         "-n",
         metavar="RUN_NAME",
         help="Name of the run.",
+        nargs="*",
         default=None,
     )
     parser.add_argument(
@@ -35,20 +38,34 @@ if __name__ == "__main__":
         raise ValueError(msg)
 
     metrics = midynet.config.MetricsFactory.build(config)
-
     if args.name is not None:
-        run = pyhectiqlab.Run(args.name, project="dynamica/midynet")
+        run = pyhectiqlab.Run(" ".join(args.name), project="dynamica/midynet")
+        run.add_meta("command-line-args", value=" ".join(sys.argv))
         run.add_config(config)
         logger = run.add_log_stream(level=20)
+        run.add_meta(
+            key="Start evaluation",
+            value=datetime.datetime.now().strftime(
+                "%A, %d %B %Y at %H:%M:%S"
+            ),
+        )
         run.running()
     else:
         run = None
-        logger = None
+        logger = "stdout"
+
     for k in config.metrics.metrics_names:
         metrics[k].compute(config, logger=logger)
         path_to_metrics = metrics[k].to_pickle(config.path)
         if run is not None:
             run.add_artifact(path_to_metrics)
+
     if run is not None:
+        run.add_meta(
+            key="End evaluation",
+            value=datetime.datetime.now().strftime(
+                "%A, %d %B %Y at %H:%M:%S"
+            ),
+        )
         run.completed()
         run.logs_buffer.flush_cache()

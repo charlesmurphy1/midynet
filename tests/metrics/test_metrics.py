@@ -41,7 +41,7 @@ def config():
 
     g = GraphConfig.auto("erdosrenyi")
     g.size = N
-    config = Config(name="test", data_model=d, prior=g)
+    config = Config(name="test", data_model=d, prior=g, path="./")
     return config
 
 
@@ -76,15 +76,15 @@ def test_basemetrics_compute(config, basemetrics):
 
 def test_basemetrics_to_pickle(config, basemetrics):
     basemetrics.compute(config)
-    # basemetrics.to_pickle(config.path)
-    # pathlib.Path("metrics.pkl").unlink()
+    basemetrics.to_pickle(config.path)
+    pathlib.Path("./test.pkl").unlink()
 
 
 def test_basemetrics_read_pickle(config, basemetrics):
     basemetrics.compute(config)
-    # basemetrics.to_pickle("metrics.pkl")
-    # basemetrics.read_pickle("metrics.pkl")
-    # pathlib.Path("metrics.pkl").unlink()
+    basemetrics.to_pickle(config.path)
+    basemetrics.read_pickle("./test.pkl")
+    pathlib.Path("./test.pkl").unlink()
 
 
 metrics_dict = {

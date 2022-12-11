@@ -12,14 +12,14 @@ __all__ = ("MetricsConfig", "MetricsCollectionConfig", "MetricsFactory")
 class MetricsConfig(Config):
     @classmethod
     def monte_carlo(cls, name: str):
-        return cls(name, num_samples=100, error_type="confidence")
+        return cls(name, num_samples=100, stat_aggregate="confidence")
 
     @classmethod
     def mcmc(cls, name: str):
         obj = cls(
             name,
             num_sweeps=1000,
-            error_type="percentile",
+            stat_type="percentile",
             method="meanfield",
             num_samples=100,
             burn_per_vertex=5,
@@ -42,7 +42,7 @@ class MetricsConfig(Config):
             "heuristics",
             method="correlation",
             num_samples=100,
-            error_type="percentile",
+            stat_type="percentile",
         )
 
 

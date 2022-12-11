@@ -56,12 +56,8 @@ class ScriptManager:
         extra_args: dict[str, str] = None,
     ):
         script = "#!/bin/bash\n"
-        for k, r in (
-            config.resources.dict.items()
-            if config.resources is not None
-            else dict().items()
-        ):
-            script += f"{resource_prefix} --{k}={r}\n"
+        for k, r in config.resources.items():
+            script += f"{resource_prefix} --{k.replace('_', '-')}={r}\n"
         if self.path_to_log is not None:
             script += (
                 f"{resource_prefix} --output="
@@ -78,7 +74,7 @@ class ScriptManager:
         path_to_config = self.path_to_scripts / f"{nametag}-config.pickle"
         script += f"{self.executable} --path_to_config {path_to_config}"
         if run_name is not None:
-            script += f" --name {run_name.replace(' ', '_')}"
+            script += f" --name {run_name}"
 
         extra_args = {} if extra_args is None else extra_args
         for k, v in extra_args.items():

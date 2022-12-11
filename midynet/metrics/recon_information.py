@@ -11,6 +11,7 @@ from midynet.config import (
 
 from midynet.config import Config
 from .metrics import Metrics
+from .aggregator import Aggregator
 from .multiprocess import Expectation
 from midynet.statistics import Statistics
 from .util import (
@@ -154,19 +155,18 @@ class ReconstructionInformationMeasuresMetrics(Metrics):
         for s in samples:
             for k, v in s.items():
                 sample_dict[k].append(v)
-        res = {
-            k: Statistics.compute(
-                v,
-                error_type=config.metrics.recon_information.get(
-                    "error_type", "std"
-                ),
-            )
-            for k, v in sample_dict.items()
-        }
-
-        out = {
-            f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()
-        }
+        # res = {
+        #     k: Statistics.compute(
+        #         v,
+        #         error_type=config.metrics.recon_information.get(
+        #             "error_type", "std"
+        #         ),
+        #     )
+        #     for k, v in sample_dict.items()
+        # }
+        # out = {
+        #     f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()
+        # }
         # e = out["evidence-mid"]
         # l = out["likelihood-mid"]
         # po = out["posterior-mid"]
@@ -180,7 +180,10 @@ class ReconstructionInformationMeasuresMetrics(Metrics):
         # mi_p = out["mutualinfo_past-mid"]
         # print(f"Past: {e_p=}, {l_p=}, {pr=}, {po_p=}, {mi_p=}")
         # print(out)
-        return out
+        return {
+            k: getattr(Aggregator, config.get("stat_type", "std"))(v)
+            for k, v in sample_dict.items()
+        }
 
 
 if __name__ == "__main__":
