@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     metrics = midynet.config.MetricsFactory.build(config)
     if args.path_to_credentials is not None:
-        os.environ["HECTIALAB_CREDENTIALS"] = args.path_to_credentials
+        os.environ["HECTIQLAB_CREDENTIALS"] = args.path_to_credentials
     if args.run_name is not None:
         run = pyhectiqlab.Run(
             " ".join(args.run_name), project="dynamica/midynet"
