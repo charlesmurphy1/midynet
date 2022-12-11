@@ -24,7 +24,7 @@ class TestingConfig(ExperimentConfig):
             tempfile.mktemp() if path_to_data is None else path_to_data
         )
         if not os.path.exists(path_to_data):
-            os.mkdir(path_to_data)
+            os.makedirs(path_to_data)
         config = cls.reconstruction(
             f"recon-{prior}-{data_model}",
             data_model,
