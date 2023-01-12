@@ -72,9 +72,12 @@ class ProgressLog(MetricsLog):
 
 
 class MemoryLog(MetricsLog):
-    def __init__(self, logging_freq: int = 1, unit: str = "gb"):
+    def __init__(
+        self, logging_freq: int = 1, unit: str = "gb", round: int = -1
+    ):
         super().__init__(self)
         self.logging_freq = logging_freq
+        self.round = round
         if unit == "b":
             self.factor = 1
         elif unit == "kb":
@@ -98,6 +101,6 @@ class MemoryLog(MetricsLog):
             round(psutil.virtual_memory().used / self.factor, 4)
         )
         if self.counter % self.logging_freq == 0 and logger is not None:
-            msg = f"Memory: {np.mean(self.memory_usage)} +- {np.std(self.memory_usage)}"
+            msg = f"Memory: {np.mean(self.memory_usage): .4f} +- {np.std(self.memory_usage):.4f}"
             if logger is not None:
                 logger.info(msg)

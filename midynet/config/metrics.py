@@ -11,15 +11,11 @@ __all__ = ("MetricsConfig", "MetricsCollectionConfig", "MetricsFactory")
 @static
 class MetricsConfig(Config):
     @classmethod
-    def monte_carlo(cls, name: str):
-        return cls(name, num_samples=100, stat_aggregate="confidence")
-
-    @classmethod
     def mcmc(cls, name: str):
         obj = cls(
             name,
             num_sweeps=1000,
-            stat_type="percentile",
+            reduction="normal",
             method="meanfield",
             num_samples=100,
             burn_per_vertex=5,
@@ -33,8 +29,8 @@ class MetricsConfig(Config):
         return obj
 
     @classmethod
-    def recon_information(cls):
-        return cls.mcmc("recon_information")
+    def reconinfo(cls):
+        return cls.mcmc("reconinfo")
 
     @classmethod
     def heuristics(cls):
@@ -42,7 +38,7 @@ class MetricsConfig(Config):
             "heuristics",
             method="correlation",
             num_samples=100,
-            stat_type="percentile",
+            reduction="normal",
         )
 
 
@@ -89,7 +85,7 @@ class MetricsFactory(Factory):
                 )
 
     @staticmethod
-    def build_recon_information():
+    def build_reconinfo():
         return midynet.metrics.ReconstructionInformationMeasuresMetrics()
 
     @staticmethod

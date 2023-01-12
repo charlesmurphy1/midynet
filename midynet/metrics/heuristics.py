@@ -4,6 +4,7 @@ import numpy as np
 import time
 import warnings
 
+from collections import defaultdict
 from graphinf.utility import seed as gi_seed
 from midynet.config import Config, OptionError, GraphFactory, DataModelFactory
 from .metrics import Metrics
@@ -12,6 +13,7 @@ from midynet.statistics import Statistics
 from dataclasses import dataclass, field
 from netrd import reconstruction as _reconstruction
 from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve
+from midynet.aggregator import Aggregator
 
 
 def ignore_warnings(func):
@@ -160,41 +162,53 @@ def get_heuristics_reconstructor(config):
 
 class ReconstructionHeuristics(Expectation):
     def __init__(self, config: Config, **kwargs):
-        self.config = config
+        self.params = config.dict
         super().__init__(**kwargs)
 
     def func(self, seed: int) -> float:
         gi_seed(seed)
-
-        graph_model = GraphFactory.build(self.config.prior)
-        data_model = DataModelFactory.build(self.config.data_model)
+        config = Config.from_dict(self.params)
+        graph_model = GraphFactory.build(config.prior)
+        data_model = DataModelFactory.build(config.data_model)
         data_model.set_graph_prior(graph_model)
 
         data_model.sample()
         timeseries = np.array(data_model.get_past_states()).T
-        heuristics = get_heuristics_reconstructor(
-            self.config.metrics.heuristics
-        )
+        heuristics = get_heuristics_reconstructor(config.metrics)
         heuristics.fit(timeseries)
         heuristics.compare(graph_model.get_state(), collectors=["roc"])
 
-        return heuristics.__results__["roc"]["auc"]
+        return dict(auc=heuristics.__results__["roc"]["auc"])
 
 
 class ReconstructionHeuristicsMetrics(Metrics):
-    def __init__(self, **kwargs):
-        super().__init__("heuristics", **kwargs)
+    shortname = "heuristics"
+    keys = ["auc"]
 
     def eval(self, config: Config):
-        heuristics_auc = ReconstructionHeuristics(
+        heuristics = ReconstructionHeuristics(
             config=config,
             num_procs=config.get("num_procs", 1),
             seed=config.get("seed", int(time.time())),
         )
-        samples = heuristics_auc.compute(
-            config.metrics.heuristics.get("num_samples", 10)
-        )
-        return Statistics.compute(
-            samples,
-            error_type=config.metrics.heuristics.get("error_type", "std"),
-        )
+        samples = heuristics.compute(config.metrics.get("num_samples", 10))
+        sample_dict = defaultdict(list)
+        for s in samples:
+            for k, v in s.items():
+                sample_dict[k].append(v)
+
+        if config.metrics.reduction == "identity":
+            return sample_dict
+        stats = {}
+        for k, v in sample_dict.items():
+            stats[k] = Statistics.from_samples(
+                v,
+                reduction=config.metrics.get("reduction", "normal"),
+                name=k,
+            )
+
+        out = dict()
+        for k, s in stats.items():
+            for sk, sv in s.__data__.items():
+                out[k + "_" + sk] = [sv]
+        return out

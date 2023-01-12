@@ -47,6 +47,7 @@ class ScriptManager:
     ):
         script = "#!/bin/bash\n"
         resources = {} if resources is None else resources
+        resources.pop("name", None)
         for k, r in resources.items():
             script += f"{resource_prefix} --{k}={r}\n"
 

@@ -3,6 +3,7 @@ import sys
 import argparse
 import datetime
 import pyhectiqlab
+import logging
 
 import midynet
 
@@ -12,9 +13,9 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--run_name",
+        "--run",
         "-n",
-        metavar="RUN_NAME",
+        metavar="RUN",
         help="Name of the run.",
         nargs="*",
         default=None,
@@ -37,24 +38,25 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    config = midynet.config.Config.load(args.path_to_config)
+    metaconfig = midynet.config.Config.load(args.path_to_config)
+    metaconfig.metrics.not_sequence("metrics_names")
 
-    if not os.path.exists(config.path):
-        os.makedirs(config.path)
-    if "recon_information" not in config.metrics.metrics_names:
-        msg = f"For this script, 'recon_information' must be in 'config.metrics'."
-        raise ValueError(msg)
+    if not os.path.exists(metaconfig.path):
+        os.makedirs(metaconfig.path)
 
-    metrics = midynet.config.MetricsFactory.build(config)
+    metrics = midynet.config.MetricsFactory.build(metaconfig)
     if args.path_to_credentials is not None:
         os.environ["HECTIQLAB_CREDENTIALS"] = args.path_to_credentials
-    if args.run_name is not None:
-        run = pyhectiqlab.Run(
-            " ".join(args.run_name), project="dynamica/midynet"
+    else:
+        os.environ["HECTIQLAB_CREDENTIALS"] = os.path.join(
+            os.path.expanduser("~"), ".hectiqlab/credentials"
         )
+
+    if args.run is not None:
+        run = pyhectiqlab.Run(" ".join(args.run), project="dynamica/midynet")
         run.clear_logs()
         run.add_meta("command-line-args", value=" ".join(sys.argv))
-        run.add_config(config)
+        run.add_config(metaconfig)
         logger = run.add_log_stream(level=20)
         run.add_meta(
             key="Start evaluation",
@@ -65,9 +67,19 @@ if __name__ == "__main__":
         run.running()
     else:
         run = None
-        logger = "stdout"
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s"
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
-    for k in config.metrics.metrics_names:
+    for k in metaconfig.metrics.metrics_names:
+        config = metaconfig.copy()
+        config.metrics = metaconfig.metrics.get(k)
         metrics[k].compute(config, logger=logger)
         path_to_metrics = metrics[k].to_pickle(config.path)
         if run is not None:

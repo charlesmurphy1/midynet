@@ -1,43 +1,71 @@
+from __future__ import annotations
 import copy
 import numpy as np
+import pandas as pd
+import seaborn as sb
+
+from typing import Optional, List, Any, Dict
 from scipy.interpolate import interp1d
+
+from .aggregator import Aggregator
 
 __all__ = ("Statistics",)
 
 
 class Statistics:
-    def __init__(self, data_dict, name=None):
-        if name is not None:
-            self.__data__ = {}
-            for k, v in data_dict.items():
-                k = k.split("-")
-                if k[0] == name:
-                    self.__data__[k[1]] = v
-            # self.__data__ = {
-            #     k[len(name) + 1 :]: v
-            #     for k, v in data_dict.items()
-            #     if k[: len(name)] == name
-            # }
-            # assert "mid" in self.__dict__
-        else:
-            self.__data__ = data_dict
+    def __init__(
+        self,
+        data_dict: Dict[str, int or float or np.ndarray],
+        name: str = "stat",
+    ):
+        self.name = name
+        self.__data__ = data_dict
 
     @classmethod
-    def load_from(cls, data_dict, key=None):
-        if key is None:
-            return cls(**data_dict)
+    def from_samples(
+        cls,
+        samples: List[float] or np.ndarray,
+        reduction: str = "normal",
+        name: str = "stat",
+    ) -> Statistics:
+        num_samples = len(samples)
+        reduced = Aggregator.reduce(samples, reduction=reduction)
+        if "scale" in reduced:
+            reduced["scale"] /= np.sqrt(num_samples)
+            reduced["scale"] = np.clip(
+                reduced["scale"], a_min=1e-15, a_max=np.inf
+            )
+        return cls(reduced, name=name)
+
+    @classmethod
+    def from_dataframe(cls, df: pd.DataFrame, key: str) -> Statistics:
+        subdf = df.filter(regex=f"^{key}")
         data = {}
-        for k, v in data_dict.items():
-            name, stat_name = k.split("-")
-            if name == key:
-                data[stat_name] = v
-        return cls(**data)
+        for i, col in enumerate(subdf.columns):
+            k = col.replace(key, "")
+            if not k[0].isalpha():
+                k = k[1:]
+            data[k] = subdf[col].values
+        return cls(data, name=key)
+
+    @property
+    def dict(self):
+        out = dict()
+        for k, v in self.__data__.items():
+            out[self.name + "_" + k] = [v] if isinstance(v, float) else v
+        return out
 
     def __repr__(self):
-        return f"Statistics(mid={self.__data__['mid']})"
+        out = "Statistics("
+        for k, v in self.__data__.items():
+            out += f"{k}={v}, "
 
-    def shape(self):
-        return self.__data__["mid"].shape
+        return out[:-2] + ")"
+
+    def __getattr__(self, key):
+        if key == "__data__":
+            return self.__data__
+        return self.__data__[key]
 
     def copy(self):
         return Statistics(copy.deepcopy(self.__data__))
@@ -46,12 +74,12 @@ class Statistics:
         return key in self.__data__
 
     def clip(self, min=None, max=None):
-        if "mid" not in self:
+        if "loc" not in self:
             return
-        min = self["mid"].min() if min is None else min
-        max = self["mid"].max() if max is None else max
+        min = self["loc"].min() if min is None else min
+        max = self["loc"].max() if max is None else max
         other = self.copy()
-        other["mid"] = np.clip(self["mid"], min, max)
+        other["loc"] = np.clip(self["loc"], min, max)
         return other
 
     def __getitem__(self, key):
@@ -70,134 +98,122 @@ class Statistics:
     def __add__(self, other):
         data = self.copy().__data__
         if isinstance(other, Statistics):
-            data["mid"] += other.__data__["mid"]
-            data["low"] += other.__data__["low"]
-            data["high"] += other.__data__["high"]
+            data["loc"] += other.__data__["loc"]
+            data["scale"] += other.__data__["scale"]
         else:
-            data["mid"] += other
+            data["loc"] += other
         return Statistics(data)
 
     def __sub__(self, other):
         data = self.copy().__data__
         if isinstance(other, Statistics):
-            data["mid"] -= other.__data__["mid"]
-            data["low"] += other.__data__["low"]
-            data["high"] += other.__data__["high"]
+            data["loc"] -= other.__data__["loc"]
+            data["scale"] += other.__data__["scale"]
         else:
-            data["mid"] -= other
+            data["loc"] -= other
 
         return Statistics(data)
 
     def __mul__(self, other):
         data = self.copy().__data__
         if isinstance(other, Statistics):
-            data["mid"] *= other.__data__["mid"]
-            data["low"] = data["mid"] * (
-                self.__data__["low"] / self.__data__["mid"]
-                + other.__data__["low"] / other.__data__["mid"]
-            )
-            data["high"] = data["mid"] * (
-                self.__data__["high"] / self.__data__["mid"]
-                + other.__data__["high"] / other.__data__["mid"]
+            data["loc"] *= other.__data__["loc"]
+            data["scale"] = data["loc"] * (
+                self.__data__["scale"] / self.__data__["loc"]
+                + other.__data__["scale"] / other.__data__["loc"]
             )
         else:
-            data["mid"] *= other
-            data["low"] *= other
-            data["high"] *= other
+            data["loc"] *= other
+            data["scale"] *= other
         return Statistics(data)
 
     def __truediv__(self, other):
         data = self.copy().__data__
 
-        if isinstance(other, Statistics):
-            self_copy = self.copy().__data__
-            other_copy = other.copy().__data__
-            data["mid"] /= other.__data__["mid"]
+        if not isinstance(other, Statistics):
+            raise ValueError()
+        self_copy = self.copy().__data__
+        other_copy = other.copy().__data__
+        data["loc"] /= other.__data__["loc"]
 
-            self_copy["low"][self.__data__["mid"] == 0] = 0
-            self_copy["high"][self.__data__["mid"] == 0] = 0
-            self_copy["mid"][self.__data__["mid"] == 0] = 1
+        if isinstance(self_copy["scale"], np.ndarray):
+            self_copy["scale"][self.__data__["loc"] == 0] = 0
+            self_copy["loc"][self.__data__["loc"] == 0] = 1
 
-            other_copy["low"][other.__data__["mid"] == 0] = 0
-            other_copy["high"][other.__data__["mid"] == 0] = 0
-            other_copy["mid"][other.__data__["mid"] == 0] = 1
-
-            data["low"] = data["mid"] * (
-                self.__data__["low"] / self_copy["mid"]
-                - other.__data__["low"] / self_copy["mid"]
+            other_copy["scale"][other.__data__["loc"] == 0] = 0
+            other_copy["loc"][other.__data__["loc"] == 0] = 1
+        elif isinstance(self_copy["scale"], (int, float)):
+            self_copy["scale"] = (
+                0 if self.__data__["loc"] == 0 else self.__data__["loc"]
             )
-            data["high"] = data["mid"] * (
-                self.__data__["high"] / self_copy["mid"]
-                - other.__data__["high"] / other_copy["mid"]
+            self_copy["loc"] = (
+                1 if self.__data__["loc"] == 0 else self.__data__["loc"]
             )
-        else:
-            data["mid"] /= other
-            data["low"] /= other
-            data["high"] /= other
+
+            other_copy["scale"] = (
+                0 if other.__data__["loc"] == 0 else other.__data__["loc"]
+            )
+            other_copy["loc"] = (
+                1 if other.__data__["loc"] == 0 else other.__data__["loc"]
+            )
+
+        data["scale"] = data["loc"] * np.abs(
+            self.__data__["scale"] / self_copy["loc"]
+            - other.__data__["scale"] / self_copy["loc"]
+        )
         return Statistics(data)
 
     def __ge__(self, other):
-        return self["mid"] >= other["mid"]
+        return self["loc"] >= other["loc"]
 
     def __gt__(self, other):
-        return self["mid"] > other["mid"]
+        return self["loc"] > other["loc"]
 
     def __le__(self, other):
-        return self["mid"] <= other["mid"]
+        return self["loc"] <= other["loc"]
 
     def __lt__(self, other):
-        return self["mid"] < other["mid"]
+        return self["loc"] < other["loc"]
 
     def __eq__(self, other):
-        return self["mid"] == other["mid"]
+        return self["loc"] == other["loc"]
 
-    @staticmethod
-    def mid(samples, error_type="std"):
-        if error_type == "std":
-            return np.mean(samples)
-        elif error_type == "percentile":
-            return np.mean(samples)
-        elif error_type == "confidence":
-            return np.mean(samples)
-        else:
-            raise ValueError(
-                f"Error_type `{error_type}` is invalid. Valid choices"
-                + "are `['std', 'percentile', 'confidence']`."
-            )
+    def bootstrap(self, size=1000):
+        if isinstance(self.__data__, np.ndarray):
+            idx = np.random.randint(len(self.__data__), size=size)
+            return self.__data__[idx]
+        if isinstance(next(iter(self.__data__.values())), np.ndarray):
+            n = len(next(iter(self.__data__.values())))
+            samples = np.zeros((n, size))
 
-    @staticmethod
-    def low(samples, error_type="std"):
-        if error_type == "std":
-            return np.std(samples)
-        elif error_type == "percentile":
-            return np.mean(samples) - np.percentile(samples, 16)
-        elif error_type == "confidence":
-            return np.mean(samples) - np.percentile(samples, 5)
-        else:
-            raise ValueError(
-                f"Error_type `{error_type}` is invalid. Valid choices"
-                + "are `['std', 'percentile', 'confidence']`."
-            )
+            for i in range(n):
+                params = {k: v[i] for k, v in self.__data__.items()}
+                samples[i] = Aggregator.bootstrap(size=size, **params)
+            return samples
 
-    @staticmethod
-    def high(samples, error_type="std"):
-        if error_type == "std":
-            return np.std(samples)
-        elif error_type == "percentile":
-            return np.percentile(samples, 84) - np.median(samples)
-        elif error_type == "confidence":
-            return np.percentile(samples, 95) - np.median(samples)
-        else:
-            raise ValueError(
-                f"Error_type `{error_type}` is invalid. Valid choices"
-                + "are `['std', 'percentile', 'confidence']`."
-            )
+        return Aggregator.bootstrap(size=size, **self.__data__)
 
-    @classmethod
-    def compute(cls, samples, error_type="std"):
-        num_samples = len(samples)
+    def lineplot(
+        self,
+        x: pd.Series or np.ndarray or List[Any],
+        aux: Optional[pd.Series or np.ndarray or List[Any]] = None,
+        **kwargs,
+    ):
+        bs = self.bootstrap(kwargs.pop("num_samples", 1000))
+        df = pd.DataFrame.from_records(bs)
+        if not isinstance(x, pd.Series):
+            x = pd.Series(x, name="xaxis")
+        if aux is not None and not isinstance(aux, pd.Series):
+            aux = pd.series(aux, name="aux")
+        df[x.name] = x
+        if aux is not None:
+            df[aux.name] = aux
 
-        mid = cls.mid(samples, error_type)
-        low = cls.low(samples, error_type) / np.sqrt(num_samples)
-        high = cls.high(samples, error_type) / np.sqrt(num_samples)
-        return dict(mid=mid, low=low, high=high)
+        df = df.melt([x.name, aux.name] if aux is not None else x.name)
+        return sb.lineplot(
+            df,
+            y="value",
+            x=x.name,
+            hue=aux.name if aux is not None else None,
+            **kwargs,
+        )

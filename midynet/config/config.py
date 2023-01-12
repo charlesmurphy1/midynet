@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from itertools import product
-from typing import Any, List, Type
+from typing import Any, List, Type, Optional
 from pyhectiqlab import Config as BaseConfig
 from copy import deepcopy
 import functools
+import pickle
 
 
 def static(cls):
@@ -111,6 +112,10 @@ class Config(BaseConfig):
     def unlock_types(self) -> None:
         self._type_lock = False
 
+    def update(self, **kwargs: Any):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
     def get(self, key: str, default: Any = None) -> Any:
         if key in self:
             return self._state[key]
@@ -144,7 +149,10 @@ class Config(BaseConfig):
         return d
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Config:
+    def from_dict(
+        data: dict[str, Any],
+        as_seq: bool = True,
+    ) -> Config:
         """Convert a dict to a Config object.
         `data` can be nested (dict within dict), which will generate sub configs.
         If `data` is not a dict, then the method returns `data`.
@@ -158,7 +166,7 @@ class Config(BaseConfig):
         if isinstance(data, dict) == False:
             return data
 
-        config = Config(data.get("name", "generic"))
+        config = Config(data.get("name", "generic"), as_seq=as_seq)
         for key in data:
             if isinstance(data[key], dict):
                 config[key] = Config.from_dict(data[key])
@@ -176,8 +184,13 @@ class Config(BaseConfig):
 
     @classmethod
     def auto(
-        cls, config: str or Config or List[Config], *args: Any, **kwargs: Any
+        cls,
+        config: Optional[str or Config or List[Config]],
+        *args: Any,
+        **kwargs: Any,
     ) -> Config or list[Config]:
+        if config is None:
+            return
         configs = [config] if not isinstance(config, list) else config
         res = []
         for config in configs:
