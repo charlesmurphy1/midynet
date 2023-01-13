@@ -32,23 +32,23 @@ class HeuristicsConfig(ExperimentConfig):
             data_model,
             prior,
             target=target,
-            metrics=["reconinfo", "heuristics"],
+            metrics=["reconinfo", "reconheuristics"],
             path=path_to_data,
             num_procs=num_procs,
             seed=seed,
         )
         # config.data_model.infection_prob = [0.0, 0.1, 0.5, 1.0]
         config.data_model.coupling = np.linspace(0, 3, 20).tolist()
-        config.prior.size = 5
-        config.prior.edge_count = 5
+        config.prior.size = 100
+        config.prior.edge_count = 250
         config.prior.with_self_loops = (
             config.prior.with_parallel_edges
         ) = False
-        config.data_model.length = 20
-        config.metrics.reconinfo.num_samples = 100 * num_procs
-        config.metrics.reconinfo.method = "exact"
-        config.metrics.heuristics.num_samples = 100 * num_procs
-        config.metrics.heuristics.method = [
+        config.data_model.length = 100
+        config.metrics.reconinfo.num_samples = 2 * num_procs
+        config.metrics.reconinfo.method = "meanfield"
+        config.metrics.reconheuristics.num_samples = 2 * num_procs
+        config.metrics.reconheuristics.method = [
             "transfer_entropy",
             "correlation",
             "granger_causality",
@@ -86,7 +86,7 @@ def main():
     config = HeuristicsConfig.default(
         prior="erdosrenyi",
         data_model="glauber",
-        path_to_data="./testing2",
+        path_to_data="./heur-er-glauber",
         num_procs=12,
         seed=None,
     )
@@ -102,8 +102,8 @@ def main():
         path_to_scripts="./scripts",
     )
     args = {
-        "run": "local testing for recon-erdos-sis",
-        "name": "testing",
+        "run": "Heuristics performance vs recon on erdos-glauber",
+        "name": "heur-er-glauber",
         "version": "1.0.0",
         "path_to_config": path_to_config,
         "resume": args.resume,
