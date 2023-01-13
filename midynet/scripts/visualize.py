@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sb
+import pyhectiqlab
 
 from typing import List, Optional, Tuple
 
@@ -51,18 +52,21 @@ def get_stat(
 
 
 def main(
-    path: str=None,
+    path: str,
     y_axis: str or List[str],
     x_axis: str,
     twinx_axis: str or List[str],
     aux_axis: Optional[str] = None,
     subconfig: str = None,
     run: str = None,
+    path_to_figure=None,
     **kwargs,
 ):
     fig, ax = plt.subplots(1, 1, figsize=(5, 4))
     for i, _y in enumerate(y_axis):
-        y, x, aux = get_stat(path, _y, x_axis, aux_axis=aux_axis, name=subconfig)
+        y, x, aux = get_stat(
+            path, _y, x_axis, aux_axis=aux_axis, name=subconfig
+        )
 
         if aux is not None:
             palette = sb.color_palette(
@@ -90,7 +94,7 @@ def main(
         _ax = ax.twinx()
         for i, _y in enumerate(twinx_axis):
             y, x, aux = get_stat(
-                path, _y, x_axis, aux_axis=aux_axis, name=name
+                path, _y, x_axis, aux_axis=aux_axis, name=subconfig
             )
             if aux is not None:
                 palette = sb.color_palette(
@@ -114,7 +118,8 @@ def main(
         else:
             _ax.set_ylabel(twinx_axis[0], fontsize=FONTSIZE)
     fig.tight_layout()
-    fig.savefig(save_path)
+    if path_to_figure is not None:
+        fig.savefig(path_to_figure)
     plt.show()
 
 
@@ -208,10 +213,18 @@ if __name__ == "__main__":
         required=False,
     )
 
+    args = parser.parse_args()
     assert args.path is not None or args.name is not None
     if args.path is None:
-        pyhectiqlab.datasets.download_dataset(
-            args.name, project_path="dynamica/midynet", version=args.version, save_path=args.save_path
+        args.path = pyhectiqlab.datasets.download_dataset(
+            args.name,
+            project_path="dynamica/midynet",
+            version=args.version,
+            save_path=args.save_path,
         )
-    args = parser.parse_args()
-    main(path_to_figure=os.path.join(args.save_path, args.figure_name + "." + args.extension), **args.__dict__)
+    main(
+        path_to_figure=os.path.join(
+            args.save_path, args.figure_name + "." + args.extension
+        ),
+        **args.__dict__,
+    )

@@ -86,7 +86,7 @@ def main():
     config = HeuristicsConfig.default(
         prior="erdosrenyi",
         data_model="glauber",
-        path_to_data="./heur-er-glauber",
+        path_to_data="./data/heur-er-glauber",
         num_procs=12,
         seed=None,
     )

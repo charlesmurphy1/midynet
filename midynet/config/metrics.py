@@ -89,7 +89,7 @@ class MetricsFactory(Factory):
         return midynet.metrics.ReconstructionInformationMeasuresMetrics()
 
     @staticmethod
-    def build_heuristics():
+    def build_reconheuristics():
         return midynet.metrics.ReconstructionHeuristicsMetrics()
 
 
