@@ -14,10 +14,24 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--run",
-        "-n",
+        "-r",
         metavar="RUN",
         help="Name of the run.",
         nargs="*",
+        default=None,
+    )
+    parser.add_argument(
+        "--name",
+        "-n",
+        metavar="NAME",
+        help="Name of the generated data.",
+        default=None,
+    )
+    parser.add_argument(
+        "--version",
+        "-v",
+        metavar="VERSION",
+        help="Version of the generated data.",
         default=None,
     )
     parser.add_argument(
@@ -35,6 +49,10 @@ if __name__ == "__main__":
         metavar="PATH_TO_CREDENTIALS",
         help="Path to the hectiq lab credential file (usually /HOME/.hectiqlab/credentials).",
         default=None,
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
     )
 
     args = parser.parse_args()
@@ -80,10 +98,12 @@ if __name__ == "__main__":
     for k in metaconfig.metrics.metrics_names:
         config = metaconfig.copy()
         config.metrics = metaconfig.metrics.get(k)
-        metrics[k].compute(config, logger=logger)
-        path_to_metrics = metrics[k].to_pickle(config.path)
+        metrics[k].compute(config, logger=logger, resume=args.resume, save_path=config.path)
         if run is not None:
-            run.add_artifact(path_to_metrics)
+            run.add_artifact(os.path.join(config.path, metrics[k].shortname + ".pkl"))
+
+    if args.name is not None and run is not None:
+        run.add_dataset(config.path, name=args.name, version=args.version, push_dir=True)
 
     if run is not None:
         run.add_meta(

@@ -3,6 +3,7 @@ import os
 import tempfile
 import pathlib
 import argparse
+import shutil
 
 from midynet.config import Config, ExperimentConfig
 from midynet.scripts import ScriptManager
@@ -37,16 +38,16 @@ class HeuristicsConfig(ExperimentConfig):
             seed=seed,
         )
         # config.data_model.infection_prob = [0.0, 0.1, 0.5, 1.0]
-        config.data_model.coupling = np.linspace(0, 3, 2).tolist()
+        config.data_model.coupling = np.linspace(0, 3, 20).tolist()
         config.prior.size = 5
         config.prior.edge_count = 5
         config.prior.with_self_loops = (
             config.prior.with_parallel_edges
         ) = False
         config.data_model.length = 20
-        config.metrics.reconinfo.num_samples = 10 * num_procs
+        config.metrics.reconinfo.num_samples = 100 * num_procs
         config.metrics.reconinfo.method = "exact"
-        config.metrics.heuristics.num_samples = 10 * num_procs
+        config.metrics.heuristics.num_samples = 100 * num_procs
         config.metrics.heuristics.method = [
             "transfer_entropy",
             "correlation",
@@ -65,6 +66,18 @@ class HeuristicsConfig(ExperimentConfig):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--overwrite",
+        "-o",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--resume",
+        "-r",
+        action="store_true",
+    )
+    args = parser.parse_args()
 
     if not os.path.exists("./configs"):
         os.mkdir("./configs")
@@ -74,9 +87,12 @@ def main():
         prior="erdosrenyi",
         data_model="glauber",
         path_to_data="./testing2",
-        num_procs=4,
+        num_procs=12,
         seed=None,
     )
+    if args.overwrite and os.path.exists(config.path):
+        shutil.rmtree(config.path)
+        os.makedirs(config.path)
     path_to_config = f"./configs/{config.name}.pkl"
     config.save(path_to_config)
 
@@ -86,8 +102,11 @@ def main():
         path_to_scripts="./scripts",
     )
     args = {
-        # "run_name": "local testing for recon-erdos-sis",
+        "run": "local testing for recon-erdos-sis",
+        "name": "testing",
+        "version": "1.0.0",
         "path_to_config": path_to_config,
+        "resume": args.resume,
     }
     script.run(
         name=config.name,

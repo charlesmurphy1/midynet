@@ -3,7 +3,8 @@ from .metrics import Metrics
 from .multiprocess import MultiProcess, Expectation
 
 from .reconinfo import ReconstructionInformationMeasuresMetrics
-from .heuristics import ReconstructionHeuristicsMetrics
+from .recon_heuristics import ReconstructionHeuristicsMetrics
+# from .pred_heuristics import ReconstructionHeuristicsMetrics
 
 __all__ = (
     "MetricsLog",
