@@ -3,6 +3,8 @@ import numpy as np
 
 from dataclasses import dataclass, field
 from collections import defaultdict
+from basegraph.core import UndirectedMultigraph
+from graphinf.random_graph import RandomGraphWrapper
 from graphinf.utility import seed as gi_seed
 from midynet.config import (
     GraphFactory,
@@ -40,7 +42,12 @@ class ReconstructionInformationMeasures(Expectation):
             prior.sample()
             g0 = prior.get_state()
         else:
-            g0 = prior.get_state()
+            target = GraphFactory.build(config.target)
+            if isinstance(target, UndirectedMultigraph):
+                g0 = target
+            else:
+                assert issubclass(target.__class__, RandomGraphWrapper)
+                g0 = target.get_state()
         x0 = data_model.get_random_state(
             config.data_model.get("num_active", -1)
         )

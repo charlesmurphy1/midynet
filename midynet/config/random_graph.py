@@ -21,6 +21,36 @@ __all__ = ("GraphConfig", "GraphFactory")
 @static
 class GraphConfig(Config):
     @classmethod
+    def littlerock(cls):
+        return cls(
+            "littlerock",
+            size=183,
+            edge_count=2_494,
+            gt_id="foodweb_little_rock",
+        )
+
+    @classmethod
+    def openflights(cls):
+        return cls(
+            "openflights", size=3_214, edge_count=66_771, gt_id="openflights"
+        )
+
+    @classmethod
+    def euairlines(cls):
+        return cls(
+            "euairlines", size=450, edge_count=3_588, gt_id="eu_airlines"
+        )
+
+    @classmethod
+    def celegans(cls):
+        return cls(
+            "celegans",
+            size=514,
+            edge_count=2_363,
+            gt_id="celegans_2019/male_gap_junction_synapse",
+        )
+
+    @classmethod
     def erdosrenyi(
         cls,
         size: int = 100,
@@ -152,12 +182,28 @@ class GraphConfig(Config):
 
 class GraphFactory(Factory):
     @staticmethod
-    def build_gtdata(config: GraphConfig) -> UndirectedMultigraph:
+    def load_gtgraph(name: str) -> UndirectedMultigraph:
         from graph_tool import collection
         from midynet.utility.convert import convert_graphtool_to_basegraph
 
-        gt_graph = collection.data[config.graph_name]
+        gt_graph = collection.ns[name]
         return convert_graphtool_to_basegraph(gt_graph)
+
+    @staticmethod
+    def build_littlerock(config: GraphConfig) -> UndirectedMultigraph:
+        return GraphFactory.load_gtgraph(config.gt_id)
+
+    @staticmethod
+    def build_euairlines(config: GraphConfig) -> UndirectedMultigraph:
+        return GraphFactory.load_gtgraph(config.gt_id)
+
+    @staticmethod
+    def build_openflights(config: GraphConfig) -> UndirectedMultigraph:
+        return GraphFactory.load_gtgraph(config.gt_id)
+
+    @staticmethod
+    def build_celegans(config: GraphConfig) -> UndirectedMultigraph:
+        return GraphFactory.load_gtgraph(config.gt_id)
 
     @staticmethod
     def build_erdosrenyi(config: GraphConfig) -> ErdosRenyiModel:
