@@ -6,7 +6,7 @@ class Aggregator:
     @staticmethod
     def bootstrap(size=1000, **kwargs):
         loc = kwargs.get("loc")
-        scale = kwargs.get("scale")
+        scale = np.abs(kwargs.get("scale"))
         if "skewness" in kwargs:
             return skewnorm.rvs(
                 kwargs["skewness"], loc=loc, scale=scale, size=size
