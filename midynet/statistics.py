@@ -157,9 +157,12 @@ class Statistics:
                 1 if other.__data__["loc"] == 0 else other.__data__["loc"]
             )
 
-        data["scale"] = data["loc"] * np.abs(
-            self.__data__["scale"] / self_copy["loc"]
-            - other.__data__["scale"] / self_copy["loc"]
+        data["scale"] = np.abs(
+            data["loc"]
+            * (
+                self.__data__["scale"] / self_copy["loc"]
+                - other.__data__["scale"] / self_copy["loc"]
+            )
         )
         return Statistics(data)
 
