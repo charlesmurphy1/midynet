@@ -47,9 +47,6 @@ class ReconstructionInformationMeasures(Expectation):
         data_model.set_graph(g0)
         data_model.sample_state(x0)
 
-        og = data_model.get_graph()
-
-        data_model.set_graph(og)
         return config, dict(data_model=data_model, prior=prior)
 
     def gather(self, data_model, config):

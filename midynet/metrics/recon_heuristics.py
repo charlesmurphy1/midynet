@@ -40,7 +40,6 @@ def ignore_warnings(func):
 def threshold_weights(weights, edge_count):
     f_to_solve = lambda t: np.abs(np.sum(weights > t) - edge_count)
     threshold = minimize_scalar(f_to_solve)["x"]
-    # threshold = bisect(f_to_solve, weights.min(), weights.max())
     return (weights > threshold).astype("int")
 
 
@@ -86,6 +85,7 @@ class ReconstructionHeuristicsMethod:
 
     def collect_accuracy(self, true, pred, **kwargs):
         pred_adj = threshold_weights(pred, true.sum())
+        
         return accuracy_score(true, pred_adj)
 
     def collect_confusion_matrix(self, true, pred, **kwargs):
@@ -188,14 +188,21 @@ class ReconstructionHeuristics(Expectation):
         data_model = DataModelFactory.build(config.data_model)
         data_model.set_graph_prior(graph_model)
         if config.target != "None":
-            data_model.set_graph(GraphFactory.build(config.target))
-        data_model.sample()
+            g0 = GraphFactory.build(config.target)
+        else:
+            g0 = graph_model.get_state()
+        x0 = data_model.get_random_state(
+            config.data_model.get("num_active", -1)
+        )
+        data_model.set_graph(g0)
+        data_model.sample_state(x0)
         timeseries = np.array(data_model.get_past_states())
         heuristics = get_heuristics_reconstructor(config.metrics)
         heuristics.fit(timeseries)
         heuristics.compare(
-            graph_model.get_state(), measures=["roc", "accuracy"]
+            g0, measures=["roc", "accuracy"]
         )
+        print("auc", heuristics.__results__["roc"]["auc"])
         return dict(
             auc=heuristics.__results__["roc"]["auc"],
             accuracy=heuristics.__results__["accuracy"],
@@ -232,4 +239,5 @@ class ReconstructionHeuristicsMetrics(Metrics):
         for k, s in stats.items():
             for sk, sv in s.__data__.items():
                 out[k + "_" + sk] = [sv]
+        print(out)
         return out

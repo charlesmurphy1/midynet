@@ -33,12 +33,13 @@ class Figure2HeuristicsConfig(ExperimentConfig):
             prior,
             target=target,
             metrics=["reconinfo", "reconheuristics"],
+            # metrics=["reconheuristics"],
             path=path_to_data,
             num_procs=num_procs,
             seed=seed,
         )
-        config.data_model.coupling = np.linspace(0, 1, 20).tolist()
-        config.data_model.length = 100
+        config.data_model.coupling = np.linspace(0, 0.1, 20).tolist()
+        config.data_model.length = 2000
         config.metrics.reconinfo.num_samples = 2 * num_procs
         config.metrics.reconinfo.method = "meanfield"
         config.metrics.reconheuristics.num_samples = 2 * num_procs
@@ -82,7 +83,7 @@ def main():
         data_model="glauber",
         target="littlerock",
         path_to_data="./data/heur-littlerock-glauber",
-        num_procs=12,
+        num_procs=24,
         seed=None,
     )
     if args.overwrite and os.path.exists(config.path):

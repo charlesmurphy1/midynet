@@ -104,8 +104,12 @@ if __name__ == "__main__":
         if run is not None:
             run.add_artifact(os.path.join(config.path, metrics[k].shortname + ".pkl"))
 
+
     if args.name is not None and run is not None:
-        run.add_dataset(config.path, name=args.name, version=args.version, push_dir=True)
+        try:
+            run.add_dataset(config.path, name=args.name, version=args.version, push_dir=True)
+        except:
+            run.add_dataset(config.path, name=args.name, version=args.version, push_dir=True, resume_upload=True)
 
     if run is not None:
         run.add_meta(
