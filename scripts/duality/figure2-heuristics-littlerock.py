@@ -32,23 +32,22 @@ class Figure2HeuristicsConfig(ExperimentConfig):
             data_model,
             prior,
             target=target,
-            # metrics=["reconheuristics"],
             metrics=["reconinfo", "reconheuristics"],
             path=path_to_data,
             num_procs=num_procs,
             seed=seed,
         )
-        config.data_model.coupling = np.linspace(0, 3, 20).tolist()
-        config.prior.size = 100
-        config.prior.edge_count = 250
+        config.data_model.coupling = np.linspace(0, 1, 20).tolist()
+        if config.target == "None":
+            config.prior.size = 100
+            config.prior.edge_count = 250
         config.prior.with_self_loops = (
             config.prior.with_parallel_edges
         ) = False
         config.data_model.length = 100
-        config.metrics.reconinfo.num_samples = 1 * num_procs
+        config.metrics.reconinfo.num_samples = 2 * num_procs
         config.metrics.reconinfo.method = "meanfield"
-        config.metrics.reconinfo.num_sweeps = 10
-        config.metrics.reconheuristics.num_samples = 1 * num_procs
+        config.metrics.reconheuristics.num_samples = 2 * num_procs
         config.metrics.reconheuristics.method = [
             "transfer_entropy",
             "correlation",
@@ -87,9 +86,9 @@ def main():
     config = Figure2HeuristicsConfig.default(
         prior="erdosrenyi",
         data_model="glauber",
-        target="karate",
-        path_to_data="./data/heur-karate-glauber",
-        num_procs=1,
+        target="littlerock",
+        path_to_data="./data/heur-littlerock-glauber",
+        num_procs=12,
         seed=None,
     )
     if args.overwrite and os.path.exists(config.path):
@@ -104,8 +103,8 @@ def main():
         path_to_scripts="./scripts",
     )
     args = {
-        "run": "Heuristics performance vs recon on erdos-glauber",
-        "name": "heur-er-glauber",
+        "run": "Heuristics performance vs recon on little rock food web",
+        "name": "heur-littlerock-glauber",
         "version": "1.0.0",
         "path_to_config": path_to_config,
         "resume": args.resume,
