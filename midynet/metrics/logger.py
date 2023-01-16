@@ -21,23 +21,23 @@ class MetricsLog:
 
 class ProgressLog(MetricsLog):
     @staticmethod
-    def timedelta_to_second(dt: timedelta) -> int:
+    def timedelta_to_second(dt: timedelta) -> float:
         days = dt.days
         hours, r = divmod(dt.seconds, 60 * 60)
         mins, r = divmod(r, 60)
-        secs = r
+        secs = r + dt.microseconds / 1_000_000
         return ((days * 24 + hours) * 60 + mins) * 60 + secs
 
     @staticmethod
-    def timedelta_to_format(dt: timedelta) -> Tuple[int, ...]:
+    def timedelta_to_format(dt: timedelta) -> Tuple[int, int, int, float]:
         days = dt.days
         hours, r = divmod(dt.seconds, 60 * 60)
         mins, r = divmod(r, 60)
-        secs = r
+        secs = r + dt.microseconds / 1_000_000
         return days, hours, mins, secs
 
     @staticmethod
-    def second_to_timedelta(sec: int) -> timedelta:
+    def second_to_timedelta(sec: float) -> timedelta:
         days, r = divmod(sec, 60 * 60 * 24)
         hours, r = divmod(r, 60 * 60)
         minutes, r = divmod(r, 60)
@@ -50,15 +50,16 @@ class ProgressLog(MetricsLog):
         self.total = kwargs.get("total")
         self.counter = 0
         self.begin = datetime.now()
+        self.last = datetime.now()
 
     def update(self, logger: Optional[Logger] = None) -> None:
         self.counter += 1
         self.now = datetime.now()
         self.from_start = self.timedelta_to_second(self.now - self.begin)
+        self.from_last = self.now - self.last
         self.remaining = self.second_to_timedelta(
             self.from_start * ((self.total / self.counter) - 1)
         )
-        days, hours, mins, secs = self.timedelta_to_format(self.remaining)
         if self.counter % self.logging_freq == 0 and logger is not None:
             msg = f"Progress: "
             msg += (
@@ -66,9 +67,13 @@ class ProgressLog(MetricsLog):
                 if self.total is not None
                 else f"{self.counter}"
             )
-            msg += f"\t time remaining : {days:0=2d}-{hours:0=2d}:{mins:0=2d}:{secs:0=2d}"
+            days, hours, mins, secs = self.timedelta_to_format(self.remaining)
+            msg += f"\t time remaining : {days:0=2d}-{hours:0=2d}:{mins:0=2d}:{secs:0=.4f}"
+            days, hours, mins, secs = self.timedelta_to_format(self.from_last)
+            msg += f"\t time per step : {hours:0=2d}:{mins:0=2d}:{secs:0=.4f}"
             if logger is not None:
                 logger.info(msg)
+        self.last = self.now
 
 
 class MemoryLog(MetricsLog):
