@@ -4,6 +4,7 @@ import argparse
 import datetime
 import pyhectiqlab
 import logging
+import multiprocessing
 
 import midynet
 
@@ -54,6 +55,7 @@ if __name__ == "__main__":
         "--resume",
         action="store_true",
     )
+    multiprocessing.set_start_method("spawn")
 
     args = parser.parse_args()
     metaconfig = midynet.config.Config.load(args.path_to_config)

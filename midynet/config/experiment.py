@@ -69,6 +69,8 @@ class ExperimentConfig(Config):
         if config.target != "None":
             config.prior.size = config.target.size
             config.prior.edge_count = config.target.edge_count
+            config.prior.with_self_loops = config.target.with_self_loops
+            config.prior.with_parallel_edges = config.target.with_parallel_edges
         config.metrics = MetricsCollectionConfig.auto(
             metrics if metrics is not None else []
         )

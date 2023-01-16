@@ -27,6 +27,8 @@ class GraphConfig(Config):
             size=34,
             edge_count=78,
             gt_id="karate/78",
+            with_self_loops=False,
+            with_parallel_edges=False,
         )
 
     @classmethod
@@ -36,18 +38,30 @@ class GraphConfig(Config):
             size=183,
             edge_count=2_494,
             gt_id="foodweb_little_rock",
+            with_self_loops=True,
+            with_parallel_edges=True,
         )
 
     @classmethod
     def openflights(cls):
         return cls(
-            "openflights", size=3_214, edge_count=66_771, gt_id="openflights"
+            "openflights", 
+            size=3_214, 
+            edge_count=66_771, 
+            gt_id="openflights",
+            with_self_loops=False,
+            with_parallel_edges=False,
         )
 
     @classmethod
     def euairlines(cls):
         return cls(
-            "euairlines", size=450, edge_count=3_588, gt_id="eu_airlines"
+            "euairlines", 
+            size=450, 
+            edge_count=3_588, 
+            gt_id="eu_airlines",
+            with_self_loops=False,
+            with_parallel_edges=True,
         )
 
     @classmethod
@@ -57,6 +71,8 @@ class GraphConfig(Config):
             size=514,
             edge_count=2_363,
             gt_id="celegans_2019/male_gap_junction_synapse",
+            with_self_loops=True,
+            with_parallel_edges=True,
         )
 
     @classmethod
@@ -212,7 +228,9 @@ class GraphFactory(Factory):
 
     @staticmethod
     def build_openflights(config: GraphConfig) -> UndirectedMultigraph:
-        return GraphFactory.load_gtgraph(config.gt_id)
+        g = GraphFactory.load_gtgraph(config.gt_id)
+        g.remove_selfloops()
+        return g
 
     @staticmethod
     def build_celegans(config: GraphConfig) -> UndirectedMultigraph:

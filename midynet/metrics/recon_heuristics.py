@@ -122,7 +122,7 @@ class WeightbasedReconstructionHeuristicsMethod(
     @ignore_warnings
     def fit(self, timeseries, **kwargs):
         self.clear()
-        self.model.fit(timeseries.T, **kwargs)
+        self.model.fit(timeseries, **kwargs)
         weights = self.model.results["weights_matrix"]
         weights[np.isnan(weights)] = self.nanfill
         np.fill_diagonal(weights, 0)
@@ -138,7 +138,7 @@ class GraphbasedReconstructionHeuristicsMethod(
 
     def fit(self, timeseries, **kwargs):
         self.clear()
-        self.model.fit(timeseries.T, **kwargs)
+        self.model.fit(timeseries, **kwargs)
         weights = nx.to_numpy_array(self.model.results["graph"])
         self.__results__["pred"] = weights
 
@@ -190,7 +190,7 @@ class ReconstructionHeuristics(Expectation):
         if config.target != "None":
             data_model.set_graph(GraphFactory.build(config.target))
         data_model.sample()
-        timeseries = np.array(data_model.get_past_states()).T
+        timeseries = np.array(data_model.get_past_states())
         heuristics = get_heuristics_reconstructor(config.metrics)
         heuristics.fit(timeseries)
         heuristics.compare(

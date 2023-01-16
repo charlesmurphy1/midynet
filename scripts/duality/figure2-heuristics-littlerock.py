@@ -38,12 +38,6 @@ class Figure2HeuristicsConfig(ExperimentConfig):
             seed=seed,
         )
         config.data_model.coupling = np.linspace(0, 1, 20).tolist()
-        if config.target == "None":
-            config.prior.size = 100
-            config.prior.edge_count = 250
-        config.prior.with_self_loops = (
-            config.prior.with_parallel_edges
-        ) = False
         config.data_model.length = 100
         config.metrics.reconinfo.num_samples = 2 * num_procs
         config.metrics.reconinfo.method = "meanfield"
