@@ -35,7 +35,14 @@ class Metrics:
     def eval(self, config: Config) -> Dict[str, float]:
         raise NotImplementedError()
 
-    def compute(self, configs: Config, logger: Logger = None, resume: bool=True, save_path: str=None, patience: int = 5) -> None:
+    def compute(
+        self,
+        configs: Config,
+        logger: Logger = None,
+        resume: bool = True,
+        save_path: str = None,
+        patience: int = 5,
+    ) -> None:
         for log in self.logs:
             log.setup(total=len(configs))
         if logger == "stdout":
@@ -78,14 +85,16 @@ class Metrics:
                 )
             for log in self.logs:
                 log.update(logger)
-            if patience is not None and i%patience == 0 and save_path is not None:
+            if (
+                patience is not None
+                and i % patience == 0
+                and save_path is not None
+            ):
                 self.data = dict(data)
-                self.to_pickle(save_path) 
+                self.to_pickle(save_path)
         self.data = dict(data)
         if save_path is not None:
             self.to_pickle(save_path)
-        # if len(self.data) == 1:
-        #     self.data = next(iter(self.data.values()))
 
     def to_pickle(
         self, path: Optional[str or pathlib.Path] = None, **kwargs

@@ -12,9 +12,15 @@ from .multiprocess import Expectation
 from midynet.statistics import Statistics
 from dataclasses import dataclass, field
 from netrd import reconstruction as _reconstruction
-from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve, accuracy_score
+from sklearn.metrics import (
+    confusion_matrix,
+    roc_auc_score,
+    roc_curve,
+    accuracy_score,
+)
 from midynet.aggregator import Aggregator
 from scipy.optimize import minimize_scalar
+
 
 def ignore_warnings(func):
     def wrapper(*args, **kwargs):
@@ -30,11 +36,13 @@ def ignore_warnings(func):
 
     return wrapper
 
+
 def threshold_weights(weights, edge_count):
     f_to_solve = lambda t: np.abs(np.sum(weights > t) - edge_count)
     threshold = minimize_scalar(f_to_solve)["x"]
     # threshold = bisect(f_to_solve, weights.min(), weights.max())
     return (weights > threshold).astype("int")
+
 
 class ReconstructionHeuristicsMethod:
     def __init__(self):
@@ -75,11 +83,10 @@ class ReconstructionHeuristicsMethod:
             return weights
         weights = (weights - weights.min()) / (weights.max() - weights.min())
         return weights
-    
+
     def collect_accuracy(self, true, pred, **kwargs):
         pred_adj = threshold_weights(pred, true.sum())
         return accuracy_score(true, pred_adj)
-
 
     def collect_confusion_matrix(self, true, pred, **kwargs):
         threshold = kwargs.get("threshold", norm_pred.mean())
@@ -180,13 +187,19 @@ class ReconstructionHeuristics(Expectation):
         graph_model = GraphFactory.build(config.prior)
         data_model = DataModelFactory.build(config.data_model)
         data_model.set_graph_prior(graph_model)
-
+        if config.target != "None":
+            data_model.set_graph(GraphFactory.build(config.target))
         data_model.sample()
         timeseries = np.array(data_model.get_past_states()).T
         heuristics = get_heuristics_reconstructor(config.metrics)
         heuristics.fit(timeseries)
-        heuristics.compare(graph_model.get_state(), measures=["roc", "accuracy"])
-        return dict(auc=heuristics.__results__["roc"]["auc"], accuracy=heuristics.__results__["accuracy"])
+        heuristics.compare(
+            graph_model.get_state(), measures=["roc", "accuracy"]
+        )
+        return dict(
+            auc=heuristics.__results__["roc"]["auc"],
+            accuracy=heuristics.__results__["accuracy"],
+        )
 
 
 class ReconstructionHeuristicsMetrics(Metrics):

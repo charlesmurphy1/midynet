@@ -21,6 +21,15 @@ __all__ = ("GraphConfig", "GraphFactory")
 @static
 class GraphConfig(Config):
     @classmethod
+    def karate(cls):
+        return cls(
+            "karate",
+            size=34,
+            edge_count=78,
+            gt_id="karate/78",
+        )
+
+    @classmethod
     def littlerock(cls):
         return cls(
             "littlerock",
@@ -188,6 +197,10 @@ class GraphFactory(Factory):
 
         gt_graph = collection.ns[name]
         return convert_graphtool_to_basegraph(gt_graph)
+
+    @staticmethod
+    def build_karate(config: GraphConfig) -> UndirectedMultigraph:
+        return GraphFactory.load_gtgraph(config.gt_id)
 
     @staticmethod
     def build_littlerock(config: GraphConfig) -> UndirectedMultigraph:

@@ -3,6 +3,7 @@ import numpy as np
 
 from dataclasses import dataclass, field
 from collections import defaultdict
+from typing import Tuple, Dict, Any
 from basegraph.core import UndirectedMultigraph
 from graphinf.random_graph import RandomGraphWrapper
 from graphinf.utility import seed as gi_seed
@@ -31,46 +32,25 @@ class ReconstructionInformationMeasures(Expectation):
         self.params = config.dict
         super().__init__(**kwargs)
 
-    def func(self, seed: int) -> float:
+    def setup(self, seed: int) -> Tuple[Config, Dict[str, Any]]:
         gi_seed(seed)
         config = Config.from_dict(self.params)
         prior = GraphFactory.build(config.prior)
         data_model = DataModelFactory.build(config.data_model)
 
         data_model.set_graph_prior(prior)
-        if config.target == "None":
-            prior.sample()
-            g0 = prior.get_state()
-        else:
-            target = GraphFactory.build(config.target)
-            if isinstance(target, UndirectedMultigraph):
-                g0 = target
-            else:
-                assert issubclass(target.__class__, RandomGraphWrapper)
-                g0 = target.get_state()
+        prior.sample()
+        g0 = prior.get_state()
         x0 = data_model.get_random_state(
             config.data_model.get("num_active", -1)
         )
         data_model.set_graph(g0)
         data_model.sample_state(x0)
-        out = {}
 
         og = data_model.get_graph()
 
         data_model.set_graph(og)
-        out = self.gather(data_model, config)
-        out["mutualinfo"] = out["prior"] - out["posterior"]
-
-        if prior.labeled:
-            out["graph_joint"] = prior.get_log_joint()
-            out["graph_prior"] = prior.get_label_log_joint()
-            out["graph_evidence"] = -out["prior"]
-            out["graph_posterior"] = (
-                out["graph_joint"] - out["graph_evidence"]
-            )
-        if config.metrics.get("to_bits", True):
-            out = {k: v / np.log(2) for k, v in out.items()}
-        return out
+        return config, dict(data_model=data_model, prior=prior)
 
     def gather(self, data_model, config):
         method = config.metrics.get("method", "meanfield")
@@ -113,6 +93,23 @@ class ReconstructionInformationMeasures(Expectation):
             posterior=posterior,
             evidence=evidence,
         )
+
+    def func(self, seed: int) -> float:
+        config, model_dict = self.setup(seed)
+        data_model, prior = model_dict["data_model"], model_dict["prior"]
+        out = self.gather(data_model, config)
+        out["mutualinfo"] = out["prior"] - out["posterior"]
+
+        if prior.labeled:
+            out["graph_joint"] = prior.get_log_joint()
+            out["graph_prior"] = prior.get_label_log_joint()
+            out["graph_evidence"] = -out["prior"]
+            out["graph_posterior"] = (
+                out["graph_joint"] - out["graph_evidence"]
+            )
+        if config.metrics.get("to_bits", True):
+            out = {k: v / np.log(2) for k, v in out.items()}
+        return out
 
 
 class ReconstructionInformationMeasuresMetrics(Metrics):
