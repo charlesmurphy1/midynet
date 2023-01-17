@@ -33,6 +33,10 @@ class MetricsConfig(Config):
         return cls.mcmc("reconinfo")
 
     @classmethod
+    def targeted_reconinfo(cls):
+        return cls.mcmc("targeted_reconinfo")
+
+    @classmethod
     def heuristics(cls):
         return cls(
             "heuristics",
@@ -87,6 +91,12 @@ class MetricsFactory(Factory):
     @staticmethod
     def build_reconinfo():
         return midynet.metrics.ReconstructionInformationMeasuresMetrics()
+
+    @staticmethod
+    def build_targeted_reconinfo():
+        return (
+            midynet.metrics.TargetedReconstructionInformationMeasuresMetrics()
+        )
 
     @staticmethod
     def build_reconheuristics():
