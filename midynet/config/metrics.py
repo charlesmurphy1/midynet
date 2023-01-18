@@ -11,15 +11,11 @@ __all__ = ("MetricsConfig", "MetricsCollectionConfig", "MetricsFactory")
 @static
 class MetricsConfig(Config):
     @classmethod
-    def monte_carlo(cls, name: str):
-        return cls(name, num_samples=100, stat_aggregate="confidence")
-
-    @classmethod
     def mcmc(cls, name: str):
         obj = cls(
             name,
             num_sweeps=1000,
-            stat_type="percentile",
+            reduction="normal",
             method="meanfield",
             num_samples=100,
             burn_per_vertex=5,
@@ -33,16 +29,40 @@ class MetricsConfig(Config):
         return obj
 
     @classmethod
-    def recon_information(cls):
-        return cls.mcmc("recon_information")
+    def reconinfo(cls):
+        return cls.mcmc("reconinfo")
 
     @classmethod
-    def heuristics(cls):
+    def targreconinfo(cls):
+        return cls.mcmc("targreconinfo")
+
+    @classmethod
+    def reconheur(cls):
         return cls(
-            "heuristics",
+            "reconheur",
             method="correlation",
             num_samples=100,
-            stat_type="percentile",
+            reduction="normal",
+        )
+
+    @classmethod
+    def linregheur(cls):
+        return cls(
+            "linregheur",
+            graph_features="all",
+            state_features="mean",
+            num_samples=100,
+            reduction="normal",
+        )
+
+    @classmethod
+    def miheur(cls):
+        return cls(
+            "miheur",
+            graph_features="all",
+            state_features="mean",
+            num_samples=100,
+            reduction="normal",
         )
 
 
@@ -53,7 +73,8 @@ class MetricsCollectionConfig(Config):
         if isinstance(config_types, str):
             config_types = [config_types]
         config = cls(
-            "metrics", **{a: MetricsConfig.mcmc(a) for a in config_types}
+            "metrics",
+            **{a: getattr(MetricsConfig, a)() for a in config_types},
         )
         config._state["metrics_names"] = config_types
         config.__types__["metrics_names"] = str
@@ -89,12 +110,26 @@ class MetricsFactory(Factory):
                 )
 
     @staticmethod
-    def build_recon_information():
+    def build_reconinfo():
         return midynet.metrics.ReconstructionInformationMeasuresMetrics()
 
     @staticmethod
-    def build_heuristics():
+    def build_targreconinfo():
+        return (
+            midynet.metrics.TargetedReconstructionInformationMeasuresMetrics()
+        )
+
+    @staticmethod
+    def build_reconheur():
         return midynet.metrics.ReconstructionHeuristicsMetrics()
+
+    @staticmethod
+    def build_linregheur():
+        return midynet.metrics.LinearRegressionHeuristicsMetrics()
+
+    @staticmethod
+    def build_miheur():
+        return midynet.metrics.MutualInformationHeuristicsMetrics()
 
 
 if __name__ == "__main__":

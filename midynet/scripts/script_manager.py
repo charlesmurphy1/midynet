@@ -47,6 +47,7 @@ class ScriptManager:
     ):
         script = "#!/bin/bash\n"
         resources = {} if resources is None else resources
+        resources.pop("name", None)
         for k, r in resources.items():
             script += f"{resource_prefix} --{k}={r}\n"
 
@@ -60,7 +61,10 @@ class ScriptManager:
 
         extra_args = {} if extra_args is None else extra_args
         for k, v in extra_args.items():
-            script += f" --{k} {v}"
+            if isinstance(v, bool):
+                script +=f" --{k}" if v else ""
+            else:
+                script += f" --{k} {v}"
 
         script += "\n \n"
         if virtualenv:

@@ -4,14 +4,20 @@ import numpy as np
 import time
 import warnings
 
+
+from typing import Dict
 from graphinf.utility import seed as gi_seed
 from midynet.config import Config, OptionError, GraphFactory, DataModelFactory
-from .metrics import Metrics
+from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
-from midynet.statistics import Statistics
-from dataclasses import dataclass, field
 from netrd import reconstruction as _reconstruction
-from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve
+from sklearn.metrics import (
+    confusion_matrix,
+    roc_auc_score,
+    roc_curve,
+    accuracy_score,
+)
+from scipy.optimize import minimize_scalar
 
 
 def ignore_warnings(func):
@@ -27,6 +33,12 @@ def ignore_warnings(func):
         return value
 
     return wrapper
+
+
+def threshold_weights(weights, edge_count):
+    f_to_solve = lambda t: np.abs(np.sum(weights > t) - edge_count)
+    threshold = minimize_scalar(f_to_solve)["x"]
+    return (weights > threshold).astype("int")
 
 
 class ReconstructionHeuristicsMethod:
@@ -45,7 +57,6 @@ class ReconstructionHeuristicsMethod:
             raise ValueError("`results` must not be empty.")
 
         measures = ["roc"] if measures is None else measures
-
         true = np.array(true_graph.get_adjacency_matrix())
         np.fill_diagonal(true, 0)
         true[true > 1] = 1
@@ -69,6 +80,11 @@ class ReconstructionHeuristicsMethod:
             return weights
         weights = (weights - weights.min()) / (weights.max() - weights.min())
         return weights
+
+    def collect_accuracy(self, true, pred, **kwargs):
+        pred_adj = threshold_weights(pred, true.sum())
+
+        return accuracy_score(true, pred_adj)
 
     def collect_confusion_matrix(self, true, pred, **kwargs):
         threshold = kwargs.get("threshold", norm_pred.mean())
@@ -104,7 +120,7 @@ class WeightbasedReconstructionHeuristicsMethod(
     @ignore_warnings
     def fit(self, timeseries, **kwargs):
         self.clear()
-        self.model.fit(timeseries.T, **kwargs)
+        self.model.fit(timeseries, **kwargs)
         weights = self.model.results["weights_matrix"]
         weights[np.isnan(weights)] = self.nanfill
         np.fill_diagonal(weights, 0)
@@ -120,7 +136,7 @@ class GraphbasedReconstructionHeuristicsMethod(
 
     def fit(self, timeseries, **kwargs):
         self.clear()
-        self.model.fit(timeseries.T, **kwargs)
+        self.model.fit(timeseries, **kwargs)
         weights = nx.to_numpy_array(self.model.results["graph"])
         self.__results__["pred"] = weights
 
@@ -160,41 +176,36 @@ def get_heuristics_reconstructor(config):
 
 class ReconstructionHeuristics(Expectation):
     def __init__(self, config: Config, **kwargs):
-        self.config = config
+        self.params = config.dict
         super().__init__(**kwargs)
 
-    def func(self, seed: int) -> float:
+    def func(self, seed: int) -> Dict[str, float]:
         gi_seed(seed)
-
-        graph_model = GraphFactory.build(self.config.prior)
-        data_model = DataModelFactory.build(self.config.data_model)
+        config = Config.from_dict(self.params)
+        graph_model = GraphFactory.build(config.prior)
+        data_model = DataModelFactory.build(config.data_model)
         data_model.set_graph_prior(graph_model)
-
-        data_model.sample()
-        timeseries = np.array(data_model.get_past_states()).T
-        heuristics = get_heuristics_reconstructor(
-            self.config.metrics.heuristics
+        if config.target != "None":
+            g0 = GraphFactory.build(config.target)
+        else:
+            g0 = graph_model.get_state()
+        x0 = data_model.get_random_state(
+            config.data_model.get("num_active", -1)
         )
+        data_model.set_graph(g0)
+        data_model.sample_state(x0)
+        timeseries = np.array(data_model.get_past_states())
+        heuristics = get_heuristics_reconstructor(config.metrics)
         heuristics.fit(timeseries)
-        heuristics.compare(graph_model.get_state(), collectors=["roc"])
-
-        return heuristics.__results__["roc"]["auc"]
-
-
-class ReconstructionHeuristicsMetrics(Metrics):
-    def __init__(self, **kwargs):
-        super().__init__("heuristics", **kwargs)
-
-    def eval(self, config: Config):
-        heuristics_auc = ReconstructionHeuristics(
-            config=config,
-            num_procs=config.get("num_procs", 1),
-            seed=config.get("seed", int(time.time())),
+        heuristics.compare(g0, measures=["roc", "accuracy"])
+        print("auc", heuristics.__results__["roc"]["auc"])
+        return dict(
+            auc=heuristics.__results__["roc"]["auc"],
+            accuracy=heuristics.__results__["accuracy"],
         )
-        samples = heuristics_auc.compute(
-            config.metrics.heuristics.get("num_samples", 10)
-        )
-        return Statistics.compute(
-            samples,
-            error_type=config.metrics.heuristics.get("error_type", "std"),
-        )
+
+
+class ReconstructionHeuristicsMetrics(ExpectationMetrics):
+    shortname = "reconheuristics"
+    keys = ["auc", "accuracy"]
+    expectation_factory = ReconstructionHeuristics

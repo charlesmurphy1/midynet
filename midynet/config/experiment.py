@@ -60,12 +60,17 @@ class ExperimentConfig(Config):
         config.data_model = DataModelConfig.auto(
             data_model, **data_model_params
         )
-        config.prior = GraphConfig.auto(prior, **graph_params)
         config.target = (
             GraphConfig.auto(target, **target_params)
             if target != "None"
             else "None"
         )
+        config.prior = GraphConfig.auto(prior, **graph_params)
+        if config.target != "None":
+            config.prior.size = config.target.size
+            config.prior.edge_count = config.target.edge_count
+            config.prior.with_self_loops = config.target.with_self_loops
+            config.prior.with_parallel_edges = config.target.with_parallel_edges
         config.metrics = MetricsCollectionConfig.auto(
             metrics if metrics is not None else []
         )
@@ -77,6 +82,7 @@ class ExperimentConfig(Config):
         config.path = str(path)
         config.num_procs = num_procs
         config.seed = seed
+        config.resources = Config(name="resources")
         config.lock_types()
 
         return config

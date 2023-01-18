@@ -10,10 +10,9 @@ from midynet.config import (
 )
 
 from midynet.config import Config
+from ..statistics import Statistics
 from .metrics import Metrics
-from .aggregator import Aggregator
 from .multiprocess import Expectation
-from midynet.statistics import Statistics
 from .util import (
     get_log_posterior_meanfield,
     get_log_evidence,
@@ -22,28 +21,32 @@ from .util import (
     get_graph_log_evidence_exact,
 )
 
-__all__ = ("MutualInformation", "MutualInformationMetrics")
+__all__ = [
+    "PastDependentInformationMeasures",
+    "PastDependentInformationMeasuresMetrics",
+]
 
 
-class ReconstructionInformationMeasures(Expectation):
+class PastDependentInformationMeasures(Expectation):
     def __init__(self, config: Config, **kwargs):
-        self.config = config
+        self.params = config.dict
         super().__init__(**kwargs)
 
     def func(self, seed: int) -> float:
         gi_seed(seed)
-        prior = GraphFactory.build(self.config.prior)
-        data_model = DataModelFactory.build(self.config.data_model)
-        metrics_cf = self.config.metrics.recon_information
+        config = Config.from_dict(self.params)
+        prior = GraphFactory.build(config.prior)
+        data_model = DataModelFactory.build(config.data_model)
+        metrics_cf = config.metrics.recon_information
 
         data_model.set_graph_prior(prior)
-        if self.config.target == "None":
+        if config.target == "None":
             prior.sample()
             g0 = prior.get_state()
         else:
             g0 = prior.get_state()
         x0 = data_model.get_random_state(
-            self.config.data_model.get("num_active", -1)
+            config.data_model.get("num_active", -1)
         )
         data_model.set_graph(g0)
         data_model.sample_state(x0)
@@ -58,32 +61,18 @@ class ReconstructionInformationMeasures(Expectation):
         out["mutualinfo"] = full["prior"] - full["posterior"]
 
         # computing past
-        if (
-            "past_length" in self.config.data_model
-            and self.config.data_model.past_length > 0
-        ):
-            if self.config.data_model.past_length == 0:
-                past = dict(
-                    prior=full["prior"],
-                    likelihood=0,
-                    evidence=0,
-                    posterior=full["prior"],
-                )
-            else:
-                past_length = self.config.data_model.past_length
-                if isinstance(past_length, float):
-                    past_length = int(
-                        past_length * self.config.data_model.length
-                    )
-                elif past_length < 0:
-                    past_length = self.config.data_model.length + past_length
-                data_model.set_length(past_length)
-                past = self.gather(data_model, metrics_cf)
-                data_model.set_length(self.config.data_model.length)
-            out["likelihood_past"] = past["likelihood"]
-            out["evidence_past"] = past["evidence"]
-            out["posterior_past"] = past["posterior"]
-            out["mutualinfo_past"] = past["prior"] - past["posterior"]
+        past_length = config.data_model.past_length
+        if isinstance(past_length, float):
+            past_length = int(past_length * config.data_model.length)
+        elif past_length < 0:
+            past_length = config.data_model.length + past_length
+        data_model.set_length(past_length)
+        past = self.gather(data_model, metrics_cf)
+        data_model.set_length(config.data_model.length)
+        out["likelihood_past"] = past["likelihood"]
+        out["evidence_past"] = past["evidence"]
+        out["posterior_past"] = past["posterior"]
+        out["mutualinfo_past"] = past["prior"] - past["posterior"]
 
         if prior.labeled:
             out["graph_joint"] = prior.get_log_joint()
@@ -137,12 +126,24 @@ class ReconstructionInformationMeasures(Expectation):
         )
 
 
-class ReconstructionInformationMeasuresMetrics(Metrics):
+class PastDependentInformationMeasuresMetrics(Metrics):
+    shortname = "pastinfo"
+    keys = [
+        "prior",
+        "likelihood",
+        "posterior",
+        "evidence",
+        "prior_past",
+        "likelihood_past",
+        "posterior_past",
+        "evidence_past",
+    ]
+
     def __init__(self, **kwargs):
         super().__init__("recon_information", **kwargs)
 
     def eval(self, config: Config):
-        metrics = ReconstructionInformationMeasures(
+        metrics = PastDependentInformationMeasures(
             config=config,
             num_procs=config.get("num_procs", 1),
             seed=config.get("seed", int(time.time())),
@@ -155,35 +156,20 @@ class ReconstructionInformationMeasuresMetrics(Metrics):
         for s in samples:
             for k, v in s.items():
                 sample_dict[k].append(v)
-        # res = {
-        #     k: Statistics.compute(
-        #         v,
-        #         error_type=config.metrics.recon_information.get(
-        #             "error_type", "std"
-        #         ),
-        #     )
-        #     for k, v in sample_dict.items()
-        # }
-        # out = {
-        #     f"{k}-{kk}": vv for k, v in res.items() for kk, vv in v.items()
-        # }
-        # e = out["evidence-mid"]
-        # l = out["likelihood-mid"]
-        # po = out["posterior-mid"]
-        # pr = out["prior-mid"]
-        # mi = out["mutualinfo-mid"]
-        # print(f"Full: {e=}, {l=}, {pr=}, {po=}, {mi=}")
 
-        # e_p = out["evidence_past-mid"]
-        # l_p = out["likelihood_past-mid"]
-        # po_p = out["posterior_past-mid"]
-        # mi_p = out["mutualinfo_past-mid"]
-        # print(f"Past: {e_p=}, {l_p=}, {pr=}, {po_p=}, {mi_p=}")
-        # print(out)
-        return {
-            k: getattr(Aggregator, config.get("stat_type", "std"))(v)
-            for k, v in sample_dict.items()
-        }
+        if config.metrics.recon_information.reduction == "identity":
+            return sample_dict
+        stats = {}
+        for k, v in sample_dict.items():
+            s = Statistics.from_array(
+                v,
+                reduction=config.metrics.recon_information.get(
+                    "reduction", "normal"
+                ),
+            )
+            for sk, sv in s.__data__.items():
+                stats[k + "_" + sk] = [sv]
+        return stats
 
 
 if __name__ == "__main__":
