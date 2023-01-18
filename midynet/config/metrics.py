@@ -33,14 +33,34 @@ class MetricsConfig(Config):
         return cls.mcmc("reconinfo")
 
     @classmethod
-    def targeted_reconinfo(cls):
-        return cls.mcmc("targeted_reconinfo")
+    def targreconinfo(cls):
+        return cls.mcmc("targreconinfo")
 
     @classmethod
-    def heuristics(cls):
+    def reconheur(cls):
         return cls(
-            "heuristics",
+            "reconheur",
             method="correlation",
+            num_samples=100,
+            reduction="normal",
+        )
+
+    @classmethod
+    def linregheur(cls):
+        return cls(
+            "linregheur",
+            graph_features="all",
+            state_features="mean",
+            num_samples=100,
+            reduction="normal",
+        )
+
+    @classmethod
+    def miheur(cls):
+        return cls(
+            "miheur",
+            graph_features="all",
+            state_features="mean",
             num_samples=100,
             reduction="normal",
         )
@@ -53,7 +73,8 @@ class MetricsCollectionConfig(Config):
         if isinstance(config_types, str):
             config_types = [config_types]
         config = cls(
-            "metrics", **{a: MetricsConfig.mcmc(a) for a in config_types}
+            "metrics",
+            **{a: getattr(MetricsConfig, a)() for a in config_types},
         )
         config._state["metrics_names"] = config_types
         config.__types__["metrics_names"] = str
@@ -93,14 +114,22 @@ class MetricsFactory(Factory):
         return midynet.metrics.ReconstructionInformationMeasuresMetrics()
 
     @staticmethod
-    def build_targeted_reconinfo():
+    def build_targreconinfo():
         return (
             midynet.metrics.TargetedReconstructionInformationMeasuresMetrics()
         )
 
     @staticmethod
-    def build_reconheuristics():
+    def build_reconheur():
         return midynet.metrics.ReconstructionHeuristicsMetrics()
+
+    @staticmethod
+    def build_linregheur():
+        return midynet.metrics.LinearRegressionHeuristicsMetrics()
+
+    @staticmethod
+    def build_miheur():
+        return midynet.metrics.MutualInformationHeuristicsMetrics()
 
 
 if __name__ == "__main__":

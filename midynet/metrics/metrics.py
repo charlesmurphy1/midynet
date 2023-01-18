@@ -4,6 +4,7 @@ import logging
 import sys
 import os
 import numpy as np
+import time
 
 from tempfile import mkdtemp
 from typing import Dict, Optional
@@ -12,6 +13,8 @@ from collections import defaultdict
 
 from midynet.config import Config
 from midynet.metrics.logger import ProgressLog, MemoryLog
+from .multiprocess import Expectation
+from midynet.statistics import Statistics
 
 __all__ = ("Metrics",)
 
@@ -112,6 +115,44 @@ class Metrics:
         if not os.path.exists(path):
             return
         self.data = pd.read_pickle(path, **kwargs)
+
+
+class ExpectationMetrics(Metrics):
+    expectation_factory: Expectation = None
+
+    def eval(self, config: Config):
+        expectation = self.expectation_factory(
+            config=config,
+            num_procs=config.get("num_procs", 1),
+            seed=config.get("seed", int(time.time())),
+        )
+        samples = expectation.compute(config.metrics.get("num_samples", 10))
+        sample_dict = defaultdict(list)
+        for s in samples:
+            for k, v in s.items():
+                sample_dict[k].append(v)
+
+        if config.metrics.reduction == "identity":
+            return sample_dict
+        stats = {}
+        for k, v in sample_dict.items():
+            stats[k] = Statistics.from_samples(
+                v,
+                reduction=config.metrics.get("reduction", "normal"),
+                name=k,
+            )
+        stats = self.postprocess(stats)
+
+        out = dict()
+        for k, s in stats.items():
+            for sk, sv in s.__data__.items():
+                out[k + "_" + sk] = [sv]
+        return out
+
+    def postprocess(
+        self, stats: Dict[str, Statistics]
+    ) -> Dict[str, Statistics]:
+        return stats
 
 
 if __name__ == "__main__":

@@ -3,12 +3,14 @@ from .metrics import Metrics
 from .multiprocess import MultiProcess, Expectation
 
 from .reconinfo import ReconstructionInformationMeasuresMetrics
-from .targeted_reconinfo import (
+from .targreconinfo import (
     TargetedReconstructionInformationMeasuresMetrics,
 )
-from .recon_heuristics import ReconstructionHeuristicsMetrics
-
-# from .pred_heuristics import ReconstructionHeuristicsMetrics
+from .reconheur import ReconstructionHeuristicsMetrics
+from .predheur import (
+    LinearRegressionHeuristicsMetrics,
+    MutualInformationHeuristicsMetrics,
+)
 
 __all__ = (
     "MetricsLog",
@@ -20,9 +22,13 @@ __all__ = (
     "ReconstructionInformationMeasuresMetrics",
     "TargetedReconstructionInformationMeasuresMetrics",
     "ReconstructionHeuristicsMetrics",
+    "LinearRegressionHeuristicsMetrics",
+    "MutualInformationHeuristicsMetrics",
 )
 __all_metrics__ = [
     ReconstructionInformationMeasuresMetrics,
-    ReconstructionHeuristicsMetrics,
     TargetedReconstructionInformationMeasuresMetrics,
+    ReconstructionHeuristicsMetrics,
+    LinearRegressionHeuristicsMetrics,
+    MutualInformationHeuristicsMetrics,
 ]

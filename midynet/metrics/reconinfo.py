@@ -13,8 +13,7 @@ from midynet.config import (
 )
 
 from midynet.config import Config
-from ..statistics import Statistics
-from .metrics import Metrics
+from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
 from .util import (
     get_log_posterior_meanfield,
@@ -24,7 +23,7 @@ from .util import (
     get_graph_log_evidence_exact,
 )
 
-__all__ = ("MutualInformation", "MutualInformationMetrics")
+__all__ = ("ReconstructionInformation", "ReconstructionInformationMetrics")
 
 
 class ReconstructionInformationMeasures(Expectation):
@@ -109,7 +108,7 @@ class ReconstructionInformationMeasures(Expectation):
         return out
 
 
-class ReconstructionInformationMeasuresMetrics(Metrics):
+class ReconstructionInformationMeasuresMetrics(ExpectationMetrics):
     shortname = "reconinfo"
     keys = [
         "prior",
@@ -119,34 +118,7 @@ class ReconstructionInformationMeasuresMetrics(Metrics):
         "recon",
         "pred",
     ]
-
-    def eval(self, config: Config):
-        metrics = ReconstructionInformationMeasures(
-            config=config,
-            num_procs=config.get("num_procs", 1),
-            seed=config.get("seed", int(time.time())),
-        )
-
-        samples = metrics.compute(config.metrics.get("num_samples", 10))
-        sample_dict = defaultdict(list)
-        for s in samples:
-            for k, v in s.items():
-                sample_dict[k].append(v)
-
-        stats = {}
-        for k, v in sample_dict.items():
-            stats[k] = Statistics.from_samples(
-                v, reduction=config.metrics.get("reduction", "normal"), name=k
-            )
-
-        stats["recon"] = stats["mutualinfo"] / stats["prior"]
-        stats["pred"] = stats["mutualinfo"] / stats["evidence"]
-
-        out = dict()
-        for k, s in stats.items():
-            for sk, sv in s.__data__.items():
-                out[k + "_" + sk] = [sv]
-        return out
+    expectation_factory = ReconstructionInformationMeasures
 
 
 if __name__ == "__main__":

@@ -14,7 +14,6 @@ class Figure2HeuristicsConfig(ExperimentConfig):
     def default(
         cls,
         prior="erdosrenyi",
-        target="None",
         data_model="glauber",
         path_to_data=None,
         num_procs=1,
@@ -28,26 +27,35 @@ class Figure2HeuristicsConfig(ExperimentConfig):
         if not os.path.exists(path_to_data):
             os.makedirs(path_to_data)
         config = cls.reconstruction(
-            f"heuristics-{prior if target == 'None' else target}-{data_model}",
+            f"heuristics-{prior}-{data_model}",
             data_model,
             prior,
-            target=target,
-            metrics=["reconinfo", "reconheuristics"],
-            # metrics=["reconheuristics"],
+            metrics=[
+                # "reconinfo",
+                # "reconheur",
+                "linregheur",
+                "miheur",
+            ],
             path=path_to_data,
             num_procs=num_procs,
             seed=seed,
         )
-        config.data_model.coupling = np.linspace(0, 0.1, 20).tolist()
-        config.data_model.length = 2000
-        config.metrics.reconinfo.num_samples = 2 * num_procs
-        config.metrics.reconinfo.method = "meanfield"
-        config.metrics.reconheuristics.num_samples = 2 * num_procs
-        config.metrics.reconheuristics.method = [
-            "transfer_entropy",
-            "correlation",
-            "granger_causality",
-        ]
+        config.path += "/" + config.name
+        config.data_model.coupling = np.linspace(0, 0.1, 4).tolist()
+        config.data_model.length = 10
+        config.prior.size = 100
+        config.prior.edge_count = 250
+        print(config.metrics)
+        # config.metrics.reconinfo.num_samples = num_procs
+        # config.metrics.reconinfo.method = "meanfield"
+        # config.metrics.reconheur.num_samples = num_procs
+        # config.metrics.reconheur.method = [
+        #     "transfer_entropy",
+        #     "correlation",
+        #     "granger_causality",
+        # ]
+        config.metrics.linregheur.num_samples = num_procs
+        config.metrics.miheur.num_samples = num_procs
         config.resources.update(
             account="def-aallard",
             time=time,
@@ -81,9 +89,8 @@ def main():
     config = Figure2HeuristicsConfig.default(
         prior="erdosrenyi",
         data_model="glauber",
-        target="littlerock",
-        path_to_data="./data/heur-littlerock-glauber",
-        num_procs=24,
+        path_to_data="./data",
+        num_procs=1,
         seed=None,
     )
     if args.overwrite and os.path.exists(config.path):
@@ -98,9 +105,9 @@ def main():
         path_to_scripts="./scripts",
     )
     args = {
-        "run": "Heuristics performance vs recon on little rock food web",
-        "name": "heur-littlerock-glauber",
-        "version": "1.0.0",
+        # "run": "Heuristics performance vs recon on little rock food web",
+        # "name": config.name,
+        # "version": "1.0.0",
         "path_to_config": path_to_config,
         "resume": args.resume,
     }

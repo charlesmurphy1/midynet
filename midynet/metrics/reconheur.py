@@ -4,13 +4,12 @@ import numpy as np
 import time
 import warnings
 
-from collections import defaultdict
+
+from typing import Dict
 from graphinf.utility import seed as gi_seed
 from midynet.config import Config, OptionError, GraphFactory, DataModelFactory
-from .metrics import Metrics
+from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
-from midynet.statistics import Statistics
-from dataclasses import dataclass, field
 from netrd import reconstruction as _reconstruction
 from sklearn.metrics import (
     confusion_matrix,
@@ -18,7 +17,6 @@ from sklearn.metrics import (
     roc_curve,
     accuracy_score,
 )
-from midynet.aggregator import Aggregator
 from scipy.optimize import minimize_scalar
 
 
@@ -85,7 +83,7 @@ class ReconstructionHeuristicsMethod:
 
     def collect_accuracy(self, true, pred, **kwargs):
         pred_adj = threshold_weights(pred, true.sum())
-        
+
         return accuracy_score(true, pred_adj)
 
     def collect_confusion_matrix(self, true, pred, **kwargs):
@@ -181,7 +179,7 @@ class ReconstructionHeuristics(Expectation):
         self.params = config.dict
         super().__init__(**kwargs)
 
-    def func(self, seed: int) -> float:
+    def func(self, seed: int) -> Dict[str, float]:
         gi_seed(seed)
         config = Config.from_dict(self.params)
         graph_model = GraphFactory.build(config.prior)
@@ -199,9 +197,7 @@ class ReconstructionHeuristics(Expectation):
         timeseries = np.array(data_model.get_past_states())
         heuristics = get_heuristics_reconstructor(config.metrics)
         heuristics.fit(timeseries)
-        heuristics.compare(
-            g0, measures=["roc", "accuracy"]
-        )
+        heuristics.compare(g0, measures=["roc", "accuracy"])
         print("auc", heuristics.__results__["roc"]["auc"])
         return dict(
             auc=heuristics.__results__["roc"]["auc"],
@@ -209,35 +205,7 @@ class ReconstructionHeuristics(Expectation):
         )
 
 
-class ReconstructionHeuristicsMetrics(Metrics):
+class ReconstructionHeuristicsMetrics(ExpectationMetrics):
     shortname = "reconheuristics"
     keys = ["auc", "accuracy"]
-
-    def eval(self, config: Config):
-        heuristics = ReconstructionHeuristics(
-            config=config,
-            num_procs=config.get("num_procs", 1),
-            seed=config.get("seed", int(time.time())),
-        )
-        samples = heuristics.compute(config.metrics.get("num_samples", 10))
-        sample_dict = defaultdict(list)
-        for s in samples:
-            for k, v in s.items():
-                sample_dict[k].append(v)
-
-        if config.metrics.reduction == "identity":
-            return sample_dict
-        stats = {}
-        for k, v in sample_dict.items():
-            stats[k] = Statistics.from_samples(
-                v,
-                reduction=config.metrics.get("reduction", "normal"),
-                name=k,
-            )
-
-        out = dict()
-        for k, s in stats.items():
-            for sk, sv in s.__data__.items():
-                out[k + "_" + sk] = [sv]
-        print(out)
-        return out
+    expectation_factory = ReconstructionHeuristics

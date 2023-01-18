@@ -32,12 +32,20 @@ def get_stat(
     x_axis: str,
     aux_axis: Optional[str] = None,
     name: Optional[str] = None,
+    metrics: Optional[str] = None,
 ) -> Tuple[Statistics, pd.Series, pd.Series or None]:
     df = None
-    for m in midynet.metrics.__all_metrics__:
-        if y_axis in m.keys:
-            df = pd.read_pickle(os.path.join(path, m.shortname + ".pkl"))
-            break
+    if metrics is not None:
+        path_to_metrics = os.path.join(path, m.shortname + ".pkl")
+    else:
+        for m in midynet.metrics.__all_metrics__:
+            path_to_metrics = os.path.join(path, m.shortname + ".pkl")
+            if y_axis in m.keys and os.path.exists(path_to_metrics):
+                assert (
+                    df is None
+                ), f"{metrics} has a duplicate ({m}) and thus cannot be infered: please, specify metrics name."
+                metrics = m
+                df = pd.read_pickle(path_to_metrics)
     assert df is not None
     if isinstance(df, dict) and name is not None:
         df = df[name]
@@ -58,14 +66,20 @@ def main(
     twinx_axis: str or List[str],
     aux_axis: Optional[str] = None,
     subconfig: str = None,
-    run: str = None,
+    run: Optional[str] = None,
     path_to_figure=None,
+    metrics: Optional[str] = None,
     **kwargs,
 ):
     fig, ax = plt.subplots(1, 1, figsize=(5, 4))
     for i, _y in enumerate(y_axis):
         y, x, aux = get_stat(
-            path, _y, x_axis, aux_axis=aux_axis, name=subconfig
+            path,
+            _y,
+            x_axis,
+            aux_axis=aux_axis,
+            name=subconfig,
+            metrics=metrics,
         )
 
         if aux is not None:
