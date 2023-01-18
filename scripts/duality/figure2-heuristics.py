@@ -105,7 +105,7 @@ def main():
 
     script = ScriptManager(
         executable="python ../../midynet/scripts/recon.py",
-        execution_command="bash",
+        execution_command="sbatch",
         path_to_scripts="./scripts",
     )
     args = {
