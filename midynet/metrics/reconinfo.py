@@ -13,6 +13,7 @@ from midynet.config import (
 )
 
 from midynet.config import Config
+from midynet.statistics import Statistics
 from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
 from .util import (
@@ -115,10 +116,18 @@ class ReconstructionInformationMeasuresMetrics(ExpectationMetrics):
         "likelihood",
         "posterior",
         "evidence",
+        "mutualinfo",
         "recon",
         "pred",
     ]
     expectation_factory = ReconstructionInformationMeasures
+
+    def postprocess(
+        self, stats: Dict[str, Statistics]
+    ) -> Dict[str, Statistics]:
+        stats["recon"] = stats["mutualinfo"] / stats["prior"]
+        stats["pred"] = stats["mutualinfo"] / stats["evidence"]
+        return stats
 
 
 if __name__ == "__main__":

@@ -63,8 +63,6 @@ class Metrics:
         if save_path is not None and resume and os.path.exists(save_path):
             self.read_pickle(save_path)
             data.update(self.data)
-        if logger is not None:
-            logger.info(f"---Computing {self.__class__.__name__}---")
         for i, config in enumerate(
             configs.to_sequence()
             if issubclass(configs.__class__, Config)

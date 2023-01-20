@@ -132,6 +132,7 @@ def main(
         else:
             _ax.set_ylabel(twinx_axis[0], fontsize=FONTSIZE)
     fig.tight_layout()
+    print(path_to_figure)
     if path_to_figure is not None:
         fig.savefig(path_to_figure)
     plt.show()
@@ -183,10 +184,10 @@ if __name__ == "__main__":
         required=False,
     )
     parser.add_argument(
-        "--figure_name",
+        "--figure",
         "-f",
         type=str,
-        default="figure",
+        default=None,
         required=False,
     )
     parser.add_argument(
@@ -236,9 +237,13 @@ if __name__ == "__main__":
             version=args.version,
             save_path=args.save_path,
         )
+    if args.figure is not None:
+        path_to_figure = os.path.join(
+            args.save_path, args.figure + "." + args.extension
+        )
+    else:
+        path_to_figure = None
     main(
-        path_to_figure=os.path.join(
-            args.save_path, args.figure_name + "." + args.extension
-        ),
+        path_to_figure=path_to_figure,
         **args.__dict__,
     )

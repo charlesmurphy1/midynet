@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sb
 
-from typing import Optional, List, Any, Dict
+from typing import Optional, List, Any, Dict, Tuple
 from scipy.interpolate import interp1d
 
 from .aggregator import Aggregator
@@ -62,10 +62,44 @@ class Statistics:
 
         return out[:-2] + ")"
 
+    def __len__(self):
+        return len(self.__data__)
+
     def __getattr__(self, key):
         if key == "__data__":
             return self.__data__
         return self.__data__[key]
+
+    @property
+    def shape(self) -> Tuple[int]:
+        d = next(iter(self.__data__.values()))
+        return d.shape if isinstance(d, np.ndarray) else ()
+
+    def concat(self, other: Statistics):
+        stat_copy = other.copy()
+        for k, v in self.__data__.items():
+            if not isinstance(v, np.ndarray):
+                v = np.array([v])
+
+            if k in other.__data__:
+                if not isinstance(other.__data__[k], np.ndarray):
+                    stat_copy.__data__[k] = np.array([other.__data__[k]])
+                stat_copy.__data__[k] = np.append(other.__data__[k], v)
+        stat_copy.__checksizes__()
+        return stat_copy
+
+    def __checksizes__(self):
+        expected_size = None
+        for _, v in self.__data__.items():
+            if expected_size is None:
+                expected_size = v.shape if isinstance(v, np.ndarray) else 0
+            else:
+                msg = "Size mismatch!"
+                assert (
+                    expected_size == v.shape
+                    if isinstance(v, np.ndarray)
+                    else 0
+                ), msg
 
     def copy(self):
         return Statistics(copy.deepcopy(self.__data__))
@@ -75,7 +109,7 @@ class Statistics:
 
     def clip(self, min=None, max=None):
         if "loc" not in self:
-            return
+            return self.copy()
         min = self["loc"].min() if min is None else min
         max = self["loc"].max() if max is None else max
         other = self.copy()
@@ -196,14 +230,71 @@ class Statistics:
 
         return Aggregator.bootstrap(size=size, **self.__data__)
 
+    def interpolate(
+        self,
+        x: pd.Series or np.ndarray or List[Any],
+        aux: Optional[pd.Series or np.ndarray or List[Any]] = None,
+        size=100,
+        **kwargs,
+    ):
+        if not isinstance(x, pd.Series):
+            x = pd.Series(x, name="xaxis")
+        if aux is not None and not isinstance(aux, pd.Series):
+            aux = pd.Series(aux, name="aux")
+        elif aux is None:
+            aux = pd.Series([None] * len(x), name="aux")
+        yinterp = None
+        xinterp = None
+        auxinterp = None
+        kwargs.setdefault("kind", "cubic")
+        for _aux in aux.unique():
+            idx = aux == _aux
+            _x = x if _aux is None else x[idx]
+            aug_x = np.linspace(_x.min(), _x.max(), size)
+            aug_y = dict()
+            for k, v in self.__data__.items():
+                _v = v if _aux is None else v[idx]
+                aug_y[k] = interp1d(_x.values, _v, **kwargs)(aug_x)
+
+            # aug_y = interp1d(_x.values, _y, **kwargs)(aug_x)
+            if xinterp is None:
+                xinterp = pd.Series(aug_x, name=x.name)
+                auxinterp = pd.Series([_aux] * len(xinterp), name=aux.name)
+                yinterp = Statistics(aug_y)
+            else:
+                xinterp = pd.concat(
+                    [xinterp, pd.Series(aug_x, name=x.name)],
+                    ignore_index=True,
+                )
+                auxinterp = pd.concat(
+                    [
+                        auxinterp,
+                        pd.Series([_aux] * len(xinterp), name=aux.name),
+                    ],
+                    ignore_index=True,
+                )
+                yinterp = self.concat(Statistics(aug_y))
+
+            if _aux is None:
+                auxinterp = None
+                return xinterp, yinterp
+
+        return xinterp, yinterp, auxinterp
+
     def lineplot(
         self,
         x: pd.Series or np.ndarray or List[Any],
         aux: Optional[pd.Series or np.ndarray or List[Any]] = None,
+        interpolate: Optional[str] = None,
         **kwargs,
     ):
-        bs = self.bootstrap(kwargs.pop("num_samples", 1000))
-        df = pd.DataFrame.from_records(bs)
+        if interpolate is None:
+            bs = self.bootstrap(kwargs.pop("num_samples", 1000))
+            df = pd.DataFrame.from_records(bs)
+        else:
+            x, y, aux = self.interpolate(x, aux=aux, kind=interpolate)
+            bs = y.bootstrap(kwargs.pop("num_samples", 1000))
+            df = pd.DataFrame.from_records(bs)
         if not isinstance(x, pd.Series):
             x = pd.Series(x, name="xaxis")
         if aux is not None and not isinstance(aux, pd.Series):
@@ -212,10 +303,14 @@ class Statistics:
         if aux is not None:
             df[aux.name] = aux
 
-        df = df.melt([x.name, aux.name] if aux is not None else x.name)
+        df = df.melt(
+            [x.name, aux.name] if aux is not None else x.name,
+            value_name=self.name,
+        )
+
         return sb.lineplot(
             df,
-            y="value",
+            y=self.name,
             x=x.name,
             hue=aux.name if aux is not None else None,
             **kwargs,

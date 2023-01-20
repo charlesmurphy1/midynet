@@ -73,20 +73,24 @@ if __name__ == "__main__":
         )
 
     if args.run is not None:
-        run = pyhectiqlab.Run(" ".join(args.run), project="dynamica/midynet")
-        run.clear_logs()
-        run.add_meta("command-line-args", value=" ".join(sys.argv))
-        run.add_config(metaconfig)
-        logger = run.add_log_stream(level=20)
-        run.add_meta(
-            key="Start evaluation",
-            value=datetime.datetime.now().strftime(
-                "%A, %d %B %Y at %H:%M:%S"
-            ),
-        )
-        run.running()
-    else:
-        run = None
+        try:
+            run = pyhectiqlab.Run(
+                " ".join(args.run), project="dynamica/midynet"
+            )
+            run.clear_logs()
+            run.add_meta("command-line-args", value=" ".join(sys.argv))
+            run.add_config(metaconfig)
+            logger = run.add_log_stream(level=20)
+            run.add_meta(
+                key="Start evaluation",
+                value=datetime.datetime.now().strftime(
+                    "%A, %d %B %Y at %H:%M:%S"
+                ),
+            )
+            run.running()
+        except:
+            run = None
+    if run is None:
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
         handler = logging.StreamHandler(sys.stdout)
@@ -97,19 +101,47 @@ if __name__ == "__main__":
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
+    begin = datetime.datetime.now()
+
     for k in metaconfig.metrics.metrics_names:
+        begin_metrics = datetime.datetime.now()
+        if logger is not None:
+            logger.info(f"---Computing {metrics[k].__class__.__name__}---")
         config = metaconfig.copy()
         config.metrics = metaconfig.metrics.get(k)
-        metrics[k].compute(config, logger=logger, resume=args.resume, save_path=config.path)
-        if run is not None:
-            run.add_artifact(os.path.join(config.path, metrics[k].shortname + ".pkl"))
+        metrics[k].compute(
+            config, logger=logger, resume=args.resume, save_path=config.path
+        )
+        end_metrics = datetime.datetime.now()
+        if logger is not None:
+            logger.info(
+                f"---Finish with time: {end_metrics - begin_metrics}---"
+            )
 
+        if run is not None:
+            run.add_artifact(
+                os.path.join(config.path, metrics[k].shortname + ".pkl")
+            )
+
+    end = datetime.datetime.now()
+    logger.info(f"Total computation time: {begin - end}")
 
     if args.name is not None and run is not None:
         try:
-            run.add_dataset(config.path, name=args.name, version=args.version, push_dir=True)
+            run.add_dataset(
+                config.path,
+                name=args.name,
+                version=args.version,
+                push_dir=True,
+            )
         except:
-            run.add_dataset(config.path, name=args.name, version=args.version, push_dir=True, resume_upload=True)
+            run.add_dataset(
+                config.path,
+                name=args.name,
+                version=args.version,
+                push_dir=True,
+                resume_upload=True,
+            )
 
     if run is not None:
         run.add_meta(
