@@ -49,7 +49,7 @@ class ScriptManager:
         resources = {} if resources is None else resources
         resources.pop("name", None)
         for k, r in resources.items():
-            script += f"{resource_prefix} --{k}={r}\n"
+            script += f"{resource_prefix} --{k.replace('_', '-')}={r}\n"
 
         script += "\n"
         if modules_to_load:

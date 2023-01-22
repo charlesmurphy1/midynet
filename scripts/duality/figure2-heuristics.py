@@ -47,7 +47,7 @@ class Figure2HeuristicsConfig(ExperimentConfig):
             )
         ).tolist()
 
-        config.data_model.length = 1000
+        config.data_model.length = 2000
         config.prior.size = 100
         config.prior.edge_count = 250
         config.metrics.reconinfo.num_samples = num_procs
@@ -63,7 +63,7 @@ class Figure2HeuristicsConfig(ExperimentConfig):
         config.resources.update(
             account="def-aallard",
             time=time,
-            mem=mem,
+            mem=f"{mem}G",
             cpus_per_task=config.num_procs,
             job_name=config.name,
             output=f"log/{config.name}.out",
@@ -110,6 +110,7 @@ def main():
     )
     args = {
         "run": "Heuristics performance vs recon on erdosrenyi",
+        "retrain_data": True,
         "name": config.name,
         # "version": "1.0.0",
         "path_to_config": path_to_config,
@@ -123,8 +124,9 @@ def main():
             "python/3.8",
             "graph-tool",
             "scipy-stack",
+            "httpproxy",
         ],
-        virtualenv=None,
+        virtualenv="/home/murphy9/.midynet-env/bin/activate",
         extra_args=args,
         resources=config.resources.dict,
     )
