@@ -56,7 +56,7 @@ if __name__ == "__main__":
         action="store_true",
     )
     parser.add_argument(
-        "--retain_data",
+        "--push_data",
         action="store_true",
     )
     multiprocessing.set_start_method("spawn")
@@ -122,15 +122,15 @@ if __name__ == "__main__":
                 f"---Finish with time: {end_metrics - begin_metrics}---"
             )
 
-        if run is not None and not args.retain_data:
+        if run is not None and args.push_data:
             run.add_artifact(
                 os.path.join(config.path, metrics[k].shortname + ".pkl")
             )
 
     end = datetime.datetime.now()
-    logger.info(f"Total computation time: {begin - end}")
+    logger.info(f"Total computation time: {end - begin}")
 
-    if args.name is not None and run is not None and not args.retain_data:
+    if args.name is not None and run is not None and args.push_data:
         try:
             run.add_dataset(
                 config.path,

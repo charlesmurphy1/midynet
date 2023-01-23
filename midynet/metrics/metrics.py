@@ -121,7 +121,7 @@ class ExpectationMetrics(Metrics):
     def eval(self, config: Config):
         expectation = self.expectation_factory(
             config=config,
-            num_procs=config.get("num_procs", 1),
+            num_workers=config.get("num_workers", 1),
             seed=config.get("seed", int(time.time())),
         )
         samples = expectation.compute(config.metrics.get("num_samples", 10))

@@ -16,7 +16,7 @@ class Figure2HeuristicsConfig(ExperimentConfig):
         prior="erdosrenyi",
         data_model="glauber",
         path_to_data=None,
-        num_procs=1,
+        num_workers=1,
         time="24:00:00",
         mem=12,
         seed=None,
@@ -37,7 +37,7 @@ class Figure2HeuristicsConfig(ExperimentConfig):
                 "miheur",
             ],
             path=path_to_data,
-            num_procs=num_procs,
+            num_workers=num_workers,
             seed=seed,
         )
         config.path += "/" + config.name
@@ -47,24 +47,25 @@ class Figure2HeuristicsConfig(ExperimentConfig):
             )
         ).tolist()
 
-        config.data_model.length = 2000
-        config.prior.size = 100
-        config.prior.edge_count = 250
-        config.metrics.reconinfo.num_samples = num_procs
+        config.data_model.length = 1000
+        config.prior.size = 500
+        config.prior.edge_count = 1250
+        config.metrics.reconinfo.num_samples = num_workers
         config.metrics.reconinfo.method = "meanfield"
-        config.metrics.reconheur.num_samples = num_procs
+        config.metrics.reconinfo.start_from_original = False
+        config.metrics.reconheur.num_samples = num_workers
         config.metrics.reconheur.method = [
             "transfer_entropy",
             "correlation",
             "granger_causality",
         ]
-        config.metrics.linregheur.num_samples = num_procs
-        config.metrics.miheur.num_samples = num_procs
+        config.metrics.linregheur.num_samples = num_workers
+        config.metrics.miheur.num_samples = num_workers
         config.resources.update(
             account="def-aallard",
             time=time,
             mem=f"{mem}G",
-            cpus_per_task=config.num_procs,
+            cpus_per_task=config.num_workers,
             job_name=config.name,
             output=f"log/{config.name}.out",
         )
@@ -94,8 +95,9 @@ def main():
         prior="erdosrenyi",
         data_model="glauber",
         path_to_data="./data",
-        num_procs=64,
+        num_workers=64,
         seed=None,
+        time="12:00:00",
     )
     if args.overwrite and os.path.exists(config.path):
         shutil.rmtree(config.path)

@@ -29,7 +29,7 @@ class ExperimentConfig(Config):
         config.metrics.recon_information.num_sweeps = 10
         config.metrics.recon_information.initial_burn = 10
         config.path = tempfile.mktemp()
-        config.num_procs = 1
+        config.num_workers = 1
         config.seed = 1
 
         config.lock_types()
@@ -45,7 +45,7 @@ class ExperimentConfig(Config):
         target: str = "None",
         metrics: Optional[List[str]] = None,
         path: Union[str, pathlib.Path] = ".",
-        num_procs: int = 1,
+        num_workers: int = 1,
         seed: Optional[int] = None,
         data_model_params=None,
         graph_params=None,
@@ -70,17 +70,19 @@ class ExperimentConfig(Config):
             config.prior.size = config.target.size
             config.prior.edge_count = config.target.edge_count
             config.prior.with_self_loops = config.target.with_self_loops
-            config.prior.with_parallel_edges = config.target.with_parallel_edges
+            config.prior.with_parallel_edges = (
+                config.target.with_parallel_edges
+            )
         config.metrics = MetricsCollectionConfig.auto(
             metrics if metrics is not None else []
         )
         for m in config.metrics.metrics_names:
             ns = config.metrics.get(m).num_samples
             config.metrics.get(m).num_samples = (
-                max(1, ns // num_procs) * num_procs
+                max(1, ns // num_workers) * num_workers
             )
         config.path = str(path)
-        config.num_procs = num_procs
+        config.num_workers = num_workers
         config.seed = seed
         config.resources = Config(name="resources")
         config.lock_types()
