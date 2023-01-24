@@ -1,3 +1,4 @@
+import numpy as np
 import basegraph.core as bs
 import networkx as nx
 
@@ -12,7 +13,9 @@ def get_edgelist(bs_graph: bs.UndirectedMultigraph) -> list[tuple[int, int]]:
     return el
 
 
-def convert_basegraph_to_networkx(bs_graph: bs.UndirectedMultigraph) -> nx.Graph:
+def convert_basegraph_to_networkx(
+    bs_graph: bs.UndirectedMultigraph,
+) -> nx.Graph:
     nx_graph = nx.Graph()
     for v in bs_graph:
         nx_graph.add_node(v)
@@ -61,3 +64,24 @@ def reduce_partition(partition: list[int]) -> list[int]:
 def convert_gt_blockstate_to_partition(block_state) -> list[int]:
     partition = block_state.get_blocks().a
     return reduce_partition(partition)
+
+
+def save_graph(graph: bs.UndirectedMultigraph, file_name: str) -> None:
+    edges = []
+    for i in graph:
+        for n in graph.get_out_edges_of_idx(i):
+            if n.vertex_index >= i:
+                edges.append([i, n.vertex_index, n.label])
+
+    edges = np.array(edges)
+    np.save(file_name, edges)
+
+
+def load_graph(file_name: str, size=None) -> bs.UndirectedMultigraph:
+    edges = np.load(file_name)
+    graph = bs.UndirectedMultigraph(
+        np.max(edges) + 1 if size is None else size
+    )
+    for i, j, m in edges:
+        graph.add_multiedge_idx(i, j, m)
+    return graph

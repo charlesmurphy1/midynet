@@ -2,6 +2,7 @@ import numpy as np
 from math import floor, ceil
 from typing import Union, Optional, Any
 from itertools import combinations_with_replacement
+import os
 
 from basegraph.core import UndirectedMultigraph
 from graphinf.random_graph import (
@@ -45,9 +46,9 @@ class GraphConfig(Config):
     @classmethod
     def openflights(cls):
         return cls(
-            "openflights", 
-            size=3_214, 
-            edge_count=66_771, 
+            "openflights",
+            size=3_214,
+            edge_count=66_771,
             gt_id="openflights",
             with_self_loops=False,
             with_parallel_edges=False,
@@ -56,9 +57,9 @@ class GraphConfig(Config):
     @classmethod
     def euairlines(cls):
         return cls(
-            "euairlines", 
-            size=450, 
-            edge_count=3_588, 
+            "euairlines",
+            size=450,
+            edge_count=3_588,
             gt_id="eu_airlines",
             with_self_loops=False,
             with_parallel_edges=True,
@@ -215,26 +216,41 @@ class GraphFactory(Factory):
         return convert_graphtool_to_basegraph(gt_graph)
 
     @staticmethod
+    def load_graph(config: GraphConfig) -> UndirectedMultigraph:
+        try:
+            print("Fetching graph from Network Repo...")
+            raise KeyError()
+            return GraphFactory.load_gtgraph(config.gt_id)
+        except KeyError:
+            from midynet.utility.convert import load_graph
+
+            print("Loading graph locally...")
+            path_to_graph = os.path.join(
+                __file__.removesuffix("random_graph.py"), config.name + ".npy"
+            )
+            return load_graph(path_to_graph)
+
+    @staticmethod
     def build_karate(config: GraphConfig) -> UndirectedMultigraph:
-        return GraphFactory.load_gtgraph(config.gt_id)
+        return GraphFactory.load_graph(config)
 
     @staticmethod
     def build_littlerock(config: GraphConfig) -> UndirectedMultigraph:
-        return GraphFactory.load_gtgraph(config.gt_id)
+        return GraphFactory.load_graph(config)
 
     @staticmethod
     def build_euairlines(config: GraphConfig) -> UndirectedMultigraph:
-        return GraphFactory.load_gtgraph(config.gt_id)
+        return GraphFactory.load_graph(config)
 
     @staticmethod
     def build_openflights(config: GraphConfig) -> UndirectedMultigraph:
-        g = GraphFactory.load_gtgraph(config.gt_id)
+        g = GraphFactory.load_graph(config)
         g.remove_selfloops()
         return g
 
     @staticmethod
     def build_celegans(config: GraphConfig) -> UndirectedMultigraph:
-        return GraphFactory.load_gtgraph(config.gt_id)
+        return GraphFactory.load_graph(config)
 
     @staticmethod
     def build_erdosrenyi(config: GraphConfig) -> ErdosRenyiModel:
