@@ -132,76 +132,108 @@ class Statistics:
     def __add__(self, other):
         data = self.copy().__data__
         if isinstance(other, Statistics):
-            data["loc"] += other.__data__["loc"]
-            data["scale"] += other.__data__["scale"]
+            if "loc" in data:
+                data["loc"] += other.loc
+            if "scale" in data:
+                data["scale"] += other.scale
+            if "samples" in data:
+                data["samples"] += other.samples
         else:
-            data["loc"] += other
+            if "loc" in data:
+                data["loc"] += other
+            if "samples" in data:
+                data["samples"] += other
         return Statistics(data)
 
     def __sub__(self, other):
         data = self.copy().__data__
         if isinstance(other, Statistics):
-            data["loc"] -= other.__data__["loc"]
-            data["scale"] += other.__data__["scale"]
+            if "loc" in data:
+                data["loc"] -= other.loc
+            if "scale" in data:
+                data["scale"] += other.scale
+            if "samples" in data:
+                data["samples"] += other.samples
         else:
-            data["loc"] -= other
+            if "loc" in data:
+                data["loc"] -= other
+            if "samples" in data:
+                data["samples"] -= other
 
         return Statistics(data)
 
     def __mul__(self, other):
         data = self.copy().__data__
         if isinstance(other, Statistics):
-            data["loc"] *= other.__data__["loc"]
-            data["scale"] = data["loc"] * (
-                self.__data__["scale"] / self.__data__["loc"]
-                + other.__data__["scale"] / other.__data__["loc"]
-            )
+            if "loc" in data:
+                data["loc"] *= other.loc
+            if "scale" in data:
+                data["scale"] = data["loc"] * (
+                    self.scale / self.loc + other.scale / other.loc
+                )
+            if "samples" in data:
+                data["samples"] *= other.samples
         else:
-            data["loc"] *= other
-            data["scale"] *= other
+            if "loc" in data:
+                data["loc"] *= other
+            if "scale" in data:
+                data["scale"] *= other
+            if "samples" in data:
+                data["samples"] *= other
         return Statistics(data)
 
     def __truediv__(self, other):
         data = self.copy().__data__
 
         if not isinstance(other, Statistics):
-            raise ValueError()
-        self_copy = self.copy().__data__
-        other_copy = other.copy().__data__
-        data["loc"] /= other.__data__["loc"]
+            if "loc" in data:
+                data["loc"] /= other
+            if "scale" in data:
+                data["scale"] /= other
+            if "samples" in data:
+                data["samples"] /= other
+        else:
+            self_copy = self.copy().__data__
+            other_copy = other.copy().__data__
+            if "loc" in data:
+                data["loc"] /= other.loc
 
-        if isinstance(self_copy["scale"], np.ndarray):
-            self_copy["scale"][self.__data__["loc"] == 0] = 0
-            self_copy["loc"][self.__data__["loc"] == 0] = 1
+            if "scale" in data:
+                if isinstance(self_copy["scale"], np.ndarray):
+                    if "loc" in self_copy:
+                        self_copy["loc"][self.loc == 0] = 1
+                        other_copy["loc"][other.loc == 0] = 1
+                    if "scale" in self_copy:
+                        self_copy["scale"][self._loc == 0] = 0
+                        other_copy["scale"][other.loc == 0] = 0
 
-            other_copy["scale"][other.__data__["loc"] == 0] = 0
-            other_copy["loc"][other.__data__["loc"] == 0] = 1
-        elif isinstance(self_copy["scale"], (int, float)):
-            self_copy["scale"] = (
-                0 if self.__data__["loc"] == 0 else self.__data__["loc"]
-            )
-            self_copy["loc"] = (
-                1 if self.__data__["loc"] == 0 else self.__data__["loc"]
-            )
+                elif isinstance(self_copy["scale"], (int, float)):
+                    if "loc" in data:
+                        self_copy["loc"] = 1 if self.loc == 0 else self.loc
+                        other_copy["loc"] = (
+                            1 if other.loc == 0 else other_copy.loc
+                        )
+                    if "scale" in data:
+                        self_copy["scale"] = (
+                            0 if self.loc == 0 else self.scale
+                        )
+                        other_copy["scale"] = (
+                            0 if self.loc == 0 else other_copy.scale
+                        )
 
-            other_copy["scale"] = (
-                0 if other.__data__["loc"] == 0 else other.__data__["loc"]
-            )
-            other_copy["loc"] = (
-                1 if other.__data__["loc"] == 0 else other.__data__["loc"]
-            )
-
-        data["scale"] = np.abs(
-            data["loc"]
-            * (
-                self.__data__["scale"] / self_copy["loc"]
-                - other.__data__["scale"] / self_copy["loc"]
-            )
-        )
+                data["scale"] = np.abs(
+                    data["loc"]
+                    * (
+                        self.scale / self_copy.loc
+                        - other.scale / self_copy.loc
+                    )
+                )
+            if "samples" in data:
+                data["samples"] /= other.samples
         return Statistics(data)
 
     def __ge__(self, other):
-        return self["loc"] >= other["loc"]
+        return self["loc"] >= other.loc
 
     def __gt__(self, other):
         return self["loc"] > other["loc"]

@@ -5,6 +5,11 @@ from scipy.stats import norm, skewnorm
 class Aggregator:
     @staticmethod
     def bootstrap(size=1000, **kwargs):
+
+        if kwargs.get("samples") is not None:
+            samples = kwargs.get("samples")
+            idx = np.random.randint(samples.shape[0], size=size)
+            return samples[idx]
         loc = kwargs.get("loc")
         scale = np.abs(kwargs.get("scale"))
         if "skewness" in kwargs:
@@ -19,7 +24,7 @@ class Aggregator:
 
     @staticmethod
     def identity(samples):
-        return samples
+        return dict(samples=np.array(samples))
 
     @staticmethod
     def normal(samples):

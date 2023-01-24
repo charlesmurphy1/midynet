@@ -94,6 +94,8 @@ if __name__ == "__main__":
             run.running()
         except:
             run = None
+    else:
+        run = None
     if run is None:
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)

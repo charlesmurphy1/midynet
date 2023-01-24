@@ -106,6 +106,7 @@ class ReconstructionInformationMeasures(Expectation):
             )
         if config.metrics.get("to_bits", True):
             out = {k: v / np.log(2) for k, v in out.items()}
+        print(out)
         return out
 
 

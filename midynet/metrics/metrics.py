@@ -80,7 +80,6 @@ class Metrics:
                 raw = pd.DataFrame(self.eval(config))
                 for k, v in configs.summarize_subconfig(config).items():
                     raw[k] = v
-
                 data[config.name] = pd.concat(
                     [data[config.name], raw], ignore_index=True
                 )
@@ -130,8 +129,6 @@ class ExpectationMetrics(Metrics):
             for k, v in s.items():
                 sample_dict[k].append(v)
 
-        if config.metrics.reduction == "identity":
-            return sample_dict
         stats = {}
         for k, v in sample_dict.items():
             stats[k] = Statistics.from_samples(
@@ -139,10 +136,14 @@ class ExpectationMetrics(Metrics):
                 reduction=config.metrics.get("reduction", "normal"),
                 name=k,
             )
+
         stats = self.postprocess(stats)
 
         out = dict()
         for k, s in stats.items():
+            if "samples" in s:
+                out[k] = s.samples.tolist()
+                continue
             for sk, sv in s.__data__.items():
                 out[k + "_" + sk] = [sv]
         return out
