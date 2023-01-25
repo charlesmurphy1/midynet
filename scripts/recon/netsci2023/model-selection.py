@@ -61,7 +61,6 @@ class LittleRockModelSelectionConfig(ExperimentConfig):
             output=f"log/{config.name}.out",
         )
         config.lock()
-        print(config)
         return config
 
 
@@ -100,10 +99,10 @@ def main():
 
         script = ScriptManager(
             executable="python ../../../midynet/scripts/recon.py",
-            execution_command="bash",
+            execution_command="sbatch",
             path_to_scripts="./scripts",
         )
-        args = {
+        extra_args = {
             "run": f"Netsci figure for model selection {prior}-glauber",
             "push_data": False,
             "name": config.name,
@@ -122,7 +121,7 @@ def main():
                 "httpproxy",
             ],
             virtualenv="/home/murphy9/.midynet-env/bin/activate",
-            extra_args=args,
+            extra_args=extra_args,
             resources=config.resources.dict,
         )
 
