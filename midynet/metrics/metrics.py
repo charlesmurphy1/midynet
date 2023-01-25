@@ -93,6 +93,7 @@ class Metrics:
                 self.data = dict(data)
                 self.to_pickle(save_path)
         self.data = dict(data)
+        print(self.data)
         if save_path is not None:
             self.to_pickle(save_path)
 

@@ -114,6 +114,8 @@ class GraphConfig(Config):
             degree_prior_type=degree_prior_type,
             canonical=canonical,
             edge_proposer_type=edge_proposer_type,
+            with_self_loops=True,
+            with_parallel_edges=True,
         )
 
     @classmethod
@@ -136,6 +138,8 @@ class GraphConfig(Config):
             size=size,
             edge_count=edge_count,
             heterogeneity=heterogeneity,
+            with_self_loops=True,
+            with_parallel_edges=True,
         )
 
     @classmethod
@@ -218,13 +222,13 @@ class GraphFactory(Factory):
     @staticmethod
     def load_graph(config: GraphConfig) -> UndirectedMultigraph:
         try:
-            print("Fetching graph from Network Repo...")
+            # print("Fetching graph from Network Repo...")
             raise KeyError()
             return GraphFactory.load_gtgraph(config.gt_id)
         except KeyError:
             from midynet.utility.convert import load_graph
 
-            print("Loading graph locally...")
+            # print("Loading graph locally...")
             path_to_graph = os.path.join(
                 __file__.removesuffix("random_graph.py"), config.name + ".npy"
             )

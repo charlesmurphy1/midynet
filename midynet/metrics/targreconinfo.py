@@ -14,7 +14,7 @@ from midynet.config import (
 
 from midynet.config import Config
 from ..statistics import Statistics
-from .metrics import Metrics
+from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
 from .util import (
     get_log_posterior_meanfield,
@@ -37,10 +37,6 @@ __all__ = (
 class TargetedReconstructionInformationMeasures(
     ReconstructionInformationMeasures
 ):
-    def __init__(self, config: Config, **kwargs):
-        self.params = config.dict
-        super().__init__(**kwargs)
-
     def setup(self, seed: int) -> Tuple[Config, Dict[str, Any]]:
         gi_seed(seed)
         config = Config.from_dict(self.params)
@@ -66,7 +62,7 @@ class TargetedReconstructionInformationMeasures(
         return config, dict(data_model=data_model, prior=prior)
 
 
-class TargetedReconstructionInformationMeasuresMetrics(Metrics):
+class TargetedReconstructionInformationMeasuresMetrics(ExpectationMetrics):
     shortname = "targeted_reconinfo"
     keys = [
         "prior",
@@ -76,34 +72,42 @@ class TargetedReconstructionInformationMeasuresMetrics(Metrics):
         "recon",
         "pred",
     ]
+    expectation_factory = TargetedReconstructionInformationMeasures
 
-    def eval(self, config: Config):
-        metrics = TargetedReconstructionInformationMeasures(
-            config=config,
-            num_procs=config.get("num_procs", 1),
-            seed=config.get("seed", int(time.time())),
-        )
-
-        samples = metrics.compute(config.metrics.get("num_samples", 10))
-        sample_dict = defaultdict(list)
-        for s in samples:
-            for k, v in s.items():
-                sample_dict[k].append(v)
-
-        stats = {}
-        for k, v in sample_dict.items():
-            stats[k] = Statistics.from_samples(
-                v, reduction=config.metrics.get("reduction", "normal"), name=k
-            )
-
+    def postprocess(
+        self, stats: Dict[str, Statistics]
+    ) -> Dict[str, Statistics]:
         stats["recon"] = stats["mutualinfo"] / stats["prior"]
         stats["pred"] = stats["mutualinfo"] / stats["evidence"]
+        return stats
 
-        out = dict()
-        for k, s in stats.items():
-            for sk, sv in s.__data__.items():
-                out[k + "_" + sk] = [sv]
-        return out
+    # def eval(self, config: Config):
+    #     metrics = TargetedReconstructionInformationMeasures(
+    #         config=config,
+    #         num_workers=config.get("num_workers", 1),
+    #         seed=config.get("seed", int(time.time())),
+    #     )
+
+    #     samples = metrics.compute(config.metrics.get("num_samples", 10))
+    #     sample_dict = defaultdict(list)
+    #     for s in samples:
+    #         for k, v in s.items():
+    #             sample_dict[k].append(v)
+
+    #     stats = {}
+    #     for k, v in sample_dict.items():
+    #         stats[k] = Statistics.from_samples(
+    #             v, reduction=config.metrics.get("reduction", "normal"), name=k
+    #         )
+
+    #     stats["recon"] = stats["mutualinfo"] / stats["prior"]
+    #     stats["pred"] = stats["mutualinfo"] / stats["evidence"]
+
+    #     out = dict()
+    #     for k, s in stats.items():
+    #         for sk, sv in s.__data__.items():
+    #             out[k + "_" + sk] = [sv]
+    #     return out
 
 
 if __name__ == "__main__":
