@@ -210,23 +210,18 @@ class Statistics:
                 elif isinstance(self_copy["scale"], (int, float)):
                     if "loc" in data:
                         self_copy["loc"] = 1 if self.loc == 0 else self.loc
-                        other_copy["loc"] = (
-                            1 if other.loc == 0 else other_copy.loc
-                        )
+                        other_copy["loc"] = 1 if other.loc == 0 else other.loc
                     if "scale" in data:
                         self_copy["scale"] = (
                             0 if self.loc == 0 else self.scale
                         )
                         other_copy["scale"] = (
-                            0 if self.loc == 0 else other_copy.scale
+                            0 if self.loc == 0 else other.scale
                         )
 
                 data["scale"] = np.abs(
                     data["loc"]
-                    * (
-                        self.scale / self_copy.loc
-                        - other.scale / self_copy.loc
-                    )
+                    * (self.scale / self.loc - other.scale / other.loc)
                 )
             if "samples" in data:
                 data["samples"] /= other.samples
