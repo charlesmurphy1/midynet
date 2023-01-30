@@ -9,7 +9,7 @@ from midynet.config import Config, ExperimentConfig
 from midynet.scripts import ScriptManager
 
 
-class Figure2HeuristicsConfig(ExperimentConfig):
+class Figure3ReconHeuristicsConfig(ExperimentConfig):
     @classmethod
     def default(
         cls,
@@ -27,7 +27,7 @@ class Figure2HeuristicsConfig(ExperimentConfig):
         if not os.path.exists(path_to_data):
             os.makedirs(path_to_data)
         config = cls.reconstruction(
-            f"heuristics-{prior}-{data_model}",
+            f"reconheur-{prior}-{data_model}",
             data_model,
             prior,
             metrics=[
@@ -87,7 +87,7 @@ def main():
         os.mkdir("./configs")
     if not os.path.exists("./log"):
         os.mkdir("./log")
-    config = Figure2HeuristicsConfig.default(
+    config = Figure3ReconHeuristicsConfig.default(
         prior="erdosrenyi",
         data_model="glauber",
         path_to_data="./data",
@@ -107,10 +107,9 @@ def main():
         path_to_scripts="./scripts",
     )
     args = {
-        "run": "Heuristics performance vs recon on erdosrenyi",
+        "run": "Recon heuristics vs recon on erdosrenyi",
         "retrain_data": True,
         "name": config.name,
-        # "version": "1.0.0",
         "path_to_config": path_to_config,
         "resume": args.resume,
         "save_patience": 1,
