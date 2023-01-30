@@ -108,7 +108,6 @@ def main():
     )
     args = {
         "run": "Recon heuristics vs recon on erdosrenyi",
-        "retrain_data": True,
         "name": config.name,
         "path_to_config": path_to_config,
         "resume": args.resume,
