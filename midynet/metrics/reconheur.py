@@ -10,6 +10,7 @@ from graphinf.utility import seed as gi_seed
 from midynet.config import Config, OptionError, GraphFactory, DataModelFactory
 from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
+from .util import get_log_posterior_meanfield
 from netrd import reconstruction as _reconstruction
 from sklearn.metrics import (
     confusion_matrix,
@@ -141,33 +142,52 @@ class GraphbasedReconstructionHeuristicsMethod(
         self.__results__["pred"] = weights
 
 
+class PeixotoBayesianReconstructionModel:
+    def __init__(self, config):
+        self.graph_prior = GraphFactory.build(config.prior)
+        self.data_model = DataModelFactory.build(config.data_model)
+        self.data_model.set_graph_prior(self.graph_prior)
+        self.config = config
+        self.__results__ = dict()
+
+    def fit(self, timeseries, **kwargs):
+        self.data_model.set_states(timeseries)
+        self.edgeprobs = get_log_posterior_meanfield(
+            self.data_model, self.config.metrics, return_edgeprobs=True
+        )
+        # self.__results__["weight_matrix"] = {e: sum(p) for e, p in self.edgeprobs}
+
+
 def get_heuristics_reconstructor(config):
     reconstructors = {
-        "correlation": lambda: WeightbasedReconstructionHeuristicsMethod(
+        "bayesian": lambda config: WeightbasedReconstructionHeuristicsMethod(
+            PeixotoBayesianReconstructionModel(config)
+        ),
+        "correlation": lambda config: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.CorrelationMatrix()
         ),
-        "granger_causality": lambda: WeightbasedReconstructionHeuristicsMethod(
+        "granger_causality": lambda config: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.GrangerCausality()
         ),
-        "transfer_entropy": lambda: WeightbasedReconstructionHeuristicsMethod(
+        "transfer_entropy": lambda config: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.NaiveTransferEntropy()
         ),
-        "graphical_lasso": lambda: WeightbasedReconstructionHeuristicsMethod(
+        "graphical_lasso": lambda config: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.GraphicalLasso()
         ),
-        "mutual_information": lambda: WeightbasedReconstructionHeuristicsMethod(
+        "mutual_information": lambda config: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.MutualInformationMatrix()
         ),
-        "partial_correlation": lambda: WeightbasedReconstructionHeuristicsMethod(
+        "partial_correlation": lambda config: WeightbasedReconstructionHeuristicsMethod(
             _reconstruction.PartialCorrelationMatrix()
         ),
-        "correlation_spanning_tree": lambda: GraphbasedReconstructionHeuristicsMethod(
+        "correlation_spanning_tree": lambda config: GraphbasedReconstructionHeuristicsMethod(
             _reconstruction.CorrelationSpanningTree()
         ),
     }
 
     if config.method in reconstructors:
-        return reconstructors[config.method]()
+        return reconstructors[config.method](config)
     else:
         raise OptionError(
             actual=config.method, expected=reconstructors.keys()

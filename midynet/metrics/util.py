@@ -194,7 +194,10 @@ def get_log_posterior_annealed(data_model: DataModelWrapper, config: Config):
 
 
 def get_log_posterior_meanfield(
-    data_model: DataModelWrapper, config: Config, verbose: int = 0
+    data_model: DataModelWrapper,
+    config: Config,
+    verbose: int = 0,
+    return_edgeprobs: bool = False,
 ):
     graph_model = data_model.graph_prior
     mcmc = GraphReconstructionMCMC(data_model)
@@ -227,8 +230,11 @@ def get_log_posterior_meanfield(
 
     mcmc.set_graph(original_graph)
     logp = callback.get_log_posterior_estimate(original_graph)
+    edgeprobs = callback.get_edge_probs()
 
     mcmc.remove_callback("collector")
+    if return_edgeprobs:
+        return edgeprobs
     return logp
 
 

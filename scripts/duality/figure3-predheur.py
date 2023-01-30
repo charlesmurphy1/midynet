@@ -32,9 +32,7 @@ class Figure2HeuristicsConfig(ExperimentConfig):
             prior,
             metrics=[
                 "reconinfo",
-                "reconheur",
                 "linregheur",
-                "miheur",
             ],
             path=path_to_data,
             num_workers=num_workers,
@@ -43,24 +41,17 @@ class Figure2HeuristicsConfig(ExperimentConfig):
         config.path += "/" + config.name
         config.data_model.coupling = np.unique(
             np.concatenate(
-                [np.linspace(0, 0.2, 10), np.linspace(0.2, 0.8, 15)]
+                [np.linspace(0, 0.5, 30), np.linspace(0.5, 2.0, 20)]
             )
         ).tolist()
 
-        config.data_model.length = 1000
-        config.prior.size = 500
-        config.prior.edge_count = 1250
+        config.data_model.length = 100
+        config.prior.size = 100
+        config.prior.edge_count = 250
         config.metrics.reconinfo.num_samples = num_workers
         config.metrics.reconinfo.method = "meanfield"
         config.metrics.reconinfo.start_from_original = False
-        config.metrics.reconheur.num_samples = num_workers
-        config.metrics.reconheur.method = [
-            "transfer_entropy",
-            "correlation",
-            "granger_causality",
-        ]
         config.metrics.linregheur.num_samples = num_workers
-        config.metrics.miheur.num_samples = num_workers
         config.resources.update(
             account="def-aallard",
             time=time,
@@ -117,6 +108,7 @@ def main():
         # "version": "1.0.0",
         "path_to_config": path_to_config,
         "resume": args.resume,
+        "save_patience": 1,
     }
     script.run(
         name=config.name,

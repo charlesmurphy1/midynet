@@ -72,7 +72,6 @@ class Metrics:
 
             if resume and config.name in data:
                 cond = pd.DataFrame()
-                # params_is_matched = dict()
                 for k, v in configs.summarize_subconfig(config).items():
                     cond[k] = data[config.name][k] == v
                 skip = np.any(np.prod(cond.values, axis=-1))
@@ -93,7 +92,6 @@ class Metrics:
                 self.data = dict(data)
                 self.to_pickle(save_path)
         self.data = dict(data)
-        print(self.data)
         if save_path is not None:
             self.to_pickle(save_path)
 

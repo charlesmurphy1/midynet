@@ -59,6 +59,11 @@ if __name__ == "__main__":
         "--push_data",
         action="store_true",
     )
+    parser.add_argument(
+        "--save_patience",
+        type=int,
+        default=5,
+    )
     multiprocessing.set_start_method("spawn")
 
     args = parser.parse_args()
@@ -116,7 +121,11 @@ if __name__ == "__main__":
         config = metaconfig.copy()
         config.metrics = metaconfig.metrics.get(k)
         metrics[k].compute(
-            config, logger=logger, resume=args.resume, save_path=config.path
+            config,
+            logger=logger,
+            resume=args.resume,
+            save_path=config.path,
+            patience=args.save_patience,
         )
         end_metrics = datetime.datetime.now()
         if logger is not None:

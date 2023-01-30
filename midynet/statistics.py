@@ -120,7 +120,7 @@ class Statistics:
         if isinstance(key, str) and key in self.__data__:
             return self.__data__[key]
         else:
-            return {k: v[key] for k, v in self.__data__.items()}
+            return Statistics({k: v[key] for k, v in self.__data__.items()})
 
     def __setitem__(self, key, value):
         if isinstance(key, str) and key in self.__data__:
@@ -204,7 +204,7 @@ class Statistics:
                         self_copy["loc"][self.loc == 0] = 1
                         other_copy["loc"][other.loc == 0] = 1
                     if "scale" in self_copy:
-                        self_copy["scale"][self._loc == 0] = 0
+                        self_copy["scale"][self.loc == 0] = 0
                         other_copy["scale"][other.loc == 0] = 0
 
                 elif isinstance(self_copy["scale"], (int, float)):
@@ -241,6 +241,11 @@ class Statistics:
 
     def __eq__(self, other):
         return self["loc"] == other["loc"]
+
+    def rescale_(self, s):
+        if "scale" in self:
+            self["scale"] /= s
+        return
 
     def bootstrap(self, size=1000):
         if isinstance(self.__data__, np.ndarray):
@@ -319,7 +324,11 @@ class Statistics:
             bs = self.bootstrap(kwargs.pop("num_samples", 1000))
             df = pd.DataFrame.from_records(bs)
         else:
-            x, y, aux = self.interpolate(x, aux=aux, kind=interpolate)
+            out = self.interpolate(x, aux=aux, kind=interpolate)
+            if aux is None:
+                x, y = out
+            else:
+                x, y, aux = out
             bs = y.bootstrap(kwargs.pop("num_samples", 1000))
             df = pd.DataFrame.from_records(bs)
         if not isinstance(x, pd.Series):
