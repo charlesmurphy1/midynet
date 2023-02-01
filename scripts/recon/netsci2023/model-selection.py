@@ -41,16 +41,16 @@ class LittleRockModelSelectionConfig(ExperimentConfig):
         )
         config.path += "/" + config.name
         config.data_model.coupling = 0.05
-        config.data_model.length = 2000
+        config.data_model.length = 200
         config.metrics.targreconinfo.num_samples = 4 * num_workers
         config.metrics.targreconinfo.method = "meanfield"
         config.metrics.targreconinfo.start_from_original = False
-        config.metrics.targreconinfo.num_sweeps = 1000
+        config.metrics.targreconinfo.num_sweeps = 100
         config.metrics.targreconinfo.reduction = "identity"
         config.metrics.reconinfo.num_samples = 4 * num_workers
         config.metrics.reconinfo.method = "meanfield"
         config.metrics.reconinfo.start_from_original = False
-        config.metrics.reconinfo.num_sweeps = 1000
+        config.metrics.reconinfo.num_sweeps = 100
         config.metrics.reconinfo.reduction = "identity"
         config.resources.update(
             account="def-aallard",
@@ -87,7 +87,7 @@ def main():
             prior=prior,
             data_model="glauber",
             path_to_data="./data",
-            num_workers=64,
+            num_workers=1,
             seed=None,
             time="12:00:00",
         )
@@ -99,7 +99,7 @@ def main():
 
         script = ScriptManager(
             executable="python ../../../midynet/scripts/recon.py",
-            execution_command="sbatch",
+            execution_command="bash",
             path_to_scripts="./scripts",
         )
         extra_args = {
