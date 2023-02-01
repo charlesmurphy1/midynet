@@ -27,7 +27,7 @@ class LittleRockHeuristicsConfig(ExperimentConfig):
         if not os.path.exists(path_to_data):
             os.makedirs(path_to_data)
         config = cls.reconstruction(
-            f"test-{prior}-{data_model}",
+            f"heuristics-{prior}-{data_model}",
             data_model,
             prior,
             target="littlerock",
@@ -40,11 +40,12 @@ class LittleRockHeuristicsConfig(ExperimentConfig):
             seed=seed,
         )
         config.path += "/" + config.name
-        config.data_model.coupling = np.unique(
-            np.concatenate(
-                [np.linspace(0, 0.05, 10), np.linspace(0.05, 0.2, 15)]
-            )
-        ).tolist()
+#        config.data_model.coupling = np.unique(
+#            np.concatenate(
+#                [np.linspace(0, 0.05, 10), np.linspace(0.05, 0.2, 15)]
+#            )
+#        ).tolist()
+        config.data_model.coupling = np.linspace(0,0.05, 25).tolist()
         config.data_model.length = 1000
         # config.prior.size = 100
         # config.prior.edge_count = 250
