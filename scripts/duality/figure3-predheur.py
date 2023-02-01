@@ -39,11 +39,14 @@ class Figure3PredHeuristicsConfig(ExperimentConfig):
             seed=seed,
         )
         config.path += "/" + config.name
-        config.data_model.coupling = np.unique(
-            np.concatenate(
-                [np.linspace(0, 0.5, 30), np.linspace(0.5, 2.0, 20)]
-            )
-        ).tolist()
+        if data_model == "glauber":
+            config.data_model.coupling = np.unique(
+                np.concatenate(
+                    [np.linspace(0, 0.5, 30), np.linspace(0.5, 2.0, 20)]
+                )
+            ).tolist()
+        elif data_model == "sis":
+            config.data_model.infection_prob = np.linspace(0, 0.2, 50).tolist()
 
         config.data_model.length = 100
         config.prior.size = 100
@@ -84,11 +87,11 @@ def main():
         os.mkdir("./log")
     config = Figure3PredHeuristicsConfig.default(
         prior="erdosrenyi",
-        data_model="glauber",
+        data_model="sis",
         path_to_data="./data",
         num_workers=64,
         seed=None,
-        time="12:00:00",
+        time="2:00:00",
     )
     if args.overwrite and os.path.exists(config.path):
         shutil.rmtree(config.path)
@@ -102,7 +105,7 @@ def main():
         path_to_scripts="./scripts",
     )
     args = {
-        "run": "Pred heuristics vs pred on erdosrenyi",
+        "run": "Pred heuristics vs pred on erdosrenyi sis",
         "name": config.name,
         "path_to_config": path_to_config,
         "resume": args.resume,
