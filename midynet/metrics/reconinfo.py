@@ -124,11 +124,14 @@ class ReconstructionInformationMeasuresMetrics(ExpectationMetrics):
     expectation_factory = ReconstructionInformationMeasures
 
     def postprocess(
-        self, stats: Dict[str, Statistics]
-    ) -> Dict[str, Statistics]:
+        self, samples: list[Dict[str, float]]
+    ) -> Dict[str, float]:
+        stats = self.reduce(
+            samples, self.configs.metrics.get("reduction", "normal")
+        )
         stats["recon"] = stats["mutualinfo"] / stats["prior"]
         stats["pred"] = stats["mutualinfo"] / stats["evidence"]
-        return stats
+        return self.format(stats)
 
 
 if __name__ == "__main__":

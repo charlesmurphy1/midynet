@@ -68,9 +68,9 @@ class ProgressLog(MetricsLog):
                 else f"{self.counter}"
             )
             days, hours, mins, secs = self.timedelta_to_format(self.remaining)
-            msg += f"\t time remaining : {days:0=2d}-{hours:0=2d}:{mins:0=2d}:{secs:0=.4f}"
+            msg += f"\t remaining : {days:0=2d}-{hours:0=2d}:{mins:0=2d}:{secs:0=.4f}"
             days, hours, mins, secs = self.timedelta_to_format(self.from_last)
-            msg += f"\t time per step : {hours:0=2d}:{mins:0=2d}:{secs:0=.4f}"
+            msg += f"\t per step : {hours:0=2d}:{mins:0=2d}:{secs:0=.4f}"
             if logger is not None:
                 logger.info(msg)
         self.last = self.now

@@ -46,6 +46,7 @@ class ExperimentConfig(Config):
         metrics: Optional[List[str]] = None,
         path: Union[str, pathlib.Path] = ".",
         num_workers: int = 1,
+        num_async_jobs: int = 1,
         seed: Optional[int] = None,
         data_model_params=None,
         graph_params=None,
@@ -83,6 +84,7 @@ class ExperimentConfig(Config):
             )
         config.path = str(path)
         config.num_workers = num_workers
+        config.num_async_jobs = num_async_jobs
         config.seed = seed
         config.resources = Config(name="resources")
         config.lock_types()

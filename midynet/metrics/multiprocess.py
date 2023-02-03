@@ -1,7 +1,9 @@
-from multiprocessing import get_context
+import multiprocessing as mp
 import time
-
 import numpy as np
+
+from typing import Optional
+from multiprocessing import get_context
 
 __all__ = ("MultiProcess", "Expectation")
 
@@ -27,31 +29,25 @@ __all__ = ("MultiProcess", "Expectation")
 
 
 class MultiProcess:
-    def __init__(self, num_workers: int = 1):
-        self.num_workers = num_workers
+    def __init__(self, inputs):
+        self.inputs = inputs
 
     def func(self, inputs):
         raise NotImplementedError()
 
-    def compute(self, inputs):
-        with get_context("spawn").Pool(self.num_workers) as p:
-            out = p.map(self.func, inputs)
+    def compute(self, pool: Optional[mp.Pool] = None):
+        if pool is None:
+            return [self.func(x) for x in self.inputs]
+        out = pool.map(self.func, self.inputs)
         return out
+
+    def compute_async(self, pool: Optional[mp.Pool] = None):
+        if pool is None:
+            return self.compute()
+        return pool.map_async(self.func, self.inputs)
 
 
 class Expectation(MultiProcess):
-    def __init__(self, num_workers: int = 1, seed=None):
-        self.num_workers = num_workers
+    def __init__(self, seed=None, num_samples=1):
         self.seed = seed if seed is not None else int(time.time())
-
-    def func(self, seed: int) -> float:
-        raise NotImplementedError()
-
-    def compute(self, num_samples: int = 1) -> list[float]:
-        seeds = self.seed + np.arange(num_samples)
-        if self.num_workers > 1:
-            with get_context("spawn").Pool(self.num_workers) as p:
-                out = p.map(self.func, seeds)
-        else:
-            out = [self.func(s) for s in seeds]
-        return out
+        super().__init__(self.seed + np.arange(num_samples))

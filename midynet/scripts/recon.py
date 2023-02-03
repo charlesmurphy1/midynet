@@ -126,6 +126,8 @@ if __name__ == "__main__":
             resume=args.resume,
             save_path=config.path,
             patience=args.save_patience,
+            num_workers=config.get("num_workers", 1),
+            num_async_jobs=config.get("num_async_jobs", 1),
         )
         end_metrics = datetime.datetime.now()
         if logger is not None:
