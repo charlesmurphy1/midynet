@@ -158,7 +158,7 @@ class MutualInformationHeuristicsMetrics(ExpectationMetrics):
     shortname = "miheur"
     keys = [
         f"mi_{xk}_{gk}"
-        for xk, gk in zip(
+        for xk, gk in product(
             StateFeatureExtractor.__collection__.keys(),
             GraphFeatureExtractor.__collection__.keys(),
         )
