@@ -125,6 +125,7 @@ class Metrics:
             ):
                 self.data = dict(data)
                 self.to_pickle(save_path)
+        return data
 
     def run_async(
         self,
