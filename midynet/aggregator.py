@@ -11,7 +11,7 @@ class Aggregator:
             idx = np.random.randint(samples.shape[0], size=size)
             return samples[idx]
         loc = kwargs.get("loc")
-        scale = np.abs(kwargs.get("scale"))
+        scale = np.abs(kwargs.get("scale", 0))
         if "skewness" in kwargs:
             return skewnorm.rvs(
                 kwargs["skewness"], loc=loc, scale=scale, size=size

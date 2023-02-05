@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sb
 
-from typing import Optional, List, Any, Dict, Tuple
+from typing import Optional, List, Any, Dict, Tuple, Iterable
 from scipy.interpolate import interp1d
 
 from .aggregator import Aggregator
@@ -247,15 +247,17 @@ class Statistics:
             self["scale"] /= s
         return
 
-    def bootstrap(self, size=1000):
-        if isinstance(self.__data__, np.ndarray):
-            idx = np.random.randint(len(self.__data__), size=size)
-            return self.__data__[idx]
+    def bootstrap(self, indexes: Optional[Iterable[bool]] = None, size=1000):
+        if "samples" in self:
+            idx = np.random.randint(len(self.samples), size=size)
+            return self.samples[idx]
         if isinstance(next(iter(self.__data__.values())), np.ndarray):
             n = len(next(iter(self.__data__.values())))
             samples = np.zeros((n, size))
 
             for i in range(n):
+                if indexes is not None and not indexes[i]:
+                    continue
                 params = {k: v[i] for k, v in self.__data__.items()}
                 samples[i] = Aggregator.bootstrap(size=size, **params)
             return samples
@@ -316,12 +318,15 @@ class Statistics:
     def lineplot(
         self,
         x: pd.Series or np.ndarray or List[Any],
-        aux: Optional[pd.Series or np.ndarray or List[Any]] = None,
+        aux: Optional[pd.Serie or np.ndarray or List[Any]] = None,
         interpolate: Optional[str] = None,
+        indexes: Optional[Iterable[bool]] = None,
+        n_boot: int = 100,
+        use_cache: bool = True,
         **kwargs,
     ):
         if interpolate is None:
-            bs = self.bootstrap(kwargs.pop("num_samples", 1000))
+            bs = self.bootstrap(indexes, n_boot)
             df = pd.DataFrame.from_records(bs)
         else:
             out = self.interpolate(x, aux=aux, kind=interpolate)
@@ -329,12 +334,15 @@ class Statistics:
                 x, y = out
             else:
                 x, y, aux = out
-            bs = y.bootstrap(kwargs.pop("num_samples", 1000))
+            bs = y.bootstrap(indexes, n_boot)
             df = pd.DataFrame.from_records(bs)
         if not isinstance(x, pd.Series):
             x = pd.Series(x, name="xaxis")
         if aux is not None and not isinstance(aux, pd.Series):
-            aux = pd.series(aux, name="aux")
+            aux = pd.Series(aux, name="aux")
+        if indexes is not None:
+            x = x[indexes]
+            aux = aux[indexes] if aux is not None else None
         df[x.name] = x
         if aux is not None:
             df[aux.name] = aux
