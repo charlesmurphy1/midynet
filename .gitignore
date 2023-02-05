@@ -22,3 +22,5 @@ dist/
 *.tox
 
 archive-*
+
+*.ipynb_checkpoints
