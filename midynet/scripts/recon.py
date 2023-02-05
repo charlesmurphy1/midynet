@@ -8,6 +8,8 @@ import multiprocessing
 
 import midynet
 
+from midynet.metrics import Progress, MemoryCheck, Checkpoint
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Run a reconstruction numerical experiment."
@@ -115,30 +117,36 @@ if __name__ == "__main__":
     begin = datetime.datetime.now()
 
     for k in metaconfig.metrics.metrics_names:
-        begin_metrics = datetime.datetime.now()
         if logger is not None:
             logger.info(f"---Computing {metrics[k].__class__.__name__}---")
         config = metaconfig.copy()
         config.metrics = metaconfig.metrics.get(k)
+
+        callbacks = [
+            Progress.to_setup(logger=logger, total=len(config)),
+            MemoryCheck.to_setup("gb", logger=logger),
+            Checkpoint.to_setup(
+                patience=args.save_patience,
+                savepath=config.path,
+                logger=logger,
+                metrics=metrics[k],
+            ),
+        ]
         metrics[k].compute(
             config,
-            logger=logger,
             resume=args.resume,
-            save_path=config.path,
-            patience=args.save_patience,
             num_workers=config.get("num_workers", 1),
             num_async_jobs=config.get("num_async_jobs", 1),
+            callbacks=callbacks,
         )
-        end_metrics = datetime.datetime.now()
-        if logger is not None:
-            logger.info(
-                f"---Finish with time: {end_metrics - begin_metrics}---"
-            )
 
         if run is not None and args.push_data:
             run.add_artifact(
                 os.path.join(config.path, metrics[k].shortname + ".pkl")
             )
+
+        for c in callbacks:
+            c.teardown()
 
     end = datetime.datetime.now()
     logger.info(f"Total computation time: {end - begin}")

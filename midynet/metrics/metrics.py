@@ -13,18 +13,18 @@ from typing import Dict, Optional
 from collections import defaultdict
 
 from midynet.config import Config
-from midynet.metrics.logger import ProgressLog, MemoryLog
+from midynet.metrics.callback import MetricsCallback
 from .multiprocess import Expectation
 from midynet.statistics import Statistics
 from midynet.utility import to_batch
 
-logger = logging.getLogger("midynet")
-logger.setLevel(logging.DEBUG)
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+# logger = logging.getLogger("midynet")
+# logger.setLevel(logging.DEBUG)
+# handler = logging.StreamHandler(sys.stdout)
+# handler.setLevel(logging.INFO)
+# formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
 
 __all__ = ("Metrics",)
 
@@ -33,17 +33,8 @@ class Metrics:
     shortname = "metrics"
     keys = []
 
-    def __init__(self, logs="all"):
+    def __init__(self):
         self.data = {}
-        if logs == "all":
-            self.logs = [
-                ProgressLog(),
-                MemoryLog(),
-            ]
-        elif logs is None:
-            self.logs = []
-        else:
-            self.logs = logs
 
     def eval(
         self,
@@ -62,49 +53,38 @@ class Metrics:
     def compute(
         self,
         configs: Config,
-        logger: Optional[logging.Logger] = None,
         resume: bool = True,
-        save_path: Optional[str] = None,
-        patience: int = 1,
         num_workers: int = 1,
         num_async_jobs: int = 1,
+        callbacks: Optional[list[MetricsCallback]] = None,
     ) -> None:
 
-        if save_path is not None and resume and os.path.exists(save_path):
-            self.read_pickle(save_path)
         self.configs = configs
         config_seq = list(
             filter(self.already_computed, configs.to_sequence())
             if resume
             else configs.to_sequence()
         )
-        self.logger = (
-            logging.getLogger("midynet") if logger == "stdout" else logger
-        )
 
         if num_async_jobs > 1 and num_workers > 1:
             data = self.run_async(
-                config_seq, num_async_jobs, num_workers, patience, save_path
+                config_seq, num_async_jobs, num_workers, callbacks
             )
         else:
-            data = self.run(config_seq, num_workers, patience, save_path)
+            data = self.run(config_seq, num_workers, callbacks)
 
         self.data = dict(data)
-        if save_path is not None:
-            self.to_pickle(save_path)
 
     def run(
         self,
         config_seq: list[Config],
         num_workers: int = 1,
-        patience: int = 1,
-        save_path: Optional[str] = None,
+        callbacks: Optional[list[MetricsCallback]] = None,
     ):
-        for log in self.logs:
-            log.setup(total=len(config_seq))
+        callbacks = [] if callbacks is None else callbacks
         data = defaultdict(pd.DataFrame)
         data.update(self.data)
-        for i, config in enumerate(config_seq):
+        for config in config_seq:
             if num_workers > 1:
                 with mp.get_context("spawn").Pool(num_workers) as p:
                     raw = pd.DataFrame(self.postprocess(self.eval(config, p)))
@@ -115,16 +95,8 @@ class Metrics:
             data[config.name] = pd.concat(
                 [data[config.name], raw], ignore_index=True
             )
-            for log in self.logs:
-                log.update(self.logger)
-            # saving current progress
-            if (
-                patience is not None
-                and i % patience == 0
-                and save_path is not None
-            ):
-                self.data = dict(data)
-                self.to_pickle(save_path)
+            for c in callbacks:
+                c.update()
         return data
 
     def run_async(
@@ -132,19 +104,14 @@ class Metrics:
         config_seq: list[Config],
         num_async_jobs: int,
         num_workers: int,
-        patience: int = 1,
-        save_path: Optional[str] = None,
+        callbacks: Optional[list[MetricsCallback]] = None,
     ):
         if num_workers == 1:
             raise ValueError("Cannot use async mode when num_workers == 1.")
-        for log in self.logs:
-            log.setup(
-                total=len(config_seq) // num_async_jobs
-                + int(len(config_seq) % num_async_jobs != 0)
-            )
+        callbacks = [] if callbacks is None else callbacks
         data = defaultdict(pd.DataFrame)
         data.update(self.data)
-        for i, batch in enumerate(to_batch(config_seq, num_async_jobs)):
+        for batch in to_batch(config_seq, num_async_jobs):
             with mp.get_context("spawn").Pool(num_workers) as p:
                 async_jobs = []
 
@@ -164,16 +131,9 @@ class Metrics:
                 data[config.name] = pd.concat(
                     [data[config.name], raw], ignore_index=True
                 )
-            # saving current progress
-            if (
-                patience is not None
-                and i % patience == 0
-                and save_path is not None
-            ):
-                self.data = dict(data)
-                self.to_pickle(save_path)
-            for log in self.logs:
-                log.update(self.logger)
+            # callbacks update
+            for c in callbacks:
+                c.update()
 
         return data
 

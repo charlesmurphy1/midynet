@@ -1,4 +1,4 @@
-from .logger import MetricsLog, ProgressLog, MemoryLog
+from .callback import MetricsCallback, Progress, MemoryCheck, Checkpoint
 from .metrics import Metrics
 from .multiprocess import MultiProcess, Expectation
 
@@ -13,9 +13,10 @@ from .predheur import (
 )
 
 __all__ = (
-    "MetricsLog",
-    "ProgressLog",
-    "MemoryLog",
+    "MetricsCallback",
+    "Progress",
+    "MemoryCheck",
+    "Checkpoint",
     "Metrics",
     "MultiProcess",
     "Expectation",
