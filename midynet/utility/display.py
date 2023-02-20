@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 
+from matplotlib.lines import Line2D
 from typing import Optional, Union
 from cycler import cycler
 from palettable.palette import Palette
@@ -21,7 +22,16 @@ __all__ = (
     "Label",
 )
 
-fontsizes = {"small": 10, "medium": 12, "large": 16}
+fontsizes = {
+    "tiny": 6,
+    "small": 8,
+    "medium": 10,
+    "large": 12,
+    "legend": 8,
+    "tick": 8,
+    "label": 10,
+    "large_label": 12,
+}
 
 
 def hex_to_rgb(value):
@@ -133,6 +143,26 @@ plt.rc("lines", linewidth=1)
 plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
 plt.rc("axes", prop_cycle=cycle)
 
+# def generate_legend():
+def get_label_line(label, style=None, **kwargs):
+    labelline = Line2D([0], [0])
+    if style is not None:
+        labelline.update_from(style)
+    for k, v in kwargs.items():
+        getattr(labelline, "set_" + k)(v)
+    labelline.set_label(label)
+    return labelline
+
+
+def generate_handles(**kwargs):
+    handles = []
+    for k, v in kwargs.items():
+        if isinstance(v, dict):
+            handles.append(get_label_line(k, **v))
+        else:
+            handles.append(get_label_line(k, style=v))
+    return handles
+
 
 class Label:
     alphabet: str = "abcdefghijklmnopqrstuvwxyz"
@@ -176,7 +206,7 @@ class Label:
         ax,
         label: Optional[str] = None,
         loc: Union[tuple, str] = "center center",
-        fontsize: int = fontsizes["large"],
+        fontsize: int = fontsizes["label"],
         box: bool = True,
     ):
         label = cls.getLabel() if label is None else label
