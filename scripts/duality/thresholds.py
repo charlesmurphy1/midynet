@@ -114,6 +114,7 @@ def main():
         config = ThresholdConfig.default(
             data_model, num_workers=24, time="24:00:00", mem=12
         )
+        print(args)
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)
             os.makedirs(config.path)
@@ -124,7 +125,7 @@ def main():
             execution_command="bash",
             path_to_scripts="./scripts",
         )
-        args = {
+        extra_args = {
             # "run": "Pred heuristics vs pred on erdosrenyi sis large",
             "name": config.name,
             "path_to_config": path_to_config,
@@ -142,7 +143,7 @@ def main():
                 "httpproxy",
             ],
             virtualenv="/home/murphy9/.midynet-env/bin/activate",
-            extra_args=args,
+            extra_args=extra_args,
             resources=config.resources.dict,
         )
 
