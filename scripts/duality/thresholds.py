@@ -63,28 +63,30 @@ class ThresholdConfig(ExperimentConfig):
             config.data_model.nu = np.unique(
                 np.concatenate(
                     [
-                        np.linspace(1.0, 1.25, 4),
-                        np.linspace(1.25, 1.5, 20),
-                        np.linspace(1.5, 3, 10),
+                        np.linspace(0.1, 0.2, 5),
+                        np.linspace(0.2, 0.4, 30),
+                        np.linspace(0.4, 0.8, 5),
                     ]
                 )
             ).tolist()
+            config.data_model.eta = 0.5
         elif data_model == "cowan_forward" or data_model == "cowan":
             config.data_model.nu = np.unique(
                 np.concatenate(
                     [
-                        np.linspace(0.1, 0.2, 5),
-                        np.linspace(0.2, 0.3, 30),
-                        np.linspace(0.3, 0.8, 10),
+                        np.linspace(0.1, 0.3, 5),
+                        np.linspace(0.3, 0.5, 30),
+                        np.linspace(0.5, 0.8, 5),
                     ]
                 )
             ).tolist()
+            config.data_model.eta = 0.5
         config.data_model.length = T
 
         config.prior.size = N
         config.prior.edge_count = M
         config.prior.heterogeneity = 1
-        config.metrics.susceptibility.num_samples = 4 * num_workers
+        config.metrics.susceptibility.num_samples = 1 * num_workers
         config.resources.update(
             account="def-aallard",
             time=time,
@@ -110,9 +112,9 @@ def main():
         action="store_true",
     )
     args = parser.parse_args()
-    for data_model in ["glauber", "sis", "cowan"]:
+    for data_model in ["cowan_forward", "cowan_backward"]:
         config = ThresholdConfig.default(
-            data_model, num_workers=24, time="24:00:00", mem=12, path_to_data=f"./data/threshold-{data_model}"
+            data_model, num_workers=12, time="24:00:00", mem=12, path_to_data=f"./data/threshold-{data_model}"
         )
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)

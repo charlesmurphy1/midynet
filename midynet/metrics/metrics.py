@@ -95,6 +95,7 @@ class Metrics:
             data[config.name] = pd.concat(
                 [data[config.name], raw], ignore_index=True
             )
+            self.data = data.copy()
             for c in callbacks:
                 c.update()
         return data
@@ -131,6 +132,7 @@ class Metrics:
                 data[config.name] = pd.concat(
                     [data[config.name], raw], ignore_index=True
                 )
+            self.data = data.copy()
             # callbacks update
             for c in callbacks:
                 c.update()
