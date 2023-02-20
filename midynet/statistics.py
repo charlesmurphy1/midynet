@@ -341,8 +341,8 @@ class Statistics:
         if aux is not None and not isinstance(aux, pd.Series):
             aux = pd.Series(aux, name="aux")
         if indexes is not None:
-            x = x[indexes]
-            aux = aux[indexes] if aux is not None else None
+            x = x.loc[indexes]
+            aux = aux.loc[indexes] if aux is not None else None
         df[x.name] = x
         if aux is not None:
             df[aux.name] = aux
