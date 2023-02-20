@@ -83,7 +83,7 @@ class MemoryCheck(MetricsCallback):
 
     def setup(self, **kwargs) -> None:
         self.logger = kwargs.get("logger")
-        self.memory_usage = []
+        self.memory_usage = [round(psutil.virtual_memory().used / self.factor, 4)]
 
     def update(self) -> None:
         self.memory_usage.append(

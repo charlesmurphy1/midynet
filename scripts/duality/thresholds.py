@@ -112,9 +112,8 @@ def main():
     args = parser.parse_args()
     for data_model in ["glauber", "sis", "cowan"]:
         config = ThresholdConfig.default(
-            data_model, num_workers=24, time="24:00:00", mem=12
+            data_model, num_workers=24, time="24:00:00", mem=12, path_to_data=f"./data/threshold-{data_model}"
         )
-        print(args)
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)
             os.makedirs(config.path)

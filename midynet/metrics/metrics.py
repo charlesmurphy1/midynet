@@ -61,7 +61,7 @@ class Metrics:
 
         self.configs = configs
         config_seq = list(
-            filter(self.already_computed, configs.to_sequence())
+            filter(lambda c: not self.already_computed(c), configs.to_sequence())
             if resume
             else configs.to_sequence()
         )
