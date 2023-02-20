@@ -47,7 +47,7 @@ class ThresholdConfig(ExperimentConfig):
                         np.linspace(0.1, 0.5, 10),
                     ]
                 )
-            )
+            ).tolist()
             config.data_model.recovery_prob = 0.5
         elif data_model == "glauber":
             config.data_model.coupling = np.unique(
@@ -58,7 +58,7 @@ class ThresholdConfig(ExperimentConfig):
                         np.linspace(0.15, 0.5, 10),
                     ]
                 )
-            )
+            ).tolist()
         elif data_model == "cowan_backward":
             config.data_model.nu = np.unique(
                 np.concatenate(
@@ -68,7 +68,7 @@ class ThresholdConfig(ExperimentConfig):
                         np.linspace(1.5, 3, 10),
                     ]
                 )
-            )
+            ).tolist()
         elif data_model == "cowan_forward" or data_model == "cowan":
             config.data_model.nu = np.unique(
                 np.concatenate(
@@ -78,13 +78,13 @@ class ThresholdConfig(ExperimentConfig):
                         np.linspace(0.3, 0.8, 10),
                     ]
                 )
-            )
+            ).tolist()
         config.data_model.length = T
 
         config.prior.size = N
         config.prior.edge_count = M
         config.prior.heterogeneity = 1
-        config.metrics.susceptibility.num_samples = num_workers
+        config.metrics.susceptibility.num_samples = 4 * num_workers
         config.resources.update(
             account="def-aallard",
             time=time,
@@ -112,7 +112,7 @@ def main():
     args = parser.parse_args()
     for data_model in ["glauber", "sis", "cowan"]:
         config = ThresholdConfig.default(
-            data_model, num_procs=40, time="24:00:00", mem=12
+            data_model, num_workers=24, time="24:00:00", mem=12
         )
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)
