@@ -31,6 +31,8 @@ class Progress(MetricsCallback):
         self.counter = 0
         self.begin = datetime.now()
         self.last = datetime.now()
+        self.now = datetime.now()
+        self.from_start = self.now - self.begin
 
     @staticmethod
     def format_dt(dt):
