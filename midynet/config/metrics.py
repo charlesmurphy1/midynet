@@ -65,6 +65,10 @@ class MetricsConfig(Config):
             reduction="normal",
         )
 
+    @classmethod
+    def susceptibility(cls):
+        return cls("susceptibility", num_samples=100, reduction="identity")
+
 
 @static
 class MetricsCollectionConfig(Config):
@@ -130,6 +134,10 @@ class MetricsFactory(Factory):
     @staticmethod
     def build_miheur():
         return midynet.metrics.MutualInformationHeuristicsMetrics()
+
+    @staticmethod
+    def build_susceptibility():
+        return midynet.metrics.SusceptibilityMetrics()
 
 
 if __name__ == "__main__":

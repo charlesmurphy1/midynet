@@ -11,6 +11,7 @@ from .predheur import (
     LinearRegressionHeuristicsMetrics,
     MutualInformationHeuristicsMetrics,
 )
+from .susceptibility import SusceptibilityMetrics
 
 __all__ = (
     "MetricsCallback",
@@ -25,6 +26,7 @@ __all__ = (
     "ReconstructionHeuristicsMetrics",
     "LinearRegressionHeuristicsMetrics",
     "MutualInformationHeuristicsMetrics",
+    "SusceptibilityMetrics",
 )
 __all_metrics__ = [
     ReconstructionInformationMeasuresMetrics,
@@ -32,4 +34,5 @@ __all_metrics__ = [
     ReconstructionHeuristicsMetrics,
     LinearRegressionHeuristicsMetrics,
     MutualInformationHeuristicsMetrics,
+    SusceptibilityMetrics,
 ]

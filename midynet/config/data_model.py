@@ -92,13 +92,13 @@ class DataModelConfig(Config):
     @classmethod
     def cowan_forward(cls, **kwargs):
         cfg = cls.cowan(**kwargs)
-        cfg.set_value("num_active", 1)
+        cfg.num_active = 1
         return cfg
 
     @classmethod
     def cowan_backward(cls, **kwargs):
         cfg = cls.cowan(**kwargs)
-        cfg.set_value("num_active", -1)
+        cfg.num_active = -1
         return cfg
 
     @classmethod
