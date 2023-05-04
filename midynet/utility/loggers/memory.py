@@ -13,13 +13,12 @@ class MemoryLogger(Logger):
         elif unit == "kb":
             self.factor = 1024
         elif unit == "mb":
-            self.factor = 1024 ** 2
+            self.factor = 1024**2
         elif unit == "gb":
-            self.factor = 1024 ** 3
+            self.factor = 1024**3
         else:
             raise ValueError(
-                f"`{unit}` is an invalid unit, valid units are"
-                + "`[b, kb, mb, gb]`."
+                f"`{unit}` is an invalid unit, valid units are" + "`[b, kb, mb, gb]`."
             )
         Logger.__init__(self)
 

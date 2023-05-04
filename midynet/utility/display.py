@@ -37,9 +37,7 @@ fontsizes = {
 def hex_to_rgb(value):
     value = value.lstrip("#")
     lv = len(value)
-    return tuple(
-        int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3)
-    )
+    return tuple(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
 
 
 def rgb_to_hex(rgb):
@@ -106,9 +104,7 @@ for k in hex_colors.keys():
     cm = [rgb_colors["white"][0], *rgb_colors[k], rgb_colors["black"][0]]
     if k != "black" and k != "white":
         palettes[k + "s"] = Palette(k + "s", "sequential", cm)
-        palettes["inv_" + k + "s"] = Palette(
-            "inv_" + k + "s", "sequential", cm[::-1]
-        )
+        palettes["inv_" + k + "s"] = Palette("inv_" + k + "s", "sequential", cm[::-1])
 
 for i, k in enumerate(["light", "med", "dark"]):
     cm = [
@@ -215,9 +211,7 @@ class Label:
         elif isinstance(loc, str):
             h, v, va, ha = cls.locations[loc]
 
-        box = (
-            dict(boxstyle="round", color="white", alpha=0.75) if box else None
-        )
+        box = dict(boxstyle="round", color="white", alpha=0.75) if box else None
 
         ax.text(
             h,
@@ -288,9 +282,7 @@ def draw_graph(
         pos=pos,
         edgelist=get_edgelist(graph),
         width=[
-            ew * graph.get_edge_multiplicity_idx(*e)
-            if with_parallel_edges
-            else ew
+            ew * graph.get_edge_multiplicity_idx(*e) if with_parallel_edges else ew
             for e in get_edgelist(graph)
         ],
         edge_color=ec,
@@ -345,9 +337,7 @@ def plot_statistics(
         interpErrorLowY = interpErrorLowF(interpX)
         interpErrorHighY = interpErrorHighF(interpX)
 
-        ax.plot(
-            interpX, interpY, marker="None", linestyle=linestyle, **kwargs
-        )
+        ax.plot(interpX, interpY, marker="None", linestyle=linestyle, **kwargs)
 
         if fill:
             fill_color = c if fill_color is None else fill_color

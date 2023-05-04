@@ -4,8 +4,6 @@ import numpy as np
 from dataclasses import dataclass, field
 from collections import defaultdict
 from typing import Tuple, Dict, Any
-from basegraph.core import UndirectedMultigraph
-from graphinf.random_graph import RandomGraphWrapper
 from graphinf.utility import seed as gi_seed
 from midynet.config import (
     GraphFactory,
@@ -76,9 +74,7 @@ class Susceptibility(Expectation):
         data_model.set_graph_prior(prior)
         prior.sample()
         g0 = prior.get_state()
-        x0 = data_model.get_random_state(
-            config.data_model.get("num_active", -1)
-        )
+        x0 = data_model.get_random_state(config.data_model.get("num_active", -1))
         data_model.set_graph(g0)
         data_model.sample_state(x0)
 

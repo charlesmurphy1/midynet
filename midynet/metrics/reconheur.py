@@ -63,9 +63,7 @@ class ReconstructionHeuristicsMethod:
         true[true > 1] = 1
         for m in measures:
             if hasattr(self, "collect_" + m):
-                self.__results__[m] = getattr(self, "collect_" + m)(
-                    true, self.pred
-                )
+                self.__results__[m] = getattr(self, "collect_" + m)(true, self.pred)
             else:
                 warnings.warn(
                     f"no collector named `{m}` has been found, proceeding anyway.",
@@ -91,9 +89,7 @@ class ReconstructionHeuristicsMethod:
         threshold = kwargs.get("threshold", norm_pred.mean())
         norm_pred = self.normalize_weights(pred).reshape(-1)
         true = true.reshape(-1)
-        cm = confusion_matrix(
-            true, (norm_pred > threshold).astype("float").reshape(-1)
-        )
+        cm = confusion_matrix(true, (norm_pred > threshold).astype("float").reshape(-1))
         tn, fp, fn, tp = cm.ravel()
 
         return dict(threshold=threshold, tn=tn, fp=fp, fn=fn, tp=tp)
@@ -110,9 +106,7 @@ class ReconstructionHeuristicsMethod:
         return dict(fpr=fpr, tpr=tpr, auc=auc, thresholds=thresholds)
 
 
-class WeightbasedReconstructionHeuristicsMethod(
-    ReconstructionHeuristicsMethod
-):
+class WeightbasedReconstructionHeuristicsMethod(ReconstructionHeuristicsMethod):
     def __init__(self, model, nanfill=None):
         self.model = model
         self.nanfill = 0 if nanfill is None else nanfill
@@ -128,9 +122,7 @@ class WeightbasedReconstructionHeuristicsMethod(
         self.__results__["pred"] = weights
 
 
-class GraphbasedReconstructionHeuristicsMethod(
-    ReconstructionHeuristicsMethod
-):
+class GraphbasedReconstructionHeuristicsMethod(ReconstructionHeuristicsMethod):
     def __init__(self, model):
         self.model = model
         super().__init__()
@@ -189,9 +181,7 @@ def get_heuristics_reconstructor(config):
     if config.method in reconstructors:
         return reconstructors[config.method](config)
     else:
-        raise OptionError(
-            actual=config.method, expected=reconstructors.keys()
-        )
+        raise OptionError(actual=config.method, expected=reconstructors.keys())
 
 
 class ReconstructionHeuristics(Expectation):
@@ -209,9 +199,7 @@ class ReconstructionHeuristics(Expectation):
             g0 = GraphFactory.build(config.target)
         else:
             g0 = graph_model.get_state()
-        x0 = data_model.get_random_state(
-            config.data_model.get("num_active", -1)
-        )
+        x0 = data_model.get_random_state(config.data_model.get("num_active", -1))
         data_model.set_graph(g0)
         data_model.sample_state(x0)
         timeseries = np.array(data_model.get_past_states())

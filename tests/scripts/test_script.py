@@ -7,9 +7,7 @@ DISPLAY = False
 
 @pytest.fixture
 def config():
-    yield ExperimentConfig.reconstruction(
-        "test", ["glauber", "sis"], "erdosrenyi"
-    )
+    yield ExperimentConfig.reconstruction("test", ["glauber", "sis"], "erdosrenyi")
 
 
 @pytest.fixture

@@ -16,9 +16,7 @@ def UnavailableOption(name: str) -> None:
 
 
 class OptionError(Exception):
-    def __init__(
-        self, actual: Optional[str] = None, expected: Optional[Any] = None
-    ):
+    def __init__(self, actual: Optional[str] = None, expected: Optional[Any] = None):
         if actual is None:
             return
         message = f"Option '{actual}' is invalid."
@@ -45,9 +43,7 @@ class Factory:
     @classmethod
     def build(cls, config: Config) -> Any:
         options = {
-            k[6:]: getattr(cls, k)
-            for k in cls.__dict__.keys()
-            if k[:6] == "build_"
+            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
         }
         name = config.name
         if name in options:

@@ -83,9 +83,7 @@ def main(
         )
 
         if aux is not None:
-            palette = sb.color_palette(
-                list(display.dark_colors.values()), as_cmap=True
-            )
+            palette = sb.color_palette(list(display.dark_colors.values()), as_cmap=True)
             color = None
         else:
             color = list(display.dark_colors.values())[i]
@@ -107,9 +105,7 @@ def main(
     if twinx_axis is not None:
         _ax = ax.twinx()
         for i, _y in enumerate(twinx_axis):
-            y, x, aux = get_stat(
-                path, _y, x_axis, aux_axis=aux_axis, name=subconfig
-            )
+            y, x, aux = get_stat(path, _y, x_axis, aux_axis=aux_axis, name=subconfig)
             if aux is not None:
                 palette = sb.color_palette(
                     list(display.light_colors.values()), as_cmap=True

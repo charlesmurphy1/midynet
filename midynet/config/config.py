@@ -141,8 +141,7 @@ class Config(BaseConfig):
                 d[key] = item.dict
             elif issubclass(item.__class__, list):
                 d[key] = [
-                    i.dict if issubclass(i.__class__, Config) else i
-                    for i in item
+                    i.dict if issubclass(i.__class__, Config) else i for i in item
                 ]
             else:
                 d[key] = item
@@ -297,9 +296,7 @@ class Config(BaseConfig):
                 values.update(
                     {
                         k + self.separator + _k: _v
-                        for _k, _v in v.summarize_subconfig(
-                            config._state[k]
-                        ).items()
+                        for _k, _v in v.summarize_subconfig(config._state[k]).items()
                     }
                 )
         return values

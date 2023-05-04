@@ -1,11 +1,7 @@
 import time
 import numpy as np
 
-from dataclasses import dataclass, field
-from collections import defaultdict
 from typing import Tuple, Dict, Any
-from basegraph.core import UndirectedMultigraph
-from graphinf.random_graph import RandomGraphWrapper
 from graphinf.utility import seed as gi_seed
 from midynet.config import (
     GraphFactory,
@@ -13,14 +9,12 @@ from midynet.config import (
 )
 
 from midynet.config import Config
-from midynet.statistics import Statistics
 from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
 from .util import (
     get_log_posterior_meanfield,
     get_log_evidence,
     get_graph_log_evidence_meanfield,
-    get_graph_log_evidence_annealed,
     get_graph_log_evidence_exact,
 )
 
@@ -41,9 +35,7 @@ class ReconstructionInformationMeasures(Expectation):
         data_model.set_graph_prior(prior)
         prior.sample()
         g0 = prior.get_state()
-        x0 = data_model.get_random_state(
-            config.data_model.get("num_active", -1)
-        )
+        x0 = data_model.get_random_state(config.data_model.get("num_active", -1))
         data_model.set_graph(g0)
         data_model.sample_state(x0)
 
@@ -51,9 +43,7 @@ class ReconstructionInformationMeasures(Expectation):
 
     def gather(self, data_model, config):
         method = config.metrics.get("method", "meanfield")
-        graph_evidence_method = config.metrics.get(
-            "graph_evidence_method", method
-        )
+        graph_evidence_method = config.metrics.get("graph_evidence_method", method)
 
         og = data_model.get_graph()
 
@@ -61,10 +51,6 @@ class ReconstructionInformationMeasures(Expectation):
             prior = -data_model.graph_prior.get_log_joint()
         elif graph_evidence_method == "exact":
             prior = -get_graph_log_evidence_exact(
-                data_model.graph_prior, config.metrics
-            )
-        elif graph_evidence_method == "annealed":
-            prior = -get_graph_log_evidence_annealed(
                 data_model.graph_prior, config.metrics
             )
         else:
@@ -75,9 +61,7 @@ class ReconstructionInformationMeasures(Expectation):
         likelihood = -data_model.get_log_likelihood()
 
         if method == "meanfield":
-            posterior = -get_log_posterior_meanfield(
-                data_model, config.metrics
-            )
+            posterior = -get_log_posterior_meanfield(data_model, config.metrics)
             evidence = prior + likelihood - posterior
         else:
             evidence = -get_log_evidence(data_model, config.metrics)
@@ -101,9 +85,7 @@ class ReconstructionInformationMeasures(Expectation):
             out["graph_joint"] = prior.get_log_joint()
             out["graph_prior"] = prior.get_label_log_joint()
             out["graph_evidence"] = -out["prior"]
-            out["graph_posterior"] = (
-                out["graph_joint"] - out["graph_evidence"]
-            )
+            out["graph_posterior"] = out["graph_joint"] - out["graph_evidence"]
         if config.metrics.get("to_bits", True):
             out = {k: v / np.log(2) for k, v in out.items()}
         # print(out)
@@ -123,12 +105,8 @@ class ReconstructionInformationMeasuresMetrics(ExpectationMetrics):
     ]
     expectation_factory = ReconstructionInformationMeasures
 
-    def postprocess(
-        self, samples: list[Dict[str, float]]
-    ) -> Dict[str, float]:
-        stats = self.reduce(
-            samples, self.configs.metrics.get("reduction", "normal")
-        )
+    def postprocess(self, samples: list[Dict[str, float]]) -> Dict[str, float]:
+        stats = self.reduce(samples, self.configs.metrics.get("reduction", "normal"))
         stats["recon"] = stats["mutualinfo"] / stats["prior"]
         stats["pred"] = stats["mutualinfo"] / stats["evidence"]
         return self.format(stats)

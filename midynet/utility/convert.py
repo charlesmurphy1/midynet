@@ -1,6 +1,7 @@
 import numpy as np
-import basegraph.core as bs
+from basegraph import core as bs
 import networkx as nx
+import importlib
 
 
 def get_edgelist(bs_graph: bs.UndirectedMultigraph) -> list[tuple[int, int]]:
@@ -79,9 +80,7 @@ def save_graph(graph: bs.UndirectedMultigraph, file_name: str) -> None:
 
 def load_graph(file_name: str, size=None) -> bs.UndirectedMultigraph:
     edges = np.load(file_name)
-    graph = bs.UndirectedMultigraph(
-        np.max(edges) + 1 if size is None else size
-    )
+    graph = bs.UndirectedMultigraph(np.max(edges) + 1 if size is None else size)
     for i, j, m in edges:
         graph.add_multiedge_idx(i, j, m)
     return graph

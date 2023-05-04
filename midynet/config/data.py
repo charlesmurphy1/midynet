@@ -1,12 +1,13 @@
 from __future__ import annotations
 from typing import Set, Any
-from graphinf.data_model.dynamics import (
+from graphinf.data.dynamics import (
     Dynamics,
     CowanDynamics,
     DegreeDynamics,
     SISDynamics,
     GlauberDynamics,
 )
+from graphinf.data.uncertain import PoissonUncertainGraph
 from midynet.config import Config, static
 from .factory import Factory, OptionError, MissingRequirementsError
 
@@ -119,14 +120,24 @@ class DataModelConfig(Config):
             num_active=num_active,
         )
 
+    @classmethod
+    def poisson_graph(
+        cls,
+        mu: float = 5,
+        mu_no_edge: float = 0,
+    ):
+        return cls(
+            name="poisson_graph",
+            mu=mu,
+            mu_no_edge=mu_no_edge,
+        )
+
 
 class DataModelFactory(Factory):
     @classmethod
     def build(cls, config: Config) -> Any:
         options = {
-            k[6:]: getattr(cls, k)
-            for k in cls.__dict__.keys()
-            if k[:6] == "build_"
+            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
         }
         name = config.name
         if name in options:
@@ -168,3 +179,7 @@ class DataModelFactory(Factory):
     @staticmethod
     def build_degree(config: DataModelConfig):
         return DegreeDynamics(length=config.length, C=config.C)
+
+    @staticmethod
+    def build_poisson_graph(config: DataModelConfig):
+        return PoissonUncertainGraph(mu=config.mu, mu_no_edge=config.mu_no_edge)

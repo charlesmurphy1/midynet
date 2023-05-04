@@ -54,9 +54,7 @@ random_graph_setup = [
         id="sbm",
     ),
     pytest.param(
-        GraphConfig.stochastic_block_model(
-            100, 250, label_graph_prior_type="nested"
-        ),
+        GraphConfig.stochastic_block_model(100, 250, label_graph_prior_type="nested"),
         GraphFactory,
         lambda obj: obj.sample(),
         id="hsbm",
@@ -84,9 +82,7 @@ def sample_dynamics(obj):
 
 
 data_setup = [
-    pytest.param(
-        DataModelConfig.sis(), DataModelFactory, sample_dynamics, id="sis"
-    ),
+    pytest.param(DataModelConfig.sis(), DataModelFactory, sample_dynamics, id="sis"),
     pytest.param(
         DataModelConfig.glauber(),
         DataModelFactory,

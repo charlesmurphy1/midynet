@@ -62,7 +62,7 @@ class ScriptManager:
         extra_args = {} if extra_args is None else extra_args
         for k, v in extra_args.items():
             if isinstance(v, bool):
-                script +=f" --{k}" if v else ""
+                script += f" --{k}" if v else ""
             else:
                 script += f" --{k} {v}"
 

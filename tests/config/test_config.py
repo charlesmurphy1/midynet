@@ -125,9 +125,7 @@ def sequenced_nested_config():
 
 def test_sequencednestedconfig_for_attributes(sequenced_nested_config):
     assert "z" in sequenced_nested_config and sequenced_nested_config.z == 3
-    assert (
-        "c" in sequenced_nested_config and len(sequenced_nested_config.c) == 2
-    )
+    assert "c" in sequenced_nested_config and len(sequenced_nested_config.c) == 2
     for c in sequenced_nested_config.c:
         assert issubclass(c.__class__, Config)
 

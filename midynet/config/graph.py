@@ -4,13 +4,14 @@ from typing import Union, Optional, Any
 from itertools import combinations_with_replacement
 import os
 
-from basegraph.core import UndirectedMultigraph
-from graphinf.random_graph import (
+from basegraph import core
+from graphinf.graph import (
     ErdosRenyiModel,
     PoissonModel,
     NegativeBinomialModel,
     ConfigurationModelFamily,
     StochasticBlockModelFamily,
+    PlantedPartitionModel,
 )
 
 from midynet.config import Config, static
@@ -212,7 +213,7 @@ class GraphConfig(Config):
 
 class GraphFactory(Factory):
     @staticmethod
-    def load_gtgraph(name: str) -> UndirectedMultigraph:
+    def load_gtgraph(name: str) -> core.UndirectedMultigraph:
         from graph_tool import collection
         from midynet.utility.convert import convert_graphtool_to_basegraph
 
@@ -220,7 +221,7 @@ class GraphFactory(Factory):
         return convert_graphtool_to_basegraph(gt_graph)
 
     @staticmethod
-    def load_graph(config: GraphConfig) -> UndirectedMultigraph:
+    def load_graph(config: GraphConfig) -> core.UndirectedMultigraph:
         try:
             # print("Fetching graph from Network Repo...")
             raise KeyError()
@@ -235,25 +236,25 @@ class GraphFactory(Factory):
             return load_graph(path_to_graph)
 
     @staticmethod
-    def build_karate(config: GraphConfig) -> UndirectedMultigraph:
+    def build_karate(config: GraphConfig) -> core.UndirectedMultigraph:
         return GraphFactory.load_graph(config)
 
     @staticmethod
-    def build_littlerock(config: GraphConfig) -> UndirectedMultigraph:
+    def build_littlerock(config: GraphConfig) -> core.UndirectedMultigraph:
         return GraphFactory.load_graph(config)
 
     @staticmethod
-    def build_euairlines(config: GraphConfig) -> UndirectedMultigraph:
+    def build_euairlines(config: GraphConfig) -> core.UndirectedMultigraph:
         return GraphFactory.load_graph(config)
 
     @staticmethod
-    def build_openflights(config: GraphConfig) -> UndirectedMultigraph:
+    def build_openflights(config: GraphConfig) -> core.UndirectedMultigraph:
         g = GraphFactory.load_graph(config)
         g.remove_selfloops()
         return g
 
     @staticmethod
-    def build_celegans(config: GraphConfig) -> UndirectedMultigraph:
+    def build_celegans(config: GraphConfig) -> core.UndirectedMultigraph:
         return GraphFactory.load_graph(config)
 
     @staticmethod
@@ -309,17 +310,17 @@ class GraphFactory(Factory):
             shift=config.shift,
         )
 
-    # @staticmethod
-    # def build_planted_partition(config: GraphConfig):
-    #     return PlantedPartitionModel(
-    #         size=config.size,
-    #         edge_count=config.edge_count,
-    #         block_count=config.block_count,
-    #         assortativity=config.assortativity,
-    #         stub_labeled=config.stub_labeled,
-    #         with_self_loops=config.with_self_loops,
-    #         with_parallel_edges=config.with_parallel_edges,
-    #     )
+    @staticmethod
+    def build_planted_partition(config: GraphConfig):
+        return PlantedPartitionModel(
+            size=config.size,
+            edge_count=config.edge_count,
+            block_count=config.block_count,
+            assortativity=config.assortativity,
+            stub_labeled=config.stub_labeled,
+            with_self_loops=config.with_self_loops,
+            with_parallel_edges=config.with_parallel_edges,
+        )
 
 
 if __name__ == "__main__":

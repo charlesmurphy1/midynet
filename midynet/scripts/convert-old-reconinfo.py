@@ -18,8 +18,7 @@ def convert(old_data, key):
     new_data = {}
     new_data[key + "_loc"] = old_data[new_to_old[key] + "-mid"]
     new_data[key + "_scale"] = 0.5 * (
-        old_data[new_to_old[key] + "-low"]
-        + old_data[new_to_old[key] + "-high"]
+        old_data[new_to_old[key] + "-low"] + old_data[new_to_old[key] + "-high"]
     )
     return new_data
 
@@ -33,15 +32,9 @@ def main(path_to_data: str):
         for o, n in old_to_new.items():
             new_data[k].update(convert(v, n))
         new_data[k] = pd.DataFrame(new_data[k])
-        mi = midynet.statistics.Statistics.from_dataframe(
-            new_data[k], "mutualinfo"
-        )
-        prior = midynet.statistics.Statistics.from_dataframe(
-            new_data[k], "prior"
-        )
-        evidence = midynet.statistics.Statistics.from_dataframe(
-            new_data[k], "evidence"
-        )
+        mi = midynet.statistics.Statistics.from_dataframe(new_data[k], "mutualinfo")
+        prior = midynet.statistics.Statistics.from_dataframe(new_data[k], "prior")
+        evidence = midynet.statistics.Statistics.from_dataframe(new_data[k], "evidence")
         recon = mi / prior
         pred = mi / evidence
         new_data[k]["recon_loc"] = recon.loc

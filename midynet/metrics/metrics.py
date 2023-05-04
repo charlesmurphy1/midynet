@@ -67,9 +67,7 @@ class Metrics:
         )
 
         if num_async_jobs > 1 and num_workers > 1:
-            data = self.run_async(
-                config_seq, num_async_jobs, num_workers, callbacks
-            )
+            data = self.run_async(config_seq, num_async_jobs, num_workers, callbacks)
         else:
             data = self.run(config_seq, num_workers, callbacks)
 
@@ -92,9 +90,7 @@ class Metrics:
                 raw = pd.DataFrame(self.postprocess(self.eval(config)))
             for k, v in self.configs.summarize_subconfig(config).items():
                 raw[k] = v
-            data[config.name] = pd.concat(
-                [data[config.name], raw], ignore_index=True
-            )
+            data[config.name] = pd.concat([data[config.name], raw], ignore_index=True)
             for c in callbacks:
                 c.update()
         return data
@@ -148,9 +144,7 @@ class Metrics:
             cond[k] = self.data[config.name][k] == v
         return np.any(np.prod(cond.values, axis=-1))
 
-    def to_pickle(
-        self, path: Optional[str or pathlib.Path] = None, **kwargs
-    ) -> str:
+    def to_pickle(self, path: Optional[str or pathlib.Path] = None, **kwargs) -> str:
         if path is None:
             path = os.path.join(mkdtemp(), f"{self.shortname}.pkl")
         elif os.path.isdir(path):
@@ -185,9 +179,7 @@ class ExpectationMetrics(Metrics):
         )
         return expectation.compute_async(pool)
 
-    def reduce(
-        self, samples: list[Dict[str, float]], reduction: str = "normal"
-    ):
+    def reduce(self, samples: list[Dict[str, float]], reduction: str = "normal"):
         return {
             k: Statistics.from_samples(
                 [s[k] for s in samples], reduction=reduction, name=k
@@ -205,13 +197,9 @@ class ExpectationMetrics(Metrics):
                 out[k + "_" + sk] = [sv]
         return out
 
-    def postprocess(
-        self, samples: list[Dict[str, float]]
-    ) -> Dict[str, Statistics]:
+    def postprocess(self, samples: list[Dict[str, float]]) -> Dict[str, Statistics]:
         return self.format(
-            self.reduce(
-                samples, self.configs.metrics.get("reduction", "normal")
-            )
+            self.reduce(samples, self.configs.metrics.get("reduction", "normal"))
         )
 
 

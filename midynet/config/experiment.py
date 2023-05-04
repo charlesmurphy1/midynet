@@ -52,36 +52,26 @@ class ExperimentConfig(Config):
         graph_params=None,
         target_params=None,
     ) -> ExperimentConfig:
-        data_model_params = (
-            {} if data_model_params is None else data_model_params
-        )
+        data_model_params = {} if data_model_params is None else data_model_params
         graph_params = {} if graph_params is None else graph_params
         target_params = {} if target_params is None else target_params
         config = cls(name=name)
-        config.data_model = DataModelConfig.auto(
-            data_model, **data_model_params
-        )
+        config.data_model = DataModelConfig.auto(data_model, **data_model_params)
         config.target = (
-            GraphConfig.auto(target, **target_params)
-            if target != "None"
-            else "None"
+            GraphConfig.auto(target, **target_params) if target != "None" else "None"
         )
         config.prior = GraphConfig.auto(prior, **graph_params)
         if config.target != "None":
             config.prior.size = config.target.size
             config.prior.edge_count = config.target.edge_count
             config.prior.with_self_loops = config.target.with_self_loops
-            config.prior.with_parallel_edges = (
-                config.target.with_parallel_edges
-            )
+            config.prior.with_parallel_edges = config.target.with_parallel_edges
         config.metrics = MetricsCollectionConfig.auto(
             metrics if metrics is not None else []
         )
         for m in config.metrics.metrics_names:
             ns = config.metrics.get(m).num_samples
-            config.metrics.get(m).num_samples = (
-                max(1, ns // num_workers) * num_workers
-            )
+            config.metrics.get(m).num_samples = max(1, ns // num_workers) * num_workers
         config.path = str(path)
         config.num_workers = num_workers
         config.num_async_jobs = num_async_jobs

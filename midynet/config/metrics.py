@@ -15,6 +15,10 @@ class MetricsConfig(Config):
         obj = cls(
             name,
             num_sweeps=1000,
+            sweep_type="metropolis",
+            graph_rate=1,
+            prior_rate=0,
+            param_rate=0,
             reduction="normal",
             method="meanfield",
             num_samples=100,
@@ -90,9 +94,7 @@ class MetricsFactory(Factory):
     @classmethod
     def build(cls, config: Config) -> midynet.metrics.Metrics:
         options = {
-            k[6:]: getattr(cls, k)
-            for k in cls.__dict__.keys()
-            if k[:6] == "build_"
+            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
         }
         metrics = config.metrics
         if "metrics_names" in metrics:
@@ -101,17 +103,13 @@ class MetricsFactory(Factory):
                 if name in options:
                     collections[name] = options[name]()
                 else:
-                    raise OptionError(
-                        actual=name, expected=list(options.keys())
-                    )
+                    raise OptionError(actual=name, expected=list(options.keys()))
             return collections
         else:
             if metrics.name in options:
                 return options[metrics.name]()
             else:
-                raise OptionError(
-                    actual=metrics.name, expected=list(options.keys())
-                )
+                raise OptionError(actual=metrics.name, expected=list(options.keys()))
 
     @staticmethod
     def build_reconinfo():
@@ -119,9 +117,7 @@ class MetricsFactory(Factory):
 
     @staticmethod
     def build_targreconinfo():
-        return (
-            midynet.metrics.TargetedReconstructionInformationMeasuresMetrics()
-        )
+        return midynet.metrics.TargetedReconstructionInformationMeasuresMetrics()
 
     @staticmethod
     def build_reconheur():

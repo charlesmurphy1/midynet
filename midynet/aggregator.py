@@ -13,9 +13,7 @@ class Aggregator:
         loc = kwargs.get("loc")
         scale = np.abs(kwargs.get("scale", 0))
         if "skewness" in kwargs:
-            return skewnorm.rvs(
-                kwargs["skewness"], loc=loc, scale=scale, size=size
-            )
+            return skewnorm.rvs(kwargs["skewness"], loc=loc, scale=scale, size=size)
         return norm.rvs(loc=loc, scale=scale, size=size)
 
     @staticmethod

@@ -32,9 +32,7 @@ class Statistics:
         reduced = Aggregator.reduce(samples, reduction=reduction)
         if "scale" in reduced:
             reduced["scale"] /= np.sqrt(num_samples)
-            reduced["scale"] = np.clip(
-                reduced["scale"], a_min=1e-15, a_max=np.inf
-            )
+            reduced["scale"] = np.clip(reduced["scale"], a_min=1e-15, a_max=np.inf)
         return cls(reduced, name=name)
 
     @classmethod
@@ -95,11 +93,7 @@ class Statistics:
                 expected_size = v.shape if isinstance(v, np.ndarray) else 0
             else:
                 msg = "Size mismatch!"
-                assert (
-                    expected_size == v.shape
-                    if isinstance(v, np.ndarray)
-                    else 0
-                ), msg
+                assert expected_size == v.shape if isinstance(v, np.ndarray) else 0, msg
 
     def copy(self):
         return Statistics(copy.deepcopy(self.__data__))
@@ -212,16 +206,11 @@ class Statistics:
                         self_copy["loc"] = 1 if self.loc == 0 else self.loc
                         other_copy["loc"] = 1 if other.loc == 0 else other.loc
                     if "scale" in data:
-                        self_copy["scale"] = (
-                            0 if self.loc == 0 else self.scale
-                        )
-                        other_copy["scale"] = (
-                            0 if self.loc == 0 else other.scale
-                        )
+                        self_copy["scale"] = 0 if self.loc == 0 else self.scale
+                        other_copy["scale"] = 0 if self.loc == 0 else other.scale
 
                 data["scale"] = np.abs(
-                    data["loc"]
-                    * (self.scale / self.loc - other.scale / other.loc)
+                    data["loc"] * (self.scale / self.loc - other.scale / other.loc)
                 )
             if "samples" in data:
                 data["samples"] /= other.samples

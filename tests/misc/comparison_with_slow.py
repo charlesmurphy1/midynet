@@ -90,6 +90,7 @@ def get_slow_log_posterior_estimate(model, original_graph):
             logP += np.log(p[index])
     return logP
 
+
 def main():
 
     seed(1)
@@ -161,9 +162,7 @@ def main():
         slow_logPosterior.append(
             get_slow_log_posterior_estimate(slowDynamics.graph, slow_og_graph)
         )
-        logPosterior.append(
-            callback.get_log_posterior_estimate(original_graph)
-        )
+        logPosterior.append(callback.get_log_posterior_estimate(original_graph))
         entropy.append(callback.get_marginal_entropy())
         if i % 10 == 0:
             print(i, s, f, entropy[-1], logPosterior[-1], slow_logPosterior[-1])

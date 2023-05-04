@@ -4,12 +4,11 @@ import argparse
 
 from typing import Optional
 
-def main(
-    *, path_to_data: str, run: str, name: str, version: Optional[str] = None
-):
+
+def main(*, path_to_data: str, run: str, name: str, version: Optional[str] = None):
     os.environ["HECTIQLAB_CREDENTIALS"] = os.path.join(
-            os.path.expanduser("~"), ".hectiqlab/credentials"
-        )
+        os.path.expanduser("~"), ".hectiqlab/credentials"
+    )
     run = pyhectiqlab.Run(run, project="dynamica/midynet")
 
     for root, _, files in os.walk(path_to_data):

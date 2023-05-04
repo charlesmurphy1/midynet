@@ -87,9 +87,7 @@ def test_log_evidence_exact_meanfield(data_model, metrics_config):
 
 
 def test_log_prior_meanfield(data_model, metrics_config):
-    logp = midynet.metrics.util.get_log_prior_meanfield(
-        data_model, metrics_config
-    )
+    logp = midynet.metrics.util.get_log_prior_meanfield(data_model, metrics_config)
 
     if DISPLAY:
         print("prior-meanfield", logp)

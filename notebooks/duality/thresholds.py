@@ -13,15 +13,18 @@ from graphinf.utility import seed as gi_seed
 
 def SISSusceptibility(x):
     n = x.sum(0)
-    return (np.mean(n**2) - np.mean(n)**2) / np.mean(n)
+    return (np.mean(n**2) - np.mean(n) ** 2) / np.mean(n)
+
 
 def SISAverage(x):
     return x.mean()
 
+
 def GlauberSusceptibility(x):
     x[x == 0] = -1
     m = np.abs(x.mean(0))
-    return (np.mean(m**2) - np.mean(m)**2) / (np.mean(m))
+    return (np.mean(m**2) - np.mean(m) ** 2) / (np.mean(m))
+
 
 def GlauberAverage(x):
     y = x * 1
@@ -29,17 +32,20 @@ def GlauberAverage(x):
     X = np.mean(y, 0)
     return np.mean(np.abs(X))
 
+
 def CowanSusceptibility(x):
     x[x == 0] = -1
     m = x.mean(-1)
-    return (np.mean(m**2) - np.mean(np.abs(m))**2)
+    return np.mean(m**2) - np.mean(np.abs(m)) ** 2
+
+
 #     return x.mean()
 
 
 susceptiblityFunctions = {
     "glauber": GlauberSusceptibility,
     "cowan": CowanSusceptibility,
-    "sis": SISSusceptibility
+    "sis": SISSusceptibility,
 }
 
 averageFunctions = {
@@ -60,13 +66,23 @@ def collect(cfg, seed=None):
     dynamics.sample()
     x = np.array(dynamics.get_past_states())
     return suscFunc(x), avgFunc(x)
-    
-    
-def searchThresholds(cfg, paramName, paramMin, paramMax, numPoints=10, delta=1, tol=1e-3, numSamples=10, verbose=1):
+
+
+def searchThresholds(
+    cfg,
+    paramName,
+    paramMin,
+    paramMax,
+    numPoints=10,
+    delta=1,
+    tol=1e-3,
+    numSamples=10,
+    verbose=1,
+):
     diff = np.inf
 
-    history = {"thresholds":[], "susceptibility":{}, "averages":{}}
-    while(diff > tol):
+    history = {"thresholds": [], "susceptibility": {}, "averages": {}}
+    while diff > tol:
         susceptibility = []
         averages = []
         diff = (paramMax - paramMin) / numPoints
@@ -86,7 +102,7 @@ def searchThresholds(cfg, paramName, paramMin, paramMax, numPoints=10, delta=1, 
                 a = [aa for ss, aa in out]
             susceptibility.append(np.mean(s))
             averages.append(np.mean(a))
-    
+
         for s, a, p in zip(susceptibility, averages, paramScan):
             if p in history["susceptibility"]:
                 history["susceptibility"][p].append(s)
@@ -96,9 +112,9 @@ def searchThresholds(cfg, paramName, paramMin, paramMax, numPoints=10, delta=1, 
                 history["averages"][p].append(a)
             else:
                 history["averages"][p] = [a]
-                
-#         plt.plot(paramScan, susceptibility)
-#         plt.show()
+
+        #         plt.plot(paramScan, susceptibility)
+        #         plt.show()
 
         maxIndex = np.argmax(susceptibility)
         paramMin = paramScan[maxIndex] - delta * diff
@@ -109,10 +125,11 @@ def searchThresholds(cfg, paramName, paramMin, paramMax, numPoints=10, delta=1, 
     return history
 
 
-def moving_average(a, n=3) :
+def moving_average(a, n=3):
     ret = np.cumsum(a, dtype=float)
     ret[n:] = ret[n:] - ret[:-n]
-    return (ret[n - 1:] / n)[::n]
+    return (ret[n - 1 :] / n)[::n]
+
 
 def collectCowan(cfg, seed=None):
     if seed is not None:
@@ -125,26 +142,28 @@ def collectCowan(cfg, seed=None):
     x = np.array(dynamics.get_past_states())
     return np.mean(x)
 
+
 def searchCowanThresholds(
-    cfg, 
-    paramMin, 
-    paramMax, *, 
-    delta=2, 
+    cfg,
+    paramMin,
+    paramMax,
+    *,
+    delta=2,
     tol=0.01,
     numSamples=10,
     numPoints=10,
     numProcs=4,
     verbose=0,
-    parallel=True
+    parallel=True,
 ):
     diff = np.inf
-    history = {"thresholds":[], "susceptibility": {}, "averages": {}}
-    while(diff > tol):
+    history = {"thresholds": [], "susceptibility": {}, "averages": {}}
+    while diff > tol:
         avgx = []
         susceptibility = []
         paramScan = np.linspace(paramMin, paramMax, numPoints)
         diff = (paramMax - paramMin) / numPoints
-        
+
         if verbose > 0:
             print(f"Scanning params: {paramScan}")
             print(f"Current diff: {diff}")
@@ -167,15 +186,14 @@ def searchCowanThresholds(
             susceptibility.append(s)
             avgx.append(np.mean(x))
         avgx = np.array(avgx)
-    
+
         xm = avgx[:-1]
         xp = avgx[1:]
-        
-        
+
         gap = np.abs(avgx[1:] - avgx[:-1]) / diff
         gap = np.append(gap, 0)
         maxGapIndex = np.argmax(gap)
-#         maxGapIndex = np.argmax(susceptibility)
+        #         maxGapIndex = np.argmax(susceptibility)
         paramMin = paramScan[maxGapIndex] - delta * diff
         paramMax = paramScan[maxGapIndex] + delta * diff
         if verbose == 1:
@@ -190,7 +208,7 @@ def searchCowanThresholds(
                 history["susceptibility"][p].append(g)
             else:
                 history["susceptibility"][p] = [g]
-                
+
             if p in history["averages"]:
                 history["averages"][p].append(x)
             else:
@@ -200,8 +218,11 @@ def searchCowanThresholds(
             print(f"Current history: {history}")
     return history
 
+
 def plotThresholdSearch(ax, history, paramName=f"Coupling"):
-    x = []; y = []; z = []
+    x = []
+    y = []
+    z = []
 
     for k in history["susceptibility"].keys():
         x.append(float(k))
@@ -212,7 +233,7 @@ def plotThresholdSearch(ax, history, paramName=f"Coupling"):
     y = np.array(y)[indices]
     z = np.array(z)[indices]
     axx = ax.twinx()
-    
+
     ax.plot(x, y, "o-", color=display.med_colors["blue"])
     axx.plot(x, z, "s-", color=display.med_colors["red"])
     if "thresholds" in history:
@@ -223,14 +244,15 @@ def plotThresholdSearch(ax, history, paramName=f"Coupling"):
     ax.set_xlabel(paramName)
     ax.set_ylabel(r"Susceptibility")
     ax.set_ylim([y.min(), y.max() * 1.1])
-#     ax.set_xlim([x.min(), x.max()])
+    #     ax.set_xlim([x.min(), x.max()])
     axx.set_ylabel(r"Average state")
     axx.set_ylim([z.min(), z.max() * 1.1])
     return ax
 
+
 def showThresholdSearch(history, paramName=f"Coupling"):
     plotThresholdSearch(plt.gca(), history, paramName=paramName)
-    
-    
+
+
 if __name__ == "__main__":
     pass

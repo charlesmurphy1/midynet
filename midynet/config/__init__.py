@@ -6,8 +6,8 @@ from .factory import (
     UnavailableOption,
 )
 
-from .random_graph import GraphConfig, GraphFactory
-from .data_model import DataModelConfig, DataModelFactory
+from .graph import GraphConfig, GraphFactory
+from .data import DataModelConfig, DataModelFactory
 from .metrics import MetricsConfig, MetricsCollectionConfig, MetricsFactory
 from .experiment import ExperimentConfig
 

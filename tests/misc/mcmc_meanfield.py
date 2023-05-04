@@ -72,9 +72,7 @@ def main():
     if cfg.graph.size < 6:
         exact = get_log_posterior_exact(mcmc, cfg)
         exact_meanfield = get_log_posterior_exact_meanfield(mcmc, cfg)
-        plt.axhline(
-            -exact, linestyle="-", color="blue", label=r"$H(G|X)$"
-        )
+        plt.axhline(-exact, linestyle="-", color="blue", label=r"$H(G|X)$")
         plt.axhline(
             -exact_meanfield,
             linestyle="--",
@@ -104,7 +102,13 @@ def main():
     plt.axhline(-hg, linestyle="dotted", color="red", label=r"$H(G)$")
     plt.legend()
     plt.show()
-    print(f"{exact=}", f"{exact_meanfield=}", f"{entropy[-1]=}", f"{logPosterior[-1]=}", f"{hg=}")
+    print(
+        f"{exact=}",
+        f"{exact_meanfield=}",
+        f"{entropy[-1]=}",
+        f"{logPosterior[-1]=}",
+        f"{hg=}",
+    )
 
 
 if __name__ == "__main__":

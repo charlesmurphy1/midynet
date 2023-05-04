@@ -48,8 +48,7 @@ class Progress(MetricsCallback):
         self.from_start = self.now - self.begin
         self.from_last = self.now - self.last
         self.remaining = timedelta(
-            seconds=self.from_start.total_seconds()
-            * ((self.total / self.counter) - 1)
+            seconds=self.from_start.total_seconds() * ((self.total / self.counter) - 1)
         )
         msg = f"Progress: "
         msg += (
@@ -75,8 +74,7 @@ class MemoryCheck(MetricsCallback):
         pw = {"b": 0, "kb": 1, "mb": 2, "gb": 3}
         if unit not in pw.keys():
             raise ValueError(
-                f"`{unit}` is an invalid unit, valid units are"
-                + "`[b, kb, mb, gb]`."
+                f"`{unit}` is an invalid unit, valid units are" + "`[b, kb, mb, gb]`."
             )
         self.factor = 1024 ** pw[unit.lower()]
         self.unit = unit.upper()
@@ -86,9 +84,7 @@ class MemoryCheck(MetricsCallback):
         self.memory_usage = []
 
     def update(self) -> None:
-        self.memory_usage.append(
-            round(psutil.virtual_memory().used / self.factor, 4)
-        )
+        self.memory_usage.append(round(psutil.virtual_memory().used / self.factor, 4))
         msg = f"Memory:    {np.mean(self.memory_usage): .4f}(+- {np.std(self.memory_usage):.4f}) {self.unit}"
         if self.logger is not None:
             self.logger.info(msg)
@@ -105,9 +101,7 @@ class Checkpoint(MetricsCallback):
         self.savepath = kwargs.get("savepath", "./")
         self.logger = kwargs.get("logger")
         self.metrics = kwargs.get("metrics")
-        assert (
-            self.metrics is not None
-        ), "Checkpoint must set up with metrics."
+        assert self.metrics is not None, "Checkpoint must set up with metrics."
         self.metrics.read_pickle(self.savepath)
         self.counter = 0
 
