@@ -58,7 +58,7 @@ class ReconstructionHeuristicsMethod:
             raise ValueError("`results` must not be empty.")
 
         measures = ["roc"] if measures is None else measures
-        true = np.array(true_graph.get_adjacency_matrix())
+        true = np.array(true_graph.get_adjacency_matrix(True))
         np.fill_diagonal(true, 0)
         true[true > 1] = 1
         for m in measures:
@@ -206,7 +206,6 @@ class ReconstructionHeuristics(Expectation):
         heuristics = get_heuristics_reconstructor(config.metrics)
         heuristics.fit(timeseries)
         heuristics.compare(g0, measures=["roc", "accuracy"])
-        print("auc", heuristics.__results__["roc"]["auc"])
         return dict(
             auc=heuristics.__results__["roc"]["auc"],
             accuracy=heuristics.__results__["accuracy"],

@@ -8,11 +8,11 @@ import time
 from basegraph import core
 from graphinf.data import DataModelWrapper
 from graphinf.graph import RandomGraphWrapper
+from graphinf.utility import enumerate_all_graphs
 import graphinf
 
 from pyhectiqlab import Config
 from midynet.utility import (
-    enumerate_all_graphs,
     enumerate_all_partitions,
     log_mean_exp,
     log_sum_exp,
@@ -47,7 +47,7 @@ def data_model_mcmc_sweep(
         graph_rate /= z
         prior_rate /= z
         param_rate /= z
-        return model.metrololis_sweep(
+        return model.metropolis_sweep(
             num_steps,
             graph_rate=graph_rate,
             prior_rate=prior_rate,
@@ -59,6 +59,7 @@ def data_model_mcmc_sweep(
 
 def get_log_evidence_arithmetic(data_model: DataModelWrapper, config: Config):
     logp = []
+    
     g = data_model.get_graph()
     for _ in range(config.K):
         samples = []
@@ -72,27 +73,27 @@ def get_log_evidence_arithmetic(data_model: DataModelWrapper, config: Config):
 
 
 def get_log_evidence_harmonic(
-    data_model: DataModelWrapper, config: Config, verbose: int = 0
+    model: DataModelWrapper, config: Config, verbose: int = 0
 ):
-    burn = config.burn_per_vertex * data_model.get_size()
-    g = data_model.get_graph()
+    burn = config.burn_per_vertex * model.get_size()
+    g = model.get_graph()
 
-    s = data_model_mcmc_sweep(num_steps=config.initial_burn, **config)
+    s = data_model_mcmc_sweep(model, num_steps=config.initial_burn, **config)
     likelihoods = []
     for i in range(config.num_sweeps):
-        s = data_model_mcmc_sweep(data_model, num_steps=burn, **config)
-        likelihoods.append(-data_model.get_log_likelihood())
+        s = data_model_mcmc_sweep(model, num_steps=burn, **config)
+        likelihoods.append(-model.get_log_likelihood())
 
     if config.get("reset_graph", True):
-        data_model.set_graph(g)
-    return log_mean_exp(likelihoods)
+        model.set_graph(g)
+    return -log_mean_exp(likelihoods)
 
 
 def get_log_evidence_annealed(
-    data_model: DataModelWrapper, config: Config, verbose: int = 0
+    model: DataModelWrapper, config: Config, verbose: int = 0
 ):
-    original_graph = data_model.get_graph()
-    burn = config.burn_per_vertex * data_model.get_size()
+    original_graph = model.get_graph()
+    burn = config.burn_per_vertex * model.get_size()
     logp = []
 
     beta_k = np.linspace(0, 1, config.num_betas + 1) ** (1 / config.exp_betas)
@@ -100,61 +101,61 @@ def get_log_evidence_annealed(
         if verbose:
             print(f"beta: {lb}")
         if config.get("start_from_original", False):
-            data_model.set_graph(original_graph)
+            model.set_graph(original_graph)
         else:
-            data_model.sample_prior()
+            model.sample_prior()
         likelihoods = []
         data_model_mcmc_sweep(
-            data_model, num_steps=config.initial_burn, beta_likelihood=lb, **config
+            model, num_steps=config.initial_burn, beta_likelihood=lb, **config
         )
         for i in range(config.num_sweeps):
             data_model_mcmc_sweep(
-                data_model, num_steps=burn, beta_likelihood=lb, **config
+                model, num_steps=burn, beta_likelihood=lb, **config
             )
-            likelihoods.append(data_model.get_log_likelihood())
+            likelihoods.append(model.get_log_likelihood())
         logp_k = (ub - lb) * np.array(likelihoods)
         logp.append(log_mean_exp(logp_k))
 
     if config.get("reset_graph", True):
-        data_model.set_graph(original_graph)
+        model.set_graph(original_graph)
 
     return sum(logp)
 
 
-def get_log_evidence_exact(data_model: DataModelWrapper, config: Config):
+def get_log_evidence_exact(model: DataModelWrapper, config: Config):
     logevidence = []
-    original_graph = data_model.get_graph()
-    size = data_model.get_size()
-    edge_count = data_model.get_graph().get_total_edge_number()
-    allow_self_loops = data_model.graph_prior.with_self_loops()
-    allow_multiedges = data_model.graph_prior.with_parallel_edges()
+    original_graph = model.get_graph()
+    size = model.get_size()
+    edge_count = model.get_graph().get_total_edge_number()
+    allow_self_loops = model.graph_prior.with_self_loops()
+    allow_multiedges = model.graph_prior.with_parallel_edges()
 
     counter = 0
     for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
         counter += 1
-        if data_model.graph_prior.is_compatible(g):
-            data_model.set_graph(g)
-            likelihood = data_model.get_log_likelihood()
-            prior = get_graph_log_evidence(data_model.get_graph_prior(), config)
+        if model.graph_prior.is_compatible(g):
+            model.set_graph(g)
+            likelihood = model.get_log_likelihood()
+            prior = get_graph_log_evidence(model.graph_prior, config)
             logevidence.append(prior + likelihood)
 
-    data_model.set_graph(original_graph)
+    model.set_graph(original_graph)
     return log_sum_exp(logevidence)
 
 
-def get_log_evidence_meanfield(data_model: DataModelWrapper, config: Config):
-    log_joint = data_model.get_log_joint()
-    log_posterior = get_log_posterior_meanfield(data_model, config)
+def get_log_evidence_meanfield(model: DataModelWrapper, config: Config):
+    log_joint = model.get_log_joint()
+    log_posterior = get_log_posterior_meanfield(model, config)
     return log_joint - log_posterior
 
 
-def get_log_evidence_exact_meanfield(data_model: DataModelWrapper, config: Config):
-    log_joint = data_model.get_log_joint()
-    log_posterior = get_log_posterior_exact_meanfield(data_model, config)
+def get_log_evidence_exact_meanfield(model: DataModelWrapper, config: Config):
+    log_joint = model.get_log_joint()
+    log_posterior = get_log_posterior_exact_meanfield(model, config)
     return log_joint - log_posterior
 
 
-def get_log_evidence(data_model: DataModelWrapper, config: Config = None, **kwargs):
+def get_log_evidence(model: DataModelWrapper, config: Config = None, **kwargs):
     config = Config(**kwargs) if config is None else config
     method = config.get("method", "meanfield")
     functions = {
@@ -167,7 +168,7 @@ def get_log_evidence(data_model: DataModelWrapper, config: Config = None, **kwar
         "annealed": get_log_evidence_annealed,
     }
     if method in functions:
-        return functions[method](data_model, config)
+        return functions[method](model, config)
     else:
         message = (
             f"Invalid method {method}, valid methods" + f"are {list(functions.keys())}."
@@ -175,38 +176,43 @@ def get_log_evidence(data_model: DataModelWrapper, config: Config = None, **kwar
         raise ValueError(message)
 
 
-def get_log_posterior_arithmetic(data_model: DataModelWrapper, config: Config):
-    log_joint = data_model.get_log_joint()
-    log_evidence = get_log_evidence_arithmetic(data_model, config)
+def get_log_posterior_arithmetic(model: DataModelWrapper, config: Config):
+    log_joint = model.get_log_joint()
+    log_evidence = get_log_evidence_arithmetic(model, config)
     return log_joint - log_evidence
 
 
 def get_log_posterior_harmonic(
-    data_model: DataModelWrapper, config: Config, verbose: int = 0
+    model: DataModelWrapper, config: Config, verbose: int = 0
 ):
-    log_joint = data_model.get_log_joint()
-    log_evidence = get_log_evidence_harmonic(data_model, config, verbose=verbose)
+    log_joint = model.get_log_joint()
+    log_evidence = get_log_evidence_harmonic(model, config, verbose=verbose)
     return log_joint - log_evidence
 
 
-def get_log_posterior_annealed(data_model: DataModelWrapper, config: Config):
-    log_joint = data_model.get_log_joint()
-    log_evidence = get_log_evidence_annealed(data_model, config)
+def get_log_posterior_annealed(model: DataModelWrapper, config: Config):
+    log_joint = model.get_log_joint()
+    log_evidence = get_log_evidence_annealed(model, config)
     return log_joint - log_evidence
 
 
 class EdgeCollector:
     def __init__(self):
-        self.multiplicities = defaultdict(int)
+        self.multiplicities = defaultdict(lambda: defaultdict(int))
         self.total_counts = defaultdict(int)
 
     def update(self, graph: core.UndirectedMultigraph):
         for edge in graph.edges():
-            self.multiplicities[edge, graph.get_edge_multiplicity(*edge)] += 1
+            self.multiplicities[edge][graph.get_edge_multiplicity(*edge)] += 1
             self.total_counts[edge] += 1
 
     def mle(self, edge, multiplicity=1):
-        return self.multiplicities[edge, multiplicity] / self.total_counts(*edge)
+        if self.total_counts[edge] == 0:
+            return 0
+
+        if multiplicity == 0:
+            return 1 - (self.multiplicities[edge].values())
+        return self.multiplicities[edge][multiplicity] / self.total_counts[edge]
 
     def log_prob_estimate(self, graph):
         logp = 0
@@ -216,22 +222,24 @@ class EdgeCollector:
 
 
 def get_log_posterior_meanfield(
-    data_model: DataModelWrapper,
+    model: DataModelWrapper,
     config: Config,
     verbose: int = 0,
     return_edgeprobs: bool = False,
 ):
-    g = data_model.get_graph()
+    g = model.get_graph()
     collector = EdgeCollector()
+    collector.update(g)
     if not config.get("start_from_original", False):
-        data_model.sample_prior()
-    burn = config.burn_per_vertex * data_model.get_size()
-    data_model_mcmc_sweep(data_model, num_steps=config.initial_burn, **config)
+        model.sample_prior()
+    burn = config.burn_per_vertex * model.get_size()
+    
+    data_model_mcmc_sweep(model, num_steps=config.initial_burn, **config)
 
     for i in range(config.num_sweeps):
         t0 = time.time()
-        _s = data_model_mcmc_sweep(data_model, num_steps=burn, **config)
-        collector.update(data_model.get_graph())
+        _s = data_model_mcmc_sweep(model, num_steps=burn, **config)
+        collector.update(model.get_graph())
         t1 = time.time()
         if verbose:
             print(
@@ -239,12 +247,12 @@ def get_log_posterior_meanfield(
                 f"time={t1 - t0}",
                 f"successes={_s}",
                 f"failures={burn - _s}",
-                f"likelihood={data_model.get_log_likelihood()}",
-                f"prior={data_model.get_log_prior()}",
+                f"likelihood={model.get_log_likelihood()}",
+                f"prior={model.get_log_prior()}",
             )
 
     if config.get("reset_graph", True):
-        data_model.set_graph(g)
+        model.set_graph(g)
 
     if return_edgeprobs:
         return {
@@ -255,23 +263,23 @@ def get_log_posterior_meanfield(
 
 
 def get_log_posterior_annealed(
-    data_model: DataModelWrapper, config: Config, verbose: int = 0
+    model: DataModelWrapper, config: Config, verbose: int = 0
 ):
-    log_joint = data_model.get_log_joint()
-    log_evidence = get_log_evidence_annealed(data_model, config, verbose)
+    log_joint = model.get_log_joint()
+    log_evidence = get_log_evidence_annealed(model, config, verbose)
     return log_joint - log_evidence
 
 
-def get_log_posterior_exact(data_model: DataModelWrapper, config: Config):
-    log_joint = data_model.get_log_joint()
-    log_evidence = get_log_evidence_exact(data_model, config)
+def get_log_posterior_exact(model: DataModelWrapper, config: Config):
+    log_joint = model.get_log_joint()
+    log_evidence = get_log_evidence_exact(model, config)
     return log_joint - log_evidence
 
 
-def get_log_posterior_exact_meanfield(data_model: DataModelWrapper, config: Config):
-    original_graph = data_model.get_graph()
-    size = data_model.get_size()
-    graph_prior = data_model.graph_prior
+def get_log_posterior_exact_meanfield(model: DataModelWrapper, config: Config):
+    original_graph = model.get_graph()
+    size = model.get_size()
+    graph_prior = model.graph_prior
     edge_count = graph_prior.get_edge_count()
     allow_self_loops = graph_prior.with_self_loops()
     allow_multiedges = graph_prior.with_parallel_edges()
@@ -279,17 +287,17 @@ def get_log_posterior_exact_meanfield(data_model: DataModelWrapper, config: Conf
     i = 0
     edge_weights = defaultdict(lambda: defaultdict(list))
     edge_total = defaultdict(list)
-    evidence = get_log_evidence_exact(data_model, config)
+    evidence = get_log_evidence_exact(model, config)
     for g in enumerate_all_graphs(size, edge_count, allow_self_loops, allow_multiedges):
         if graph_prior.is_compatible(g):
             i += 1
-            data_model.set_graph(g)
-            weight = data_model.get_log_joint() - evidence
+            model.set_graph(g)
+            weight = model.get_log_joint() - evidence
             for e, w in graphinf.utility.get_weighted_edge_list(g).items():
                 edge_weights[e][w].append(weight)
                 edge_total[e].append(weight)
 
-    data_model.set_graph(original_graph)
+    model.set_graph(original_graph)
     log_posterior = 0
     for e, weights in edge_weights.items():
         probs = np.zeros(len(weights) + 1)
@@ -297,13 +305,13 @@ def get_log_posterior_exact_meanfield(data_model: DataModelWrapper, config: Conf
         for w, ww in weights.items():
             probs[w] = np.exp(log_sum_exp(ww))
         probs = np.array(probs)
-        w = original_graph.get_edge_multiplicity_idx(*e)
+        w = original_graph.get_edge_multiplicity(*e)
         log_posterior += np.log(probs[w])
 
     return log_posterior
 
 
-def get_log_posterior(data_model: DataModelWrapper, config: Config = None, **kwargs):
+def get_log_posterior(model: DataModelWrapper, config: Config = None, **kwargs):
     config = Config(**kwargs) if config is None else config
     method = config.get("method", "meanfield")
     functions = {
@@ -316,7 +324,7 @@ def get_log_posterior(data_model: DataModelWrapper, config: Config = None, **kwa
         "annealed": get_log_posterior_annealed,
     }
     if method in functions:
-        return functions[method](data_model, config)
+        return functions[method](model, config)
     else:
         message = (
             f"Invalid method {method}, valid methods" + f"are {list(functions.keys())}."
@@ -325,16 +333,17 @@ def get_log_posterior(data_model: DataModelWrapper, config: Config = None, **kwa
 
 
 def get_log_prior_meanfield(
-    data_model: DataModelWrapper, config: Config, verbose: int = 0
+    model: DataModelWrapper, config: Config, verbose: int = 0
 ) -> float:
 
-    graph_prior = data_model.graph_prior
-    original_graph = data_model.get_graph()
+    graph_prior = model.graph_prior
+    original_graph = model.get_graph()
     collector = EdgeCollector()
+    collector.update(original_graph)
     for _ in range(config.num_sweeps):
         graph_prior.sample()
         collector.update(graph_prior.get_state())
-    return collector.log_posterior_estimate(original_graph)
+    return collector.log_prob_estimate(original_graph)
 
 
 def get_graph_log_evidence_meanfield(model: RandomGraphWrapper, config: Config):

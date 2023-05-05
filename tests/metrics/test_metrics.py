@@ -1,7 +1,5 @@
 import pathlib
-from dataclasses import dataclass
 
-import time
 import numpy as np
 import pytest
 
@@ -10,7 +8,6 @@ from midynet.config import (
     Config,
     DataModelConfig,
     GraphConfig,
-    MetricsConfig,
     MetricsCollectionConfig,
     ExperimentConfig,
 )
@@ -47,7 +44,7 @@ def config():
 
 @pytest.fixture
 def basemetrics():
-    return DummyMetrics("test")
+    return DummyMetrics()
 
 
 def test_basemetrics_set_up():
@@ -63,7 +60,7 @@ def test_basemetrics_eval():
 
 
 def test_basemetrics_compute(config, basemetrics):
-    basemetrics.compute(config, logger=None)
+    basemetrics.compute(config)
     for name, data in basemetrics.data.items():
         assert "dummy" in data["metrics"]
         assert (
@@ -77,30 +74,30 @@ def test_basemetrics_compute(config, basemetrics):
 def test_basemetrics_to_pickle(config, basemetrics):
     basemetrics.compute(config)
     basemetrics.to_pickle(config.path)
-    pathlib.Path("./test.pkl").unlink()
+    pathlib.Path("./metrics.pkl").unlink()
 
 
 def test_basemetrics_read_pickle(config, basemetrics):
     basemetrics.compute(config)
     basemetrics.to_pickle(config.path)
-    basemetrics.read_pickle("./test.pkl")
-    pathlib.Path("./test.pkl").unlink()
+    basemetrics.read_pickle("./metrics.pkl")
+    pathlib.Path("./metrics.pkl").unlink()
 
 
 metrics_dict = {
-    "recon_information": metrics.ReconstructionInformationMeasuresMetrics,
-    "heuristics": metrics.ReconstructionHeuristicsMetrics,
+    "reconinfo": metrics.ReconstructionInformationMeasuresMetrics,
+    "reconheuristics": metrics.ReconstructionHeuristicsMetrics,
 }
 
 
 @pytest.fixture(params=[k for k in metrics_dict.keys()])
 def args(request):
-    c = ExperimentConfig.reconstruction(
+    c = ExperimentConfig.default(
         "test",
         "sis",
         "erdosrenyi",
         path="./tests/experiments/test-dir",
-        num_procs=1,
+        num_workers=1,
         seed=1,
     )
     c.data_model.length = 5
@@ -110,22 +107,22 @@ def args(request):
     c.prior.edge_count = 2
     c.metrics = MetricsCollectionConfig.auto(request.param)
     name = c.metrics.metrics_names[0]
-    if name == "recon_information":
-        c.metrics.recon_information.method = [
+    if name == "reconinfo":
+        c.metrics.reconinfo.method = [
             "arithmetic",
             "harmonic",
             "meanfield",
             "annealed",
         ]
-        c.metrics.recon_information.as_sequence("method")
-        c.metrics.recon_information.initial_burn = 1
-        c.metrics.recon_information.K = 2
-        c.metrics.recon_information.num_sweeps = 10
-        c.metrics.recon_information.burn_per_vertex = 1
-        c.metrics.recon_information.start_from_original = True
-        c.metrics.recon_information.num_samples = 1
-    elif name == "heuristics":
-        c.metrics.heuristics.method = [
+        c.metrics.reconinfo.as_sequence("method")
+        c.metrics.reconinfo.initial_burn = 1
+        c.metrics.reconinfo.K = 2
+        c.metrics.reconinfo.num_sweeps = 10
+        c.metrics.reconinfo.burn_per_vertex = 1
+        c.metrics.reconinfo.start_from_original = True
+        c.metrics.reconinfo.num_samples = 1
+    elif name == "reconheuristics":
+        c.metrics.reconheuristics.method = [
             "correlation",
             "granger_causality",
             "transfer_entropy",
@@ -133,15 +130,18 @@ def args(request):
             "partial_correlation",
             "correlation_spanning_tree",
         ]
-        c.metrics.heuristics.as_sequence("method")
-        c.metrics.heuristics.num_samples = 1
+        c.metrics.reconheuristics.as_sequence("method")
+        c.metrics.reconheuristics.num_samples = 1
     return c, metrics_dict[request.param]
 
 
 def test_eval(args):
     config, metrics = args
+    
     m = metrics()
     for c in config.to_sequence():
+        c = c.copy()
+        c.metrics = c.metrics[metrics.shortname]
         m.eval(c)
 
 

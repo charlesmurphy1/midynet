@@ -5,13 +5,13 @@ import importlib
 
 
 def get_edgelist(bs_graph: bs.UndirectedMultigraph) -> list[tuple[int, int]]:
-    el = []
-    for v in bs_graph:
-        for u in bs_graph.get_out_edges_of_idx(v):
-            if v > u.vertex_index:
-                continue
-            el.append((v, u.vertex_index))
-    return el
+    # el = []
+    # for v in bs_graph:
+    #     for u in bs_graph.get_out_neighbours(v):
+    #         if v > u.vertex_index:
+    #             continue
+    #         el.append((v, u.vertex_index))
+    return list(bs_graph.edges())
 
 
 def convert_basegraph_to_networkx(
@@ -20,10 +20,10 @@ def convert_basegraph_to_networkx(
     nx_graph = nx.Graph()
     for v in bs_graph:
         nx_graph.add_node(v)
-        for u in bs_graph.get_out_edges_of_idx(v):
-            if v > u.vertex_index:
+        for u in bs_graph.get_out_neighbours(v):
+            if v > u:
                 continue
-            nx_graph.add_edge(v, u.vertex_index)
+            nx_graph.add_edge(v, u)
     return nx_graph
 
 
@@ -34,19 +34,16 @@ def convert_basegraph_to_graphtool(bs_graph: bs.UndirectedMultigraph):
         raise RuntimeError("Could not find `graph_tool`.")
 
     gt_graph = gt.Graph(directed=False)
-    for v in bs_graph:
-        for u in bs_graph.get_out_edges_of_idx(v):
-            if v > u.vertex_index:
-                continue
-            for e in range(u.label):
-                gt_graph.add_edge(v, u.vertex_index)
+    for e in bs_graph.edges():
+        for m in range(bs_graph.get_edge_multiplicity(*e)):
+            gt_graph.add_edge(*e)
     return gt_graph
 
 
 def convert_graphtool_to_basegraph(gt_graph) -> bs.UndirectedMultigraph:
     bs_graph = bs.UndirectedMultigraph(gt_graph.num_vertices())
     for e in gt_graph.edges():
-        bs_graph.add_edge_idx(*e)
+        bs_graph.add_edge(*e)
     return bs_graph
 
 
@@ -69,10 +66,11 @@ def convert_gt_blockstate_to_partition(block_state) -> list[int]:
 
 def save_graph(graph: bs.UndirectedMultigraph, file_name: str) -> None:
     edges = []
-    for i in graph:
-        for n in graph.get_out_edges_of_idx(i):
-            if n.vertex_index >= i:
-                edges.append([i, n.vertex_index, n.label])
+    for e in graph.edges():
+        edges.append([*e, graph.get_edge_multiplicity(*e)])
+    #     for n in graph.get_out_neighbours(i):
+    #         if n.vertex_index >= i:
+    #             edges.append([i, n.vertex_index, n.label])
 
     edges = np.array(edges)
     np.save(file_name, edges)
@@ -82,5 +80,5 @@ def load_graph(file_name: str, size=None) -> bs.UndirectedMultigraph:
     edges = np.load(file_name)
     graph = bs.UndirectedMultigraph(np.max(edges) + 1 if size is None else size)
     for i, j, m in edges:
-        graph.add_multiedge_idx(i, j, m)
+        graph.add_multiedge(i, j, m)
     return graph

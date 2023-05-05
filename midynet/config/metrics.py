@@ -41,9 +41,9 @@ class MetricsConfig(Config):
         return cls.mcmc("targreconinfo")
 
     @classmethod
-    def reconheur(cls):
+    def reconheuristics(cls):
         return cls(
-            "reconheur",
+            "reconheuristics",
             method="correlation",
             num_samples=100,
             reduction="normal",

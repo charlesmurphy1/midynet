@@ -77,7 +77,7 @@ def test_save_graph():
     assert os.path.exists("test-little-rock.npy")
     edges = np.load("test-little-rock.npy")
     assert isinstance(edges, np.ndarray)
-    assert edges.shape == (g.get_distinct_edge_number(), 3)
+    assert edges.shape == (g.get_edge_number(), 3)
     assert edges[:, -1].sum() == g.get_total_edge_number()
     os.remove("test-little-rock.npy")
 

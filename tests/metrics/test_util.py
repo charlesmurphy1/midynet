@@ -6,14 +6,13 @@ from midynet.config import (
     MetricsConfig,
     ExperimentConfig,
 )
-from graphinf.mcmc import GraphReconstructionMCMC
 
 DISPLAY = False
 
 
 @pytest.fixture
 def config():
-    c = ExperimentConfig.reconstruction(
+    c = ExperimentConfig.default(
         name="test", data_model="sis", prior="erdosrenyi"
     )
     c.data_model.length = 5

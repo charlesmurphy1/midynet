@@ -37,7 +37,7 @@ class ExperimentConfig(Config):
         return config
 
     @classmethod
-    def reconstruction(
+    def default(
         cls,
         name: str,
         data_model: str,

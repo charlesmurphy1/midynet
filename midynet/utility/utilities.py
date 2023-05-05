@@ -121,7 +121,7 @@ def enumerate_all_graphs(
     for edge_list in all_edge_lists:
         g = basegraph.core.UndirectedMultigraph(size)
         for u, v in edge_list:
-            g.add_edge_idx(u, v)
+            g.add_edge(u, v)
         yield g
 
 
