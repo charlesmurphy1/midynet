@@ -61,7 +61,7 @@ class Metrics:
 
         self.configs = configs
         config_seq = list(
-            filter(self.already_computed, configs.to_sequence())
+            filter(lambda c: not self.already_computed(c), configs.to_sequence())
             if resume
             else configs.to_sequence()
         )
@@ -90,7 +90,10 @@ class Metrics:
                 raw = pd.DataFrame(self.postprocess(self.eval(config)))
             for k, v in self.configs.summarize_subconfig(config).items():
                 raw[k] = v
-            data[config.name] = pd.concat([data[config.name], raw], ignore_index=True)
+            data[config.name] = pd.concat(
+                [data[config.name], raw], ignore_index=True
+            )
+            self.data = data.copy()
             for c in callbacks:
                 c.update()
         return data
@@ -127,6 +130,7 @@ class Metrics:
                 data[config.name] = pd.concat(
                     [data[config.name], raw], ignore_index=True
                 )
+            self.data = data.copy()
             # callbacks update
             for c in callbacks:
                 c.update()

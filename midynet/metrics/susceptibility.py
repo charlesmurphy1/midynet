@@ -48,9 +48,9 @@ def gap_susceptibility(x: np.ndarray, epsilon=0.05) -> float:
 susceptibility_func = {
     "glauber": spin_susceptibility,
     "sis": spreading_susceptibility,
-    "cowan": lambda x: gap_susceptibility
+    "cowan": lambda x: gap_susceptibility(x)
     if x[:, 0].mean() == 1.0
-    else spin_susceptibility,
+    else spin_susceptibility(x),
 }
 
 average_func = {
