@@ -129,8 +129,8 @@ if __name__ == "__main__":
         metrics[k].compute(
             config,
             resume=args.resume,
-            num_workers=config.get("num_workers", 1),
-            num_async_jobs=config.get("num_async_jobs", 1),
+            n_workers=config.get("n_workers", 1),
+            n_async_jobs=config.get("n_async_jobs", 1),
             callbacks=callbacks,
         )
 

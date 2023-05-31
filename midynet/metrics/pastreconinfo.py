@@ -44,7 +44,7 @@ class PastDependentInformationMeasures(Expectation):
             g0 = prior.get_state()
         else:
             g0 = prior.get_state()
-        x0 = data_model.get_random_state(config.data_model.get("num_active", -1))
+        x0 = data_model.get_random_state(config.data_model.get("n_active", -1))
         data_model.set_graph(g0)
         data_model.sample_state(x0)
         out = {}
@@ -134,12 +134,12 @@ class PastDependentInformationMeasuresMetrics(Metrics):
     def eval(self, config: Config):
         metrics = PastDependentInformationMeasures(
             config=config,
-            num_workers=config.get("num_workers", 1),
+            n_workers=config.get("n_workers", 1),
             seed=config.get("seed", int(time.time())),
         )
 
         samples = metrics.compute(
-            config.metrics.recon_information.get("num_samples", 10)
+            config.metrics.recon_information.get("n_samples", 10)
         )
         sample_dict = defaultdict(list)
         for s in samples:

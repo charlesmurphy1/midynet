@@ -21,21 +21,17 @@ class DataModelConfig(Config):
         cls,
         length: int = 100,
         coupling: float = 1.0,
-        past_length: int = 0,
-        initial_burn: int = 0,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
-        num_active: int = -1,
+        n_active: int = -1,
     ):
         return cls(
             name="glauber",
             length=length,
             coupling=coupling,
-            past_length=past_length,
-            initial_burn=initial_burn,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
-            num_active=num_active,
+            n_active=n_active,
         )
 
     @classmethod
@@ -44,22 +40,18 @@ class DataModelConfig(Config):
         length: int = 100,
         infection_prob: float = 0.1,
         recovery_prob: float = 0.1,
-        past_length: int = 0,
-        initial_burn: int = 0,
         auto_activation_prob=0.001,
         auto_deactivation_prob=0,
-        num_active: int = 1,
+        n_active: int = 1,
     ):
         return cls(
             name="sis",
             length=length,
             infection_prob=infection_prob,
             recovery_prob=recovery_prob,
-            past_length=past_length,
-            initial_burn=initial_burn,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
-            num_active=num_active,
+            n_active=n_active,
         )
 
     @classmethod
@@ -70,11 +62,9 @@ class DataModelConfig(Config):
         a: float = 8.0,
         mu: float = 1.0,
         eta: float = 0.1,
-        past_length: int = 0,
-        initial_burn: int = 0,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
-        num_active: int = 1,
+        n_active: int = 1,
     ):
         return cls(
             name="cowan",
@@ -83,23 +73,21 @@ class DataModelConfig(Config):
             a=a,
             mu=mu,
             eta=eta,
-            past_length=past_length,
-            initial_burn=initial_burn,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
-            num_active=num_active,
+            n_active=n_active,
         )
 
     @classmethod
     def cowan_forward(cls, **kwargs):
         cfg = cls.cowan(**kwargs)
-        cfg.num_active = 1
+        cfg.n_active = 1
         return cfg
 
     @classmethod
     def cowan_backward(cls, **kwargs):
         cfg = cls.cowan(**kwargs)
-        cfg.num_active = -1
+        cfg.n_active = -1
         return cfg
 
     @classmethod
@@ -109,7 +97,7 @@ class DataModelConfig(Config):
         C: float = 1.0,
         auto_activation_prob=0,
         auto_deactivation_prob=0,
-        num_active: int = 2**31 - 1,
+        n_active: int = 2**31 - 1,
     ):
         return cls(
             name="degree",
@@ -117,7 +105,7 @@ class DataModelConfig(Config):
             C=C,
             auto_activation_prob=auto_activation_prob,
             auto_deactivation_prob=auto_deactivation_prob,
-            num_active=num_active,
+            n_active=n_active,
         )
 
     @classmethod

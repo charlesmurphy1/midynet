@@ -1,5 +1,5 @@
 from __future__ import annotations
-import typing
+from typing import Union
 
 import midynet.metrics
 from midynet.config import Config, static
@@ -7,45 +7,109 @@ from .factory import Factory, OptionError, MissingRequirementsError
 
 __all__ = ("MetricsConfig", "MetricsCollectionConfig", "MetricsFactory")
 
-
 @static
-class MetricsConfig(Config):
+class MCMCDataConfig(Config):
     @classmethod
-    def mcmc(cls, name: str):
-        obj = cls(
-            name,
-            num_sweeps=1000,
+    def exact(cls, **kwargs):
+        return cls(
+            "data_mcmc", method="exact", reset_original=True, **kwargs
+        )
+
+    @classmethod
+    def meanfield(cls, **kwargs):
+        return cls(
+            "data_mcmc",
+            method="meanfield",
             sweep_type="metropolis",
+            n_sweeps=1000,
+            n_steps_per_vertex=5,
+            burn=2000,
+            start_from_original=False,
+            reset_original=True,
             graph_rate=1,
             prior_rate=0,
             param_rate=0,
-            reduction="normal",
-            method="meanfield",
-            num_samples=100,
-            burn_per_vertex=5,
-            initial_burn=2000,
-            start_from_original=False,
-            K=10,
-            num_betas=10,
-            exp_betas=0.5,
-            equilibrate_mode_cluster=False,
+            **kwargs,
         )
-        return obj
+    @classmethod
+    def annealed(cls, **kwargs):
+        return cls(
+            "annealed",
+            method="annealed",
+            sweep_type="metropolis",
+            n_sweeps=1000,
+            n_step_per_vertex=5,
+            burn=2000,
+            start_from_original=False,
+            reset_original=True,
+            n_betas=10,
+            exp_betas=0.5,
+            graph_rate=1,
+            prior_rate=0,
+            param_rate=0,
+            **kwargs,
+        )
+
+@static
+class MCMCGraphConfig(Config):
+    @classmethod
+    def exact(cls, **kwargs):
+        return cls(
+            "exact", method="exact", reset_original=True, **kwargs
+        )
+    
+    @classmethod
+    def meanfield(cls, **kwargs):
+        return cls(
+            "meanfield", 
+            method="meanfield", 
+            n_sweeps=1000,
+            n_steps_per_vertex=5,
+            burn=2000,
+            start_from_original=False,
+            reset_original=True,
+            equilibriate_mode_cluster=False,
+            **kwargs,
+        )
+    
+@static
+class MetricsConfig(Config):
+    @classmethod
+    def mcmc(
+        cls,
+        name: str,
+        graph_mcmc:MCMCGraphConfig or str = "meanfield",
+        data_mcmc: MCMCDataConfig or str = "meanfield", 
+        reduction="normal",
+        n_samples=100,
+        **kwargs
+    ):
+        graph_mcmc = getattr(MCMCGraphConfig, graph_mcmc)() if isinstance(graph_mcmc, str) else graph_mcmc
+        data_mcmc = getattr(MCMCDataConfig, data_mcmc)() if isinstance(data_mcmc, str) else data_mcmc
+        return cls(
+            name,
+            graph_mcmc=graph_mcmc,
+            data_mcmc=data_mcmc,
+            reduction=reduction,
+            n_samples=n_samples,
+            **kwargs,
+        )
 
     @classmethod
-    def reconinfo(cls):
-        return cls.mcmc("reconinfo")
+    def reconinfo(cls, **kwargs):
+        return cls.mcmc("reconinfo", **kwargs)
 
     @classmethod
-    def targreconinfo(cls):
-        return cls.mcmc("targreconinfo")
+    def efficiency(cls, **kwargs):
+        config = cls.mcmc("efficiency", resample_graph=False, **kwargs)
+        return config
 
     @classmethod
     def reconheuristics(cls):
         return cls(
             "reconheuristics",
             method="correlation",
-            num_samples=100,
+            n_samples=100,
             reduction="normal",
         )
 
@@ -55,7 +119,7 @@ class MetricsConfig(Config):
             "linregheur",
             graph_features="all",
             state_features="mean",
-            num_samples=100,
+            n_samples=100,
             reduction="normal",
         )
 
@@ -65,26 +129,29 @@ class MetricsConfig(Config):
             "miheur",
             graph_features="all",
             state_features="mean",
-            num_samples=100,
+            n_samples=100,
             reduction="normal",
         )
 
     @classmethod
     def susceptibility(cls):
-        return cls("susceptibility", num_samples=100, reduction="identity")
+        return cls("susceptibility", n_samples=100, reduction="identity")
 
 
 @static
 class MetricsCollectionConfig(Config):
     @classmethod
-    def auto(cls, config_types: typing.Union[str, list[str]]):
-        if isinstance(config_types, str):
-            config_types = [config_types]
+    def auto(cls, configs: Union[str, list[str], list[MetricsConfig]]):
+        if not isinstance(configs, list):
+            config_types = [configs]
+        configs = [getattr(MetricsConfig, c)() if isinstance(c, str) else c for c in configs]
+        configs = {c.name: c for c in configs}
+
         config = cls(
             "metrics",
-            **{a: getattr(MetricsConfig, a)() for a in config_types},
+            **configs,
         )
-        config._state["metrics_names"] = config_types
+        config._state["metrics_names"] = list(configs.keys())
         config.__types__["metrics_names"] = str
         config.not_sequence("metrics_names")
         return config
@@ -116,8 +183,8 @@ class MetricsFactory(Factory):
         return midynet.metrics.ReconstructionInformationMeasuresMetrics()
 
     @staticmethod
-    def build_targreconinfo():
-        return midynet.metrics.TargetedReconstructionInformationMeasuresMetrics()
+    def build_efficiency():
+        return midynet.metrics.ReconstructionEfficiencyMetrics()
 
     @staticmethod
     def build_reconheur():

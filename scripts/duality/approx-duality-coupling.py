@@ -113,7 +113,7 @@ def main():
     )
     args = parser.parse_args()
     for data_model in ["glauber", "sis", "cowan"]:
-        config = Figure2ExactConfig.default(
+        config = Figure4GeomConfig.default(
             data_model, num_procs=40, time="24:00:00", mem=12
         )
         if args.overwrite and os.path.exists(config.path):

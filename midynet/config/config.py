@@ -117,17 +117,18 @@ class Config(BaseConfig):
             setattr(self, k, v)
 
     def get(self, key: str, default: Any = None) -> Any:
-        if key in self:
-            return self._state[key]
         components = key.split(self.separator)
-        if components[0] in self:
-            subkey = self.separator.join(components[1:])
-            assert not isinstance(
-                self._state[components[0]], (list, tuple, set)
-            ), f"In get: Component {components[0]} of key {key} must not be iterable."
-            return self._state[components[0]].get(subkey, default)
+        if (key not in self or self._state[key] is None) and len(components) == 1:
+            return default
+        if key in self and self._state[key] is not None:
+            return self._state[key]
+        
+        subkey = self.separator.join(components[1:])
+        assert not isinstance(
+            self._state[components[0]], (list, tuple, set)
+        ), f"In get: Component {components[0]} of key {key} must not be iterable."
+        return self._state[components[0]].get(subkey, default)
 
-        return default
 
     def __len__(self) -> int:
         return len(list(self.to_sequence()))
@@ -165,7 +166,7 @@ class Config(BaseConfig):
         if isinstance(data, dict) == False:
             return data
 
-        config = Config(data.get("name", "generic"), as_seq=as_seq)
+        config = Config(data["name"], as_seq=as_seq)
         for key in data:
             if isinstance(data[key], dict):
                 config[key] = Config.from_dict(data[key])

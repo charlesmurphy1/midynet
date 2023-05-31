@@ -48,6 +48,6 @@ class MultiProcess:
 
 
 class Expectation(MultiProcess):
-    def __init__(self, seed=None, num_samples=1):
+    def __init__(self, seed=None, n_samples=1):
         self.seed = seed if seed is not None else int(time.time())
-        super().__init__(self.seed + np.arange(num_samples))
+        super().__init__(self.seed + np.arange(n_samples))

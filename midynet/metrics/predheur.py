@@ -97,7 +97,7 @@ class PredictionHeuristics(Expectation):
             g0 = GraphFactory.build(config.target)
         else:
             g0 = graph_model.get_state()
-        x0 = data_model.get_random_state(config.data_model.get("num_active", -1))
+        x0 = data_model.get_random_state(config.data_model.get("n_active", -1))
         data_model.set_graph(g0)
         data_model.sample_state(x0)
         timeseries = np.array(data_model.get_past_states())

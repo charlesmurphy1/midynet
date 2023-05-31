@@ -6,11 +6,10 @@ import warnings
 
 
 from typing import Dict
-from graphinf.utility import seed as gi_seed
+from graphinf.utility import seed as gi_seed, EdgeCollector
 from midynet.config import Config, OptionError, GraphFactory, DataModelFactory
 from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
-from .util import get_log_posterior_meanfield
 from netrd import reconstruction as _reconstruction
 from sklearn.metrics import (
     confusion_matrix,
@@ -137,18 +136,23 @@ class GraphbasedReconstructionHeuristicsMethod(ReconstructionHeuristicsMethod):
 class PeixotoBayesianReconstructionModel:
     def __init__(self, config):
         self.graph_prior = GraphFactory.build(config.prior)
-        self.data_model = DataModelFactory.build(config.data_model)
-        self.data_model.set_graph_prior(self.graph_prior)
+        self.model = DataModelFactory.build(config.model)
+        self.model.set_graph_prior(self.graph_prior)
         self.config = config
         self.__results__ = dict()
 
     def fit(self, timeseries, **kwargs):
-        self.data_model.set_states(timeseries)
-        self.edgeprobs = get_log_posterior_meanfield(
-            self.data_model, self.config.metrics, return_edgeprobs=True
-        )
-        # self.__results__["weight_matrix"] = {e: sum(p) for e, p in self.edgeprobs}
-
+        self.model.set_states(timeseries)
+        collector = EdgeCollector()
+        collector.update(self.model.get_graph())
+        for _ in range(self.config.n_sweeps):
+            self.model.metropolis_sweep(
+                self.config.n_step_per_nodes * self.model.get_size()
+            )
+            collector.update(self.model.get_graph())
+        self.__results__["weight_matrix"] = {
+            e: 1 - collector.mle(e, 0) for e in collector.multiplicities.keys()
+        }
 
 def get_heuristics_reconstructor(config):
     reconstructors = {
@@ -192,17 +196,17 @@ class ReconstructionHeuristics(Expectation):
     def func(self, seed: int) -> Dict[str, float]:
         gi_seed(seed)
         config = Config.from_dict(self.params)
-        graph_model = GraphFactory.build(config.prior)
-        data_model = DataModelFactory.build(config.data_model)
-        data_model.set_graph_prior(graph_model)
+        graph_prior = GraphFactory.build(config.prior)
+        model = DataModelFactory.build(config.model)
+        model.set_graph_prior(graph_prior)
         if config.target != "None":
             g0 = GraphFactory.build(config.target)
         else:
-            g0 = graph_model.get_state()
-        x0 = data_model.get_random_state(config.data_model.get("num_active", -1))
-        data_model.set_graph(g0)
-        data_model.sample_state(x0)
-        timeseries = np.array(data_model.get_past_states())
+            g0 = graph_prior.get_state()
+        x0 = model.get_random_state(config.model.get("n_active", -1))
+        model.set_graph(g0)
+        model.sample_state(x0)
+        timeseries = np.array(model.get_past_states())
         heuristics = get_heuristics_reconstructor(config.metrics)
         heuristics.fit(timeseries)
         heuristics.compare(g0, measures=["roc", "accuracy"])

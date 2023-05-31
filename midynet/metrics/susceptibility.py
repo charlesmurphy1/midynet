@@ -74,17 +74,17 @@ class Susceptibility(Expectation):
         data_model.set_graph_prior(prior)
         prior.sample()
         g0 = prior.get_state()
-        x0 = data_model.get_random_state(config.data_model.get("num_active", -1))
+        x0 = data_model.get_random_state(config.data_model.get("n_active", -1))
         data_model.set_graph(g0)
         data_model.sample_state(x0)
 
         return config, prior, data_model
 
     def func(self, seed: int) -> Dict[str, float]:
-        config, prior, data_model = self.setup(seed)
-        X = np.array(data_model.get_past_states())
-        avg = average_func[config.data_model.name](X)
-        susc = susceptibility_func[config.data_model.name](X)
+        config, _, model = self.setup(seed)
+        X = np.array(model.get_past_states())
+        avg = average_func[config.model.name](X)
+        susc = susceptibility_func[config.model.name](X)
         return dict(average=avg, susceptibility=susc)
 
 

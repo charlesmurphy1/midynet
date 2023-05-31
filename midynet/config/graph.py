@@ -1,13 +1,15 @@
 import os
 
+from typing import List, Optional
 from basegraph import core
 from graphinf.graph import (
     ErdosRenyiModel,
-    PoissonModel,
-    NegativeBinomialModel,
+    PoissonGraph,
+    NegativeBinomialGraph,
+    ConfigurationModel,
     ConfigurationModelFamily,
     StochasticBlockModelFamily,
-    PlantedPartitionModel,
+    PlantedPartitionGraph,
 )
 
 from midynet.config import Config, static
@@ -18,59 +20,93 @@ __all__ = ("GraphConfig", "GraphFactory")
 
 @static
 class GraphConfig(Config):
+    def from_target(self, target: Config):
+        for prop in ["size", "edge_count", "loopy", "multigraph"]:
+            if prop in self.__dict__ and prop in target.__dict__:
+                setattr(self, prop, getattr(target, prop))
+            
+
     @classmethod
-    def karate(cls):
+    def karate(cls, path=None):
         return cls(
             "karate",
             size=34,
             edge_count=78,
             gt_id="karate/78",
-            with_self_loops=False,
-            with_parallel_edges=False,
+            path=path,
+            loopy=False,
+            multigraph=False,
         )
 
     @classmethod
-    def littlerock(cls):
+    def littlerock(cls, path=None):
         return cls(
             "littlerock",
             size=183,
             edge_count=2_494,
             gt_id="foodweb_little_rock",
-            with_self_loops=True,
-            with_parallel_edges=True,
+            path=path,
+            loopy=True,
+            multigraph=True,
+        )
+    @classmethod
+    def football(cls, path=None):
+        return cls(
+            "football",
+            size=115,
+            edge_count=615,
+            gt_id="football",
+            path=path,
+            loopy=True,
+            multigraph=True,
+        )
+	
+    @classmethod
+    def polbooks(cls, path=None):
+        return cls(
+            "polbooks",
+            size=105,
+            edge_count=441,
+            gt_id="polbooks",
+            path=path,
+            loopy=True,
+            multigraph=True,
         )
 
     @classmethod
-    def openflights(cls):
+    def openflights(cls, path=None):
         return cls(
             "openflights",
             size=3_214,
             edge_count=66_771,
             gt_id="openflights",
-            with_self_loops=False,
-            with_parallel_edges=False,
+            path=path,
+            loopy=False,
+            multigraph=False,
         )
 
     @classmethod
-    def euairlines(cls):
+    def euairlines(cls, path=None):
         return cls(
             "euairlines",
             size=450,
             edge_count=3_588,
             gt_id="eu_airlines",
-            with_self_loops=False,
-            with_parallel_edges=True,
+            path=path,
+            loopy=False,
+            multigraph=True,
         )
 
     @classmethod
-    def celegans(cls):
+    def celegans(cls, path=None):
         return cls(
             "celegans",
             size=514,
             edge_count=2_363,
             gt_id="celegans_2019/male_gap_junction_synapse",
-            with_self_loops=True,
-            with_parallel_edges=True,
+            path=path,
+            loopy=True,
+            multigraph=True,
         )
 
     @classmethod
@@ -80,8 +116,8 @@ class GraphConfig(Config):
         edge_count: float = 250,
         likelihood_type: str = "uniform",
         canonical: bool = False,
-        with_self_loops: bool = True,
-        with_parallel_edges: bool = True,
+        loopy: bool = True,
+        multigraph: bool = True,
         edge_proposer_type: str = "uniform",
     ):
         return cls(
@@ -90,8 +126,8 @@ class GraphConfig(Config):
             likelihood_type=likelihood_type,
             edge_count=edge_count,
             canonical=canonical,
-            with_self_loops=with_self_loops,
-            with_parallel_edges=with_parallel_edges,
+            loopy=loopy,
+            multigraph=multigraph,
             edge_proposer_type=edge_proposer_type,
         )
 
@@ -111,8 +147,15 @@ class GraphConfig(Config):
             degree_prior_type=degree_prior_type,
             canonical=canonical,
             edge_proposer_type=edge_proposer_type,
-            with_self_loops=True,
-            with_parallel_edges=True,
+            loopy=True,
+            multigraph=True,
+        )
+    
+    @classmethod
+    def degree_constrained_configuration(cls, degree_seq: Optional[List[int]]= None):
+        return cls(
+            "degree_constrained_configuration",
+            degree_seq=degree_seq
         )
 
     @classmethod
@@ -135,8 +178,8 @@ class GraphConfig(Config):
             size=size,
             edge_count=edge_count,
             heterogeneity=heterogeneity,
-            with_self_loops=True,
-            with_parallel_edges=True,
+            loopy=True,
+            multigraph=True,
         )
 
     @classmethod
@@ -144,17 +187,17 @@ class GraphConfig(Config):
         cls,
         size: int = 100,
         edge_count: float = 250,
-        block_count: int = 0,
+        block_count: Optional[int] = None,
         likelihood_type: str = "uniform",
         block_prior_type: str = "hyper",
         label_graph_prior_type: str = "uniform",
         degree_prior_type: str = "uniform",
         canonical: bool = False,
         exact: bool = False,
-        with_self_loops: bool = True,
-        with_parallel_edges: bool = True,
+        loopy: bool = True,
+        multigraph: bool = True,
         edge_proposer_type: str = "uniform",
-        block_proposer_type: str = "uniform",
+        block_proposer_type: str = "mixed",
         sample_label_count_prob: float = 0.1,
         label_creation_prob: float = 0.5,
         shift: float = 1,
@@ -170,8 +213,8 @@ class GraphConfig(Config):
             degree_prior_type=degree_prior_type,
             canonical=canonical,
             exact=exact,
-            with_self_loops=with_self_loops,
-            with_parallel_edges=with_parallel_edges,
+            loopy=loopy,
+            multigraph=multigraph,
             edge_proposer_type=edge_proposer_type,
             block_proposer_type=block_proposer_type,
             sample_label_count_prob=sample_label_count_prob,
@@ -192,8 +235,8 @@ class GraphConfig(Config):
         block_count: int = 3,
         assortativity: float = 0.5,
         stub_labeled: bool = False,
-        with_self_loops: bool = True,
-        with_parallel_edges: bool = True,
+        loopy: bool = True,
+        multigraph: bool = True,
     ):
         return cls(
             "planted_partition",
@@ -202,8 +245,8 @@ class GraphConfig(Config):
             block_count=block_count,
             assortativity=assortativity,
             stub_labeled=stub_labeled,
-            with_self_loops=with_self_loops,
-            with_parallel_edges=with_parallel_edges,
+            loopy=loopy,
+            multigraph=multigraph,
         )
 
 
@@ -220,16 +263,15 @@ class GraphFactory(Factory):
     def load_graph(config: GraphConfig) -> core.UndirectedMultigraph:
         try:
             # print("Fetching graph from Network Repo...")
-            raise KeyError()
             return GraphFactory.load_gtgraph(config.gt_id)
         except KeyError:
             from midynet.utility.convert import load_graph
 
             # print("Loading graph locally...")
-            path_to_graph = os.path.join(
-                __file__.removesuffix("random_graph.py"), config.name + ".npy"
-            )
-            return load_graph(path_to_graph)
+            if config.path is None:
+                raise ValueError(f"Fetching is forbidden, and did not find path to `{config.name}`.")
+            
+            return load_graph(config.path)
 
     @staticmethod
     def build_karate(config: GraphConfig) -> core.UndirectedMultigraph:
@@ -252,6 +294,14 @@ class GraphFactory(Factory):
     @staticmethod
     def build_celegans(config: GraphConfig) -> core.UndirectedMultigraph:
         return GraphFactory.load_graph(config)
+    
+    @staticmethod
+    def build_polbooks(config: GraphConfig) ->core.UndirectedMultigraph:
+        return GraphFactory.load_graph(config)
+    
+    @staticmethod
+    def build_football(config: GraphConfig) ->core.UndirectedMultigraph:
+        return GraphFactory.load_graph(config)
 
     @staticmethod
     def build_erdosrenyi(config: GraphConfig) -> ErdosRenyiModel:
@@ -259,8 +309,8 @@ class GraphFactory(Factory):
             config.size,
             config.edge_count,
             canonical=config.canonical,
-            with_self_loops=config.with_self_loops,
-            with_parallel_edges=config.with_parallel_edges,
+            loopy=config.loopy,
+            multigraph=config.multigraph,
             edge_proposer_type=config.edge_proposer_type,
         )
 
@@ -273,14 +323,20 @@ class GraphFactory(Factory):
             canonical=config.canonical,
             edge_proposer_type=config.edge_proposer_type,
         )
+    
+    @staticmethod
+    def build_degree_constrained_configuration(config: GraphConfig) -> ConfigurationModel:
+        degrees = [0] * 100 if config.degree_seq is None else config.degree_seq
+        
+        return ConfigurationModel(degrees)
 
     @staticmethod
-    def build_poisson(config: GraphConfig) -> PoissonModel:
-        return PoissonModel(config.size, config.edge_count)
+    def build_poisson(config: GraphConfig) -> PoissonGraph:
+        return PoissonGraph(config.size, config.edge_count)
 
     @staticmethod
-    def build_nbinom(config: GraphConfig) -> NegativeBinomialModel:
-        return NegativeBinomialModel(
+    def build_nbinom(config: GraphConfig) -> NegativeBinomialGraph:
+        return NegativeBinomialGraph(
             config.size, config.edge_count, config.heterogeneity
         )
 
@@ -297,8 +353,8 @@ class GraphFactory(Factory):
             label_graph_prior_type=config.label_graph_prior_type,
             degree_prior_type=config.degree_prior_type,
             canonical=config.canonical,
-            with_self_loops=config.with_self_loops,
-            with_parallel_edges=config.with_parallel_edges,
+            loopy=config.loopy,
+            multigraph=config.multigraph,
             edge_proposer_type=config.edge_proposer_type,
             block_proposer_type=config.block_proposer_type,
             sample_label_count_prob=config.sample_label_count_prob,
@@ -308,14 +364,14 @@ class GraphFactory(Factory):
 
     @staticmethod
     def build_planted_partition(config: GraphConfig):
-        return PlantedPartitionModel(
+        return PlantedPartitionGraph(
             size=config.size,
             edge_count=config.edge_count,
             block_count=config.block_count,
             assortativity=config.assortativity,
             stub_labeled=config.stub_labeled,
-            with_self_loops=config.with_self_loops,
-            with_parallel_edges=config.with_parallel_edges,
+            loopy=config.loopy,
+            multigraph=config.multigraph,
         )
 
 

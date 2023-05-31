@@ -54,8 +54,8 @@ class Metrics:
         self,
         configs: Config,
         resume: bool = True,
-        num_workers: int = 1,
-        num_async_jobs: int = 1,
+        n_workers: int = 1,
+        n_async_jobs: int = 1,
         callbacks: Optional[list[MetricsCallback]] = None,
     ) -> None:
 
@@ -66,25 +66,25 @@ class Metrics:
             else configs.to_sequence()
         )
 
-        if num_async_jobs > 1 and num_workers > 1:
-            data = self.run_async(config_seq, num_async_jobs, num_workers, callbacks)
+        if n_async_jobs > 1 and n_workers > 1:
+            data = self.run_async(config_seq, n_async_jobs, n_workers, callbacks)
         else:
-            data = self.run(config_seq, num_workers, callbacks)
+            data = self.run(config_seq, n_workers, callbacks)
 
         self.data = dict(data)
 
     def run(
         self,
         config_seq: list[Config],
-        num_workers: int = 1,
+        n_workers: int = 1,
         callbacks: Optional[list[MetricsCallback]] = None,
     ):
         callbacks = [] if callbacks is None else callbacks
         data = defaultdict(pd.DataFrame)
         data.update(self.data)
-        for config in config_seq:
-            if num_workers > 1:
-                with mp.get_context("spawn").Pool(num_workers) as p:
+        for i, config in enumerate(config_seq):
+            if n_workers > 1:
+                with mp.get_context("spawn").Pool(n_workers) as p:
                     raw = pd.DataFrame(self.postprocess(self.eval(config, p)))
             else:
                 raw = pd.DataFrame(self.postprocess(self.eval(config)))
@@ -101,17 +101,17 @@ class Metrics:
     def run_async(
         self,
         config_seq: list[Config],
-        num_async_jobs: int,
-        num_workers: int,
+        n_async_jobs: int,
+        n_workers: int,
         callbacks: Optional[list[MetricsCallback]] = None,
     ):
-        if num_workers == 1:
-            raise ValueError("Cannot use async mode when num_workers == 1.")
+        if n_workers == 1:
+            raise ValueError("Cannot use async mode when n_workers == 1.")
         callbacks = [] if callbacks is None else callbacks
         data = defaultdict(pd.DataFrame)
         data.update(self.data)
-        for batch in to_batch(config_seq, num_async_jobs):
-            with mp.get_context("spawn").Pool(num_workers) as p:
+        for batch in to_batch(config_seq, n_async_jobs):
+            with mp.get_context("spawn").Pool(n_workers) as p:
                 async_jobs = []
 
                 # assign jobs
@@ -171,7 +171,7 @@ class ExpectationMetrics(Metrics):
         expectation = self.expectation_factory(
             config=config,
             seed=config.get("seed", int(time.time())),
-            num_samples=config.metrics.get("num_samples", 1),
+            n_samples=config.metrics.get("n_samples", 1),
         )
         return expectation.compute(pool)
 
@@ -179,7 +179,7 @@ class ExpectationMetrics(Metrics):
         expectation = self.expectation_factory(
             config=config,
             seed=config.get("seed", int(time.time())),
-            num_samples=config.metrics.get("num_samples", 1),
+            n_samples=config.metrics.get("n_samples", 1),
         )
         return expectation.compute_async(pool)
 
