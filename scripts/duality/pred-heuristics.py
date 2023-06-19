@@ -36,6 +36,7 @@ class Figure3PredHeuristicsConfig(ExperimentConfig):
             ],
             path=path_to_data,
             n_workers=n_workers,
+            n_async_jobs=n_async_jobs,
             seed=seed,
         )
         config.path += "/" + config.name
@@ -87,7 +88,8 @@ def main():
         os.mkdir("./log")
     config = Figure3PredHeuristicsConfig.default(
         path_to_data="./data",
-        n_workers=4,
+        n_workers=64,
+        n_async_jobs=4,
         seed=None,
         time="20:00:00",
     )
