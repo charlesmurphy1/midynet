@@ -40,9 +40,7 @@ class Figure3PredHeuristicsConfig(ExperimentConfig):
         )
         config.path += "/" + config.name
         config.data_model.coupling = format_sequence(
-            (0, 0.2, 20),
-            (0.2, 0.8, 10)
-            # (0, 5, 20)
+            (0, 0.2, 20), (0.2, 0.8, 10)
         )
 
         config.data_model.length = 100
@@ -55,7 +53,7 @@ class Figure3PredHeuristicsConfig(ExperimentConfig):
             "logistic",
             "mlp",
         ]
-        config.metrics.pred_error.n_samples = 50 * (n_workers // n_async_jobs)
+        config.metrics.pred_error.n_samples = n_workers // n_async_jobs
         config.metrics.pred_error.measures = "absolute_error"
         config.resources.update(
             account="def-aallard",
