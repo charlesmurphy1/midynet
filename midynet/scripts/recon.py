@@ -117,7 +117,7 @@ if __name__ == "__main__":
         config.metrics = metaconfig.metrics.get(k)
 
         callbacks = [
-            Progress.to_setup(logger=logger, total=len(config)),
+            Progress.to_setup(logger=logger, total=len(config) // config.get("n_async_jobs", 1)),
             MemoryCheck.to_setup("gb", logger=logger),
             Checkpoint.to_setup(
                 patience=args.save_patience,

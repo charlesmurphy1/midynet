@@ -1,19 +1,20 @@
 from __future__ import annotations
+
 from typing import Union
 
 import midynet.metrics
 from midynet.config import Config, static
-from .factory import Factory, OptionError, MissingRequirementsError
+
+from .factory import Factory, MissingRequirementsError, OptionError
 
 __all__ = ("MetricsConfig", "MetricsCollectionConfig", "MetricsFactory")
+
 
 @static
 class MCMCDataConfig(Config):
     @classmethod
     def exact(cls, **kwargs):
-        return cls(
-            "data_mcmc", method="exact", reset_original=True, **kwargs
-        )
+        return cls("data_mcmc", method="exact", reset_original=True, **kwargs)
 
     @classmethod
     def meanfield(cls, **kwargs):
@@ -31,6 +32,7 @@ class MCMCDataConfig(Config):
             param_rate=0,
             **kwargs,
         )
+
     @classmethod
     def annealed(cls, **kwargs):
         return cls(
@@ -50,19 +52,18 @@ class MCMCDataConfig(Config):
             **kwargs,
         )
 
+
 @static
 class MCMCGraphConfig(Config):
     @classmethod
     def exact(cls, **kwargs):
-        return cls(
-            "exact", method="exact", reset_original=True, **kwargs
-        )
-    
+        return cls("exact", method="exact", reset_original=True, **kwargs)
+
     @classmethod
     def meanfield(cls, **kwargs):
         return cls(
-            "meanfield", 
-            method="meanfield", 
+            "meanfield",
+            method="partition_meanfield",
             n_sweeps=1000,
             n_steps_per_vertex=5,
             burn=2000,
@@ -71,21 +72,30 @@ class MCMCGraphConfig(Config):
             equilibriate_mode_cluster=False,
             **kwargs,
         )
-    
+
+
 @static
 class MetricsConfig(Config):
     @classmethod
     def mcmc(
         cls,
         name: str,
-        graph_mcmc:MCMCGraphConfig or str = "meanfield",
-        data_mcmc: MCMCDataConfig or str = "meanfield", 
+        graph_mcmc: MCMCGraphConfig or str = "meanfield",
+        data_mcmc: MCMCDataConfig or str = "meanfield",
         reduction="normal",
         n_samples=100,
-        **kwargs
+        **kwargs,
     ):
-        graph_mcmc = getattr(MCMCGraphConfig, graph_mcmc)() if isinstance(graph_mcmc, str) else graph_mcmc
-        data_mcmc = getattr(MCMCDataConfig, data_mcmc)() if isinstance(data_mcmc, str) else data_mcmc
+        graph_mcmc = (
+            getattr(MCMCGraphConfig, graph_mcmc)()
+            if isinstance(graph_mcmc, str)
+            else graph_mcmc
+        )
+        data_mcmc = (
+            getattr(MCMCDataConfig, data_mcmc)()
+            if isinstance(data_mcmc, str)
+            else data_mcmc
+        )
         return cls(
             name,
             graph_mcmc=graph_mcmc,
@@ -137,6 +147,27 @@ class MetricsConfig(Config):
     def susceptibility(cls):
         return cls("susceptibility", n_samples=100, reduction="identity")
 
+    @classmethod
+    def recon_error(cls, **kwargs):
+        return cls.mcmc(
+            "recon_error",
+            reconstructor=kwargs.pop("reconstructor", "bayesian"),
+            measures=kwargs.pop(
+                "measures", "roc, error_prob, posterior_similarity, accuracy"
+            ),
+            **kwargs,
+        )
+
+    @classmethod
+    def pred_error(cls, **kwargs):
+        return cls(
+            "pred_error",
+            predictor=kwargs.pop("predictor", "average_probability"),
+            n_samples=kwargs.pop("n_samples", 100),
+            measures=kwargs.pop("measures", "absolute_error"),
+            **kwargs,
+        )
+
 
 @static
 class MetricsCollectionConfig(Config):
@@ -144,7 +175,10 @@ class MetricsCollectionConfig(Config):
     def auto(cls, configs: Union[str, list[str], list[MetricsConfig]]):
         if not isinstance(configs, list):
             config_types = [configs]
-        configs = [getattr(MetricsConfig, c)() if isinstance(c, str) else c for c in configs]
+        configs = [
+            getattr(MetricsConfig, c)() if isinstance(c, str) else c
+            for c in configs
+        ]
         configs = {c.name: c for c in configs}
 
         config = cls(
@@ -161,7 +195,9 @@ class MetricsFactory(Factory):
     @classmethod
     def build(cls, config: Config) -> midynet.metrics.Metrics:
         options = {
-            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
+            k[6:]: getattr(cls, k)
+            for k in cls.__dict__.keys()
+            if k[:6] == "build_"
         }
         metrics = config.metrics
         if "metrics_names" in metrics:
@@ -170,13 +206,17 @@ class MetricsFactory(Factory):
                 if name in options:
                     collections[name] = options[name]()
                 else:
-                    raise OptionError(actual=name, expected=list(options.keys()))
+                    raise OptionError(
+                        actual=name, expected=list(options.keys())
+                    )
             return collections
         else:
             if metrics.name in options:
                 return options[metrics.name]()
             else:
-                raise OptionError(actual=metrics.name, expected=list(options.keys()))
+                raise OptionError(
+                    actual=metrics.name, expected=list(options.keys())
+                )
 
     @staticmethod
     def build_reconinfo():
@@ -187,20 +227,16 @@ class MetricsFactory(Factory):
         return midynet.metrics.ReconstructionEfficiencyMetrics()
 
     @staticmethod
-    def build_reconheur():
-        return midynet.metrics.ReconstructionHeuristicsMetrics()
-
-    @staticmethod
-    def build_linregheur():
-        return midynet.metrics.LinearRegressionHeuristicsMetrics()
-
-    @staticmethod
-    def build_miheur():
-        return midynet.metrics.MutualInformationHeuristicsMetrics()
-
-    @staticmethod
     def build_susceptibility():
         return midynet.metrics.SusceptibilityMetrics()
+
+    @staticmethod
+    def build_recon_error():
+        return midynet.metrics.ReconstructionErrorMetrics()
+
+    @staticmethod
+    def build_pred_error():
+        return midynet.metrics.PredictionErrorMetrics()
 
 
 if __name__ == "__main__":

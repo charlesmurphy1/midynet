@@ -1,16 +1,9 @@
-from .callback import MetricsCallback, Progress, MemoryCheck, Checkpoint
+from .callback import Checkpoint, MemoryCheck, MetricsCallback, Progress
+from .efficiency import ReconstructionEfficiencyMetrics
+from .error import PredictionErrorMetrics, ReconstructionErrorMetrics
 from .metrics import Metrics
-from .multiprocess import MultiProcess, Expectation
-
+from .multiprocess import Expectation, MultiProcess
 from .reconinfo import ReconstructionInformationMeasuresMetrics
-from .efficiency import (
-    ReconstructionEfficiencyMetrics
-)
-from .reconheur import ReconstructionHeuristicsMetrics
-from .predheur import (
-    LinearRegressionHeuristicsMetrics,
-    MutualInformationHeuristicsMetrics,
-)
 from .susceptibility import SusceptibilityMetrics
 
 __all__ = (
@@ -23,16 +16,13 @@ __all__ = (
     "Expectation",
     "ReconstructionInformationMeasuresMetrics",
     "ReconstructionEfficiencyMetrics",
-    "ReconstructionHeuristicsMetrics",
-    "LinearRegressionHeuristicsMetrics",
-    "MutualInformationHeuristicsMetrics",
     "SusceptibilityMetrics",
+    "ReconstructionErrorMetrics",
 )
+
 __all_metrics__ = [
     ReconstructionInformationMeasuresMetrics,
     ReconstructionEfficiencyMetrics,
-    ReconstructionHeuristicsMetrics,
-    LinearRegressionHeuristicsMetrics,
-    MutualInformationHeuristicsMetrics,
     SusceptibilityMetrics,
+    ReconstructionErrorMetrics,
 ]

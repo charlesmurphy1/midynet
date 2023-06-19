@@ -69,6 +69,7 @@ def main(
     run: Optional[str] = None,
     path_to_figure=None,
     metrics: Optional[str] = None,
+    no_negative: bool = False,
     **kwargs,
 ):
     fig, ax = plt.subplots(1, 1, figsize=(5, 4))
@@ -102,6 +103,8 @@ def main(
     else:
         ax.set_ylabel(y_axis[0], fontsize=FONTSIZE)
     ax.set_xlabel(x.name, fontsize=FONTSIZE)
+    if no_negative:
+        ax.set_ylim([0, ax.get_ylim()[-1]])
     if twinx_axis is not None:
         _ax = ax.twinx()
         for i, _y in enumerate(twinx_axis):
@@ -127,6 +130,9 @@ def main(
             _ax.set_ylabel("/".join(twinx_axis), fontsize=FONTSIZE)
         else:
             _ax.set_ylabel(twinx_axis[0], fontsize=FONTSIZE)
+
+        if no_negative:
+            _ax.set_ylim([0, _ax.get_ylim()[-1]])
     fig.tight_layout()
     print(path_to_figure)
     if path_to_figure is not None:
@@ -172,7 +178,7 @@ if __name__ == "__main__":
         required=False,
     )
     parser.add_argument(
-        "--save_path",
+        "--save-path",
         "-s",
         type=str,
         help="Path where the figure is saved.",
@@ -193,7 +199,7 @@ if __name__ == "__main__":
         required=False,
     )
     parser.add_argument(
-        "--y_axis",
+        "--y-axis",
         "-y",
         type=str,
         help="Name of the yaxis",
@@ -201,14 +207,14 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "--x_axis",
+        "--x-axis",
         "-x",
         type=str,
         help="Name of the x-axis.",
         required=True,
     )
     parser.add_argument(
-        "--twinx_axis",
+        "--twinx-axis",
         "-t",
         type=str,
         default=None,
@@ -216,12 +222,17 @@ if __name__ == "__main__":
         nargs="*",
     )
     parser.add_argument(
-        "--aux_axis",
+        "--aux-axis",
         "-a",
         type=str,
         default=None,
         help="Name of any other auxilary axis to include in the legend.",
         required=False,
+    )
+    parser.add_argument(
+        "--no-negative",
+        help="Whether to remove negative y-values.",
+        action="store_true",
     )
 
     args = parser.parse_args()

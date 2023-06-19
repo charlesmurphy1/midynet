@@ -1,14 +1,10 @@
 import time
+from typing import Any, Dict, Tuple
+
 import numpy as np
-
-from typing import Tuple, Dict, Any
 from graphinf.utility import seed as gi_seed
-from midynet.config import (
-    GraphFactory,
-    DataModelFactory,
-)
+from midynet.config import Config, DataModelFactory, GraphFactory
 
-from midynet.config import Config
 from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
 
@@ -45,7 +41,6 @@ class ReconstructionInformationMeasures(Expectation):
         graph_mcmc.pop("name", None)
         data_mcmc.pop("name", None)
 
-
         prior = -model.graph_prior.get_log_evidence(**graph_mcmc)
         likelihood = -model.get_log_likelihood()
         posterior = -model.get_log_posterior(**data_mcmc)
@@ -67,7 +62,9 @@ class ReconstructionInformationMeasures(Expectation):
             out["graph_joint"] = prior.get_log_joint()
             out["graph_prior"] = prior.get_label_log_joint()
             out["graph_evidence"] = -out["prior"]
-            out["graph_posterior"] = out["graph_joint"] - out["graph_evidence"]
+            out["graph_posterior"] = (
+                out["graph_joint"] - out["graph_evidence"]
+            )
         if config.metrics.get("to_bits", True):
             out = {k: v / np.log(2) for k, v in out.items()}
         return out
@@ -86,8 +83,12 @@ class ReconstructionInformationMeasuresMetrics(ExpectationMetrics):
     ]
     expectation_factory = ReconstructionInformationMeasures
 
-    def postprocess(self, samples: list[Dict[str, float]]) -> Dict[str, float]:
-        stats = self.reduce(samples, self.configs.metrics.get("reduction", "normal"))
+    def postprocess(
+        self, samples: list[Dict[str, float]]
+    ) -> Dict[str, float]:
+        stats = self.reduce(
+            samples, self.configs.metrics.get("reduction", "normal")
+        )
         stats["recon"] = stats["mutualinfo"] / stats["prior"]
         stats["pred"] = stats["mutualinfo"] / stats["evidence"]
         return self.format(stats)
