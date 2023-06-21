@@ -18,7 +18,7 @@ def format_sequence(*arr):
 
 
 couplings = {
-    "glauber": format_sequence((0, 0.02, 10), (0.02, 0.04, 30)),
+    "glauber": format_sequence((0, 0.02, 20), (0.02, 0.08, 10)),
     "sis": format_sequence((0, 0.02, 20), (0.02, 0.2, 10), (0.2, 1.0, 10)),
     "cowan_forward": format_sequence(
         (0, 0.07, 5), (0.07, 0.2, 30), (0.2, 0.3, 5)
