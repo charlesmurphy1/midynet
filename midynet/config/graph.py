@@ -1,18 +1,18 @@
 import os
-
 from typing import List, Optional
+
 from basegraph import core
 from graphinf.graph import (
-    ErdosRenyiModel,
-    PoissonGraph,
-    NegativeBinomialGraph,
     ConfigurationModel,
     ConfigurationModelFamily,
-    StochasticBlockModelFamily,
+    ErdosRenyiModel,
+    NegativeBinomialGraph,
     PlantedPartitionGraph,
+    PoissonGraph,
+    StochasticBlockModelFamily,
 )
-
 from midynet.config import Config, static
+
 from .factory import Factory
 
 __all__ = ("GraphConfig", "GraphFactory")
@@ -24,7 +24,6 @@ class GraphConfig(Config):
         for prop in ["size", "edge_count", "loopy", "multigraph"]:
             if prop in self.__dict__ and prop in target.__dict__:
                 setattr(self, prop, getattr(target, prop))
-            
 
     @classmethod
     def karate(cls, path=None):
@@ -49,6 +48,7 @@ class GraphConfig(Config):
             loopy=True,
             multigraph=True,
         )
+
     @classmethod
     def football(cls, path=None):
         return cls(
@@ -60,7 +60,7 @@ class GraphConfig(Config):
             loopy=True,
             multigraph=True,
         )
-	
+
     @classmethod
     def polbooks(cls, path=None):
         return cls(
@@ -110,6 +110,18 @@ class GraphConfig(Config):
         )
 
     @classmethod
+    def polblogs(cls, path=None):
+        return cls(
+            "polblogs",
+            size=1490,
+            edge_count=19090,
+            gt_id="polblogs",
+            path=path,
+            loopy=True,
+            multigraph=True,
+        )
+
+    @classmethod
     def erdosrenyi(
         cls,
         size: int = 100,
@@ -150,13 +162,12 @@ class GraphConfig(Config):
             loopy=True,
             multigraph=True,
         )
-    
+
     @classmethod
-    def degree_constrained_configuration(cls, degree_seq: Optional[List[int]]= None):
-        return cls(
-            "degree_constrained_configuration",
-            degree_seq=degree_seq
-        )
+    def degree_constrained_configuration(
+        cls, degree_seq: Optional[List[int]] = None
+    ):
+        return cls("degree_constrained_configuration", degree_seq=degree_seq)
 
     @classmethod
     def poisson(cls, size: int = 100, edge_count: int = 250):
@@ -269,8 +280,10 @@ class GraphFactory(Factory):
 
             # print("Loading graph locally...")
             if config.path is None:
-                raise ValueError(f"Fetching is forbidden, and did not find path to `{config.name}`.")
-            
+                raise ValueError(
+                    f"Fetching is forbidden, and did not find path to `{config.name}`."
+                )
+
             return load_graph(config.path)
 
     @staticmethod
@@ -294,13 +307,17 @@ class GraphFactory(Factory):
     @staticmethod
     def build_celegans(config: GraphConfig) -> core.UndirectedMultigraph:
         return GraphFactory.load_graph(config)
-    
+
     @staticmethod
-    def build_polbooks(config: GraphConfig) ->core.UndirectedMultigraph:
+    def build_polblogs(config: GraphConfig) -> core.UndirectedMultigraph:
         return GraphFactory.load_graph(config)
-    
+
     @staticmethod
-    def build_football(config: GraphConfig) ->core.UndirectedMultigraph:
+    def build_polbooks(config: GraphConfig) -> core.UndirectedMultigraph:
+        return GraphFactory.load_graph(config)
+
+    @staticmethod
+    def build_football(config: GraphConfig) -> core.UndirectedMultigraph:
         return GraphFactory.load_graph(config)
 
     @staticmethod
@@ -323,11 +340,15 @@ class GraphFactory(Factory):
             canonical=config.canonical,
             edge_proposer_type=config.edge_proposer_type,
         )
-    
+
     @staticmethod
-    def build_degree_constrained_configuration(config: GraphConfig) -> ConfigurationModel:
-        degrees = [0] * 100 if config.degree_seq is None else config.degree_seq
-        
+    def build_degree_constrained_configuration(
+        config: GraphConfig,
+    ) -> ConfigurationModel:
+        degrees = (
+            [0] * 100 if config.degree_seq is None else config.degree_seq
+        )
+
         return ConfigurationModel(degrees)
 
     @staticmethod

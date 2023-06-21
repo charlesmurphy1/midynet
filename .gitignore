@@ -24,3 +24,6 @@ dist/
 archive-*
 
 *.ipynb_checkpoints
+*.pkl
+*.npy
+*.DS_Store
