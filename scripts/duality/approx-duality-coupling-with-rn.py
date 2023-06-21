@@ -1,39 +1,55 @@
-import numpy as np
-import pathlib
-import tempfile
 import argparse
 import os
+import pathlib
 import shutil
-from midynet.config import ExperimentConfig, DataModelConfig, MetricsConfig
+import tempfile
+
+import numpy as np
+from midynet.config import DataModelConfig, ExperimentConfig, MetricsConfig
 from midynet.scripts import ScriptManager
 
+
 def format_sequence(*arr):
-    arr = [np.linspace(*s) if isinstance(s, tuple) and len(s) == 3 else s for s in arr]
+    arr = [
+        np.linspace(*s) if isinstance(s, tuple) and len(s) == 3 else s
+        for s in arr
+    ]
     return np.unique(np.concatenate(arr)).tolist()
-    
 
-couplings =  {
+
+couplings = {
     "glauber": format_sequence((0, 0.02, 10), (0.02, 0.04, 30)),
-    "sis": format_sequence((0, 0.02, 20), (0.02, 0.2, 10), (0.2, 1., 10)),
-    "cowan_forward": format_sequence((0, 0.07, 5), (0.07, 0.2, 30), (0.2, 0.3, 5)),
+    "sis": format_sequence((0, 0.02, 20), (0.02, 0.2, 10), (0.2, 1.0, 10)),
+    "cowan_forward": format_sequence(
+        (0, 0.07, 5), (0.07, 0.2, 30), (0.2, 0.3, 5)
+    ),
     "cowan_backward": format_sequence((0, 0.1, 25), (0.1, 0.3, 15)),
-
 }
 STEP_FACTOR = 4
 
 graph_dict = {
-    "glauber": ("littlerock", "/home/murphy9/data/graphs/littlerock.npy"),
+    # "glauber": ("littlerock", "/home/murphy9/data/graphs/littlerock.npy"),
+    "glauber": ("polblogs", "/home/murphy9/data/graphs/polblogs.npy"),
     "sis": ("euairlines", "/home/murphy9/data/graphs/euairlines.npy"),
     "cowan_forward": ("celegans", "/home/murphy9/data/graphs/celegans.npy"),
     "cowan_backward": ("celegans", "/home/murphy9/data/graphs/celegans.npy"),
 }
 
 model_dict = {
-    "glauber": DataModelConfig.glauber(length=2000, coupling=couplings["glauber"]),
-    "sis": DataModelConfig.sis(length=2000, infection_prob=couplings["sis"], recovery_prob=0.5),
-    "cowan_forward": DataModelConfig.cowan_forward(length=2000, nu=couplings["cowan_forward"]),
-    "cowan_backward": DataModelConfig.cowan_backward(length=2000, nu=couplings["cowan_backward"]),
+    "glauber": DataModelConfig.glauber(
+        length=2000, coupling=couplings["glauber"]
+    ),
+    "sis": DataModelConfig.sis(
+        length=2000, infection_prob=couplings["sis"], recovery_prob=0.5
+    ),
+    "cowan_forward": DataModelConfig.cowan_forward(
+        length=2000, nu=couplings["cowan_forward"]
+    ),
+    "cowan_backward": DataModelConfig.cowan_backward(
+        length=2000, nu=couplings["cowan_backward"]
+    ),
 }
+
 
 class Figure4CMRealNetworkConfig:
     @classmethod
@@ -53,10 +69,16 @@ class Figure4CMRealNetworkConfig:
         )
         if not os.path.exists(path_to_data):
             os.makedirs(path_to_data)
-        metrics = [MetricsConfig.efficiency(graph_mcmc=None, data_mcmc="meanfield")]
+        metrics = [
+            MetricsConfig.efficiency(graph_mcmc=None, data_mcmc="meanfield")
+        ]
         target, target_path = graph_dict[model]
-        assert os.path.exists(target_path), f"path {target_path} does not exist."
-        assert os.path.exists(path_to_data), f"path {path_to_data} does not exist."
+        assert os.path.exists(
+            target_path
+        ), f"path {target_path} does not exist."
+        assert os.path.exists(
+            path_to_data
+        ), f"path {path_to_data} does not exist."
         config = ExperimentConfig.default(
             f"{model}-{target}",
             model_dict[model],
@@ -67,7 +89,7 @@ class Figure4CMRealNetworkConfig:
             n_workers=n_workers,
             n_async_jobs=n_async_jobs,
             seed=seed,
-            target_params=dict(path=target_path)
+            target_params=dict(path=target_path),
         )
 
         config.metrics.efficiency.n_samples = n_workers // n_async_jobs
@@ -100,14 +122,15 @@ def main():
         action="store_true",
     )
     args = parser.parse_args()
-    for model in model_dict.keys():
+    # for model in model_dict.keys():
+    for model in ["glauber"]:
         config = Figure4CMRealNetworkConfig.default(
-            model, 
-            n_workers=40, 
-            n_async_jobs=4, 
-            time="24:00:00", 
-            mem=12, 
-            path_to_data=f"/home/murphy9/data/midynet/duality-coupling/{model}-{graph_dict[model][0]}"
+            model,
+            n_workers=40,
+            n_async_jobs=4,
+            time="24:00:00",
+            mem=12,
+            path_to_data=f"/home/murphy9/data/midynet/duality-coupling/{model}-{graph_dict[model][0]}",
         )
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)

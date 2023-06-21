@@ -91,7 +91,6 @@ class Metrics:
                     raw = pd.DataFrame(self.postprocess(self.eval(config, p)))
             else:
                 raw = pd.DataFrame(self.postprocess(self.eval(config)))
-            print(raw)
             for k, v in self.configs.summarize_subconfig(config).items():
                 raw[k] = v
             data[config.name] = pd.concat(
