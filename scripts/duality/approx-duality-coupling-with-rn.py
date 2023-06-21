@@ -126,10 +126,10 @@ def main():
     for model in ["glauber"]:
         config = Figure4CMRealNetworkConfig.default(
             model,
-            n_workers=40,
+            n_workers=64,
             n_async_jobs=4,
-            time="24:00:00",
-            mem=12,
+            time="48:00:00",
+            mem=16,
             path_to_data=f"/home/murphy9/data/midynet/duality-coupling/{model}-{graph_dict[model][0]}",
         )
         if args.overwrite and os.path.exists(config.path):
