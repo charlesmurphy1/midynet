@@ -42,8 +42,8 @@ class ReconstructionInformationMeasures(Expectation):
         data_mcmc.pop("name", None)
 
         prior = -model.graph_prior.log_evidence(**graph_mcmc)
-        likelihood = -model.get_log_likelihood()
-        posterior = -model.get_log_posterior(**data_mcmc)
+        likelihood = -model.log_likelihood()
+        posterior = -model.log_posterior(**data_mcmc)
         evidence = prior + likelihood - posterior
         return dict(
             prior=prior,
@@ -59,7 +59,7 @@ class ReconstructionInformationMeasures(Expectation):
         out["mutualinfo"] = out["prior"] - out["posterior"]
 
         if prior.labeled:
-            out["graph_joint"] = prior.get_log_joint()
+            out["graph_joint"] = prior.log_joint()
             out["graph_prior"] = prior.get_label_log_joint()
             out["graph_evidence"] = -out["prior"]
             out["graph_posterior"] = (
