@@ -41,7 +41,7 @@ class ReconstructionInformationMeasures(Expectation):
         graph_mcmc.pop("name", None)
         data_mcmc.pop("name", None)
 
-        prior = -model.graph_prior.get_log_evidence(**graph_mcmc)
+        prior = -model.graph_prior.log_evidence(**graph_mcmc)
         likelihood = -model.get_log_likelihood()
         posterior = -model.get_log_posterior(**data_mcmc)
         evidence = prior + likelihood - posterior
