@@ -50,10 +50,13 @@ targets = {
     "planted_partition": GraphConfig.planted_partition(
         size=100, edge_count=250, block_count=3, loopy=True, multigraph=True
     ),
+    "polblogs": GraphConfig.polblogs(
+        path="../data/graphs/polblogs.npy",
+    ),
 }
 
 
-class EfficiencyOfSyntheticGraphsConfig:
+class EfficiencyGraphsConfig:
     @classmethod
     def default(
         cls,
@@ -82,8 +85,8 @@ class EfficiencyOfSyntheticGraphsConfig:
         config = ExperimentConfig.default(
             f"{model}-{target}-{data_model}",
             data_model,
-            model,
-            target=target,
+            priors[model],
+            target=targets[target],
             metrics=metrics,
             path=path_to_data,
             n_workers=n_workers,
@@ -130,19 +133,21 @@ def main():
 
     for model in [
         "erdosrenyi",
-        "configuration",
-        "stochastic_block_model_block_contrained",
-        "degree_corrected_stochastic_block_model_block_contrained",
-        "stochastic_block_model",
-        "degree_corrected_stochastic_block_model",
+        # "configuration",
+        # "stochastic_block_model_block_contrained",
+        # "degree_corrected_stochastic_block_model_block_contrained",
+        # "stochastic_block_model",
+        # "degree_corrected_stochastic_block_model",
     ]:
-        config = EfficiencyOfSyntheticGraphsConfig.default(
+        target = "polblogs"
+        config = EfficiencyGraphsConfig.default(
             model,
-            n_workers=64,
+            target=target,
+            n_workers=4,
             time="10:00:00",
             mem=32,
-            # path_to_data=f"./tests/planted-vs-{model}",
-            path_to_data=f"/home/murphy9/data/synthetic-reconstruction/planted-vs-{model}",
+            path_to_data=f"./tests/{target}-vs-{model}",
+            # path_to_data=f"/home/murphy9/data/synthetic-reconstruction/{target}-vs-{model}",
         )
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)
@@ -151,11 +156,11 @@ def main():
         config.save(path_to_config)
         script = ScriptManager(
             executable="python ../../midynet/scripts/recon.py",
-            execution_command="sbatch",
+            execution_command="bash",
             path_to_scripts="./scripts",
         )
         extra_args = {
-            "run": f"Reconstruction of planted partition model - {model}",
+            "run": f"Reconstruction of {target} with {model}",
             "name": config.name,
             "path_to_config": path_to_config,
             "resume": args.resume,

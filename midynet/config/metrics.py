@@ -124,26 +124,6 @@ class MetricsConfig(Config):
         )
 
     @classmethod
-    def linregheur(cls):
-        return cls(
-            "linregheur",
-            graph_features="all",
-            state_features="mean",
-            n_samples=100,
-            reduction="normal",
-        )
-
-    @classmethod
-    def miheur(cls):
-        return cls(
-            "miheur",
-            graph_features="all",
-            state_features="mean",
-            n_samples=100,
-            reduction="normal",
-        )
-
-    @classmethod
     def susceptibility(cls):
         return cls("susceptibility", n_samples=100, reduction="identity")
 
@@ -174,7 +154,7 @@ class MetricsCollectionConfig(Config):
     @classmethod
     def auto(cls, configs: Union[str, list[str], list[MetricsConfig]]):
         if not isinstance(configs, list):
-            config_types = [configs]
+            configs = [configs]
         configs = [
             getattr(MetricsConfig, c)() if isinstance(c, str) else c
             for c in configs
