@@ -60,7 +60,7 @@ class Figure3PredHeuristicsConfig(ExperimentConfig):
             account="def-aallard",
             time=time,
             mem=f"{mem}G",
-            cpus_per_task=config.num_workers,
+            cpus_per_task=config.n_workers,
             job_name=config.name,
             output=f"log/{config.name}.out",
         )

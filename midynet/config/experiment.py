@@ -1,15 +1,15 @@
 from __future__ import annotations
+
 import pathlib
 import tempfile
-
 from typing import List, Optional, Union
 
 from midynet.config import (
     Config,
-    static,
     DataModelConfig,
     GraphConfig,
     MetricsCollectionConfig,
+    static,
 )
 
 __all__ = ("ExperimentConfig",)
@@ -52,13 +52,19 @@ class ExperimentConfig(Config):
         graph_params=None,
         target_params=None,
     ) -> ExperimentConfig:
-        data_model_params = {} if data_model_params is None else data_model_params
+        data_model_params = (
+            {} if data_model_params is None else data_model_params
+        )
         graph_params = {} if graph_params is None else graph_params
         target_params = {} if target_params is None else target_params
         config = cls(name=name)
-        config.data_model = DataModelConfig.auto(data_model, **data_model_params)
+        config.data_model = DataModelConfig.auto(
+            data_model, **data_model_params
+        )
         config.target = (
-            GraphConfig.auto(target, **target_params) if target != "None" else "None"
+            GraphConfig.auto(target, **target_params)
+            if target != "None"
+            else "None"
         )
         config.prior = GraphConfig.auto(prior, **graph_params)
         if config.target != "None":
@@ -72,7 +78,6 @@ class ExperimentConfig(Config):
         config.seed = seed
         config.resources = Config(name="resources")
         config.lock_types()
-
         return config
 
 
