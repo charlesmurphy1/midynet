@@ -35,14 +35,7 @@ class ReconstructionEfficiency(ReconstructionInformationMeasures):
             else:
                 assert issubclass(target.__class__, RandomGraphWrapper)
                 g0 = target.get_state()
-        if "num_active" in config.data_model:
-            x0 = model.get_random_state(
-                config.data_model.get("num_active", -1)
-            )
         prior.from_graph(g0)
-
-        if config.metrics.resample_graph:
-            prior.sample_state()  # Only samples the graph, with its parameters fixed.
 
         if "num_active" in config.data_model:
             x0 = model.get_random_state(

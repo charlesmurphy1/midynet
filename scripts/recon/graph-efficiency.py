@@ -30,14 +30,14 @@ priors = {
         size=100, edge_count=250, loopy=True, multigraph=True
     ),
     "configuration": GraphConfig.configuration(100, 250),
-    "stochastic_block_model_block_contrained": GraphConfig.stochastic_block_model(
-        size=100, edge_count=250, loopy=True, multigraph=True, block_count=3
-    ),
-    "degree_corrected_stochastic_block_model_block_contrained": GraphConfig.degree_corrected_stochastic_block_model(
-        size=100,
-        edge_count=250,
-        block_count=3,
-    ),
+    # "stochastic_block_model_block_contrained": GraphConfig.stochastic_block_model(
+    #     size=100, edge_count=250, loopy=True, multigraph=True, block_count=3
+    # ),
+    # "degree_corrected_stochastic_block_model_block_contrained": GraphConfig.degree_corrected_stochastic_block_model(
+    #     size=100,
+    #     edge_count=250,
+    #     block_count=3,
+    # ),
     "degree_corrected_stochastic_block_model": GraphConfig.degree_corrected_stochastic_block_model(
         size=100,
         edge_count=250,
@@ -47,8 +47,12 @@ priors = {
     ),
 }
 targets = {
+    "erdosrenyi": GraphConfig.erdosrenyi(size=100, edge_count=250),
     "planted_partition": GraphConfig.planted_partition(
         size=100, edge_count=250, block_count=3, loopy=True, multigraph=True
+    ),
+    "food_web": GraphConfig.littlerock(
+        path="/home/murphy9/data/graphs/littlerock.npy"
     ),
     "polblogs": GraphConfig.polblogs(
         # path="../data/graphs/polblogs.npy",
@@ -62,7 +66,6 @@ class EfficiencyGraphsConfig:
     def default(
         cls,
         model,
-        target="planted_partition",
         data_model="glauber",
         path_to_data=None,
         n_workers=1,
@@ -71,7 +74,6 @@ class EfficiencyGraphsConfig:
         mem=12,
         seed=None,
     ):
-
         path_to_data = pathlib.Path(
             tempfile.mktemp() if path_to_data is None else path_to_data
         )
@@ -84,21 +86,21 @@ class EfficiencyGraphsConfig:
         ]
 
         config = ExperimentConfig.default(
-            f"{model}-{target}-{data_model}",
+            f"{model}-{data_model}",
             data_model,
             priors[model],
-            target=targets[target],
+            target="erdosrenyi",
             metrics=metrics,
             path=path_to_data,
             n_workers=n_workers,
             seed=seed,
         )
 
-        config.target = targets[target]
+        config.target = [v for v in targets.values()]
         config.prior = priors[model]
         config.data_model = data_models[data_model]
         config.metrics.efficiency.n_samples = n_samples_per_worker * n_workers
-        config.metrics.efficiency.resample_graph = True
+        # config.metrics.efficiency.resample_graph = target != "polblogs"
         config.metrics.efficiency.data_mcmc.n_sweeps = 1000
         config.metrics.efficiency.data_mcmc.burn = 2000
         if config.metrics.efficiency.graph_mcmc is not None:
@@ -134,21 +136,20 @@ def main():
     for model in [
         "erdosrenyi",
         "configuration",
-        "stochastic_block_model_block_contrained",
-        "degree_corrected_stochastic_block_model_block_contrained",
+        # "stochastic_block_model_block_contrained",
+        # "degree_corrected_stochastic_block_model_block_contrained",
         "stochastic_block_model",
         "degree_corrected_stochastic_block_model",
     ]:
         target = "planted_partition"
         config = EfficiencyGraphsConfig.default(
             model,
-            target=target,
             n_workers=64,
-            n_samples_per_worker=4,
-            time="4:00:00",
-            mem=32,
-            # path_to_data=f"./tests/{target}-vs-{model}",
-            path_to_data=f"/home/murphy9/data/graph-efficiency/{target}-vs-{model}",
+            n_samples_per_worker=1,
+            time="24:00:00",
+            mem=64,
+            # path_to_data=f"./tests/with-{model}",
+            path_to_data=f"/home/murphy9/data/graph-efficiency/with-{model}",
         )
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)
@@ -157,7 +158,7 @@ def main():
         config.save(path_to_config)
         script = ScriptManager(
             executable="python ../../midynet/scripts/recon.py",
-            execution_command="sbatch",
+            execution_command="bash",
             path_to_scripts="./scripts",
         )
         extra_args = {
