@@ -129,7 +129,7 @@ def main():
             n_workers=64,
             n_async_jobs=4,
             time="48:00:00",
-            mem=16,
+            mem=64,
             path_to_data=f"/home/murphy9/data/midynet/duality-coupling/{model}-{graph_dict[model][0]}",
         )
         if args.overwrite and os.path.exists(config.path):

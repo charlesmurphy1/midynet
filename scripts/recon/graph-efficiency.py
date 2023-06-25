@@ -23,7 +23,7 @@ def format_sequence(*arr):
 
 
 data_models = {
-    "glauber": DataModelConfig.glauber(length=100, coupling=1.0),
+    "glauber": DataModelConfig.glauber(length=2000, coupling=1.0),
 }
 priors = {
     "erdosrenyi": GraphConfig.erdosrenyi(
@@ -51,7 +51,8 @@ targets = {
         size=100, edge_count=250, block_count=3, loopy=True, multigraph=True
     ),
     "polblogs": GraphConfig.polblogs(
-        path="../data/graphs/polblogs.npy",
+        # path="../data/graphs/polblogs.npy",
+        path="/home/murphy9/data/graphs/polblogs.npy",
     ),
 }
 
@@ -65,7 +66,7 @@ class EfficiencyGraphsConfig:
         data_model="glauber",
         path_to_data=None,
         n_workers=1,
-        n_async_jobs=1,
+        n_samples_per_worker=1,
         time="24:00:00",
         mem=12,
         seed=None,
@@ -90,19 +91,18 @@ class EfficiencyGraphsConfig:
             metrics=metrics,
             path=path_to_data,
             n_workers=n_workers,
-            n_async_jobs=n_async_jobs,
             seed=seed,
         )
 
         config.target = targets[target]
         config.prior = priors[model]
         config.data_model = data_models[data_model]
-        config.metrics.efficiency.n_samples = 4 * n_workers // n_async_jobs
+        config.metrics.efficiency.n_samples = n_samples_per_worker * n_workers
         config.metrics.efficiency.resample_graph = True
-        config.metrics.efficiency.data_mcmc.n_sweeps = 1
+        config.metrics.efficiency.data_mcmc.n_sweeps = 1000
         config.metrics.efficiency.data_mcmc.burn = 2000
         if config.metrics.efficiency.graph_mcmc is not None:
-            config.metrics.efficiency.graph_mcmc.n_sweeps = 1
+            config.metrics.efficiency.graph_mcmc.n_sweeps = 1000
             config.metrics.efficiency.graph_mcmc.burn = 2000
         config.metrics.efficiency.reduction = "identity"
         config.resources.update(
@@ -133,21 +133,22 @@ def main():
 
     for model in [
         "erdosrenyi",
-        # "configuration",
-        # "stochastic_block_model_block_contrained",
-        # "degree_corrected_stochastic_block_model_block_contrained",
-        # "stochastic_block_model",
-        # "degree_corrected_stochastic_block_model",
+        "configuration",
+        "stochastic_block_model_block_contrained",
+        "degree_corrected_stochastic_block_model_block_contrained",
+        "stochastic_block_model",
+        "degree_corrected_stochastic_block_model",
     ]:
-        target = "polblogs"
+        target = "planted_partition"
         config = EfficiencyGraphsConfig.default(
             model,
             target=target,
-            n_workers=4,
-            time="10:00:00",
+            n_workers=64,
+            n_samples_per_worker=4,
+            time="4:00:00",
             mem=32,
-            path_to_data=f"./tests/{target}-vs-{model}",
-            # path_to_data=f"/home/murphy9/data/synthetic-reconstruction/{target}-vs-{model}",
+            # path_to_data=f"./tests/{target}-vs-{model}",
+            path_to_data=f"/home/murphy9/data/graph-efficiency/{target}-vs-{model}",
         )
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)
@@ -156,7 +157,7 @@ def main():
         config.save(path_to_config)
         script = ScriptManager(
             executable="python ../../midynet/scripts/recon.py",
-            execution_command="bash",
+            execution_command="sbatch",
             path_to_scripts="./scripts",
         )
         extra_args = {
