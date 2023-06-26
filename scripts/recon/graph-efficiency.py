@@ -103,6 +103,7 @@ class EfficiencyGraphsConfig:
         # config.metrics.efficiency.resample_graph = target != "polblogs"
         config.metrics.efficiency.data_mcmc.n_sweeps = 1000
         config.metrics.efficiency.data_mcmc.burn = 2000
+        config.metrics.efficiency.data_mcmc.prior_rate = 1
         if config.metrics.efficiency.graph_mcmc is not None:
             config.metrics.efficiency.graph_mcmc.n_sweeps = 1000
             config.metrics.efficiency.graph_mcmc.burn = 2000
@@ -134,8 +135,8 @@ def main():
     args = parser.parse_args()
 
     for model in [
-        "erdosrenyi",
-        "configuration",
+        # "erdosrenyi",
+        # "configuration",
         # "stochastic_block_model_block_contrained",
         # "degree_corrected_stochastic_block_model_block_contrained",
         "stochastic_block_model",
@@ -158,11 +159,11 @@ def main():
         config.save(path_to_config)
         script = ScriptManager(
             executable="python ../../midynet/scripts/recon.py",
-            execution_command="bash",
+            execution_command="sbatch",
             path_to_scripts="./scripts",
         )
         extra_args = {
-            "run": f"Reconstruction of {target} with {model}",
+            "run": f"graph-eff with {model}",
             "name": config.name,
             "path_to_config": path_to_config,
             "resume": args.resume,
