@@ -37,6 +37,8 @@ class ReconstructionEfficiency(ReconstructionInformationMeasures):
                 g0 = target.get_state()
 
         prior.from_graph(g0)
+        if config.metrics.resample_graph:
+            prior.sample()
 
         if "num_active" in config.data_model:
             x0 = model.get_random_state(config.data_model.get("num_active", -1))

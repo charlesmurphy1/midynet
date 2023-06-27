@@ -20,15 +20,15 @@ class ReconstructionInformationMeasures(Expectation):
         gi_seed(seed)
         config = Config.from_dict(self.params)
         prior = GraphFactory.build(config.prior)
-        model = DataModelFactory.build(config.model)
+        model = DataModelFactory.build(config.data_model)
 
         model.set_graph_prior(prior)
 
         prior.sample()
         g0 = prior.get_state()
         model.set_graph(g0)
-        if "n_active" in config.model:
-            x0 = model.get_random_state(config.model.get("n_active", -1))
+        if "n_active" in config.data_model:
+            x0 = model.get_random_state(config.data_model.get("n_active", -1))
             model.sample_state(x0)
         else:
             model.sample_state()

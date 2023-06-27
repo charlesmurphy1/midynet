@@ -102,8 +102,11 @@ class EfficiencyGraphsConfig:
         config.metrics.efficiency.n_samples = n_samples_per_worker * n_workers
         # config.metrics.efficiency.resample_graph = target != "polblogs"
         config.metrics.efficiency.data_mcmc.n_sweeps = 1000
+        config.metrics.efficiency.data_mcmc.n_steps_per_vertex = 10
         config.metrics.efficiency.data_mcmc.burn = 2000
+        config.metrics.efficiency.data_mcmc.graph_rate = 1
         config.metrics.efficiency.data_mcmc.prior_rate = 1
+        config.metrics.efficiency.data_mcmc.param_rate = 0
         if config.metrics.efficiency.graph_mcmc is not None:
             config.metrics.efficiency.graph_mcmc.n_sweeps = 1000
             config.metrics.efficiency.graph_mcmc.burn = 2000
