@@ -35,12 +35,11 @@ class ReconstructionEfficiency(ReconstructionInformationMeasures):
             else:
                 assert issubclass(target.__class__, RandomGraphWrapper)
                 g0 = target.get_state()
+
         prior.from_graph(g0)
 
         if "num_active" in config.data_model:
-            x0 = model.get_random_state(
-                config.data_model.get("num_active", -1)
-            )
+            x0 = model.get_random_state(config.data_model.get("num_active", -1))
             model.sample_state(x0)
         else:
             model.sample_state()
@@ -59,12 +58,8 @@ class ReconstructionEfficiencyMetrics(ExpectationMetrics):
     ]
     expectation_factory = ReconstructionEfficiency
 
-    def postprocess(
-        self, samples: Dict[str, Statistics]
-    ) -> Dict[str, Statistics]:
-        stats = self.reduce(
-            samples, self.configs.metrics.get("reduction", "normal")
-        )
+    def postprocess(self, samples: Dict[str, Statistics]) -> Dict[str, Statistics]:
+        stats = self.reduce(samples, self.configs.metrics.get("reduction", "normal"))
         stats["recon"] = stats["mutualinfo"] / stats["prior"]
         stats["pred"] = stats["mutualinfo"] / stats["evidence"]
         out = self.format(stats)
