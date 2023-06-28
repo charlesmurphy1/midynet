@@ -23,21 +23,16 @@ def format_sequence(*arr):
 
 
 data_models = {
-    "glauber": DataModelConfig.glauber(length=2000, coupling=1.0),
+    "erdosrenyi": DataModelConfig.glauber(length=2000, coupling=0.2),
+    "planted_partition": DataModelConfig.glauber(length=2000, coupling=0.2),
+    "littlerock": DataModelConfig.glauber(length=2000, coupling=0.03),
+    "polblogs": DataModelConfig.glauber(length=2000, coupling=0.013),
 }
 priors = {
     "erdosrenyi": GraphConfig.erdosrenyi(
         size=100, edge_count=250, loopy=True, multigraph=True
     ),
     "configuration": GraphConfig.configuration(100, 250),
-    # "stochastic_block_model_block_contrained": GraphConfig.stochastic_block_model(
-    #     size=100, edge_count=250, loopy=True, multigraph=True, block_count=3
-    # ),
-    # "degree_corrected_stochastic_block_model_block_contrained": GraphConfig.degree_corrected_stochastic_block_model(
-    #     size=100,
-    #     edge_count=250,
-    #     block_count=3,
-    # ),
     "degree_corrected_stochastic_block_model": GraphConfig.degree_corrected_stochastic_block_model(
         size=100,
         edge_count=250,
@@ -138,8 +133,8 @@ def main():
     args = parser.parse_args()
 
     for model in [
-        # "erdosrenyi",
-        # "configuration",
+        "erdosrenyi",
+        "configuration",
         # "stochastic_block_model_block_contrained",
         # "degree_corrected_stochastic_block_model_block_contrained",
         "stochastic_block_model",
