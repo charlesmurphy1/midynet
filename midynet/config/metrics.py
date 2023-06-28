@@ -133,7 +133,7 @@ class MetricsConfig(Config):
             "recon_error",
             reconstructor=kwargs.pop("reconstructor", "bayesian"),
             measures=kwargs.pop(
-                "measures", "roc, error_prob, posterior_similarity, accuracy"
+                "measures", "roc, posterior_similarity, accuracy"
             ),
             **kwargs,
         )

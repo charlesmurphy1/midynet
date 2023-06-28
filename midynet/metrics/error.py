@@ -3,6 +3,7 @@ from typing import Dict
 
 import numpy as np
 from graphinf.utility import seed as gi_seed
+from graphinf.graph import RandomGraphWrapper
 from midynet.config import Config, DataModelFactory, GraphFactory
 from midynet.statistics import Statistics
 
@@ -32,7 +33,18 @@ class ReconstructionError(Expectation):
         prior = GraphFactory.build(config.prior)
         model = DataModelFactory.build(config.data_model)
         model.set_graph_prior(prior)
-        g0 = model.get_graph()
+
+        if config.target != "None":
+            prior.sample()
+            g0 = prior.get_state()
+        else:
+            target = GraphFactory.build(config.target)
+            if isinstance(target, bg.UndirectedMultigraph):
+                g0 = target
+            else:
+                assert issubclass(target.__class__, RandomGraphWrapper)
+                g0 = target.get_state()
+        prior.from_graph(g0)
 
         if "n_active" in config.data_model:
             x0 = model.get_random_state(config.data_model.get("n_active", -1))

@@ -6,7 +6,7 @@ import tempfile
 from math import ceil
 
 import numpy as np
-from midynet.config import ExperimentConfig
+from midynet.config import ExperimentConfig, GraphConfig, DataModelConfig
 from midynet.scripts import ScriptManager
 
 
@@ -18,57 +18,72 @@ def format_sequence(*arr):
     return np.unique(np.concatenate(arr)).tolist()
 
 
+prior_dict = {
+    "erdosrenyi": GraphConfig.erdosrenyi(
+        size=100, edge_count=250, loopy=False, multigraph=False
+    )
+}
+model_dict = {
+    "glauber": DataModelConfig.glauber(
+        length=100, coupling=format_sequence((0, 0.8, 25))
+    )
+}
+target_dict = {
+    "littlerock": GraphConfig.littlerock(
+        path="/home/murphy9/data/graphs/littlerock.npy",
+    )
+}
+
+
 class ErrorFromHeuristicsConfig:
     @classmethod
     def default(
         cls,
-        reconstructor="bayesian",
+        target="littlerock",
         save_path=None,
         n_workers=1,
+        n_samples_per_worker=1,
         n_async_jobs=1,
         time="24:00:00",
         mem=12,
         seed=None,
     ):
-
         save_path = pathlib.Path(
             tempfile.mktemp() if save_path is None else save_path
         )
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         config = ExperimentConfig.default(
-            f"error-{reconstructor}",
-            "glauber",
-            "erdosrenyi",
+            f"error-heuristics-{target}",
+            data_model=model_dict["glauber"],
+            prior=prior_dict["erdosrenyi"],
+            target=target_dict[target],
             metrics=["recon_error"],
             path=save_path,
             n_workers=n_workers,
             n_async_jobs=n_async_jobs,
             seed=seed,
         )
-        N, M, T = 5, 5, 100
-        config.prior.size = N
-        config.prior.edge_count = M
-        # config.prior.loopy = False
-        # config.prior.multigraph = False
-        config.data_model.length = T
-        config.data_model.coupling = format_sequence((0, 0.8, 25))
 
-        config.metrics.recon_error.n_samples = 10 * ceil(
+        config.metrics.recon_error.n_samples = n_samples_per_worker * ceil(
             n_workers / n_async_jobs
         )
-        config.metrics.recon_error.reconstructor = reconstructor
+        config.metrics.recon_error.reconstructor = [
+            "bayesian",
+            "correlation",
+            "granger_causality",
+            "transfer_entropy",
+        ]
         config.metrics.recon_error.data_mcmc.n_sweeps = 1000
-        config.metrics.recon_error.data_mcmc.method = "exact"
+        config.metrics.recon_error.measures = (
+            "roc, posterior_similarity, accuracy, error_prob"
+        )
 
-        # config.metrics.reconinfo.n_samples = ceil(n_workers / n_async_jobs)
-        # config.metrics.reconinfo.data_mcmc.method = "exact"
-        # config.metrics.reconinfo.data_mcmc.n_sweeps = 1000
         config.resources.update(
             account="def-aallard",
             time=time,
             mem=f"{mem}G",
-            cpus_per_task=config.num_workers,
+            cpus_per_task=config.n_workers,
             job_name=config.name,
             output=f"log/{config.name}.out",
         )
@@ -89,13 +104,15 @@ def main():
         action="store_true",
     )
     args = parser.parse_args()
-    for reconstructor in ["bayesian", "correlation", "granger_causality"]:
+    for target in ["littlerock"]:
         config = ErrorFromHeuristicsConfig.default(
-            reconstructor,
-            n_workers=4,
+            target,
+            n_workers=64,
+            n_samples_per_worker=1,
             time="24:00:00",
-            mem=12,
-            save_path=f"../data/error-heuristics/{reconstructor}",
+            mem=16,
+            save_path=f"/media/data/error-heuristics/{target}",
+            # save_path=f"../data/error-heuristics/{target}",
         )
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)
@@ -104,7 +121,7 @@ def main():
         config.save(path_to_config)
         script = ScriptManager(
             executable="python ../../midynet/scripts/recon.py",
-            execution_command="bash",
+            execution_command="sbatch",
             path_to_scripts="./scripts",
         )
         args = {

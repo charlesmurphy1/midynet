@@ -98,7 +98,10 @@ class ProbabilityCalibrator:
             )
 
     def transform(self, X: np.ndarray) -> np.ndarray:
-        return sigmoid(self.intercept + self.coeff * X).mean()
+        return sigmoid(
+            self.intercept.reshape(-1, 1)
+            + self.coeff.reshape(-1, 1) * X.reshape(1, -1)
+        ).mean()
 
     def fit_transform(
         self, X: np.ndarray, y: np.ndarray, **kwargs
@@ -287,7 +290,7 @@ def get_reconstructor(config):
         ),
     }
 
-    if config.method in reconstructors:
+    if config.reconstructor in reconstructors:
         return reconstructors[config.reconstructor](config)
     else:
         raise OptionError(
@@ -306,7 +309,6 @@ class Predictor:
         self.__results__ = {}
 
     def eval(self, targets, preds, measures=None, **kwargs):
-
         if isinstance(measures, str):
             measures = measures.split(", ")
 
