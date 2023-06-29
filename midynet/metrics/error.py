@@ -2,6 +2,7 @@ from copy import deepcopy
 from typing import Dict
 
 import numpy as np
+from basegraph import core as bs
 from graphinf.utility import seed as gi_seed
 from graphinf.graph import RandomGraphWrapper
 from midynet.config import Config, DataModelFactory, GraphFactory
@@ -10,7 +11,6 @@ from midynet.statistics import Statistics
 from .heuristics import (
     AverageProbabilityPredictor,
     BayesianReconstructor,
-    ProbabilityCalibrator,
     get_predictor,
     get_reconstructor,
     prepare_training_data,
@@ -39,7 +39,7 @@ class ReconstructionError(Expectation):
             g0 = prior.get_state()
         else:
             target = GraphFactory.build(config.target)
-            if isinstance(target, bg.UndirectedMultigraph):
+            if isinstance(target, bs.UndirectedMultigraph):
                 g0 = target
             else:
                 assert issubclass(target.__class__, RandomGraphWrapper)
