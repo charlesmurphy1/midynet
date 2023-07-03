@@ -23,8 +23,8 @@ def format_sequence(*arr):
 
 
 data_models = {
-    "erdosrenyi": DataModelConfig.glauber(length=2000, coupling=0.2),
-    "planted_partition": DataModelConfig.glauber(length=2000, coupling=0.2),
+    # "erdosrenyi": DataModelConfig.glauber(length=2000, coupling=0.2),
+    # "planted_partition": DataModelConfig.glauber(length=2000, coupling=0.2),
     "littlerock": DataModelConfig.glauber(length=2000, coupling=0.03),
     "polblogs": DataModelConfig.glauber(length=2000, coupling=0.013),
 }
