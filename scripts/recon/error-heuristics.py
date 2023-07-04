@@ -29,6 +29,7 @@ model_dict = {
     )
 }
 target_dict = {
+    "erdosrenyi": GraphConfig.erdosrenyi()
     "littlerock": GraphConfig.littlerock(
         path="/home/murphy9/data/graphs/littlerock.npy",
     )
@@ -109,9 +110,10 @@ def main():
             target,
             n_workers=64,
             n_samples_per_worker=1,
+            n_async_jobs=2,
             time="24:00:00",
             mem=16,
-            save_path=f"/media/data/error-heuristics/{target}",
+            save_path=f"/home/murphy9/data/error-heuristics/{target}",
             # save_path=f"../data/error-heuristics/{target}",
         )
         if args.overwrite and os.path.exists(config.path):

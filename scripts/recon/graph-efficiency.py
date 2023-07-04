@@ -96,14 +96,14 @@ class EfficiencyGraphsConfig:
         config.prior = priors[model]
         config.metrics.efficiency.n_samples = n_samples_per_worker * n_workers
         # config.metrics.efficiency.resample_graph = target != "polblogs"
-        config.metrics.efficiency.data_mcmc.n_sweeps = 1
+        config.metrics.efficiency.data_mcmc.n_sweeps = 1000
         config.metrics.efficiency.data_mcmc.n_steps_per_vertex = 10
         config.metrics.efficiency.data_mcmc.burn = 2000
         config.metrics.efficiency.data_mcmc.graph_rate = 1
         config.metrics.efficiency.data_mcmc.prior_rate = 1
         config.metrics.efficiency.data_mcmc.param_rate = 0
         if config.metrics.efficiency.graph_mcmc is not None:
-            config.metrics.efficiency.graph_mcmc.n_sweeps = 10
+            config.metrics.efficiency.graph_mcmc.n_sweeps = 1000
             config.metrics.efficiency.graph_mcmc.burn = 2000
         config.metrics.efficiency.reduction = "identity"
         config.resources.update(
@@ -135,8 +135,6 @@ def main():
     for model in [
         "erdosrenyi",
         "configuration",
-        # "stochastic_block_model_block_contrained",
-        # "degree_corrected_stochastic_block_model_block_contrained",
         "stochastic_block_model",
         "degree_corrected_stochastic_block_model",
     ]:
@@ -145,7 +143,7 @@ def main():
             model,
             n_workers=64,
             n_samples_per_worker=1,
-            time="24:00:00",
+            time="12:00:00",
             mem=64,
             # path_to_data=f"./tests/with-{model}",
             path_to_data=f"/home/murphy9/data/graph-efficiency/with-{model}",
