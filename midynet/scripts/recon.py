@@ -85,14 +85,18 @@ if __name__ == "__main__":
 
     if args.run is not None:
         try:
-            run = pyhectiqlab.Run(" ".join(args.run), project="dynamica/midynet")
+            run = pyhectiqlab.Run(
+                " ".join(args.run), project="dynamica/midynet"
+            )
             run.clear_logs()
             run.add_meta("command-line-args", value=" ".join(sys.argv))
             run.add_config(metaconfig)
             logger = run.add_log_stream(level=20)
             run.add_meta(
                 key="Start evaluation",
-                value=datetime.datetime.now().strftime("%A, %d %B %Y at %H:%M:%S"),
+                value=datetime.datetime.now().strftime(
+                    "%A, %d %B %Y at %H:%M:%S"
+                ),
             )
             run.running()
         except:
@@ -104,11 +108,14 @@ if __name__ == "__main__":
         logger.setLevel(logging.DEBUG)
         handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(logging.INFO)
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s"
+        )
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
     begin = datetime.datetime.now()
+    print(metaconfig)
 
     for k in metaconfig.metrics.metrics_names:
         if logger is not None:
@@ -117,7 +124,10 @@ if __name__ == "__main__":
         config.metrics = metaconfig.metrics.get(k)
 
         callbacks = [
-            Progress.to_setup(logger=logger, total=len(config) // config.get("n_async_jobs", 1)),
+            Progress.to_setup(
+                logger=logger,
+                total=len(config) // config.get("n_async_jobs", 1),
+            ),
             MemoryCheck.to_setup("gb", logger=logger),
             Checkpoint.to_setup(
                 patience=args.save_patience,
@@ -135,7 +145,9 @@ if __name__ == "__main__":
         )
 
         if run is not None and args.push_data:
-            run.add_artifact(os.path.join(config.path, metrics[k].shortname + ".pkl"))
+            run.add_artifact(
+                os.path.join(config.path, metrics[k].shortname + ".pkl")
+            )
 
         for c in callbacks:
             c.teardown()
@@ -163,7 +175,9 @@ if __name__ == "__main__":
     if run is not None:
         run.add_meta(
             key="End evaluation",
-            value=datetime.datetime.now().strftime("%A, %d %B %Y at %H:%M:%S"),
+            value=datetime.datetime.now().strftime(
+                "%A, %d %B %Y at %H:%M:%S"
+            ),
         )
         run.completed()
         run.logs_buffer.flush_cache()

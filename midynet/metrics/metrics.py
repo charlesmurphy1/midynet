@@ -57,7 +57,6 @@ class Metrics:
         n_async_jobs: int = 1,
         callbacks: Optional[list[MetricsCallback]] = None,
     ) -> None:
-
         self.configs = configs
         config_seq = list(
             filter(
