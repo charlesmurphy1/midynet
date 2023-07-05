@@ -23,8 +23,8 @@ def format_sequence(*arr):
 
 
 data_models = {
-    "erdosrenyi": DataModelConfig.glauber(length=2000, coupling=0.2),
-    "planted_partition": DataModelConfig.glauber(length=2000, coupling=0.2),
+    "erdosrenyi": DataModelConfig.glauber(length=2000, coupling=0.5),
+    "planted_partition": DataModelConfig.glauber(length=2000, coupling=0.5),
     "littlerock": DataModelConfig.glauber(length=2000, coupling=0.03),
     "polblogs": DataModelConfig.glauber(length=2000, coupling=0.013),
 }
@@ -46,7 +46,7 @@ targets = {
     "planted_partition": GraphConfig.planted_partition(
         size=100, edge_count=250, block_count=3, loopy=True, multigraph=True
     ),
-    "food_web": GraphConfig.littlerock(
+    "littlerock": GraphConfig.littlerock(
         # path="../data/graphs/littlerock.npy"
         path="/home/murphy9/data/graphs/littlerock.npy"
     ),
@@ -93,6 +93,7 @@ class EfficiencyGraphsConfig:
 
         config.data_model = data_models[target]
         config.prior = list(priors.values())
+        config.target = targets[target]
         # config.prior = [priors["stochastic_block_model"]]
         config.metrics.efficiency.n_samples = n_samples_per_worker * n_workers
         # config.metrics.efficiency.resample_graph = target != "polblogs"
