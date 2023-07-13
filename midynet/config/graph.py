@@ -12,6 +12,7 @@ from graphinf.graph import (
     StochasticBlockModelFamily,
 )
 from midynet.config import Config, static
+from typing import Dict, Tuple
 
 from .factory import Factory
 
@@ -107,6 +108,7 @@ class GraphConfig(Config):
             path=path,
             loopy=True,
             multigraph=True,
+            weights="synapses",
         )
 
     @classmethod
@@ -263,18 +265,27 @@ class GraphConfig(Config):
 
 class GraphFactory(Factory):
     @staticmethod
-    def load_gtgraph(name: str) -> core.UndirectedMultigraph:
+    def load_gtgraph(
+        name: str, weight_name: str = None
+    ) -> core.UndirectedMultigraph:
         from graph_tool import collection
         from midynet.utility.convert import convert_graphtool_to_basegraph
 
         gt_graph = collection.ns[name]
-        return convert_graphtool_to_basegraph(gt_graph)
+        return convert_graphtool_to_basegraph(
+            gt_graph,
+            weights=gt_graph.ep[weight_name]
+            if weight_name is not None
+            else None,
+        )
 
     @staticmethod
     def load_graph(config: GraphConfig) -> core.UndirectedMultigraph:
         try:
             # print("Fetching graph from Network Repo...")
-            return GraphFactory.load_gtgraph(config.gt_id)
+            return GraphFactory.load_gtgraph(
+                config.gt_id, weight_name=config.weights
+            )
         except KeyError:
             from midynet.utility.convert import load_graph
 

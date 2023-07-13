@@ -40,10 +40,16 @@ def convert_basegraph_to_graphtool(bs_graph: bs.UndirectedMultigraph):
     return gt_graph
 
 
-def convert_graphtool_to_basegraph(gt_graph) -> bs.UndirectedMultigraph:
+def convert_graphtool_to_basegraph(
+    gt_graph, weights=None
+) -> bs.UndirectedMultigraph:
     bs_graph = bs.UndirectedMultigraph(gt_graph.num_vertices())
-    for e in gt_graph.edges():
-        bs_graph.add_edge(*e)
+    for i, j in gt_graph.edges():
+        if not gt_graph.is_directed() and i > j:
+            continue
+        bs_graph.add_multiedge(
+            i, j, weights[i, j] if weights is not None else 1
+        )
     return bs_graph
 
 
@@ -78,7 +84,9 @@ def save_graph(graph: bs.UndirectedMultigraph, file_name: str) -> None:
 
 def load_graph(file_name: str, size=None) -> bs.UndirectedMultigraph:
     edges = np.load(file_name)
-    graph = bs.UndirectedMultigraph(np.max(edges) + 1 if size is None else size)
+    graph = bs.UndirectedMultigraph(
+        np.max(edges) + 1 if size is None else size
+    )
     for i, j, m in edges:
         graph.add_multiedge(i, j, m)
     return graph
