@@ -23,7 +23,10 @@ from sklearn.metrics import (
 )
 from sklearn.neural_network import MLPClassifier
 
-np.warnings.filterwarnings("ignore")
+if "warnings" in dir(np):
+    np.warnings.filterwarnings("ignore")
+if "testing" in dir(np):
+    np.testing.suppress_warnings()
 
 
 def sigmoid(x):

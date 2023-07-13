@@ -1,5 +1,5 @@
 import time
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, List
 
 import numpy as np
 from graphinf.utility import seed as gi_seed
@@ -62,7 +62,9 @@ class ReconstructionInformationMeasures(Expectation):
             out["graph_joint"] = prior.log_joint()
             out["graph_prior"] = prior.get_label_log_joint()
             out["graph_evidence"] = -out["prior"]
-            out["graph_posterior"] = out["graph_joint"] - out["graph_evidence"]
+            out["graph_posterior"] = (
+                out["graph_joint"] - out["graph_evidence"]
+            )
         if config.metrics.get("to_bits", True):
             out = {k: v / np.log(2) for k, v in out.items()}
         return out
@@ -81,8 +83,12 @@ class ReconstructionInformationMeasuresMetrics(ExpectationMetrics):
     ]
     expectation_factory = ReconstructionInformationMeasures
 
-    def postprocess(self, samples: list[Dict[str, float]]) -> Dict[str, float]:
-        stats = self.reduce(samples, self.configs.metrics.get("reduction", "normal"))
+    def postprocess(
+        self, samples: List[Dict[str, float]]
+    ) -> Dict[str, float]:
+        stats = self.reduce(
+            samples, self.configs.metrics.get("reduction", "normal")
+        )
         stats["recon"] = stats["mutualinfo"] / stats["prior"]
         stats["pred"] = stats["mutualinfo"] / stats["evidence"]
         return self.format(stats)

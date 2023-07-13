@@ -6,7 +6,7 @@ import sys
 import time
 from collections import defaultdict
 from tempfile import mkdtemp
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 import numpy as np
 import pandas as pd
@@ -17,15 +17,7 @@ from midynet.utility import to_batch
 
 from .multiprocess import Expectation
 
-# logger = logging.getLogger("midynet")
-# logger.setLevel(logging.DEBUG)
-# handler = logging.StreamHandler(sys.stdout)
-# handler.setLevel(logging.INFO)
-# formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-# handler.setFormatter(formatter)
-# logger.addHandler(handler)
-
-__all__ = ("Metrics",)
+__all__ = ("Metrics", "ExpectationMetrics")
 
 
 class Metrics:
@@ -55,7 +47,7 @@ class Metrics:
         resume: bool = True,
         n_workers: int = 1,
         n_async_jobs: int = 1,
-        callbacks: Optional[list[MetricsCallback]] = None,
+        callbacks: Optional[List[MetricsCallback]] = None,
     ) -> None:
         self.configs = configs
         config_seq = list(
@@ -77,9 +69,9 @@ class Metrics:
 
     def run(
         self,
-        config_seq: list[Config],
+        config_seq: List[Config],
         n_workers: int = 1,
-        callbacks: Optional[list[MetricsCallback]] = None,
+        callbacks: Optional[List[MetricsCallback]] = None,
     ):
         callbacks = [] if callbacks is None else callbacks
         data = defaultdict(pd.DataFrame)
@@ -102,10 +94,10 @@ class Metrics:
 
     def run_async(
         self,
-        config_seq: list[Config],
+        config_seq: List[Config],
         n_async_jobs: int,
         n_workers: int,
-        callbacks: Optional[list[MetricsCallback]] = None,
+        callbacks: Optional[List[MetricsCallback]] = None,
     ):
         if n_workers == 1:
             raise ValueError("Cannot use async mode when n_workers == 1.")
@@ -188,7 +180,7 @@ class ExpectationMetrics(Metrics):
         return expectation.compute_async(pool)
 
     def reduce(
-        self, samples: list[Dict[str, float]], reduction: str = "normal"
+        self, samples: List[Dict[str, float]], reduction: str = "normal"
     ):
         return {
             k: Statistics.from_samples(
@@ -208,7 +200,7 @@ class ExpectationMetrics(Metrics):
         return out
 
     def postprocess(
-        self, samples: list[Dict[str, float]]
+        self, samples: List[Dict[str, float]]
     ) -> Dict[str, Statistics]:
         return self.format(
             self.reduce(

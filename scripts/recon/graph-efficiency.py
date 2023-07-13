@@ -23,8 +23,9 @@ def format_sequence(*arr):
 
 
 data_models = {
-    "erdosrenyi": DataModelConfig.glauber(length=2000, coupling=0.5),
-    "planted_partition": DataModelConfig.glauber(length=2000, coupling=0.5),
+    "erdosrenyi": DataModelConfig.glauber(length=1000, coupling=0.5),
+    "planted_partition": DataModelConfig.glauber(length=1000, coupling=0.5),
+    "karate": DataModelConfig.glauber(length=1000, coupling=0.5),
     "littlerock": DataModelConfig.glauber(length=2000, coupling=0.03),
     "polblogs": DataModelConfig.glauber(length=2000, coupling=0.013),
 }
@@ -38,20 +39,19 @@ priors = {
         edge_count=250,
     ),
     "stochastic_block_model": GraphConfig.stochastic_block_model(
-        size=100, edge_count=250, loopy=True, multigraph=True
+        size=100, edge_count=250
     ),
 }
 targets = {
     "erdosrenyi": GraphConfig.erdosrenyi(size=100, edge_count=250),
     "planted_partition": GraphConfig.planted_partition(
-        size=100, edge_count=250, block_count=3, loopy=True, multigraph=True
+        size=100, edge_count=250, block_count=3
     ),
+    "karate": GraphConfig.karate(path="/home/murphy9/data/graphs/karate.npy"),
     "littlerock": GraphConfig.littlerock(
-        # path="../data/graphs/littlerock.npy"
         path="/home/murphy9/data/graphs/littlerock.npy"
     ),
     "polblogs": GraphConfig.polblogs(
-        # path="../data/graphs/polblogs.npy",
         path="/home/murphy9/data/graphs/polblogs.npy",
     ),
 }
@@ -92,21 +92,22 @@ class EfficiencyGraphsConfig:
         )
 
         config.data_model = data_models[target]
-        config.prior = list(priors.values())
+        # config.prior = list(priors.values())
         config.target = targets[target]
-        # config.prior = [priors["stochastic_block_model"]]
+        for c in config.prior:
+            c.size = config.target.size
+            c.edge_count = config.target.edge_count
         config.metrics.efficiency.n_samples = n_samples_per_worker * n_workers
-        # config.metrics.efficiency.resample_graph = target != "polblogs"
         config.metrics.efficiency.data_mcmc.n_sweeps = 1000
-        config.metrics.efficiency.data_mcmc.n_steps_per_vertex = 10
-        config.metrics.efficiency.data_mcmc.burn = 2000
-        config.metrics.efficiency.data_mcmc.graph_rate = 1
-        config.metrics.efficiency.data_mcmc.prior_rate = 1
-        config.metrics.efficiency.data_mcmc.param_rate = 0
-        config.metrics.efficiency.data_mcmc.start_from_original = True
+        config.metrics.efficiency.data_mcmc.n_gibbs_sweeps = 5
+        config.metrics.efficiency.data_mcmc.n_steps_per_vertex = 1
+        config.metrics.efficiency.data_mcmc.burn_sweeps = 4
+        config.metrics.efficiency.data_mcmc.sample_prior = True
+        config.metrics.efficiency.data_mcmc.sample_params = False
         if config.metrics.efficiency.graph_mcmc is not None:
             config.metrics.efficiency.graph_mcmc.n_sweeps = 1000
-            config.metrics.efficiency.graph_mcmc.burn = 2000
+            config.metrics.efficiency.graph_mcmc.burn_sweeps = 5
+            config.metrics.efficiency.graph_mcmc.n_steps_per_vertex = 10
         config.metrics.efficiency.reduction = "identity"
         config.resources.update(
             account="def-aallard",
@@ -137,17 +138,18 @@ def main():
     for model in [
         "erdosrenyi",
         "planted_partition",
+        "karate",
         "littlerock",
-        "polblogs",
     ]:
         config = EfficiencyGraphsConfig.default(
             model,
             n_workers=64,
-            n_samples_per_worker=1,
-            time="12:00:00",
+            n_samples_per_worker=4,
+            time="24:00:00",
             mem=64,
             # path_to_data=f"./tests/recon-{model}",
             path_to_data=f"/home/murphy9/data/graph-efficiency/recon-{model}",
+            # path_to_data=f"../../data/graph-efficiency/recon-{model}",
         )
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)
@@ -156,7 +158,7 @@ def main():
         config.save(path_to_config)
         script = ScriptManager(
             executable="python ../../midynet/scripts/recon.py",
-            execution_command="sbatch",
+            execution_command="bash",
             path_to_scripts="./scripts",
         )
         extra_args = {

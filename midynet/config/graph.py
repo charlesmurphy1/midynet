@@ -161,8 +161,6 @@ class GraphConfig(Config):
             degree_prior_type=degree_prior_type,
             canonical=canonical,
             edge_proposer_type=edge_proposer_type,
-            loopy=True,
-            multigraph=True,
         )
 
     @classmethod
@@ -191,8 +189,6 @@ class GraphConfig(Config):
             size=size,
             edge_count=edge_count,
             heterogeneity=heterogeneity,
-            loopy=True,
-            multigraph=True,
         )
 
     @classmethod
@@ -202,17 +198,12 @@ class GraphConfig(Config):
         edge_count: float = 250,
         block_count: Optional[int] = None,
         likelihood_type: str = "uniform",
-        block_prior_type: str = "hyper",
         label_graph_prior_type: str = "uniform",
         degree_prior_type: str = "uniform",
         canonical: bool = False,
-        exact: bool = False,
-        loopy: bool = True,
-        multigraph: bool = True,
         edge_proposer_type: str = "uniform",
-        block_proposer_type: str = "mixed",
+        block_proposer_type: str = "multiflip",
         sample_label_count_prob: float = 0.1,
-        label_creation_prob: float = 0.5,
         shift: float = 1,
     ):
         return cls(
@@ -221,24 +212,22 @@ class GraphConfig(Config):
             edge_count=edge_count,
             block_count=block_count,
             likelihood_type=likelihood_type,
-            block_prior_type=block_prior_type,
             label_graph_prior_type=label_graph_prior_type,
             degree_prior_type=degree_prior_type,
             canonical=canonical,
-            exact=exact,
-            loopy=loopy,
-            multigraph=multigraph,
             edge_proposer_type=edge_proposer_type,
             block_proposer_type=block_proposer_type,
             sample_label_count_prob=sample_label_count_prob,
-            label_creation_prob=label_creation_prob,
             shift=shift,
         )
 
     @classmethod
     def degree_corrected_stochastic_block_model(cls, **kwargs):
         kwargs["likelihood_type"] = "degree_corrected"
-        return cls.stochastic_block_model(**kwargs)
+        obj = cls.stochastic_block_model(**kwargs)
+        obj.name = obj._name = "degree_corrected_stochastic_block_model"
+
+        return obj
 
     @classmethod
     def planted_partition(
@@ -381,18 +370,20 @@ class GraphFactory(Factory):
             edge_count=config.edge_count,
             block_count=config.block_count,
             likelihood_type=config.likelihood_type,
-            block_prior_type=config.block_prior_type,
             label_graph_prior_type=config.label_graph_prior_type,
             degree_prior_type=config.degree_prior_type,
             canonical=config.canonical,
-            loopy=config.loopy,
-            multigraph=config.multigraph,
             edge_proposer_type=config.edge_proposer_type,
             block_proposer_type=config.block_proposer_type,
             sample_label_count_prob=config.sample_label_count_prob,
-            label_creation_prob=config.label_creation_prob,
             shift=config.shift,
         )
+
+    @staticmethod
+    def build_degree_corrected_stochastic_block_model(
+        config: GraphConfig,
+    ) -> StochasticBlockModelFamily:
+        return GraphFactory.build_stochastic_block_model(config)
 
     @staticmethod
     def build_planted_partition(config: GraphConfig):

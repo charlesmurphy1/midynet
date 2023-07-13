@@ -36,7 +36,7 @@ class ReconstructionEfficiency(ReconstructionInformationMeasures):
                 assert issubclass(target.__class__, RandomGraphWrapper)
                 g0 = target.get_state()
 
-        prior.from_graph(g0)
+        model.set_graph(g0)
         if config.metrics.resample_graph:
             prior.sample()
 
