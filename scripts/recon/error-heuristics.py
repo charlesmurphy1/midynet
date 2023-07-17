@@ -29,7 +29,7 @@ model_dict = {
     )
 }
 target_dict = {
-    "erdosrenyi": GraphConfig.erdosrenyi()
+    "erdosrenyi": GraphConfig.erdosrenyi(size=100, edge_count=250, loopy=True, multigraph=True),
     "littlerock": GraphConfig.littlerock(
         path="/home/murphy9/data/graphs/littlerock.npy",
     )
@@ -141,6 +141,7 @@ def main():
                 "graph-tool",
                 "scipy-stack",
                 "httpproxy",
+                "mpi4py",
             ],
             virtualenv="/home/murphy9/.midynet-env/bin/activate",
             extra_args=args,
