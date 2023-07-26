@@ -18,12 +18,9 @@ def format_sequence(*arr):
 
 
 couplings = {
-    # "glauber": format_sequence((0, 0.02, 20), (0.02, 0.08, 10)),
     "glauber": format_sequence((0, 0.007, 5), (0.007, 0.03, 25)),
-    "sis": format_sequence((0, 0.02, 20), (0.02, 0.2, 10), (0.2, 1.0, 10)),
-    "cowanfw": format_sequence(
-        (0, 0.07, 5), (0.07, 0.2, 30), (0.2, 0.3, 5)
-    ),
+    "sis": format_sequence((0, 0.02, 20), (0.02, 0.2, 10)),
+    "cowanfw": format_sequence((0, 0.07, 5), (0.07, 0.2, 30), (0.2, 0.3, 5)),
     "cowanbw": format_sequence((0, 0.1, 25), (0.1, 0.3, 15)),
 }
 STEP_FACTOR = 4
@@ -32,6 +29,7 @@ graph_dict = {
     # "glauber": ("littlerock", "/home/murphy9/data/graphs/littlerock.npy"),
     "glauber": ("polblogs", "/home/murphy9/data/graphs/polblogs.npy"),
     "sis": ("euairlines", "/home/murphy9/data/graphs/euairlines.npy"),
+    # "sis": ("euairlines", "../../data/graphs/euairlines.npy"),
     "cowanfw": ("celegans", "/home/murphy9/data/graphs/celegans.npy"),
     "cowanbw": ("celegans", "/home/murphy9/data/graphs/celegans.npy"),
 }
@@ -64,14 +62,13 @@ class Figure4CMRealNetworkConfig:
         mem=12,
         seed=None,
     ):
-
         path_to_data = pathlib.Path(
             tempfile.mktemp() if path_to_data is None else path_to_data
         )
         if not os.path.exists(path_to_data):
             os.makedirs(path_to_data)
         metrics = [
-            MetricsConfig.efficiency(graph_mcmc=None, data_mcmc="meanfield")
+            MetricsConfig.reconinfo(graph_mcmc=None, data_mcmc="meanfield")
         ]
         target, target_path = graph_dict[model]
         assert os.path.exists(
@@ -93,11 +90,12 @@ class Figure4CMRealNetworkConfig:
             target_params=dict(path=target_path),
         )
 
-        config.metrics.efficiency.n_samples = n_workers // n_async_jobs
-        config.metrics.efficiency.resample_graph = True
-        config.metrics.efficiency.data_mcmc.n_sweeps = 1000
-        # config.metrics.efficiency.data_mcmc.start_from_original = True
-        config.metrics.efficiency.data_mcmc.burn = 2000
+        config.prior.size = config.target.size
+        config.metrics.reconinfo.n_samples = n_workers // n_async_jobs
+        config.metrics.reconinfo.data_mcmc.n_sweeps = 1000
+        config.metrics.reconinfo.data_mcmc.n_steps_per_vertex = 10
+        # config.metrics.reconinfo.data_mcmc.start_from_original = True
+        config.metrics.reconinfo.data_mcmc.burn_sweeps = 5
         config.resources.update(
             account="def-aallard",
             time=time,
@@ -124,13 +122,13 @@ def main():
     )
     args = parser.parse_args()
     # for model in model_dict.keys():
-    for model in ["glauber"]:
+    for model in ["sis"]:
         config = Figure4CMRealNetworkConfig.default(
             model,
-            n_workers=64,
+            n_workers=4,
             n_async_jobs=4,
             time="48:00:00",
-            mem=64,
+            mem=0,
             path_to_data=f"/home/murphy9/data/midynet/duality-coupling/{model}-{graph_dict[model][0]}",
         )
         if args.overwrite and os.path.exists(config.path):
@@ -144,7 +142,7 @@ def main():
             path_to_scripts="./scripts",
         )
         extra_args = {
-            "run": f"Measures on CM with real graphs - {model}",
+            "run": f"Measures on CM with real graphs - {model} - tr2",
             "name": config.name,
             "path_to_config": path_to_config,
             "resume": args.resume,
