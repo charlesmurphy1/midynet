@@ -21,8 +21,10 @@ def format_sequence(*arr):
 couplings = {
     "glauber": format_sequence((0, 0.007, 5), (0.007, 0.03, 25)),
     "sis": format_sequence((0, 0.02, 20), (0.02, 0.2, 10)),
-    "cowanfw": format_sequence((0, 0.07, 5), (0.07, 0.2, 30), (0.2, 0.3, 5)),
-    "cowanbw": format_sequence((0, 0.1, 25), (0.1, 0.3, 15)),
+    "cowan_forward": format_sequence(
+        (0, 0.07, 5), (0.07, 0.2, 30), (0.2, 0.3, 5)
+    ),
+    "cowan_backward": format_sequence((0, 0.1, 25), (0.1, 0.3, 15)),
 }
 STEP_FACTOR = 4
 
@@ -31,8 +33,8 @@ graph_dict = {
     # "glauber": ("polblogs", "/home/murphy9/data/graphs/polblogs.npy"),
     "sis": ("euairlines", "/home/murphy9/data/graphs/euairlines.npy"),
     # "sis": ("euairlines", "../../data/graphs/euairlines.npy"),
-    "cowanfw": ("celegans", "/home/murphy9/data/graphs/celegans.npy"),
-    "cowanbw": ("celegans", "/home/murphy9/data/graphs/celegans.npy"),
+    "cowan_forward": ("celegans", "/home/murphy9/data/graphs/celegans.npy"),
+    "cowan_backward": ("celegans", "/home/murphy9/data/graphs/celegans.npy"),
 }
 
 model_dict = {
@@ -42,11 +44,11 @@ model_dict = {
     "sis": DataModelConfig.sis(
         length=2000, infection_prob=couplings["sis"], recovery_prob=0.5
     ),
-    "cowanfw": DataModelConfig.cowan_forward(
-        length=2000, nu=couplings["cowanfw"]
+    "cowan_forward": DataModelConfig.cowan_forward(
+        length=2000, nu=couplings["cowan_forward"]
     ),
-    "cowanbw": DataModelConfig.cowan_backward(
-        length=2000, nu=couplings["cowanbw"]
+    "cowan_backward": DataModelConfig.cowan_backward(
+        length=2000, nu=couplings["cowan_backward"]
     ),
 }
 
