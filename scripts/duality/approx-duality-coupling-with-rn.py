@@ -93,7 +93,9 @@ class Figure4CMRealNetworkConfig:
         config.prior.size = config.target.size
         config.metrics.reconinfo.n_samples = n_workers // n_async_jobs
         config.metrics.reconinfo.data_mcmc.n_sweeps = 1000
-        config.metrics.reconinfo.data_mcmc.n_steps_per_vertex = 10
+        config.metrics.reconinfo.data_mcmc.n_steps_per_vertex = 1
+        config.metrics.reconinfo.data_mcmc.n_gibbs_sweeps = 5
+        config.metrics.reconinfo.data_mcmc.sample_prior = False
         # config.metrics.reconinfo.data_mcmc.start_from_original = True
         config.metrics.reconinfo.data_mcmc.burn_sweeps = 5
         config.resources.update(
@@ -125,7 +127,7 @@ def main():
     for model in ["sis"]:
         config = Figure4CMRealNetworkConfig.default(
             model,
-            n_workers=4,
+            n_workers=64,
             n_async_jobs=4,
             time="48:00:00",
             mem=0,
