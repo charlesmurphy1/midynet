@@ -31,8 +31,8 @@ couplings = {
 # PATH_TO_GRAPHS = "/home/murphy9/data/graphs/"
 
 graph_dict = {
-    # "glauber": ("littlerock", f"{PATH_TO_GRAPHS}/littlerock.npy"),
-    "glauber": ("polblogs", f"{PATH_TO_GRAPHS}/polblogs.npy"),
+    "glauber": ("littlerock", f"{PATH_TO_GRAPHS}/littlerock.npy"),
+    # "glauber": ("polblogs", f"{PATH_TO_GRAPHS}/polblogs.npy"),
     "sis": ("euairlines", f"{PATH_TO_GRAPHS}/euairlines.npy"),
     "cowan_forward": ("celegans", f"{PATH_TO_GRAPHS}/celegans.npy"),
     "cowan_backward": ("celegans", f"{PATH_TO_GRAPHS}/celegans.npy"),
@@ -125,7 +125,7 @@ def main():
         action="store_true",
     )
     args = parser.parse_args()
-    for data_model in ["cowan_backward"]:
+    for data_model in ["glauber"]:
         config = ThresholdWithRealNetworksConfig.default(
             data_model,
             n_workers=8,

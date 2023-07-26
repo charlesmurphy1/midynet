@@ -5,6 +5,7 @@ import shutil
 import tempfile
 
 import numpy as np
+from math import ceil
 from midynet.config import DataModelConfig, ExperimentConfig, MetricsConfig
 from midynet.scripts import ScriptManager
 
@@ -26,8 +27,8 @@ couplings = {
 STEP_FACTOR = 4
 
 graph_dict = {
-    # "glauber": ("littlerock", "/home/murphy9/data/graphs/littlerock.npy"),
-    "glauber": ("polblogs", "/home/murphy9/data/graphs/polblogs.npy"),
+    "glauber": ("littlerock", "/home/murphy9/data/graphs/littlerock.npy"),
+    # "glauber": ("polblogs", "/home/murphy9/data/graphs/polblogs.npy"),
     "sis": ("euairlines", "/home/murphy9/data/graphs/euairlines.npy"),
     # "sis": ("euairlines", "../../data/graphs/euairlines.npy"),
     "cowanfw": ("celegans", "/home/murphy9/data/graphs/celegans.npy"),
@@ -91,6 +92,12 @@ class Figure4CMRealNetworkConfig:
         )
 
         config.prior.size = config.target.size
+        if "backward" in model:
+            config.data_model.n_active = config.prior.size
+        if model == "glauber":
+            config.data_model.n_active = -1
+        else:
+            config.data_model.n_active = ceil(0.01 * config.prior.size)
         config.metrics.reconinfo.n_samples = n_workers // n_async_jobs
         config.metrics.reconinfo.data_mcmc.n_sweeps = 1000
         config.metrics.reconinfo.data_mcmc.n_steps_per_vertex = 1
@@ -124,12 +131,12 @@ def main():
     )
     args = parser.parse_args()
     # for model in model_dict.keys():
-    for model in ["sis"]:
+    for model in ["glauber", "sis", "cowan_forward", "cowan_backward"]:
         config = Figure4CMRealNetworkConfig.default(
             model,
             n_workers=64,
             n_async_jobs=4,
-            time="48:00:00",
+            time="12:00:00",
             mem=0,
             path_to_data=f"/home/murphy9/data/midynet/duality-coupling/{model}-{graph_dict[model][0]}",
         )
