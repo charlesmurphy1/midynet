@@ -110,7 +110,12 @@ class MetricsConfig(Config):
 
     @classmethod
     def susceptibility(cls):
-        return cls("susceptibility", n_samples=100, reduction="identity")
+        return cls(
+            "susceptibility",
+            n_samples=100,
+            reduction="identity",
+            resample_graph=False,
+        )
 
     @classmethod
     def recon_error(cls, **kwargs):

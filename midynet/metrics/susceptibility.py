@@ -1,9 +1,9 @@
-import time
 import numpy as np
 
-from dataclasses import dataclass, field
-from collections import defaultdict
-from typing import Tuple, Dict, Any
+from typing import Dict, Any
+from math import ceil
+from basegraph import core as bg
+from graphinf.graph import RandomGraphWrapper
 from graphinf.utility import seed as gi_seed
 from midynet.config import (
     GraphFactory,
@@ -11,7 +11,6 @@ from midynet.config import (
 )
 
 from midynet.config import Config
-from midynet.statistics import Statistics
 from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
 
@@ -50,7 +49,7 @@ susceptibility_func = {
     "sis": spreading_susceptibility,
     "cowan": lambda x: gap_susceptibility(x)
     if x[:, 0].mean() == 1.0
-    else spin_susceptibility(x),
+    else spreading_susceptibility(x),
 }
 
 average_func = {
@@ -69,23 +68,39 @@ class Susceptibility(Expectation):
         gi_seed(seed)
         config = Config.from_dict(self.params)
         prior = GraphFactory.build(config.prior)
-        data_model = DataModelFactory.build(config.data_model)
+        model = DataModelFactory.build(config.data_model)
 
-        data_model.set_graph_prior(prior)
-        prior.sample()
-        g0 = prior.get_state()
-        x0 = data_model.get_random_state(config.data_model.get("n_active", -1))
-        data_model.set_graph(g0)
-        data_model.sample_state(x0)
+        model.set_graph_prior(prior)
+        if config.target is None:
+            g0 = prior.get_state()
+        else:
+            target = GraphFactory.build(config.target)
+            if isinstance(target, bg.UndirectedMultigraph):
+                g0 = target
+            elif isinstance(target, RandomGraphWrapper):
+                g0 = target.get_state()
 
-        return config, prior, data_model
+        prior.set_state(g0)
+        if config.metrics.get("resample_graph", False):
+            prior.sample()
+        if "n_active" in config.data_model:
+            n0 = config.data_model.get("n_active", -1)
+            n0 = ceil(n0 * g0.get_size()) if 0 < n0 < 1 else n0
+            x0 = model.get_random_state(n0)
+            model.sample_state(x0)
+        else:
+            model.sample_state()
+        return config, dict(model=model, prior=prior)
 
     def func(self, seed: int) -> Dict[str, float]:
-        config, _, model = self.setup(seed)
+        config, model_dict = self.setup(seed)
+        model = model_dict["model"]
         X = np.array(model.get_past_states())
-        avg = average_func[config.model.name](X)
-        susc = susceptibility_func[config.model.name](X)
-        return dict(average=avg, susceptibility=susc)
+        avg = average_func[config.data_model.name](X)
+        susc = susceptibility_func[config.data_model.name](X)
+        out = dict(average=avg, susceptibility=susc)
+        print(out)
+        return out
 
 
 class SusceptibilityMetrics(ExpectationMetrics):

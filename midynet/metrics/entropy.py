@@ -1,7 +1,8 @@
-from math import ceil
+import time
 from typing import Any, Dict, Tuple, List
 
 import numpy as np
+from math import ceil
 from graphinf.utility import seed as gi_seed
 from graphinf.graph import RandomGraphWrapper
 from midynet.config import Config, DataModelFactory, GraphFactory
@@ -13,7 +14,7 @@ from .multiprocess import Expectation
 __all__ = ("ReconstructionInformation", "ReconstructionInformationMetrics")
 
 
-class BayesianInformationMeasures(Expectation):
+class EntropyMeasures(Expectation):
     def __init__(self, config: Config, **kwargs):
         self.params = config.dict
         super().__init__(**kwargs)
@@ -55,15 +56,14 @@ class BayesianInformationMeasures(Expectation):
         graph_mcmc.pop("name", None)
         data_mcmc.pop("name", None)
 
-        prior = -model.graph_prior.log_evidence(**graph_mcmc)
-        likelihood = -model.log_likelihood()
-        posterior = -model.log_posterior(**data_mcmc)
-        evidence = prior + likelihood - posterior
+        prior_entropy = -model.graph_prior.state_entropy(
+            n_samples=config.metrics.get("n_graph_samples", 25), **graph_mcmc
+        )
+        posterior_entropy = model.posterior_entropy(**data_mcmc)
+
         return dict(
-            prior=prior,
-            likelihood=likelihood,
-            posterior=posterior,
-            evidence=evidence,
+            prior_entropy=np.mean(prior_entropy),
+            posterior_entropy=posterior_entropy,
         )
 
     def func(self, seed: int) -> float:
