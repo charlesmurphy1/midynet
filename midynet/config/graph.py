@@ -75,6 +75,18 @@ class GraphConfig(Config):
         )
 
     @classmethod
+    def us_congress(cls, path=None):
+        return cls(
+            "us_congress",
+            size=446,
+            edge_count=18_083,
+            gt_id="us_congress/H93",
+            path=path,
+            loopy=True,
+            multigraph=True,
+        )
+
+    @classmethod
     def openflights(cls, path=None):
         return cls(
             "openflights",
@@ -165,9 +177,13 @@ class GraphConfig(Config):
 
     @classmethod
     def degree_constrained_configuration(
-        cls, degree_seq: Optional[List[int]] = None
+        cls, size: int = 100, degree_seq: Optional[List[int]] = None
     ):
-        return cls("degree_constrained_configuration", degree_seq=degree_seq)
+        return cls(
+            "degree_constrained_configuration",
+            size=size,
+            degree_seq=degree_seq,
+        )
 
     @classmethod
     def poisson(cls, size: int = 100, edge_count: int = 250):
@@ -346,7 +362,9 @@ class GraphFactory(Factory):
         config: GraphConfig,
     ) -> ConfigurationModel:
         degrees = (
-            [0] * 100 if config.degree_seq is None else config.degree_seq
+            [0] * config.size
+            if config.degree_seq is None
+            else config.degree_seq
         )
 
         return ConfigurationModel(degrees)

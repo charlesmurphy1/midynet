@@ -1,9 +1,8 @@
 from .callback import Checkpoint, MemoryCheck, MetricsCallback, Progress
-from .efficiency import ReconstructionEfficiencyMetrics
 from .error import PredictionErrorMetrics, ReconstructionErrorMetrics
 from .metrics import Metrics
 from .multiprocess import Expectation, MultiProcess
-from .reconinfo import ReconstructionInformationMeasuresMetrics
+from .bayesian import BayesianInformationMeasuresMetrics
 from .susceptibility import SusceptibilityMetrics
 
 __all__ = (
@@ -14,15 +13,15 @@ __all__ = (
     "Metrics",
     "MultiProcess",
     "Expectation",
-    "ReconstructionInformationMeasuresMetrics",
-    "ReconstructionEfficiencyMetrics",
+    "BayesianInformationMeasuresMetrics",
     "SusceptibilityMetrics",
     "ReconstructionErrorMetrics",
+    "PredictionErrorMetrics",
 )
 
 __all_metrics__ = [
-    ReconstructionInformationMeasuresMetrics,
-    ReconstructionEfficiencyMetrics,
+    BayesianInformationMeasuresMetrics,
     SusceptibilityMetrics,
     ReconstructionErrorMetrics,
+    PredictionErrorMetrics,
 ]

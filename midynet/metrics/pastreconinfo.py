@@ -12,13 +12,6 @@ from midynet.config import Config
 from ..statistics import Statistics
 from .metrics import Metrics
 from .multiprocess import Expectation
-from .util import (
-    get_log_posterior_meanfield,
-    get_log_evidence,
-    get_graph_log_evidence_meanfield,
-    get_graph_log_evidence_annealed,
-    get_graph_log_evidence_exact,
-)
 
 __all__ = [
     "PastDependentInformationMeasures",
@@ -44,7 +37,9 @@ class PastDependentInformationMeasures(Expectation):
             g0 = prior.get_state()
         else:
             g0 = prior.get_state()
-        x0 = data_model.get_random_state(config.data_model.get("n_active", -1))
+        x0 = data_model.get_random_state(
+            config.data_model.get("n_active", -1)
+        )
         data_model.set_graph(g0)
         data_model.sample_state(x0)
         out = {}
@@ -75,38 +70,26 @@ class PastDependentInformationMeasures(Expectation):
             out["graph_joint"] = prior.get_log_joint()
             out["graph_prior"] = prior.get_label_log_joint()
             out["graph_evidence"] = -full["prior"]
-            out["graph_posterior"] = out["graph_joint"] - out["graph_evidence"]
+            out["graph_posterior"] = (
+                out["graph_joint"] - out["graph_evidence"]
+            )
         if metrics_cf.get("to_bits", True):
             out = {k: v / np.log(2) for k, v in out.items()}
         return out
 
     def gather(self, data_model, metrics_cf):
-        method = metrics_cf.get("method", "meanfield")
-        graph_evidence_method = metrics_cf.get("graph_evidence_method", method)
-
-        og = data_model.get_graph()
-
-        if not data_model.graph_prior.labeled:
-            prior = -data_model.graph_prior.get_log_joint()
-        elif graph_evidence_method == "exact":
-            prior = -get_graph_log_evidence_exact(data_model.graph_prior, metrics_cf)
-        elif graph_evidence_method == "annealed":
-            prior = -get_graph_log_evidence_annealed(data_model.graph_prior, metrics_cf)
-        else:
-            prior = -get_graph_log_evidence_meanfield(
-                data_model.graph_prior, metrics_cf
-            )
-        data_model.set_graph(og)
-        likelihood = -data_model.get_log_likelihood()
-
-        if method == "meanfield":
-            posterior = -get_log_posterior_meanfield(data_model, metrics_cf)
-            evidence = prior + likelihood - posterior
-        else:
-            evidence = -get_log_evidence(data_model, metrics_cf)
-            posterior = prior + likelihood - evidence
-
-        data_model.set_graph(og)
+        graph_mcmc = (
+            metrics_cf.graph_mcmc
+            if metrics_cf.graph_mcmc is not None
+            else dict()
+        )
+        graph_mcmc.pop("reset_to_original")
+        prior = -data_model.graph_prior.log_evidence(
+            reset_to_original=True, **metrics_cf.graph_mcmc
+        )
+        likelihood = -data_model.log_likelihood()
+        posterior = data_model.log_posterior(**metrics_cf.data_mcmc)
+        evidence = prior + likelihood - posterior
         return dict(
             prior=prior,
             likelihood=likelihood,
@@ -152,7 +135,9 @@ class PastDependentInformationMeasuresMetrics(Metrics):
         for k, v in sample_dict.items():
             s = Statistics.from_array(
                 v,
-                reduction=config.metrics.recon_information.get("reduction", "normal"),
+                reduction=config.metrics.recon_information.get(
+                    "reduction", "normal"
+                ),
             )
             for sk, sv in s.__data__.items():
                 stats[k + "_" + sk] = [sv]

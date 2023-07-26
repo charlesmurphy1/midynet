@@ -3,7 +3,9 @@ from typing import Any, Dict, Tuple, List
 
 import numpy as np
 from graphinf.utility import seed as gi_seed
+from graphinf.graph import RandomGraphWrapper
 from midynet.config import Config, DataModelFactory, GraphFactory
+from basegraph import core as bg
 
 from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
@@ -11,7 +13,7 @@ from .multiprocess import Expectation
 __all__ = ("ReconstructionInformation", "ReconstructionInformationMetrics")
 
 
-class ReconstructionInformationMeasures(Expectation):
+class BayesianInformationMeasures(Expectation):
     def __init__(self, config: Config, **kwargs):
         self.params = config.dict
         super().__init__(**kwargs)
@@ -23,16 +25,28 @@ class ReconstructionInformationMeasures(Expectation):
         model = DataModelFactory.build(config.data_model)
 
         model.set_graph_prior(prior)
+        if config.target == "None":
+            prior.sample()
+            g0 = prior.get_state()
+        else:
+            target = GraphFactory.build(config.target)
+            if isinstance(target, bg.UndirectedMultigraph):
+                g0 = target
+            else:
+                assert issubclass(target.__class__, RandomGraphWrapper)
+                g0 = target.get_state()
 
-        prior.sample()
-        g0 = prior.get_state()
         model.set_graph(g0)
-        if "n_active" in config.data_model:
-            x0 = model.get_random_state(config.data_model.get("n_active", -1))
+        if config.metrics.get("resample_graph", False):
+            prior.sample()
+
+        if "num_active" in config.data_model:
+            x0 = model.get_random_state(
+                config.data_model.get("num_active", -1)
+            )
             model.sample_state(x0)
         else:
             model.sample_state()
-
         return config, dict(model=model, prior=prior)
 
     def gather(self, model, config):
@@ -70,7 +84,7 @@ class ReconstructionInformationMeasures(Expectation):
         return out
 
 
-class ReconstructionInformationMeasuresMetrics(ExpectationMetrics):
+class BayesianInformationMeasuresMetrics(ExpectationMetrics):
     shortname = "reconinfo"
     keys = [
         "prior",
@@ -81,7 +95,7 @@ class ReconstructionInformationMeasuresMetrics(ExpectationMetrics):
         "recon",
         "pred",
     ]
-    expectation_factory = ReconstructionInformationMeasures
+    expectation_factory = BayesianInformationMeasures
 
     def postprocess(
         self, samples: List[Dict[str, float]]
@@ -91,7 +105,9 @@ class ReconstructionInformationMeasuresMetrics(ExpectationMetrics):
         )
         stats["recon"] = stats["mutualinfo"] / stats["prior"]
         stats["pred"] = stats["mutualinfo"] / stats["evidence"]
-        return self.format(stats)
+        out = self.format(stats)
+        print(out)
+        return out
 
 
 if __name__ == "__main__":

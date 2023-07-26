@@ -109,20 +109,6 @@ class MetricsConfig(Config):
         return cls.mcmc("reconinfo", **kwargs)
 
     @classmethod
-    def efficiency(cls, **kwargs):
-        config = cls.mcmc("efficiency", resample_graph=False, **kwargs)
-        return config
-
-    @classmethod
-    def reconheuristics(cls):
-        return cls(
-            "reconheuristics",
-            method="correlation",
-            n_samples=100,
-            reduction="normal",
-        )
-
-    @classmethod
     def susceptibility(cls):
         return cls("susceptibility", n_samples=100, reduction="identity")
 
@@ -199,11 +185,7 @@ class MetricsFactory(Factory):
 
     @staticmethod
     def build_reconinfo():
-        return midynet.metrics.ReconstructionInformationMeasuresMetrics()
-
-    @staticmethod
-    def build_efficiency():
-        return midynet.metrics.ReconstructionEfficiencyMetrics()
+        return midynet.metrics.BayesianInformationMeasuresMetrics()
 
     @staticmethod
     def build_susceptibility():
