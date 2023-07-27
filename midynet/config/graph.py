@@ -292,7 +292,7 @@ class GraphFactory(Factory):
                 config.gt_id, weight_name=config.weights
             )
         except KeyError:
-            from midynet.utility.convert import load_graph
+            from graphinf.utility import load_graph
 
             # print("Loading graph locally...")
             if config.path is None:
