@@ -13,7 +13,7 @@ from midynet.scripts import ScriptManager
 dotenv.load_dotenv()
 PATH_TO_DATA = os.getenv("PATH_TO_DATA", "../../data")
 PATH_TO_VENV = os.getenv("PATH_TO_VENV", None)
-EXECUTATION_COMMAND = os.getenv("EXECUTATION_COMMAND", "bash")
+EXECUTION_COMMAND = os.getenv("EXECUTION_COMMAND", "bash")
 ACCOUNT = os.getenv("ACCOUNT", None)
 
 
@@ -142,8 +142,7 @@ def main():
         action="store_true",
     )
     args = parser.parse_args()
-    # for model in ["glauber", "sis", "cowan_forward", "cowan_backward"]:
-    for model in ["glauber"]:
+    for model in ["glauber", "sis", "cowan_forward", "cowan_backward"]:
         config = Figure4CMRealNetworkConfig.default(
             model,
             n_workers=4,
@@ -159,7 +158,7 @@ def main():
         config.save(path_to_config)
         script = ScriptManager(
             executable="python ../../midynet/scripts/recon.py",
-            execution_command=EXECUTATION_COMMAND,
+            execution_command=EXECUTION_COMMAND,
             path_to_scripts="./scripts",
         )
         extra_args = {
