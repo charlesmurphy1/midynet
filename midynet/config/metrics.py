@@ -83,6 +83,7 @@ class MetricsConfig(Config):
         data_mcmc: MCMCDataConfig or str = "meanfield",
         reduction="normal",
         n_samples=100,
+        resample_graph=False,
         **kwargs,
     ):
         graph_mcmc = (
@@ -101,12 +102,13 @@ class MetricsConfig(Config):
             data_mcmc=data_mcmc,
             reduction=reduction,
             n_samples=n_samples,
+            resample_graph=resample_graph,
             **kwargs,
         )
 
     @classmethod
-    def reconinfo(cls, **kwargs):
-        return cls.mcmc("reconinfo", **kwargs)
+    def bayesian(cls, **kwargs):
+        return cls.mcmc("bayesian", **kwargs)
 
     @classmethod
     def susceptibility(cls):
@@ -189,7 +191,7 @@ class MetricsFactory(Factory):
                 )
 
     @staticmethod
-    def build_reconinfo():
+    def build_bayesian():
         return midynet.metrics.BayesianInformationMeasuresMetrics()
 
     @staticmethod

@@ -31,11 +31,11 @@ couplings = {
 # PATH_TO_GRAPHS = "/home/murphy9/data/graphs/"
 
 graph_dict = {
-    "glauber": ("littlerock", f"{PATH_TO_GRAPHS}/littlerock.npy"),
-    # "glauber": ("polblogs", f"{PATH_TO_GRAPHS}/polblogs.npy"),
-    "sis": ("euairlines", f"{PATH_TO_GRAPHS}/euairlines.npy"),
-    "cowan_forward": ("celegans", f"{PATH_TO_GRAPHS}/celegans.npy"),
-    "cowan_backward": ("celegans", f"{PATH_TO_GRAPHS}/celegans.npy"),
+    "glauber": ("littlerock", f"{PATH_TO_GRAPHS}/littlerock.pkl"),
+    # "glauber": ("polblogs", f"{PATH_TO_GRAPHS}/polblogs.pkl"),
+    "sis": ("euairlines", f"{PATH_TO_GRAPHS}/euairlines.pkl"),
+    "cowan_forward": ("celegans", f"{PATH_TO_GRAPHS}/celegans.pkl"),
+    "cowan_backward": ("celegans", f"{PATH_TO_GRAPHS}/celegans.pkl"),
 }
 
 model_dict = {
@@ -43,7 +43,7 @@ model_dict = {
         length=2000, coupling=couplings["glauber"]
     ),
     "sis": DataModelConfig.sis(
-        length=2000, infection_prob=couplings["sis"], recovery_prob=0.8
+        length=2000, infection_prob=couplings["sis"], recovery_prob=0.5
     ),
     "cowan_forward": DataModelConfig.cowan_forward(
         length=10000, nu=couplings["cowan_forward"]
@@ -108,6 +108,7 @@ class ThresholdWithRealNetworksConfig(ExperimentConfig):
             job_name=config.name,
             output=f"log/{config.name}.out",
         )
+        print(config)
         config.lock()
         return config
 
@@ -125,7 +126,7 @@ def main():
         action="store_true",
     )
     args = parser.parse_args()
-    for data_model in ["glauber"]:
+    for data_model in ["sis"]:
         config = ThresholdWithRealNetworksConfig.default(
             data_model,
             n_workers=8,

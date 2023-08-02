@@ -85,7 +85,7 @@ class BayesianInformationMeasures(Expectation):
 
 
 class BayesianInformationMeasuresMetrics(ExpectationMetrics):
-    shortname = "reconinfo"
+    shortname = "bayesian"
     keys = [
         "prior",
         "likelihood",

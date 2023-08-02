@@ -1,5 +1,6 @@
 import argparse
 import os
+import dotenv
 import pathlib
 import shutil
 import tempfile
@@ -8,6 +9,12 @@ import numpy as np
 from math import ceil
 from midynet.config import DataModelConfig, ExperimentConfig, MetricsConfig
 from midynet.scripts import ScriptManager
+
+dotenv.load_dotenv()
+PATH_TO_DATA = os.getenv("PATH_TO_DATA", "../../data")
+PATH_TO_VENV = os.getenv("PATH_TO_VENV", None)
+EXECUTATION_COMMAND = os.getenv("EXECUTATION_COMMAND", "bash")
+ACCOUNT = os.getenv("ACCOUNT", None)
 
 
 def format_sequence(*arr):
@@ -19,7 +26,9 @@ def format_sequence(*arr):
 
 
 couplings = {
-    "glauber": format_sequence((0, 0.02, 5), (0.02, 0.04, 25), (0.04, 0.1, 5)),
+    "glauber": format_sequence(
+        (0, 0.02, 5), (0.02, 0.04, 25), (0.04, 0.1, 5)
+    ),
     "sis": format_sequence((0, 0.02, 20), (0.02, 0.5, 30)),
     "cowan_forward": format_sequence(
         (0, 0.07, 5), (0.07, 0.2, 30), (0.2, 0.3, 5)
@@ -29,12 +38,10 @@ couplings = {
 STEP_FACTOR = 4
 
 graph_dict = {
-    "glauber": ("littlerock", "/home/murphy9/data/graphs/littlerock.pkl"),
-    # "glauber": ("polblogs", "/home/murphy9/data/graphs/polblogs.pkl"),
-    "sis": ("euairlines", "/home/murphy9/data/graphs/euairlines.pkl"),
-    # "sis": ("euairlines", "../../data/graphs/euairlines.pkl"),
-    "cowan_forward": ("celegans", "/home/murphy9/data/graphs/celegans.pkl"),
-    "cowan_backward": ("celegans", "/home/murphy9/data/graphs/celegans.pkl"),
+    "glauber": ("littlerock", f"{PATH_TO_DATA}/graphs/littlerock.pkl"),
+    "sis": ("euairlines", f"{PATH_TO_DATA}/graphs/euairlines.pkl"),
+    "cowan_forward": ("celegans", f"{PATH_TO_DATA}/graphs/celegans.pkl"),
+    "cowan_backward": ("celegans", f"{PATH_TO_DATA}/graphs/celegans.pkl"),
 }
 
 model_dict = {
@@ -71,7 +78,12 @@ class Figure4CMRealNetworkConfig:
         if not os.path.exists(path_to_data):
             os.makedirs(path_to_data)
         metrics = [
-            MetricsConfig.reconinfo(graph_mcmc=None, data_mcmc="meanfield")
+            MetricsConfig.bayesian(
+                graph_mcmc=None,
+                data_mcmc="meanfield",
+                n_samples=n_workers // n_async_jobs,
+                resample_graph=True,
+            )
         ]
         target, target_path = graph_dict[model]
         assert os.path.exists(
@@ -100,15 +112,13 @@ class Figure4CMRealNetworkConfig:
             config.data_model.n_active = -1
         else:
             config.data_model.n_active = ceil(0.01 * config.prior.size)
-        config.metrics.reconinfo.n_samples = n_workers // n_async_jobs
-        config.metrics.reconinfo.data_mcmc.n_sweeps = 1000
-        config.metrics.reconinfo.data_mcmc.n_steps_per_vertex = 1
-        config.metrics.reconinfo.data_mcmc.n_gibbs_sweeps = 5
-        config.metrics.reconinfo.data_mcmc.sample_prior = False
-        # config.metrics.reconinfo.data_mcmc.start_from_original = True
-        config.metrics.reconinfo.data_mcmc.burn_sweeps = 5
+        config.metrics.bayesian.data_mcmc.n_sweeps = 1000
+        config.metrics.bayesian.data_mcmc.n_steps_per_vertex = 1
+        config.metrics.bayesian.data_mcmc.n_gibbs_sweeps = 5
+        config.metrics.bayesian.data_mcmc.sample_prior = False
+        config.metrics.bayesian.data_mcmc.burn_sweeps = 5
         config.resources.update(
-            account="def-aallard",
+            account=ACCOUNT,
             time=time,
             mem=f"{mem}G",
             cpus_per_task=config.n_workers,
@@ -132,15 +142,15 @@ def main():
         action="store_true",
     )
     args = parser.parse_args()
-    # for model in model_dict.keys():
-    for model in [ "cowan_forward", "cowan_backward"]:
+    # for model in ["glauber", "sis", "cowan_forward", "cowan_backward"]:
+    for model in ["glauber"]:
         config = Figure4CMRealNetworkConfig.default(
             model,
-            n_workers=64,
+            n_workers=4,
             n_async_jobs=4,
             time="48:00:00",
             mem=0,
-            path_to_data=f"/home/murphy9/data/midynet/duality-coupling/{model}-{graph_dict[model][0]}",
+            path_to_data=f"{PATH_TO_DATA}/midynet/duality-coupling/{graph_dict[model][0]}-{model}",
         )
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)
@@ -149,11 +159,11 @@ def main():
         config.save(path_to_config)
         script = ScriptManager(
             executable="python ../../midynet/scripts/recon.py",
-            execution_command="sbatch",
+            execution_command=EXECUTATION_COMMAND,
             path_to_scripts="./scripts",
         )
         extra_args = {
-            "run": f"Measures on CM with real graphs - {model} - tr2",
+            "run": f"Measures on CM with real graphs - {model} - tr3",
             "name": config.name,
             "path_to_config": path_to_config,
             "resume": args.resume,
@@ -169,7 +179,9 @@ def main():
                 "scipy-stack",
                 "httpproxy",
             ],
-            virtualenv="/home/murphy9/.midynet-env/bin/activate",
+            virtualenv=f"{PATH_TO_VENV}/bin/activate"
+            if PATH_TO_VENV is not None
+            else None,
             extra_args=extra_args,
             resources=config.resources.dict,
         )
