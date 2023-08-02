@@ -19,8 +19,8 @@ def format_sequence(*arr):
 
 
 couplings = {
-    "glauber": format_sequence((0, 0.007, 5), (0.007, 0.03, 25)),
-    "sis": format_sequence((0, 0.02, 20), (0.02, 0.2, 10)),
+    "glauber": format_sequence((0, 0.02, 5), (0.02, 0.04, 25), (0.04, 0.1, 5)),
+    "sis": format_sequence((0, 0.02, 20), (0.02, 0.5, 30)),
     "cowan_forward": format_sequence(
         (0, 0.07, 5), (0.07, 0.2, 30), (0.2, 0.3, 5)
     ),
@@ -29,12 +29,12 @@ couplings = {
 STEP_FACTOR = 4
 
 graph_dict = {
-    "glauber": ("littlerock", "/home/murphy9/data/graphs/littlerock.npy"),
-    # "glauber": ("polblogs", "/home/murphy9/data/graphs/polblogs.npy"),
-    "sis": ("euairlines", "/home/murphy9/data/graphs/euairlines.npy"),
-    # "sis": ("euairlines", "../../data/graphs/euairlines.npy"),
-    "cowan_forward": ("celegans", "/home/murphy9/data/graphs/celegans.npy"),
-    "cowan_backward": ("celegans", "/home/murphy9/data/graphs/celegans.npy"),
+    "glauber": ("littlerock", "/home/murphy9/data/graphs/littlerock.pkl"),
+    # "glauber": ("polblogs", "/home/murphy9/data/graphs/polblogs.pkl"),
+    "sis": ("euairlines", "/home/murphy9/data/graphs/euairlines.pkl"),
+    # "sis": ("euairlines", "../../data/graphs/euairlines.pkl"),
+    "cowan_forward": ("celegans", "/home/murphy9/data/graphs/celegans.pkl"),
+    "cowan_backward": ("celegans", "/home/murphy9/data/graphs/celegans.pkl"),
 }
 
 model_dict = {
@@ -45,10 +45,10 @@ model_dict = {
         length=2000, infection_prob=couplings["sis"], recovery_prob=0.5
     ),
     "cowan_forward": DataModelConfig.cowan_forward(
-        length=2000, nu=couplings["cowan_forward"]
+        length=5000, nu=couplings["cowan_forward"]
     ),
     "cowan_backward": DataModelConfig.cowan_backward(
-        length=2000, nu=couplings["cowan_backward"]
+        length=5000, nu=couplings["cowan_backward"]
     ),
 }
 
@@ -96,7 +96,7 @@ class Figure4CMRealNetworkConfig:
         config.prior.size = config.target.size
         if "backward" in model:
             config.data_model.n_active = config.prior.size
-        if model == "glauber":
+        elif model == "glauber":
             config.data_model.n_active = -1
         else:
             config.data_model.n_active = ceil(0.01 * config.prior.size)
@@ -133,12 +133,12 @@ def main():
     )
     args = parser.parse_args()
     # for model in model_dict.keys():
-    for model in ["glauber", "sis", "cowan_forward", "cowan_backward"]:
+    for model in [ "cowan_forward", "cowan_backward"]:
         config = Figure4CMRealNetworkConfig.default(
             model,
             n_workers=64,
             n_async_jobs=4,
-            time="12:00:00",
+            time="48:00:00",
             mem=0,
             path_to_data=f"/home/murphy9/data/midynet/duality-coupling/{model}-{graph_dict[model][0]}",
         )

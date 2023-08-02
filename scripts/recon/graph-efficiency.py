@@ -157,7 +157,7 @@ def main():
         # "karate",
         # "littlerock",
         # "polblogs",
-        "euairlines",
+        # "euairlines",
         "celegans",
 
     ]:
