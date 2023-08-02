@@ -147,8 +147,8 @@ def main():
         config = Figure4CMRealNetworkConfig.default(
             model,
             n_workers=4,
-            n_async_jobs=4,
-            time="48:00:00",
+            n_async_jobs=1 if model == "glauber" else 4,
+            time="24:00:00" if model == "glauber" else "48:00:00",
             mem=0,
             path_to_data=f"{PATH_TO_DATA}/midynet/duality-coupling/{graph_dict[model][0]}-{model}",
         )
