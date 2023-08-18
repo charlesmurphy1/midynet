@@ -251,17 +251,17 @@ class BayesianReconstructor(Reconstructor):
         collector = EdgeCollector()
         if g0 is not None:
             collector.update(g0)
-        collector.update(self.model.get_graph())
+        collector.update(self.model.graph())
         for _ in range(kwargs.get("n_sweeps", 100)):
             self.model.metropolis_sweep(
-                kwargs.get("n_step_per_nodes", 10) * self.model.get_size()
+                kwargs.get("n_step_per_nodes", 10) * self.model.size()
             )
-            collector.update(self.model.get_graph())
+            collector.update(self.model.graph())
         self.__results__["prob"] = {
             e: 1 - collector.mle(e, 0)
             for e in collector.multiplicities.keys()
         }
-        self.__results__["pred"] = np.zeros(2 * (self.model.get_size(),))
+        self.__results__["pred"] = np.zeros(2 * (self.model.size(),))
         for e, p in self.__results__["prob"].items():
             self.__results__["pred"][e] = p
             if e[0] != e[1]:
@@ -346,8 +346,8 @@ def prepare_training_data(config: Config, n_train_samples: int = 100):
 
     for _ in range(n_train_samples):
         model.sample()
-        inputs.append(np.array(model.get_past_states()).T)
-        targets.append(np.array(model.get_future_states()).T)
+        inputs.append(np.array(model.past_states()).T)
+        targets.append(np.array(model.future_states()).T)
     return np.concatenate(inputs, axis=0), np.concatenate(targets, axis=0)
 
 
@@ -364,9 +364,7 @@ class AverageProbabilityPredictor(Predictor):
         self.model.set_state(inputs, targets)
         for _ in range(kwargs.get("n_train_samples", 100)):
             self.model.sample_prior()
-            self.avg_probs.append(
-                np.array(self.model.get_transition_matrix(1)).T
-            )
+            self.avg_probs.append(np.array(self.model.transition_matrix(1)).T)
         self.avg_probs = np.array(self.avg_probs).mean(axis=0)
         self.__results__["pred"] = self.avg_probs
 

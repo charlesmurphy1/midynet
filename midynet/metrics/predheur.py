@@ -96,12 +96,14 @@ class PredictionHeuristics(Expectation):
         if config.target != "None":
             g0 = GraphFactory.build(config.target)
         else:
-            g0 = graph_model.get_state()
-        x0 = data_model.get_random_state(config.data_model.get("n_active", -1))
+            g0 = graph_model.state()
+        x0 = data_model.random_state(config.data_model.get("n_active", -1))
         data_model.set_graph(g0)
         data_model.sample_state(x0)
-        timeseries = np.array(data_model.get_past_states())
-        g_feats = GraphFeatureExtractor(config.metrics.get("graph_features"))(g0)
+        timeseries = np.array(data_model.past_states())
+        g_feats = GraphFeatureExtractor(config.metrics.get("graph_features"))(
+            g0
+        )
         x_feats = StateFeatureExtractor(config.metrics.get("state_features"))(
             timeseries
         )
@@ -113,8 +115,12 @@ class LinearRegressionHeuristics(PredictionHeuristics):
         self, g_feats: Dict[str, np.ndarray], x_feats: Dict[str, np.ndarray]
     ) -> Dict[str, float]:
         model = LinearRegression()
-        inputs = np.concatenate([v[:, np.newaxis] for v in g_feats.values()], axis=1)
-        targets = np.concatenate([v[:, np.newaxis] for v in x_feats.values()], axis=1)
+        inputs = np.concatenate(
+            [v[:, np.newaxis] for v in g_feats.values()], axis=1
+        )
+        targets = np.concatenate(
+            [v[:, np.newaxis] for v in x_feats.values()], axis=1
+        )
         model.fit(inputs, targets)
         return dict(determination=model.score(inputs, targets))
 
@@ -129,12 +135,16 @@ class MutualInformationHeuristics(PredictionHeuristics):
     def score(self, g_feats: np.ndarray, x_feats: np.ndarray):
         g_keys = g_feats.keys()
         x_keys = x_feats.keys()
-        inputs = np.concatenate([g_feats[k][:, np.newaxis] for k in g_keys], axis=-1)
+        inputs = np.concatenate(
+            [g_feats[k][:, np.newaxis] for k in g_keys], axis=-1
+        )
         out = {}
         for xk in x_keys:
             x = x_feats[xk]
             mutual_info = (
-                mutual_info_regression if x.dtype == float else mutual_info_classif
+                mutual_info_regression
+                if x.dtype == float
+                else mutual_info_classif
             )
             mi = {k: v for k, v in zip(g_keys, mutual_info(inputs, x))}
             for gk, v in mi.items():

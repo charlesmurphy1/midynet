@@ -14,21 +14,26 @@ __all__ = ("MetricsConfig", "MetricsCollectionConfig", "MetricsFactory")
 class MCMCDataConfig(Config):
     @classmethod
     def exact(cls, **kwargs):
-        return cls("data_mcmc", method="exact", reset_original=True, **kwargs)
+        return cls(
+            "data_mcmc",
+            method="exact",
+            reset_original=kwargs.pop("reset_original", True),
+            **kwargs,
+        )
 
     @classmethod
     def meanfield(cls, **kwargs):
         return cls(
             "data_mcmc",
             method="meanfield",
-            n_sweeps=1000,
-            n_gibbs_sweeps=10,
-            n_steps_per_vertex=1,
-            burn_sweeps=4,
-            sample_prior=True,
-            sample_params=False,
-            start_from_original=False,
-            reset_original=True,
+            n_sweeps=kwargs.pop("n_sweeps", 1000),
+            n_gibbs_sweeps=kwargs.pop("n_gibbs_sweeps", 10),
+            n_steps_per_vertex=kwargs.pop("n_steps_per_vertex", 1),
+            burn_sweeps=kwargs.pop("burn_sweeps", 4),
+            sample_prior=kwargs.pop("sample_prior", True),
+            sample_params=kwargs.pop("sample_params", False),
+            start_from_original=kwargs.pop("start_from_original", False),
+            reset_original=kwargs.pop("reset_original", True),
             **kwargs,
         )
 
@@ -37,16 +42,16 @@ class MCMCDataConfig(Config):
         return cls(
             "annealed",
             method="annealed",
-            n_sweeps=1000,
-            n_gibbs_sweeps=10,
-            n_steps_per_vertex=1,
-            burn_sweeps=4,
-            sample_prior=True,
-            sample_params=False,
-            start_from_original=False,
-            reset_original=True,
-            n_betas=10,
-            exp_betas=0.5,
+            n_sweeps=kwargs.pop("n_sweeps", 1000),
+            n_gibbs_sweeps=kwargs.pop("n_gibbs_sweeps", 10),
+            n_steps_per_vertex=kwargs.pop("n_steps_per_vertex", 1),
+            burn_sweeps=kwargs.pop("burn_sweeps", 4),
+            sample_prior=kwargs.pop("sample_prior", True),
+            sample_params=kwargs.pop("sample_params", False),
+            start_from_original=kwargs.pop("start_from_original", False),
+            reset_original=kwargs.pop("reset_original", True),
+            n_betas=kwargs.pop("n_betas", 10),
+            exp_betas=kwargs.pop("exp_betas", 0.5),
             **kwargs,
         )
 
@@ -62,13 +67,15 @@ class MCMCGraphConfig(Config):
         return cls(
             "meanfield",
             method="partition_meanfield",
-            n_sweeps=1000,
-            n_steps_per_vertex=5,
-            n_gibbs_sweeps=10,
-            burn_sweeps=5,
-            start_from_original=False,
-            reset_original=True,
-            equilibriate_mode_cluster=False,
+            n_sweeps=kwargs.pop("n_sweeps", 1000),
+            n_gibbs_sweeps=kwargs.pop("n_gibbs_sweeps", 10),
+            n_steps_per_vertex=kwargs.pop("n_steps_per_vertex", 1),
+            burn_sweeps=kwargs.pop("burn_sweeps", 4),
+            start_from_original=kwargs.pop("start_from_original", False),
+            reset_original=kwargs.pop("reset_original", True),
+            equilibriate_mode_cluster=kwargs.pop(
+                "equilibriate_mode_cluster", False
+            ),
             **kwargs,
         )
 
@@ -109,6 +116,10 @@ class MetricsConfig(Config):
     @classmethod
     def bayesian(cls, **kwargs):
         return cls.mcmc("bayesian", **kwargs)
+
+    @classmethod
+    def entropy(cls, **kwargs):
+        return cls.mcmc("entropy", **kwargs)
 
     @classmethod
     def susceptibility(cls):
@@ -205,6 +216,10 @@ class MetricsFactory(Factory):
     @staticmethod
     def build_pred_error():
         return midynet.metrics.PredictionErrorMetrics()
+
+    @staticmethod
+    def build_entropy():
+        return midynet.metrics.EntropyMeasuresMetrics()
 
 
 if __name__ == "__main__":

@@ -3,10 +3,12 @@ from typing import Any, Dict, Tuple, List
 
 import numpy as np
 from math import ceil
-from graphinf.utility import seed as gi_seed
+from graphinf.utility import seed as gi_seed, EdgeCollector
+from graphinf.data.util import mcmc_on_graph
 from graphinf.graph import RandomGraphWrapper
 from midynet.config import Config, DataModelFactory, GraphFactory
 from basegraph import core as bg
+
 
 from .metrics import ExpectationMetrics
 from .multiprocess import Expectation
@@ -25,17 +27,17 @@ class EntropyMeasures(Expectation):
         prior = GraphFactory.build(config.prior)
         model = DataModelFactory.build(config.data_model)
 
-        model.set_graph_prior(prior)
+        model.set_prior(prior)
         if config.target == "None":
             prior.sample()
-            g0 = prior.get_state()
+            g0 = prior.state()
         else:
             target = GraphFactory.build(config.target)
             if isinstance(target, bg.UndirectedMultigraph):
                 g0 = target
             else:
                 assert issubclass(target.__class__, RandomGraphWrapper)
-                g0 = target.get_state()
+                g0 = target.state()
 
         model.set_graph(g0)
         if config.metrics.get("resample_graph", False):
@@ -44,7 +46,7 @@ class EntropyMeasures(Expectation):
         if "n_active" in config.data_model:
             n0 = config.data_model.get("n_active", -1)
             n0 = ceil(n0 * g0.get_size()) if 0 < n0 < 1 else n0
-            x0 = model.get_random_state(n0)
+            x0 = model.random_state(n0)
             model.sample_state(x0)
         else:
             model.sample_state()
@@ -56,38 +58,49 @@ class EntropyMeasures(Expectation):
         graph_mcmc.pop("name", None)
         data_mcmc.pop("name", None)
 
-        prior_entropy = -model.graph_prior.state_entropy(
-            n_samples=config.metrics.get("n_graph_samples", 25), **graph_mcmc
+        log_likelihood = model.log_likelihood()
+        collector = EdgeCollector()
+        collector.update(model.graph_copy())
+        mcmc_on_graph(
+            model,
+            callback=lambda m: collector.update(m.graph_copy()),
+            n_sweeps=data_mcmc.get("n_sweeps", 1000),
+            n_gibbs_sweeps=data_mcmc.get("n_gibbs_sweeps", 4),
+            n_steps_per_vertex=data_mcmc.get("n_steps_per_vertex", 1),
+            burn_sweeps=data_mcmc.get("burn_sweeps", 0),
+            sample_prior=data_mcmc.get("sample_prior", True),
+            sample_params=data_mcmc.get("sample_params", False),
+            start_from_original=data_mcmc.get("start_from_original", False),
+            reset_original=True,
+            verbose=False,
         )
-        posterior_entropy = model.posterior_entropy(**data_mcmc)
+        log_posterior = collector.log_prob_estimate(model.graph())
+        log_prior = model.prior.log_evidence(**graph_mcmc)
+        posterior_entropy = collector.entropy()
+        model.sample_prior()
+        prior_entropy = -model.prior.log_evidence(**graph_mcmc)
 
         return dict(
-            prior_entropy=np.mean(prior_entropy),
+            log_likelihood=log_likelihood,
+            log_prior=log_prior,
+            log_posterior=log_posterior,
+            prior_entropy=prior_entropy,
             posterior_entropy=posterior_entropy,
         )
 
     def func(self, seed: int) -> float:
         config, model_dict = self.setup(seed)
-        model, prior = model_dict["model"], model_dict["prior"]
+        model, _ = model_dict["model"], model_dict["prior"]
         out = self.gather(model, config)
-        out["mutualinfo"] = out["prior"] - out["posterior"]
-
-        if prior.labeled:
-            out["graph_joint"] = prior.log_joint()
-            out["graph_prior"] = prior.get_label_log_joint()
-            out["graph_evidence"] = -out["prior"]
-            out["graph_posterior"] = (
-                out["graph_joint"] - out["graph_evidence"]
-            )
         if config.metrics.get("to_bits", True):
             out = {k: v / np.log(2) for k, v in out.items()}
         return out
 
 
-class BayesianInformationMeasuresMetrics(ExpectationMetrics):
-    shortname = "reconinfo"
+class EntropyMeasuresMetrics(ExpectationMetrics):
+    shortname = "entropy"
     keys = [
-        "prior",
+        "prior_entropy",
         "likelihood",
         "posterior",
         "evidence",
@@ -95,7 +108,7 @@ class BayesianInformationMeasuresMetrics(ExpectationMetrics):
         "recon",
         "pred",
     ]
-    expectation_factory = BayesianInformationMeasures
+    expectation_factory = EntropyMeasures
 
     def postprocess(
         self, samples: List[Dict[str, float]]
@@ -103,8 +116,6 @@ class BayesianInformationMeasuresMetrics(ExpectationMetrics):
         stats = self.reduce(
             samples, self.configs.metrics.get("reduction", "normal")
         )
-        stats["recon"] = stats["mutualinfo"] / stats["prior"]
-        stats["pred"] = stats["mutualinfo"] / stats["evidence"]
         out = self.format(stats)
         print(out)
         return out

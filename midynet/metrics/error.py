@@ -36,24 +36,24 @@ class ReconstructionError(Expectation):
 
         if config.target != "None":
             prior.sample()
-            g0 = prior.get_state()
+            g0 = prior.state()
         else:
             target = GraphFactory.build(config.target)
             if isinstance(target, bs.UndirectedMultigraph):
                 g0 = target
             else:
                 assert issubclass(target.__class__, RandomGraphWrapper)
-                g0 = target.get_state()
+                g0 = target.state()
         prior.from_graph(g0)
 
         if "n_active" in config.data_model:
-            x0 = model.get_random_state(config.data_model.get("n_active", -1))
+            x0 = model.random_state(config.data_model.get("n_active", -1))
 
             model.sample_state(x0)
-            x = np.array(model.get_past_states())
+            x = np.array(model.past_states())
         else:
             model.sample_state()
-            x = np.array(model.get_state())
+            x = np.array(model.state())
 
         # Reconstruction
         if config.metrics.get("reconstructor") == "bayesian":
@@ -95,23 +95,23 @@ class PredictionError(Expectation):
         prior = GraphFactory.build(config.prior)
         model = DataModelFactory.build(config.data_model)
         model.set_graph_prior(prior)
-        g0 = model.get_graph()
+        g0 = model.graph()
 
         if "n_active" in config.data_model:
-            x0 = model.get_random_state(config.data_model.get("n_active", -1))
+            x0 = model.random_state(config.data_model.get("n_active", -1))
 
             model.sample_state(x0)
-            x = np.array(model.get_past_states()).T
+            x = np.array(model.past_states()).T
         else:
             model.sample_state()
-            x = np.array(model.get_state()).T
+            x = np.array(model.state()).T
 
         # Prediction
         if config.metrics.get("predictor") == "average_probability":
             predictor = AverageProbabilityPredictor(config)
             predictor.fit(
-                inputs=model.get_past_states(),
-                targets=model.get_future_states(),
+                inputs=model.past_states(),
+                targets=model.future_states(),
                 n_train_samples=config.metrics.get("n_train_samples", 100),
             )
         else:
@@ -123,7 +123,7 @@ class PredictionError(Expectation):
             predictor.fit(x_train, y_train, **config.metrics)
 
         # Evaluation
-        targets = np.array(model.get_transition_matrix(out_state=1)).T
+        targets = np.array(model.transition_matrix(out_state=1)).T
         preds = predictor.predict(inputs=x)
         out = predictor.eval(targets, preds, measures=config.metrics.measures)
         out = {k: v for k, v in out.items() if isinstance(v, (float, int))}

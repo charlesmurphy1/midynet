@@ -34,18 +34,16 @@ class PastDependentInformationMeasures(Expectation):
         data_model.set_graph_prior(prior)
         if config.target == "None":
             prior.sample()
-            g0 = prior.get_state()
+            g0 = prior.state()
         else:
-            g0 = prior.get_state()
-        x0 = data_model.get_random_state(
-            config.data_model.get("n_active", -1)
-        )
+            g0 = prior.state()
+        x0 = data_model.random_state(config.data_model.get("n_active", -1))
         data_model.set_graph(g0)
         data_model.sample_state(x0)
         out = {}
 
         # computing full
-        og = data_model.get_graph()
+        og = data_model.graph()
 
         data_model.set_graph(og)
         full = self.gather(data_model, metrics_cf)
@@ -67,8 +65,8 @@ class PastDependentInformationMeasures(Expectation):
         out["mutualinfo_past"] = past["prior"] - past["posterior"]
 
         if prior.labeled:
-            out["graph_joint"] = prior.get_log_joint()
-            out["graph_prior"] = prior.get_label_log_joint()
+            out["graph_joint"] = prior.log_joint()
+            out["graph_prior"] = prior.label_log_joint()
             out["graph_evidence"] = -full["prior"]
             out["graph_posterior"] = (
                 out["graph_joint"] - out["graph_evidence"]

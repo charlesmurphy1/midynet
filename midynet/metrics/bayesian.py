@@ -27,14 +27,14 @@ class BayesianInformationMeasures(Expectation):
         model.set_graph_prior(prior)
         if config.target == "None":
             prior.sample()
-            g0 = prior.get_state()
+            g0 = prior.state()
         else:
             target = GraphFactory.build(config.target)
             if isinstance(target, bg.UndirectedMultigraph):
                 g0 = target
             else:
                 assert issubclass(target.__class__, RandomGraphWrapper)
-                g0 = target.get_state()
+                g0 = target.state()
 
         model.set_graph(g0)
         if config.metrics.get("resample_graph", False):
@@ -43,7 +43,7 @@ class BayesianInformationMeasures(Expectation):
         if "n_active" in config.data_model:
             n0 = config.data_model.get("n_active", -1)
             n0 = ceil(n0 * g0.get_size()) if 0 < n0 < 1 else n0
-            x0 = model.get_random_state(n0)
+            x0 = model.random_state(n0)
             model.sample_state(x0)
         else:
             model.sample_state()
@@ -74,7 +74,7 @@ class BayesianInformationMeasures(Expectation):
 
         if prior.labeled:
             out["graph_joint"] = prior.log_joint()
-            out["graph_prior"] = prior.get_label_log_joint()
+            out["graph_prior"] = prior.label_log_joint()
             out["graph_evidence"] = -out["prior"]
             out["graph_posterior"] = (
                 out["graph_joint"] - out["graph_evidence"]

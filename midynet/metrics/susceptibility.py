@@ -72,13 +72,13 @@ class Susceptibility(Expectation):
 
         model.set_graph_prior(prior)
         if config.target is None:
-            g0 = prior.get_state()
+            g0 = prior.state()
         else:
             target = GraphFactory.build(config.target)
             if isinstance(target, bg.UndirectedMultigraph):
                 g0 = target
             elif isinstance(target, RandomGraphWrapper):
-                g0 = target.get_state()
+                g0 = target.state()
 
         prior.set_state(g0)
         if config.metrics.get("resample_graph", False):
@@ -86,7 +86,7 @@ class Susceptibility(Expectation):
         if "n_active" in config.data_model:
             n0 = config.data_model.get("n_active", -1)
             n0 = ceil(n0 * g0.get_size()) if 0 < n0 < 1 else n0
-            x0 = model.get_random_state(n0)
+            x0 = model.random_state(n0)
             model.sample_state(x0)
         else:
             model.sample_state()
@@ -95,7 +95,7 @@ class Susceptibility(Expectation):
     def func(self, seed: int) -> Dict[str, float]:
         config, model_dict = self.setup(seed)
         model = model_dict["model"]
-        X = np.array(model.get_past_states())
+        X = np.array(model.past_states())
         avg = average_func[config.data_model.name](X)
         susc = susceptibility_func[config.data_model.name](X)
         out = dict(average=avg, susceptibility=susc)
