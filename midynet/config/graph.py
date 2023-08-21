@@ -269,6 +269,8 @@ class GraphConfig(Config):
 
 
 class GraphFactory(Factory):
+    __all_configs__ = GraphConfig
+
     @staticmethod
     def load_gtgraph(
         name: str, weight_name: str = None

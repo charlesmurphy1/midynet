@@ -122,10 +122,14 @@ class DataModelConfig(Config):
 
 
 class DataModelFactory(Factory):
+    __all_config__ = DataModelConfig
+
     @classmethod
     def build(cls, config: Config) -> Any:
         options = {
-            k[6:]: getattr(cls, k) for k in cls.__dict__.keys() if k[:6] == "build_"
+            k[6:]: getattr(cls, k)
+            for k in cls.__dict__.keys()
+            if k[:6] == "build_"
         }
         name = config.name
         if name in options:
@@ -170,4 +174,6 @@ class DataModelFactory(Factory):
 
     @staticmethod
     def build_poisson_graph(config: DataModelConfig):
-        return PoissonUncertainGraph(mu=config.mu, mu_no_edge=config.mu_no_edge)
+        return PoissonUncertainGraph(
+            mu=config.mu, mu_no_edge=config.mu_no_edge
+        )

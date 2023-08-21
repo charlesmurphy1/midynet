@@ -59,8 +59,10 @@ class EntropyMeasures(Expectation):
         data_mcmc.pop("name", None)
 
         log_likelihood = model.log_likelihood()
-        collector = EdgeCollector()
-        collector.update(model.graph_copy())
+        collector = EdgeCollector(
+            graphs=[model.graph_copy()],
+            epsilon=data_mcmc.get("epsilon", 1e-5),
+        )
         mcmc_on_graph(
             model,
             callback=lambda m: collector.update(m.graph_copy()),
@@ -77,15 +79,20 @@ class EntropyMeasures(Expectation):
         log_posterior = collector.log_prob_estimate(model.graph())
         log_prior = model.prior.log_evidence(**graph_mcmc)
         posterior_entropy = collector.entropy()
-        model.sample_prior()
-        prior_entropy = -model.prior.log_evidence(**graph_mcmc)
-
+        prior_entropy = []
+        for _ in config.metrics.get("n_graph_samples", 1):
+            g = collector.sample()
+            prior_entropy.append(
+                -model.prior.log_evidence(graph=g, **graph_mcmc)
+            )
+        prior_entropy = np.mean(prior_entropy)
         return dict(
             log_likelihood=log_likelihood,
             log_prior=log_prior,
             log_posterior=log_posterior,
             prior_entropy=prior_entropy,
             posterior_entropy=posterior_entropy,
+            gain=prior_entropy - posterior_entropy,
         )
 
     def func(self, seed: int) -> float:
