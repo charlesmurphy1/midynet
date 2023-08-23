@@ -17,7 +17,7 @@ from midynet.scripts import ScriptManager
 
 dotenv.load_dotenv()
 PATH_TO_DATA = os.getenv("PATH_TO_DATA", "../../data")
-PATH_TO_VENV = os.getenv("PATH_TO_VENV", None)
+PATH_TO_VENV = os.getenv("PATH_TO_VENV", "../../venv")
 EXECUTION_COMMAND = os.getenv("EXECUTION_COMMAND", "bash")
 ACCOUNT = os.getenv("ACCOUNT", None)
 
@@ -65,18 +65,20 @@ targets = {
     "large_planted_partition": GraphConfig.planted_partition(
         size=1000, edge_count=2500, block_count=10
     ),
-    "karate": GraphConfig.karate(path=f"{PATH_TO_DATA}/graphs/karate.npy"),
+    "karate": GraphConfig.karate(
+        path=os.path.join(PATH_TO_DATA, "graphs/karate.pkl")
+    ),
     "littlerock": GraphConfig.littlerock(
-        path=f"{PATH_TO_DATA}/graphs/littlerock.npy"
+        path=os.path.join(PATH_TO_DATA, "graphs/littlerock.pkl")
     ),
     "polblogs": GraphConfig.polblogs(
-        path=f"{PATH_TO_DATA}/graphs/polblogs.npy",
+        path=os.path.join(PATH_TO_DATA, "graphs/polblogs.pkl"),
     ),
     "euairlines": GraphConfig.euairlines(
-        path=f"{PATH_TO_DATA}/graphs/euairlines.npy",
+        path=os.path.join(PATH_TO_DATA, "graphs/euairlines.pkl"),
     ),
-    "celegans": GraphConfig.euairlines(
-        path=f"{PATH_TO_DATA}/graphs/celegans.npy",
+    "celegans": GraphConfig.celegans(
+        path=os.path.join(PATH_TO_DATA, "graphs/celegans.pkl"),
     ),
 }
 
@@ -101,7 +103,7 @@ class EfficiencyGraphsConfig:
 
         graph_mcmc = MCMCGraphConfig.meanfield(
             n_sweeps=10,
-            n_steps_per_vertex=5,
+            n_steps_per_vertex=1,
             burn_sweeps=5,
         )
         data_mcmc = MCMCDataConfig.meanfield(
@@ -174,11 +176,11 @@ def main():
     ]:
         config = EfficiencyGraphsConfig.default(
             model,
-            n_workers=64,
-            n_samples_per_worker=4,
+            n_workers=32,
+            n_samples_per_worker=6,
             time="24:00:00",
-            mem=240,
-            path_to_data=f"{PATH_TO_DATA}/recon-entropy/{model}",
+            mem=124,
+            path_to_data=os.path.join(PATH_TO_DATA, f"recon-entropy/{model}"),
         )
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)
@@ -191,7 +193,7 @@ def main():
             path_to_scripts="./scripts",
         )
         extra_args = {
-            "run": f"recon-entropy with {model} - tr1",
+            # "run": f"recon-entropy with {model} - tr1",
             "name": config.name,
             "path_to_config": path_to_config,
             "resume": args.resume,

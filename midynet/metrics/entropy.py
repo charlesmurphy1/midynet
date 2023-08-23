@@ -16,6 +16,19 @@ from .multiprocess import Expectation
 __all__ = ("ReconstructionInformation", "ReconstructionInformationMetrics")
 
 
+class CallbackEdgeCollector:
+    def __init__(self, collector: EdgeCollector, freq: int = 1):
+        self.iteration = 0
+        self.collector = collector
+        self.freq = freq
+
+    def __call__(self, model):
+        self.collector.update(
+            model.graph_copy(), keep_graph=self.iteration % self.freq == 0
+        )
+        self.iteration += 1
+
+
 class EntropyMeasures(Expectation):
     def __init__(self, config: Config, **kwargs):
         self.params = config.dict
@@ -63,9 +76,17 @@ class EntropyMeasures(Expectation):
             graphs=[model.graph_copy()],
             epsilon=data_mcmc.get("epsilon", 1e-5),
         )
+        freq = max(
+            1,
+            data_mcmc.get("n_sweeps", 1000)
+            // config.metrics.get("n_graph_samples", 1),
+        )
+
+        callback = CallbackEdgeCollector(collector, freq=freq)
+
         mcmc_on_graph(
             model,
-            callback=lambda m: collector.update(m.graph_copy()),
+            callback=callback,
             n_sweeps=data_mcmc.get("n_sweeps", 1000),
             n_gibbs_sweeps=data_mcmc.get("n_gibbs_sweeps", 4),
             n_steps_per_vertex=data_mcmc.get("n_steps_per_vertex", 1),
@@ -80,11 +101,13 @@ class EntropyMeasures(Expectation):
         log_prior = model.prior.log_evidence(**graph_mcmc)
         posterior_entropy = collector.entropy()
         prior_entropy = []
-        for _ in config.metrics.get("n_graph_samples", 1):
-            g = collector.sample()
+        for _ in range(config.metrics.get("n_graph_samples", 1)):
+            g = collector.sample_from_collection()
+            # posterior_entropy.append(collector.log_prob_estimate(g))
             prior_entropy.append(
                 -model.prior.log_evidence(graph=g, **graph_mcmc)
             )
+        posterior_entropy = np.mean(posterior_entropy)
         prior_entropy = np.mean(prior_entropy)
         return dict(
             log_likelihood=log_likelihood,

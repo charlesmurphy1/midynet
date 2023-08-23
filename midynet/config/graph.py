@@ -288,6 +288,10 @@ class GraphFactory(Factory):
 
     @staticmethod
     def load_graph(config: GraphConfig) -> core.UndirectedMultigraph:
+        if config.path is not None:
+            from graphinf.utility import load_graph
+
+            return load_graph(config.path)
         try:
             # print("Fetching graph from Network Repo...")
             return GraphFactory.load_gtgraph(
