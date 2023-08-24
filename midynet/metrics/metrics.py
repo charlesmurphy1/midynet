@@ -25,7 +25,7 @@ class Metrics:
     keys = []
 
     def __init__(self):
-        self.data = {}
+        self.data = None
 
     def eval(
         self,
@@ -83,7 +83,10 @@ class Metrics:
             for k, v in self.configs.summarize_subconfig(config).items():
                 raw[k] = v
             raw["experiment"] = config.name
-            self.data = pd.concat([self.data, raw], ignore_index=True)
+            if self.data is None:
+                self.data = raw.copy()
+            else:
+                self.data = pd.concat([self.data, raw], ignore_index=True)
             for c in callbacks:
                 c.update()
         return self.data
@@ -116,7 +119,11 @@ class Metrics:
                 for k, v in self.configs.summarize_subconfig(config).items():
                     raw[k] = v
                 raw["experiment"] = config.name
-                self.data = pd.concat([self.data, raw], ignore_index=True)
+
+                if self.data is None:
+                    self.data = raw.copy()
+                else:
+                    self.data = pd.concat([self.data, raw], ignore_index=True)
 
             # callbacks update
             for c in callbacks:
