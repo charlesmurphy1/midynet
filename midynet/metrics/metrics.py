@@ -74,8 +74,6 @@ class Metrics:
         callbacks: Optional[List[MetricsCallback]] = None,
     ):
         callbacks = [] if callbacks is None else callbacks
-        data = defaultdict(pd.DataFrame)
-        data.update(self.data)
         for i, config in enumerate(config_seq):
             if n_workers > 1:
                 with mp.get_context("spawn").Pool(n_workers) as p:
@@ -84,13 +82,11 @@ class Metrics:
                 raw = pd.DataFrame(self.postprocess(self.eval(config)))
             for k, v in self.configs.summarize_subconfig(config).items():
                 raw[k] = v
-            data[config.name] = pd.concat(
-                [data[config.name], raw], ignore_index=True
-            )
-            self.data = data.copy()
+            raw["experiment"] = config.name
+            self.data = pd.concat([self.data, raw], ignore_index=True)
             for c in callbacks:
                 c.update()
-        return data
+        return self.data
 
     def run_async(
         self,
@@ -102,8 +98,6 @@ class Metrics:
         if n_workers == 1:
             raise ValueError("Cannot use async mode when n_workers == 1.")
         callbacks = [] if callbacks is None else callbacks
-        data = defaultdict(pd.DataFrame)
-        data.update(self.data)
         for batch in to_batch(config_seq, n_async_jobs):
             with mp.get_context("spawn").Pool(n_workers) as p:
                 async_jobs = []
@@ -121,15 +115,14 @@ class Metrics:
                 raw = pd.DataFrame(self.postprocess(job.get()))
                 for k, v in self.configs.summarize_subconfig(config).items():
                     raw[k] = v
-                data[config.name] = pd.concat(
-                    [data[config.name], raw], ignore_index=True
-                )
-            self.data = data.copy()
+                raw["experiment"] = config.name
+                self.data = pd.concat([self.data, raw], ignore_index=True)
+
             # callbacks update
             for c in callbacks:
                 c.update()
 
-        return data
+        return self.data
 
     def postprocess(self, raw):
         return raw

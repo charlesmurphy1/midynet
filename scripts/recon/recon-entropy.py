@@ -102,12 +102,12 @@ class EfficiencyGraphsConfig:
             os.makedirs(path_to_data)
 
         graph_mcmc = MCMCGraphConfig.meanfield(
-            n_sweeps=10,
+            n_sweeps=1000,
             n_steps_per_vertex=1,
             burn_sweeps=5,
         )
         data_mcmc = MCMCDataConfig.meanfield(
-            n_sweeps=10,
+            n_sweeps=1000,
             n_gibbs_sweeps=4,
             burn_sweeps=5,
             sample_prior=True,
@@ -115,7 +115,9 @@ class EfficiencyGraphsConfig:
         )
 
         metrics = [
-            MetricsConfig.entropy(graph_mcmc=graph_mcmc, data_mcmc=data_mcmc),
+            MetricsConfig.entropy(
+                graph_mcmc=graph_mcmc, data_mcmc=data_mcmc, n_graph_samples=20
+            ),
         ]
 
         config = ExperimentConfig.default(
@@ -171,12 +173,12 @@ def main():
         "karate",
         "littlerock",
         # "polblogs",
-        "euairlines",
-        "celegans",
+        # "euairlines",
+        # "celegans",
     ]:
         config = EfficiencyGraphsConfig.default(
             model,
-            n_workers=32,
+            n_workers=4,
             n_samples_per_worker=6,
             time="24:00:00",
             mem=124,

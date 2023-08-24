@@ -119,7 +119,11 @@ class MetricsConfig(Config):
 
     @classmethod
     def entropy(cls, **kwargs):
-        return cls.mcmc("entropy", **kwargs)
+        return cls.mcmc(
+            "entropy",
+            n_graph_samples=kwargs.pop("n_graph_samples", 20),
+            **kwargs,
+        )
 
     @classmethod
     def susceptibility(cls):
