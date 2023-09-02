@@ -11,7 +11,13 @@ import numpy as np
 from graphinf.data import DataModel
 from graphinf.utility import EdgeCollector
 from graphinf.utility import seed as gi_seed
-from midynet.config import Config, DataModelFactory, GraphFactory, OptionError
+from midynet.config import (
+    Config,
+    GraphConfig,
+    DataModelFactory,
+    GraphFactory,
+    OptionError,
+)
 from netrd import reconstruction as _reconstruction
 from scipy.optimize import minimize_scalar
 from sklearn.linear_model import LogisticRegression
@@ -82,7 +88,7 @@ class ProbabilityCalibrator:
         intercept_prior: Optional[Tuple[float, float]] = None,
         coeff_prior: Optional[Tuple[float, float]] = None,
     ) -> None:
-        import pymc3
+        import pymc
 
         a_mu, a_sd = (
             intercept_prior if isinstance(coeff_prior, tuple) else (0, 1)
@@ -90,13 +96,13 @@ class ProbabilityCalibrator:
         b_mu, b_sd = (
             intercept_prior if isinstance(intercept_prior, tuple) else (0, 1)
         )
-        logging.getLogger("pymc3").setLevel("ERROR")
-        with pymc3.Model() as model:
-            coeff = pymc3.Normal("coeff", mu=a_mu, sd=a_sd)
-            intercept = pymc3.Normal("intercept", mu=b_mu, sd=b_sd)
-            probs = pymc3.invlogit(intercept + coeff * X)
-            likelihood = pymc3.Bernoulli("likelihood", p=probs, observed=y)
-            self._trace = pymc3.sample(
+        logging.getLogger("pymc").setLevel("ERROR")
+        with pymc.Model() as model:
+            coeff = pymc.Normal("coeff", mu=a_mu, sigma=a_sd)
+            intercept = pymc.Normal("intercept", mu=b_mu, sigma=b_sd)
+            probs = pymc.invlogit(intercept + coeff * X)
+            likelihood = pymc.Bernoulli("likelihood", p=probs, observed=y)
+            self._trace = pymc.sample(
                 steps, chains=1, progressbar=False, return_inferencedata=False
             )
 
@@ -161,6 +167,11 @@ class Reconstructor:
         pred_adj = threshold_weights(pred, true.sum())
 
         return dict(accuracy=accuracy_score(true, pred_adj))
+
+    def collect_mean_error(self, true, pred, **kwargs):
+        n = true.shape[0]
+        emax = n * (n + 1) / 2
+        return dict(mean_error=np.abs(true - pred).mean() / emax)
 
     def collect_confusion_matrix(self, true, pred, **kwargs):
         threshold = kwargs.get("threshold", norm_pred.mean())
@@ -242,7 +253,7 @@ class BayesianReconstructor(Reconstructor):
     def __init__(self, config):
         self.graph = GraphFactory.build(config.prior)
         self.model = DataModelFactory.build(config.data_model)
-        self.model.set_graph_prior(self.graph)
+        self.model.set_prior(self.graph)
         self.__results__ = dict()
 
     def fit(self, g0=None, **kwargs):
@@ -253,8 +264,10 @@ class BayesianReconstructor(Reconstructor):
             collector.update(g0)
         collector.update(self.model.graph())
         for _ in range(kwargs.get("n_sweeps", 100)):
-            self.model.metropolis_sweep(
-                kwargs.get("n_step_per_nodes", 10) * self.model.size()
+            self.model.gibbs_sweep(
+                kwargs.get("n_gibbs_sweeps", 10),
+                kwargs.get("sample_prior", True),
+                kwargs.get("sample_params", False),
             )
             collector.update(self.model.graph())
         self.__results__["prob"] = {
@@ -266,6 +279,19 @@ class BayesianReconstructor(Reconstructor):
             self.__results__["pred"][e] = p
             if e[0] != e[1]:
                 self.__results__["pred"][e[1], e[0]] = p
+
+
+class PeixotoReconstructor(BayesianReconstructor):
+    def __init__(self, config):
+        prior = GraphConfig.degree_corrected_stochastic_block_model(
+            size=config.prior.size,
+            edge_count=config.prior.edge_count,
+            degree_prior_type="hyper",
+        )
+        self.graph = GraphFactory.build(prior)
+        self.model = DataModelFactory.build(config.data_model)
+        self.model.set_prior(self.graph)
+        self.__results__ = dict()
 
 
 def get_reconstructor(config):
@@ -342,7 +368,7 @@ def prepare_training_data(config: Config, n_train_samples: int = 100):
 
     prior = GraphFactory.build(config.prior)
     model = DataModelFactory.build(config.data_model)
-    model.set_graph_prior(prior)
+    model.set_prior(prior)
 
     for _ in range(n_train_samples):
         model.sample()
@@ -357,7 +383,7 @@ class AverageProbabilityPredictor(Predictor):
         super().__init__()
         self.prior = GraphFactory.build(config.prior)
         self.model = DataModelFactory.build(config.data_model)
-        self.model.set_graph_prior(self.prior)
+        self.model.set_prior(self.prior)
 
     def fit(self, inputs, targets, **kwargs):
         self.avg_probs = []

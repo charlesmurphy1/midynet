@@ -1,15 +1,7 @@
-import os
-import sys
-import setuptools
-import importlib
-import pathlib
 from setuptools import setup, find_packages
 
 
 description = "Package for the analysis of stochastic processes on random graphs with information theory."
-if importlib.util.find_spec("graphinf") is None:
-    os.system("pip install modules/graphinf")
-
 
 setup(
     name="midynet",
@@ -32,4 +24,9 @@ setup(
     ],
     python_requires=">=3.6",
     zip_safe=False,
+    entry_points={
+        "console_scripts": [
+            "midynet-cmd=midynet.cli:main",
+        ],
+    },
 )

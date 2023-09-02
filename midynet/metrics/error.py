@@ -11,6 +11,7 @@ from midynet.statistics import Statistics
 from .heuristics import (
     AverageProbabilityPredictor,
     BayesianReconstructor,
+    PeixotoReconstructor,
     get_predictor,
     get_reconstructor,
     prepare_training_data,
@@ -32,7 +33,7 @@ class ReconstructionError(Expectation):
         config = Config.from_dict(self.params)
         prior = GraphFactory.build(config.prior)
         model = DataModelFactory.build(config.data_model)
-        model.set_graph_prior(prior)
+        model.set_prior(prior)
 
         if config.target != "None":
             prior.sample()
@@ -58,7 +59,12 @@ class ReconstructionError(Expectation):
         # Reconstruction
         if config.metrics.get("reconstructor") == "bayesian":
             reconstructor = BayesianReconstructor(config)
-            reconstructor.model.set_state_from(model)
+            reconstructor.model.from_model(model)
+            data_mcmc = config.metrics.get("data_mcmc", Config("c")).dict
+            reconstructor.fit(g0=g0, **data_mcmc)
+        elif config.metrics.get("reconstructor") == "peixoto":
+            reconstructor = PeixotoReconstructor(config)
+            reconstructor.model.from_model(model)
             data_mcmc = config.metrics.get("data_mcmc", Config("c")).dict
             reconstructor.fit(g0=g0, **data_mcmc)
         else:

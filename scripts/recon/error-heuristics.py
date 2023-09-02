@@ -29,10 +29,12 @@ model_dict = {
     )
 }
 target_dict = {
-    "erdosrenyi": GraphConfig.erdosrenyi(size=100, edge_count=250, loopy=True, multigraph=True),
+    "erdosrenyi": GraphConfig.erdosrenyi(
+        size=100, edge_count=250, loopy=True, multigraph=True
+    ),
     "littlerock": GraphConfig.littlerock(
         path="/home/murphy9/data/graphs/littlerock.npy",
-    )
+    ),
 }
 
 
@@ -114,7 +116,6 @@ def main():
             time="24:00:00",
             mem=16,
             save_path=f"/home/murphy9/data/error-heuristics/{target}",
-            # save_path=f"../data/error-heuristics/{target}",
         )
         if args.overwrite and os.path.exists(config.path):
             shutil.rmtree(config.path)
