@@ -1,6 +1,6 @@
 from .recon.error_heuristics import ErrorHeuristicsScriptConfig
 
 __all_configs__ = {
-    "error-heuristics": ErrorHeuristicsScriptConfig,
+    "recon.error-heuristics": ErrorHeuristicsScriptConfig,
 }
 __all__ = ("ErrorHeuristicsScriptConfig",)
