@@ -27,3 +27,4 @@ archive-*
 *.pkl
 *.npy
 *.DS_Store
+*.env

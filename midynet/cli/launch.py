@@ -58,9 +58,10 @@ class ScriptManager:
         shutil.rmtree(self.script_path)
 
     def run(self, name: str, **kwargs):
-        path_to_script = os.path.join(self.script_path, f"{name}.sh")
+        path = os.path.join(self.script_path, f"{name}.sh")
         script = self.write_script(**kwargs)
-        with open(path_to_script, "w") as f:
+        print(path)
+        with open(path, "w") as f:
             f.write(script)
         path_to_script = os.path.join(self.script_path, f"{name}.sh")
         os.system(f"{self.execution_command} {path_to_script}")
@@ -126,14 +127,7 @@ def launch_group():
     "--script-path",
     "-s",
     help="Path to the script to launch.",
-    default="./scripts/",
-    type=str,
-)
-@click.option(
-    "--config-path",
-    "-s",
-    help="Path to the config to launch.",
-    default="./configs/",
+    default=os.getenv("MD-SCRIPT_PATH", "./scripts"),
     type=str,
 )
 @click.option(
@@ -150,7 +144,6 @@ def launch_script(
     overwrite: bool,
     resume: bool,
     script_path: str,
-    config_path: str,
     test_mode: bool,
 ):
     configs = experiments.__all_configs__[exp_name]
@@ -161,7 +154,6 @@ def launch_script(
     )
     configs = configs(n_workers=n_workers, n_async_jobs=n_async_jobs)
     os.makedirs(script_path, exist_ok=True)
-    os.makedirs(config_path, exist_ok=True)
     for c in configs:
         c.resources.update(
             time=time,
@@ -174,7 +166,7 @@ def launch_script(
         if overwrite and os.path.exists(c.path):
             shutil.rmtree(c.path)
             os.makedirs(c.path)
-        config_path = os.path.join(config_path, f"{c.name}.pkl")
+        config_path = os.path.join(script_path, f"{c.name}.pkl")
         c.save(config_path)
         script = ScriptManager(
             executable=f"midynet-cmd run",
@@ -188,7 +180,9 @@ def launch_script(
         }
         script.run(
             name=c.name,
-            modules_to_load=os.getenv("MD-MODULES", []),
+            modules_to_load=os.getenv("MD-MODULES", "")
+            .replace(" ", "")
+            .split(","),
             virtualenv=os.getenv("MD-VIRTUALENV", None),
             extra_args=extra_args,
             resources=c.resources.dict,

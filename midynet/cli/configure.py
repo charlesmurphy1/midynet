@@ -19,6 +19,13 @@ def configure_group():
     type=str,
 )
 @click.option(
+    "--script-path",
+    "-s",
+    help="Path to the script folder.",
+    default=None,
+    type=str,
+)
+@click.option(
     "--n-workers",
     "-w",
     help="Number of workers.",
@@ -29,7 +36,7 @@ def configure_group():
     "--memory",
     "-m",
     help="Available RAM memory.",
-    default=0,
+    default=None,
     type=int,
 )
 @click.option(
@@ -41,6 +48,7 @@ def configure_group():
 )
 def configure_environment(
     data_path: str,
+    script_path: str,
     n_workers: int,
     memory: int,
     execution_command: str,
@@ -56,6 +64,13 @@ def configure_environment(
         if data_path == "":
             data_path = os.path.join(HOME, "midynet-data")
         os.makedirs(data_path, exist_ok=True)
+    if script_path is None:
+        script_path = input(
+            "Enter the path to the script folder [Default: '~/midynet-scripts']: "
+        )
+        if script_path == "":
+            script_path = os.path.join(HOME, "midynet-scripts")
+        os.makedirs(script_path, exist_ok=True)
     if n_workers is None:
         n_workers = input("Enter the number of workers [Default: 1]: ")
         if n_workers == "":
@@ -80,11 +95,12 @@ def configure_environment(
         if key == "":
             break
         value = input(f"Enter the value for {key}: ")
-        extra[key] = value
+        extra[key.upper()] = value
     env_path = os.path.join(HOME, ".md-env")
     print(f"Writing configuration file at `{env_path}`...")
     with open(env_path, "w") as f:
         f.write(f"MD-DATA_PATH={data_path}\n")
+        f.write(f"MD-SCRIPT_PATH={script_path}\n")
         f.write(f"MD-N_WORKERS={n_workers}\n")
         f.write(f"MD-MEMORY={memory}\n")
         f.write(f"MD-EXECUTION_COMMAND={execution_command}\n")
