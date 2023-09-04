@@ -165,7 +165,7 @@ def launch_script(
             cpus_per_task=n_workers,
             job_name=c.name,
             output=f"log/{c.name}.out",
-            mem_per_cpu=memory,
+            mem_per_cpu=f"{memory}G",
         )
 
         if overwrite and os.path.exists(c.path):
