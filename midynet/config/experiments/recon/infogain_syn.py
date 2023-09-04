@@ -90,7 +90,7 @@ class InfoGainSyntheticGraphsScriptConfig(ExperimentConfig):
         prior,
         target,
         n_workers=os.getenv("MD-N_WORKERS", 1),
-        n_samples_per_worker=1,
+        n_samples_per_worker=4,
         n_async_jobs=1,
         n_sweeps=1000,
         seed=None,
@@ -113,7 +113,7 @@ class InfoGainSyntheticGraphsScriptConfig(ExperimentConfig):
             )
         ]
         config = ExperimentConfig.default(
-            f"error-heuristics",
+            f"infogain-syn",
             data_model=InfoGainSyntheticGraphsScriptConfig.models[target],
             prior=InfoGainSyntheticGraphsScriptConfig.priors[prior],
             target=InfoGainSyntheticGraphsScriptConfig.targets[target],
@@ -153,5 +153,6 @@ class InfoGainSyntheticGraphsScriptConfig(ExperimentConfig):
         return InfoGainSyntheticGraphsScriptConfig.all(
             name="test-infogain-syn",
             n_sweeps=kwargs.pop("n_sweeps", 10),
+            n_samples_per_worker=kwargs.pop("n_samples_per_worker", 1),
             **kwargs,
         )
