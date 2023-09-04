@@ -188,9 +188,9 @@ def launch_script(
         print(c)
 
         if (
-            input("Press `Enter` to continue or `S` to skip...").upper()
+            not no_confirm
+            and input("Press `Enter` to continue or `S` to skip...").upper()
             == "S"
-            and not no_confirm
         ):
             print("Skipping...")
             continue
