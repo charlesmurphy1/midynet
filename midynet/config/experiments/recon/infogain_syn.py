@@ -123,6 +123,8 @@ class InfoGainSyntheticGraphsScriptConfig(ExperimentConfig):
             n_async_jobs=n_async_jobs,
             seed=seed,
         )
+        config.prior.size = config.target.size
+        config.prior.edge_count = config.target.edge_count
 
         config.lock()
         return config

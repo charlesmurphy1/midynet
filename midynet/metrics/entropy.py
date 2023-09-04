@@ -106,15 +106,15 @@ class EntropyMeasures(Expectation):
         evidence_entropy = []
         for _ in range(config.metrics.get("n_graph_samples", 1)):
             g = collector.sample_from_collection()
-            posterior_entropy.append(collector.log_prob_estimate(g))
+            posterior_entropy.append(-collector.log_prob_estimate(g))
             prior_entropy.append(
                 -model.prior.log_evidence(graph=g, **graph_mcmc)
             )
             model.set_graph(g)
             evidence_entropy.append(
-                model.log_likelihood()
-                + prior_entropy[-1]
-                - posterior_entropy[-1]
+                posterior_entropy[-1]
+                - model.log_likelihood()
+                - prior_entropy[-1]
             )
         posterior_entropy = np.mean(posterior_entropy)
         prior_entropy = np.mean(prior_entropy)
