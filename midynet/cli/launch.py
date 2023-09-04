@@ -176,7 +176,7 @@ def launch_script(
         c.save(config_path)
         script = ScriptManager(
             executable=f"midynet-cmd run",
-            execution_command=os.getenv("EXECUTION_COMMAND", "bash"),
+            execution_command=os.getenv("MD-EXECUTION_COMMAND", "bash"),
             script_path=script_path,
         )
         extra_args = {
