@@ -100,7 +100,7 @@ class PredictionError(Expectation):
         config = Config.from_dict(self.params)
         prior = GraphFactory.build(config.prior)
         model = DataModelFactory.build(config.data_model)
-        model.set_graph_prior(prior)
+        model.set_prior(prior)
         g0 = model.graph()
 
         if "n_active" in config.data_model:
@@ -133,9 +133,6 @@ class PredictionError(Expectation):
         preds = predictor.predict(inputs=x)
         out = predictor.eval(targets, preds, measures=config.metrics.measures)
         out = {k: v for k, v in out.items() if isinstance(v, (float, int))}
-        # out["mi"] = model.log_likelihood() - model.log_evidence(
-        #     method="exact"
-        # )
         return out
 
 

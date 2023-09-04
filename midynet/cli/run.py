@@ -51,7 +51,6 @@ def run_script(
     logger.addHandler(handler)
 
     begin = datetime.datetime.now()
-    print(metaconfig)
 
     for k in metaconfig.metrics.metrics_names:
         if logger is not None:

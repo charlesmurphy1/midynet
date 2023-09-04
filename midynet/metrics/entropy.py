@@ -99,23 +99,36 @@ class EntropyMeasures(Expectation):
         )
         log_posterior = collector.log_prob_estimate(model.graph())
         log_prior = model.prior.log_evidence(**graph_mcmc)
-        posterior_entropy = collector.entropy()
+        log_evidence = log_prior + log_likelihood - log_posterior
+        exact_posterior_entropy = collector.entropy()
         prior_entropy = []
+        posterior_entropy = []
+        evidence_entropy = []
         for _ in range(config.metrics.get("n_graph_samples", 1)):
             g = collector.sample_from_collection()
-            # posterior_entropy.append(collector.log_prob_estimate(g))
+            posterior_entropy.append(collector.log_prob_estimate(g))
             prior_entropy.append(
                 -model.prior.log_evidence(graph=g, **graph_mcmc)
             )
+            model.set_graph(g)
+            evidence_entropy.append(
+                model.log_likelihood()
+                + prior_entropy[-1]
+                - posterior_entropy[-1]
+            )
         posterior_entropy = np.mean(posterior_entropy)
         prior_entropy = np.mean(prior_entropy)
+        evidence_entropy = np.mean(evidence_entropy)
         return dict(
             log_likelihood=log_likelihood,
             log_prior=log_prior,
             log_posterior=log_posterior,
+            log_evidence=log_evidence,
             prior_entropy=prior_entropy,
             posterior_entropy=posterior_entropy,
-            gain=prior_entropy - posterior_entropy,
+            exact_posterior_entropy=exact_posterior_entropy,
+            evidence_entropy=evidence_entropy,
+            infogain=prior_entropy - exact_posterior_entropy,
         )
 
     def func(self, seed: int) -> float:
@@ -130,13 +143,15 @@ class EntropyMeasures(Expectation):
 class EntropyMeasuresMetrics(ExpectationMetrics):
     shortname = "entropy"
     keys = [
+        "log_likelihood",
+        "log_prior",
+        "log_posterior",
+        "log_evidence",
         "prior_entropy",
-        "likelihood",
-        "posterior",
-        "evidence",
-        "mutualinfo",
-        "recon",
-        "pred",
+        "posterior_entropy",
+        "exact_posterior_entropy",
+        "evidence_entropy",
+        "infogain",
     ]
     expectation_factory = EntropyMeasures
 

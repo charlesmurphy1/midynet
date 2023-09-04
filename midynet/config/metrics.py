@@ -118,6 +118,10 @@ class MetricsConfig(Config):
         return cls.mcmc("bayesian", **kwargs)
 
     @classmethod
+    def pastinfo(cls, **kwargs):
+        return cls.mcmc("pastinfo", past_length=1.0, **kwargs)
+
+    @classmethod
     def entropy(cls, **kwargs):
         return cls.mcmc(
             "entropy",
@@ -208,6 +212,10 @@ class MetricsFactory(Factory):
     @staticmethod
     def build_bayesian():
         return midynet.metrics.BayesianInformationMeasuresMetrics()
+
+    @staticmethod
+    def build_pastinfo():
+        return midynet.metrics.PastDependentInformationMeasureMetrics()
 
     @staticmethod
     def build_susceptibility():

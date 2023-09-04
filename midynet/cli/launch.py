@@ -135,6 +135,11 @@ def launch_group():
     help="Execute in test mode.",
     is_flag=True,
 )
+@click.option(
+    "--no-confirm",
+    help="Do not confirm before launching.",
+    is_flag=True,
+)
 def launch_script(
     exp_name: str,
     time: str,
@@ -145,6 +150,7 @@ def launch_script(
     resume: bool,
     script_path: str,
     test_mode: bool,
+    no_confirm: bool,
 ):
     configs = experiments.__all_configs__[exp_name]
     configs = (
@@ -158,8 +164,8 @@ def launch_script(
         c.resources.update(
             time=time,
             cpus_per_task=n_workers,
-            job_name=exp_name,
-            output=f"log/{exp_name}.out",
+            job_name=c.name,
+            output=f"log/{c.name}.out",
             mem_per_cpu=memory,
         )
 
@@ -178,6 +184,16 @@ def launch_script(
             "resume": resume,
             "save-patience": 1,
         }
+        print(f"Launching script with config: {c.name}")
+        print(c)
+
+        if (
+            input("Press `Enter` to continue or `S` to skip...").upper()
+            == "S"
+            and not no_confirm
+        ):
+            print("Skipping...")
+            continue
         script.run(
             name=c.name,
             modules_to_load=os.getenv("MD-MODULES", "")
@@ -187,3 +203,4 @@ def launch_script(
             extra_args=extra_args,
             resources=c.resources.dict,
         )
+    print("Done")

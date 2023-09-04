@@ -5,13 +5,12 @@ from math import ceil
 from midynet.config import ExperimentConfig, DataModelConfig, GraphConfig
 from midynet.config.experiments.util import format_sequence
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(os.path.join(os.path.expanduser("~"), ".md-env"))
 
 
 class ErrorHeuristicsScriptConfig(ExperimentConfig):
-    @classmethod
+    @staticmethod
     def default(
-        cls,
         save_path,
         n_workers=os.getenv("MD-N_WORKERS", 1),
         n_samples_per_worker=1,
