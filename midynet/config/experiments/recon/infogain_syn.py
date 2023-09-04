@@ -113,7 +113,7 @@ class InfoGainSyntheticGraphsScriptConfig(ExperimentConfig):
             )
         ]
         config = ExperimentConfig.default(
-            f"infogain-syn",
+            f"infogain-syn-{target}-with-{prior}",
             data_model=InfoGainSyntheticGraphsScriptConfig.models[target],
             prior=InfoGainSyntheticGraphsScriptConfig.priors[prior],
             target=InfoGainSyntheticGraphsScriptConfig.targets[target],

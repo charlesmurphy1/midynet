@@ -60,7 +60,6 @@ class ScriptManager:
     def run(self, name: str, **kwargs):
         path = os.path.join(self.script_path, f"{name}.sh")
         script = self.write_script(**kwargs)
-        print(path)
         with open(path, "w") as f:
             f.write(script)
         path_to_script = os.path.join(self.script_path, f"{name}.sh")
