@@ -59,27 +59,27 @@ class InfoGainSyntheticGraphsScriptConfig(ExperimentConfig):
         ),
         "karate": GraphConfig.karate(
             path=os.path.join(
-                os.getenv("MD-DATA_PATH", "."), "graphs/karate.npy"
+                os.getenv("MD-DATA_PATH", "."), "graphs/karate.pkl"
             )
         ),
         "littlerock": GraphConfig.littlerock(
             path=os.path.join(
-                os.getenv("MD-DATA_PATH", "."), "graphs/littlerock.npy"
+                os.getenv("MD-DATA_PATH", "."), "graphs/littlerock.pkl"
             )
         ),
         "polblogs": GraphConfig.polblogs(
             path=os.path.join(
-                os.getenv("MD-DATA_PATH", "."), "graphs/polblogs.npy"
+                os.getenv("MD-DATA_PATH", "."), "graphs/polblogs.pkl"
             ),
         ),
         "euairlines": GraphConfig.euairlines(
             path=os.path.join(
-                os.getenv("MD-DATA_PATH", "."), "graphs/euairlines.npy"
+                os.getenv("MD-DATA_PATH", "."), "graphs/euairlines.pkl"
             ),
         ),
         "celegans": GraphConfig.euairlines(
             path=os.path.join(
-                os.getenv("MD-DATA_PATH", "."), "graphs/celegans.npy"
+                os.getenv("MD-DATA_PATH", "."), "graphs/celegans.pkl"
             ),
         ),
     }
