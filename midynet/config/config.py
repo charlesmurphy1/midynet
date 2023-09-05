@@ -40,6 +40,9 @@ class Config(BaseConfig):
         super().__init__(**kwargs)
         self.name: str = name
 
+    def __contains__(self, key: str) -> bool:
+        return key in self.__dict__ or key in self.dict
+
     def __setattr__(self, name: str, value: Any) -> None:
         if name in [
             "_name",
@@ -118,17 +121,18 @@ class Config(BaseConfig):
 
     def get(self, key: str, default: Any = None) -> Any:
         components = key.split(self.separator)
-        if (key not in self or self._state[key] is None) and len(components) == 1:
+        if (key not in self or self._state[key] is None) and len(
+            components
+        ) == 1:
             return default
         if key in self and self._state[key] is not None:
             return self._state[key]
-        
+
         subkey = self.separator.join(components[1:])
         assert not isinstance(
             self._state[components[0]], (list, tuple, set)
         ), f"In get: Component {components[0]} of key {key} must not be iterable."
         return self._state[components[0]].get(subkey, default)
-
 
     def __len__(self) -> int:
         return len(list(self.to_sequence()))
@@ -142,7 +146,8 @@ class Config(BaseConfig):
                 d[key] = item.dict
             elif issubclass(item.__class__, list):
                 d[key] = [
-                    i.dict if issubclass(i.__class__, Config) else i for i in item
+                    i.dict if issubclass(i.__class__, Config) else i
+                    for i in item
                 ]
             else:
                 d[key] = item
@@ -297,7 +302,9 @@ class Config(BaseConfig):
                 values.update(
                     {
                         k + self.separator + _k: _v
-                        for _k, _v in v.summarize_subconfig(config._state[k]).items()
+                        for _k, _v in v.summarize_subconfig(
+                            config._state[k]
+                        ).items()
                     }
                 )
         return values

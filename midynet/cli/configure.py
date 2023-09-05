@@ -63,6 +63,8 @@ def configure_environment(
         )
         if data_path == "":
             data_path = os.path.join(HOME, "midynet-data")
+        else:
+            data_path = os.path.abspath(data_path)
         os.makedirs(data_path, exist_ok=True)
     if script_path is None:
         script_path = input(
@@ -70,6 +72,8 @@ def configure_environment(
         )
         if script_path == "":
             script_path = os.path.join(HOME, "midynet-scripts")
+        else:
+            script_path = os.path.abspath(script_path)
         os.makedirs(script_path, exist_ok=True)
     if n_workers is None:
         n_workers = input("Enter the number of workers [Default: 1]: ")

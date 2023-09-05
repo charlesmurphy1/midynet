@@ -87,8 +87,8 @@ class InfoGainSyntheticGraphsScriptConfig(ExperimentConfig):
     @staticmethod
     def default(
         save_path,
-        prior,
         target,
+        prior,
         n_workers=os.getenv("MD-N_WORKERS", 1),
         n_samples_per_worker=4,
         n_async_jobs=1,
@@ -123,8 +123,6 @@ class InfoGainSyntheticGraphsScriptConfig(ExperimentConfig):
             n_async_jobs=n_async_jobs,
             seed=seed,
         )
-        config.prior.size = config.target.size
-        config.prior.edge_count = config.target.edge_count
 
         config.lock()
         return config
@@ -141,9 +139,9 @@ class InfoGainSyntheticGraphsScriptConfig(ExperimentConfig):
         p_keys = InfoGainSyntheticGraphsScriptConfig.priors.keys()
         exps = [
             InfoGainSyntheticGraphsScriptConfig.default(
-                target=t,
-                prior=p,
-                save_path=path(t, p),
+                path(t, p),
+                t,
+                p,
                 **kwargs,
             )
             for t, p in product(t_keys, p_keys)
