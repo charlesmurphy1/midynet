@@ -137,16 +137,13 @@ class InfoGainSyntheticGraphsScriptConfig(ExperimentConfig):
         )
         t_keys = ["erdosrenyi", "planted_partition", "karate", "littlerock"]
         p_keys = InfoGainSyntheticGraphsScriptConfig.priors.keys()
-        exps = [
-            InfoGainSyntheticGraphsScriptConfig.default(
+        for t, p in product(t_keys, p_keys):
+            yield InfoGainSyntheticGraphsScriptConfig.default(
                 path(t, p),
                 t,
                 p,
                 **kwargs,
             )
-            for t, p in product(t_keys, p_keys)
-        ]
-        return exps
 
     @staticmethod
     def test(**kwargs):

@@ -22,10 +22,8 @@ __all__ = ("GraphConfig", "GraphFactory")
 @static
 class GraphConfig(Config):
     def from_target(self, target: Config):
-        print(self)
         for prop in ["size", "edge_count", "loopy", "multigraph"]:
             if prop in self and prop in target:
-                print("here", self.dict[prop])
                 setattr(self, prop, target.get(prop))
 
     @classmethod
