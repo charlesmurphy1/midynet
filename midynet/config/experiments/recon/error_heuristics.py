@@ -28,13 +28,19 @@ class ErrorHeuristicsScriptConfig(ExperimentConfig):
             f"error-heuristics",
             data_model=model,
             prior=prior,
-            target=prior,
-            metrics=["recon_error"],
+            metrics=["recon_error", "bayesian"],
             path=save_path,
             n_workers=n_workers,
             n_async_jobs=n_async_jobs,
             seed=seed,
         )
+
+        config.metrics.bayesian.n_samples = n_samples_per_worker * ceil(
+            n_workers / n_async_jobs
+        )
+        config.metrics.bayesian.data_mcmc.n_sweeps = n_sweeps
+        config.metrics.bayesian.graph_mcmc.n_sweeps = n_sweeps
+        config.metrics.bayesian.reduction = "identity"
 
         config.metrics.recon_error.n_samples = n_samples_per_worker * ceil(
             n_workers / n_async_jobs
